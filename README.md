@@ -2,7 +2,7 @@
 
 Minimal SaaS for sending recurring reminder emails to people who owe you money.
 
-Tech: Next.js (App Router), TypeScript, Tailwind, Supabase, Stripe, Resend.
+Tech: Next.js (App Router), TypeScript, Tailwind, Supabase, Lemon Squeezy, Resend.
 
 ## Getting Started
 
@@ -29,17 +29,15 @@ cp .env.example .env.local
   - Configure redirect URLs:
     - `http://localhost:3000/auth/callback`
 
-### 4) Stripe setup
+### 4) Lemon Squeezy setup
 
-- Create a Stripe product with a **$1/month** recurring price
-- Set `STRIPE_PRICE_ID_MONTHLY` to the price id (e.g. `price_...`)
+- Create a **$1/month** subscription product + variant
+- Set:
+  - `LEMON_SQUEEZY_STORE_ID`
+  - `LEMON_SQUEEZY_VARIANT_ID_MONTHLY`
 - Create a webhook endpoint pointing to:
-  - `http://localhost:3000/api/stripe/webhook`
-- Subscribe to events:
-  - `checkout.session.completed`
-  - `customer.subscription.created`
-  - `customer.subscription.updated`
-  - `customer.subscription.deleted`
+  - `http://localhost:3000/api/lemon/webhook`
+- Set the webhook signing secret in `LEMON_SQUEEZY_WEBHOOK_SECRET`
 
 ### 5) Resend setup
 
@@ -73,7 +71,7 @@ Open `http://localhost:3000`.
 
 The schema lives in `supabase/schema.sql` and includes:
 
-- `profiles` (Stripe customer/subscription fields)
+- `profiles` (Lemon Squeezy subscription fields)
 - `reminders` (recurring reminder configuration + unsubscribe token)
 - `usage_events` (basic rate limiting)
 - RLS policies (owner-only access)
