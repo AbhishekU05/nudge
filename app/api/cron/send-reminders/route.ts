@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 
 import { sendReminderEmail } from "@/lib/email/send-reminder";
 import { hasActiveSubscription } from "@/lib/lemon";
+import {
+  computeFirstReminderSendAt,
+  computeRecurringReminderSendAt,
+} from "@/lib/reminder-schedule";
 import { getRequiredEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -20,22 +24,14 @@ type DueReminder = {
   reminder_frequency_days: number;
   unsubscribe_token: string;
   next_send_at: string;
+  last_sent_at: string | null;
+  updated_at: string;
 };
 
 type ProfileRow = {
   user_id: string;
   lemon_subscription_status: string | null;
 };
-
-function computeNextSendAt(
-  reminderFrequencyDays: number,
-  from = new Date(),
-): string {
-  const minMs = 24 * 60 * 60 * 1000;
-  const requestedMs = reminderFrequencyDays * 24 * 60 * 60 * 1000;
-  const ms = Math.max(minMs, requestedMs);
-  return new Date(from.getTime() + ms).toISOString();
-}
 
 function isAuthorized(request: Request) {
   const header = request.headers.get("authorization") ?? "";
@@ -57,6 +53,7 @@ async function claimReminder(params: {
     .eq("active", true)
     .eq("unsubscribed", false)
     .eq("next_send_at", params.reminder.next_send_at)
+    .eq("updated_at", params.reminder.updated_at)
     .lte("next_send_at", params.nowIso)
     .select("id")
     .maybeSingle<{ id: string }>();
@@ -70,6 +67,29 @@ async function claimReminder(params: {
   }
 
   return leaseUntil;
+}
+
+async function deferFirstReminder(params: {
+  reminderId: string;
+  currentNextSendAt: string;
+  currentUpdatedAt: string;
+  deferredUntil: string;
+}) {
+  const supabase = createSupabaseAdminClient();
+
+  const { error } = await supabase
+    .from("reminders")
+    .update({ next_send_at: params.deferredUntil })
+    .eq("id", params.reminderId)
+    .eq("active", true)
+    .eq("unsubscribed", false)
+    .eq("next_send_at", params.currentNextSendAt)
+    .eq("updated_at", params.currentUpdatedAt)
+    .is("last_sent_at", null);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 async function restoreClaim(params: {
@@ -131,7 +151,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase
     .from("reminders")
     .select(
-      "id,user_id,recipient_name,recipient_email,amount_owed,custom_message,reminder_frequency_days,unsubscribe_token,next_send_at",
+      "id,user_id,recipient_name,recipient_email,amount_owed,custom_message,reminder_frequency_days,unsubscribe_token,next_send_at,last_sent_at,updated_at",
     )
     .eq("active", true)
     .eq("unsubscribed", false)
@@ -182,6 +202,22 @@ export async function POST(request: Request) {
     let leaseUntil: string | null = null;
 
     try {
+      if (!reminder.last_sent_at) {
+        const firstSendAt = computeFirstReminderSendAt(
+          new Date(reminder.updated_at),
+        );
+
+        if (firstSendAt > reminder.next_send_at && firstSendAt > nowIso) {
+          await deferFirstReminder({
+            reminderId: reminder.id,
+            currentNextSendAt: reminder.next_send_at,
+            currentUpdatedAt: reminder.updated_at,
+            deferredUntil: firstSendAt,
+          });
+          continue;
+        }
+      }
+
       leaseUntil = await claimReminder({ reminder, nowIso });
       if (!leaseUntil) {
         continue;
@@ -203,7 +239,7 @@ export async function POST(request: Request) {
         reminderId: reminder.id,
         leaseUntil,
         lastSentAt: sentAt.toISOString(),
-        nextSendAt: computeNextSendAt(
+        nextSendAt: computeRecurringReminderSendAt(
           reminder.reminder_frequency_days,
           sentAt,
         ),

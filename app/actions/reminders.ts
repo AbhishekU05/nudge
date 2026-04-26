@@ -8,6 +8,10 @@ import { requireUser } from "@/lib/auth";
 import { sendReminderEmail } from "@/lib/email/send-reminder";
 import { hasActiveSubscription } from "@/lib/lemon";
 import { buildPathWithQuery } from "@/lib/paths";
+import {
+  computeFirstReminderSendAt,
+  computeRecurringReminderSendAt,
+} from "@/lib/reminder-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function getString(formData: FormData, key: string): string | null {
@@ -47,13 +51,6 @@ function parseIntMin(input: string, min: number): number | null {
   }
 
   return value;
-}
-
-function computeNextSendAt(reminderFrequencyDays: number): string {
-  const minMs = 24 * 60 * 60 * 1000;
-  const requestedMs = reminderFrequencyDays * 24 * 60 * 60 * 1000;
-  const ms = Math.max(minMs, requestedMs);
-  return new Date(Date.now() + ms).toISOString();
 }
 
 function isValidEmail(email: string) {
@@ -150,7 +147,7 @@ export async function createReminder(formData: FormData) {
     redirectToNewReminder("Custom message is too long (max 500 chars).");
   }
 
-  const nextSendAt = computeNextSendAt(reminderFrequencyDays);
+  const nextSendAt = computeFirstReminderSendAt();
 
   const { error } = await supabase.from("reminders").insert({
     user_id: user.id,
@@ -224,10 +221,13 @@ export async function resumeReminder(reminderId: string) {
 
   const { data: current, error: selectError } = await supabase
     .from("reminders")
-    .select("reminder_frequency_days")
+    .select("reminder_frequency_days,last_sent_at")
     .eq("id", reminderId)
     .eq("user_id", user.id)
-    .maybeSingle<{ reminder_frequency_days: number }>();
+    .maybeSingle<{
+      reminder_frequency_days: number;
+      last_sent_at: string | null;
+    }>();
 
   if (selectError) {
     redirectToDashboard({ error: selectError.message });
@@ -237,7 +237,9 @@ export async function resumeReminder(reminderId: string) {
     redirectToDashboard({ error: "Reminder not found." });
   }
 
-  const nextSendAt = computeNextSendAt(current.reminder_frequency_days);
+  const nextSendAt = current.last_sent_at
+    ? computeRecurringReminderSendAt(current.reminder_frequency_days)
+    : computeFirstReminderSendAt();
 
   const { error } = await supabase
     .from("reminders")
