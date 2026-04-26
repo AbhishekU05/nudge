@@ -21,6 +21,11 @@ function daysAgo(n: number) {
 export async function enforceRateLimit(userId: string, eventType: EventType) {
   const supabase = await createSupabaseServerClient();
 
+  await supabase.from("usage_events").insert({
+    user_id: userId,
+    event_type: eventType,
+  });
+
   const perMinuteSince = minutesAgo(1);
   const perDaySince = daysAgo(1);
   const limits = LIMITS[eventType];
@@ -40,19 +45,11 @@ export async function enforceRateLimit(userId: string, eventType: EventType) {
       .gte("created_at", perDaySince),
   ]);
 
-  if ((minuteCount ?? 0) >= limits.perMinute) {
+  if ((minuteCount ?? 0) > limits.perMinute) {
     throw new Error("Too many requests. Please wait a minute and try again.");
   }
-  if ((dayCount ?? 0) >= limits.perDay) {
+  if ((dayCount ?? 0) > limits.perDay) {
     throw new Error("Daily limit reached. Try again tomorrow.");
   }
-}
-
-export async function recordUsageEvent(userId: string, eventType: EventType) {
-  const supabase = await createSupabaseServerClient();
-  await supabase.from("usage_events").insert({
-    user_id: userId,
-    event_type: eventType,
-  });
 }
 

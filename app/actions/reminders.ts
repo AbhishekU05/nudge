@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { enforceRateLimit, recordUsageEvent } from "@/lib/abuse";
+import { enforceRateLimit } from "@/lib/abuse";
 import { requireUser } from "@/lib/auth";
 import { sendReminderEmail } from "@/lib/email/send-reminder";
 import { hasActiveSubscription } from "@/lib/lemon";
@@ -35,7 +35,10 @@ function getOptionalString(formData: FormData, key: string): string | null {
 }
 
 function parseMoney(input: string): number | null {
-  const normalized = input.replace(/[^0-9.]/g, "");
+  const normalized = input.replace(/,/g, "").trim();
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
+    return null;
+  }
   const amount = Number.parseFloat(normalized);
   if (!Number.isFinite(amount) || amount <= 0) {
     return null;
@@ -162,10 +165,9 @@ export async function createReminder(formData: FormData) {
   });
 
   if (error) {
-    redirectToNewReminder(error.message);
+    redirectToNewReminder("An unexpected database error occurred.");
   }
 
-  await recordUsageEvent(user.id, "reminder_create");
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder created." });
 }
@@ -189,10 +191,9 @@ export async function pauseReminder(reminderId: string) {
     .eq("user_id", user.id);
 
   if (error) {
-    redirectToDashboard({ error: error.message });
+    redirectToDashboard({ error: "An unexpected database error occurred." });
   }
 
-  await recordUsageEvent(user.id, "reminder_toggle");
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder paused." });
 }
@@ -230,7 +231,7 @@ export async function resumeReminder(reminderId: string) {
     }>();
 
   if (selectError) {
-    redirectToDashboard({ error: selectError.message });
+    redirectToDashboard({ error: "An unexpected database error occurred." });
   }
 
   if (!current) {
@@ -248,10 +249,9 @@ export async function resumeReminder(reminderId: string) {
     .eq("user_id", user.id);
 
   if (error) {
-    redirectToDashboard({ error: error.message });
+    redirectToDashboard({ error: "An unexpected database error occurred." });
   }
 
-  await recordUsageEvent(user.id, "reminder_toggle");
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder resumed." });
 }
@@ -275,10 +275,9 @@ export async function deleteReminder(reminderId: string) {
     .eq("user_id", user.id);
 
   if (error) {
-    redirectToDashboard({ error: error.message });
+    redirectToDashboard({ error: "An unexpected database error occurred." });
   }
 
-  await recordUsageEvent(user.id, "reminder_delete");
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder deleted." });
 }
@@ -311,7 +310,7 @@ export async function sendTestReminderEmail(reminderId: string) {
     }>();
 
   if (error) {
-    redirectToDashboard({ error: error.message });
+    redirectToDashboard({ error: "An unexpected database error occurred." });
   }
 
   if (!reminder) {
@@ -326,7 +325,7 @@ export async function sendTestReminderEmail(reminderId: string) {
 
   try {
     await sendReminderEmail({
-      recipientEmail: reminder.recipient_email,
+      recipientEmail: user.email!, // Send test to current user
       recipientName: reminder.recipient_name,
       amountOwed: Number(reminder.amount_owed),
       customMessage: reminder.custom_message,

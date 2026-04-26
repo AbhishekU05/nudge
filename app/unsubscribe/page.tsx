@@ -46,7 +46,7 @@ export default async function UnsubscribePage({
           </CardHeader>
           {error ? (
             <CardContent className="text-sm text-zinc-600">
-              {error.message}
+              An unexpected error occurred.
             </CardContent>
           ) : null}
         </Card>

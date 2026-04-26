@@ -2,7 +2,21 @@ export function getSafeNextPath(
   value: string | null | undefined,
   fallback = "/dashboard",
 ) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+  if (
+    !value ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.startsWith("/\\")
+  ) {
+    return fallback;
+  }
+
+  try {
+    const parsed = new URL(value, "http://localhost");
+    if (parsed.origin !== "http://localhost") {
+      return fallback;
+    }
+  } catch {
     return fallback;
   }
 
