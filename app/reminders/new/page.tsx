@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { requireUser } from "@/lib/auth";
 import { hasActiveSubscription } from "@/lib/lemon";
+import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function NewReminderPage({
@@ -24,6 +25,7 @@ export default async function NewReminderPage({
 }) {
   const user = await requireUser();
   const { error } = await searchParams;
+  const monthlyPrice = await getLocalizedMonthlyPrice();
 
   const supabase = await createSupabaseServerClient();
   const { data: profile } = await supabase
@@ -63,8 +65,8 @@ export default async function NewReminderPage({
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="max-w-xl text-sm text-zinc-600">
-                    Activate the $1/month plan to create reminders and unlock the
-                    sending pipeline.
+                    Activate the {monthlyPrice.inline} plan to create reminders
+                    and unlock the sending pipeline.
                   </p>
                   <Link href="/settings/billing">
                     <Button>Open billing</Button>

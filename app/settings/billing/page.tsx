@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
 import { hasActiveSubscription } from "@/lib/lemon";
+import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function getBillingMessage(error?: string) {
@@ -29,6 +30,7 @@ export default async function BillingPage({
 }) {
   const user = await requireUser();
   const { canceled, error, success } = await searchParams;
+  const monthlyPrice = await getLocalizedMonthlyPrice();
   const supabase = await createSupabaseServerClient();
   const { data: profile } = await supabase
     .from("profiles")
@@ -81,7 +83,9 @@ export default async function BillingPage({
             <Card>
               <CardHeader>
                 <CardTitle>Subscription</CardTitle>
-                <CardDescription>$1/month to send recurring reminders.</CardDescription>
+                <CardDescription>
+                  {monthlyPrice.standalone} to send recurring reminders.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="text-sm text-zinc-600">

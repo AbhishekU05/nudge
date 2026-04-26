@@ -3,8 +3,11 @@ import Link from "next/link";
 import { Container } from "@/components/site/container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 
-export default function Home() {
+export default async function Home() {
+  const monthlyPrice = await getLocalizedMonthlyPrice();
+
   return (
     <div className="flex flex-1 flex-col bg-zinc-50">
       <header className="border-b border-zinc-200 bg-white">
@@ -38,7 +41,7 @@ export default function Home() {
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link href="/signup">
-                  <Button>Start for $1/month</Button>
+                  <Button>Start for {monthlyPrice.inline}</Button>
                 </Link>
                 <Link href="/login">
                   <Button variant="ghost">View dashboard</Button>

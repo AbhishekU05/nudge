@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
 import { hasActiveSubscription } from "@/lib/lemon";
+import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ReminderRow } from "@/lib/types";
 
@@ -119,6 +120,7 @@ export default async function DashboardPage({
 }) {
   const user = await requireUser();
   const { error, success } = await searchParams;
+  const monthlyPrice = await getLocalizedMonthlyPrice();
 
   const supabase = await createSupabaseServerClient();
   const [{ data: reminders }, { data: profile }] = await Promise.all([
@@ -217,7 +219,9 @@ export default async function DashboardPage({
                       {hasSubscription ? "Active" : subscriptionStatus}
                     </div>
                     <div className="mt-1 text-xs text-zinc-500">
-                      {renewsAt ? `Renews ${renewsAt}` : "$1/month to keep sending"}
+                      {renewsAt
+                        ? `Renews ${renewsAt}`
+                        : `${monthlyPrice.standalone} to keep sending`}
                     </div>
                   </div>
                 </CardContent>
