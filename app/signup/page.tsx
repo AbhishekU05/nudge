@@ -21,7 +21,7 @@ export default async function SignupPage({
   return (
     <AuthShell
       title="Create your account"
-      description="Start nudging with calm, recurring reminders."
+      description="Start automating your invoice follow-ups today."
     >
       <form action={signup} className="space-y-4">
         <input type="hidden" name="next" value={nextPath} />

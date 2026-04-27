@@ -21,7 +21,7 @@ export default async function LoginPage({
   return (
     <AuthShell
       title="Welcome back"
-      description="Log in to manage your reminders."
+      description="Log in to manage your automated follow-ups."
     >
       <form action={login} className="space-y-4">
         <input type="hidden" name="next" value={nextPath} />

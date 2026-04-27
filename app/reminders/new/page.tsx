@@ -62,15 +62,14 @@ export default async function NewReminderPage({
             {!hasSubscription ? (
               <Card className="border-zinc-900">
                 <CardHeader>
-                  <CardTitle>Subscription required</CardTitle>
+                  <CardTitle>Subscription Required</CardTitle>
                   <CardDescription>
-                    Reminder creation is gated until billing is active.
+                    Your trial has ended. Upgrade to continue adding new clients to your automated pipeline.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="max-w-xl text-sm text-zinc-600">
-                    Activate the {monthlyPrice.inline} plan to create reminders
-                    and unlock the sending pipeline.
+                    Get full access to automated scheduling, professional emails, and limitless peace of mind for just {monthlyPrice.inline}.
                   </p>
                   <Link href="/settings/billing">
                     <Button>Open billing</Button>
@@ -81,16 +80,15 @@ export default async function NewReminderPage({
 
             <Card className={!hasSubscription ? "opacity-60" : ""}>
               <CardHeader>
-                <CardTitle>New reminder</CardTitle>
+                <CardTitle>Create a New Reminder</CardTitle>
                 <CardDescription>
-                  Minimum interval is 24 hours. Recipients can unsubscribe any
-                  time.
+                  Set up a gentle follow-up schedule. We'll handle the emails until you get paid.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form action={createReminder} className="grid gap-5 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="recipient_name">Recipient name</Label>
+                    <Label htmlFor="recipient_name">Client Name</Label>
                     <Input
                       id="recipient_name"
                       name="recipient_name"
@@ -102,7 +100,7 @@ export default async function NewReminderPage({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="recipient_email">Recipient email</Label>
+                    <Label htmlFor="recipient_email">Client Email</Label>
                     <Input
                       id="recipient_email"
                       name="recipient_email"
@@ -127,7 +125,7 @@ export default async function NewReminderPage({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="reminder_frequency_days">Frequency (days)</Label>
+                    <Label htmlFor="reminder_frequency_days">Follow-up Frequency (Days)</Label>
                     <Input
                       id="reminder_frequency_days"
                       name="reminder_frequency_days"
@@ -140,16 +138,16 @@ export default async function NewReminderPage({
                   </div>
 
                   <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="custom_message">Custom message</Label>
+                    <Label htmlFor="custom_message">Optional Custom Note</Label>
                     <Textarea
                       id="custom_message"
                       name="custom_message"
                       maxLength={500}
-                      placeholder="Short, calm context for the reminder."
+                      placeholder="Example: Following up on Invoice #1234."
                       disabled={!hasSubscription}
                     />
                     <p className="text-xs text-zinc-500">
-                      Optional. Keep it short and factual.
+                      Keep it short and factual. This is included in the email body.
                     </p>
                   </div>
 

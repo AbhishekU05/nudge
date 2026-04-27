@@ -92,9 +92,9 @@ export default async function BillingPage({
 
             <Card>
               <CardHeader>
-                <CardTitle>Subscription</CardTitle>
+                <CardTitle>Your Plan</CardTitle>
                 <CardDescription>
-                  {monthlyPrice.standalone} to send recurring reminders.
+                  {monthlyPrice.standalone} to automate your payment follow-ups completely.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -126,14 +126,13 @@ export default async function BillingPage({
 
             <Card>
               <CardHeader>
-                <CardTitle>Trust & safety</CardTitle>
+                <CardTitle>Our Promise</CardTitle>
                 <CardDescription>
-                  Transactional emails with unsubscribe support.
+                  We keep it professional, always.
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-sm text-zinc-600">
-                We enforce a minimum 24 hour interval and basic rate limiting to
-                reduce abuse.
+                To protect your client relationships, emails are sent no more than once every 24 hours, and every single message includes a clean, one-click unsubscribe link. No spam, just gentle nudges.
               </CardContent>
             </Card>
           </div>

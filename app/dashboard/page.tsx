@@ -214,7 +214,7 @@ export default async function DashboardPage({
                 <CardHeader>
                   <CardTitle>Dashboard</CardTitle>
                   <CardDescription>
-                    Calm recurring reminders, with clean unsubscribe handling.
+                    Track your active payment follow-ups and manage your client reminders effortlessly.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4 sm:grid-cols-3">
@@ -259,19 +259,19 @@ export default async function DashboardPage({
               <Card className={hasSubscription ? "" : "border-zinc-900"}>
                 <CardHeader>
                   <CardTitle>
-                    {hasSubscription ? "Create another reminder" : "Activate sending"}
+                    {hasSubscription ? "Add a new reminder" : "Ready to start sending?"}
                   </CardTitle>
                   <CardDescription>
                     {hasSubscription
-                      ? "You can add, pause, or delete reminders at any time."
-                      : "A subscription is required before new reminders can be created."}
+                      ? "Set up a new automated email sequence for another client."
+                      : "Upgrade your account to activate automated reminder emails."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="text-sm text-zinc-600">
                     {hasSubscription
-                      ? "Your reminder flow is live. Add a new recipient when you’re ready."
-                      : "Billing gates reminder creation and sending. Existing reminder data stays intact."}
+                      ? "Your follow-up engine is running. Add a new recipient whenever you're ready."
+                      : "Your existing reminder drafts are safely saved, but you'll need an active plan to start sending."}
                   </div>
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <Link href={hasSubscription ? "/reminders/new" : "/settings/billing"}>
@@ -302,15 +302,14 @@ export default async function DashboardPage({
             {allReminders.length === 0 ? (
               <Card>
                 <CardHeader>
-                  <CardTitle>No reminders yet</CardTitle>
+                  <CardTitle>You haven't added any reminders yet</CardTitle>
                   <CardDescription>
-                    Start with one recipient and a steady cadence.
+                    Start chasing your first payment with a gentle, automated cadence.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="max-w-xl text-sm text-zinc-600">
-                    Each reminder includes HTML + plaintext email content, an
-                    unsubscribe link, and automatic next-send scheduling.
+                    Every reminder we send is beautifully formatted, includes an easy unsubscribe link, and schedules the next follow-up automatically so you don't have to think about it.
                   </p>
                   <Link href={hasSubscription ? "/reminders/new" : "/settings/billing"}>
                     <Button>
@@ -323,10 +322,9 @@ export default async function DashboardPage({
               <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Active reminders</CardTitle>
+                    <CardTitle>Active Reminders</CardTitle>
                     <CardDescription>
-                      Due reminders continue sending on schedule until paused or
-                      unsubscribed.
+                      These emails are running on autopilot. They'll stop automatically if the recipient unsubsribes or if you pause them.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -345,10 +343,9 @@ export default async function DashboardPage({
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Paused reminders</CardTitle>
+                    <CardTitle>Paused Reminders</CardTitle>
                     <CardDescription>
-                      Resume any paused reminder and it will schedule the next send
-                      at least 24 hours out.
+                      These follow-ups are currently frozen. Resuming them will automatically schedule the next email at least 24 hours out.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
