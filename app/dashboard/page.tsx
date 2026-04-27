@@ -131,11 +131,12 @@ export default async function DashboardPage({
       .returns<ReminderRow[]>(),
     supabase
       .from("profiles")
-      .select("lemon_subscription_status, lemon_renews_at")
+      .select("lemon_subscription_status, lemon_renews_at, created_at")
       .eq("user_id", user.id)
       .maybeSingle<{
         lemon_subscription_status: string | null;
         lemon_renews_at: string | null;
+        created_at: string;
       }>(),
   ]);
 
@@ -151,11 +152,28 @@ export default async function DashboardPage({
   );
 
   const subscriptionStatus = profile?.lemon_subscription_status ?? "none";
-  const hasSubscription = hasActiveSubscription(subscriptionStatus);
+  const hasSubscription = hasActiveSubscription(
+    subscriptionStatus,
+    profile?.created_at,
+  );
   const isDevelopment = process.env.NODE_ENV === "development";
   const renewsAt = profile?.lemon_renews_at
     ? new Date(profile.lemon_renews_at).toLocaleDateString()
     : null;
+
+  let trialDaysLeft = 0;
+  if (
+    !renewsAt &&
+    hasSubscription &&
+    profile?.created_at &&
+    subscriptionStatus !== "active"
+  ) {
+    const trialEnd = new Date(profile.created_at);
+    trialEnd.setDate(trialEnd.getDate() + 14);
+    trialDaysLeft = Math.ceil(
+      (trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col bg-zinc-50">
@@ -169,6 +187,11 @@ export default async function DashboardPage({
           </div>
 
           <div className="flex items-center gap-2">
+            <Link href="/feedback">
+              <Button variant="ghost" size="sm">
+                Feedback
+              </Button>
+            </Link>
             <Link href="/settings/billing">
               <Button variant="secondary" size="sm">
                 Billing
@@ -216,12 +239,18 @@ export default async function DashboardPage({
                       Plan
                     </div>
                     <div className="mt-2 text-lg font-semibold text-zinc-900 capitalize">
-                      {hasSubscription ? "Active" : subscriptionStatus}
+                      {hasSubscription
+                        ? trialDaysLeft > 0
+                          ? "Free Trial"
+                          : "Active"
+                        : subscriptionStatus}
                     </div>
                     <div className="mt-1 text-xs text-zinc-500">
                       {renewsAt
                         ? `Renews ${renewsAt}`
-                        : `${monthlyPrice.standalone} to keep sending`}
+                        : trialDaysLeft > 0
+                          ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left`
+                          : `${monthlyPrice.standalone} to keep sending`}
                     </div>
                   </div>
                 </CardContent>

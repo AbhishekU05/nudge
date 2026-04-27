@@ -31,8 +31,24 @@ function lemonHeaders() {
   };
 }
 
-export function hasActiveSubscription(status: string | null | undefined) {
-  return status === "active" || status === "on_trial";
+export function hasActiveSubscription(
+  status: string | null | undefined,
+  createdAt?: string | null,
+) {
+  if (status === "active" || status === "on_trial") {
+    return true;
+  }
+
+  if (createdAt) {
+    const trialDays = 14;
+    const trialEnd = new Date(createdAt);
+    trialEnd.setDate(trialEnd.getDate() + trialDays);
+    if (new Date() < trialEnd) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 export async function createHostedCheckout(params: {

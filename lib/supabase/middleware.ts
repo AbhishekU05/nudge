@@ -15,6 +15,9 @@ export function createSupabaseMiddlewareClient(request: NextRequest) {
     getSupabaseUrl(),
     getSupabasePublishableKey(),
     {
+      cookieOptions: {
+        maxAge: 24 * 60 * 60,
+      },
       cookies: {
         getAll() {
           return request.cookies.getAll();

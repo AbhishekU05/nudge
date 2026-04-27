@@ -34,11 +34,12 @@ export default async function BillingPage({
   const supabase = await createSupabaseServerClient();
   const { data: profile } = await supabase
     .from("profiles")
-    .select("lemon_subscription_status,lemon_renews_at")
+    .select("lemon_subscription_status,lemon_renews_at,created_at")
     .eq("user_id", user.id)
     .maybeSingle<{
       lemon_subscription_status: string | null;
       lemon_renews_at: string | null;
+      created_at: string;
     }>();
 
   const status = profile?.lemon_subscription_status ?? "none";
@@ -46,7 +47,16 @@ export default async function BillingPage({
     ? new Date(profile.lemon_renews_at).toLocaleDateString()
     : null;
   const billingMessage = getBillingMessage(error);
-  const isActive = hasActiveSubscription(status);
+  const isActive = hasActiveSubscription(status, profile?.created_at);
+
+  let trialDaysLeft = 0;
+  if (!renewsAt && isActive && profile?.created_at && status !== "active") {
+    const trialEnd = new Date(profile.created_at);
+    trialEnd.setDate(trialEnd.getDate() + 14);
+    trialDaysLeft = Math.ceil(
+      (trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col bg-zinc-50">
@@ -89,8 +99,15 @@ export default async function BillingPage({
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="text-sm text-zinc-600">
-                  Status: <span className="capitalize">{status}</span>
-                  {renewsAt ? ` · Renews ${renewsAt}` : ""}
+                  Status:{" "}
+                  <span className="capitalize">
+                    {trialDaysLeft > 0 ? "free trial" : status}
+                  </span>
+                  {renewsAt
+                    ? ` · Renews ${renewsAt}`
+                    : trialDaysLeft > 0
+                      ? ` · ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left`
+                      : ""}
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <form action={startSubscriptionCheckout}>

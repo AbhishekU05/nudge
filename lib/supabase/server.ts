@@ -12,6 +12,9 @@ export async function createSupabaseServerClient() {
     getSupabaseUrl(),
     getSupabasePublishableKey(),
     {
+      cookieOptions: {
+        maxAge: 24 * 60 * 60,
+      },
       cookies: {
         getAll() {
           return cookieStore.getAll();

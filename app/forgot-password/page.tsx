@@ -1,0 +1,61 @@
+import Link from "next/link";
+
+import { requestPasswordReset } from "@/app/actions/auth";
+import { AuthShell } from "@/components/site/auth-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+export default async function ForgotPasswordPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; success?: string }>;
+}) {
+  const { error, success } = await searchParams;
+
+  return (
+    <AuthShell
+      title="Reset your password"
+      description="Enter your email and we'll send you a link."
+    >
+      <form action={requestPasswordReset} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            required
+          />
+        </div>
+        {success ? (
+          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+            {success}
+          </p>
+        ) : null}
+        {error ? (
+          <p
+            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+            role="alert"
+          >
+            {error}
+          </p>
+        ) : null}
+        <Button type="submit" className="w-full">
+          Send reset link
+        </Button>
+      </form>
+
+      <div className="mt-6 text-center text-sm text-zinc-600">
+        Remembered it?{" "}
+        <Link
+          href="/login"
+          className="font-medium text-zinc-900 underline underline-offset-4"
+        >
+          Log in
+        </Link>
+      </div>
+    </AuthShell>
+  );
+}

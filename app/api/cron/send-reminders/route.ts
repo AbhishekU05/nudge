@@ -31,6 +31,7 @@ type DueReminder = {
 type ProfileRow = {
   user_id: string;
   lemon_subscription_status: string | null;
+  created_at: string;
 };
 
 function isAuthorized(request: Request) {
@@ -169,7 +170,7 @@ export async function POST(request: Request) {
   const { data: profiles, error: profileError } = userIds.length
     ? await supabase
         .from("profiles")
-        .select("user_id,lemon_subscription_status")
+        .select("user_id,lemon_subscription_status,created_at")
         .in("user_id", userIds)
         .returns<ProfileRow[]>()
     : { data: [], error: null };
@@ -178,11 +179,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: profileError.message }, { status: 500 });
   }
 
-  const subscriptionStatusByUserId = new Map(
-    (profiles ?? []).map((profile) => [
-      profile.user_id,
-      profile.lemon_subscription_status,
-    ]),
+  const profileByUserId = new Map(
+    (profiles ?? []).map((profile) => [profile.user_id, profile]),
   );
 
   let claimed = 0;
@@ -191,10 +189,11 @@ export async function POST(request: Request) {
   let skippedNoSubscription = 0;
 
   for (const reminder of reminders) {
-    const subscriptionStatus =
-      subscriptionStatusByUserId.get(reminder.user_id) ?? null;
+    const profile = profileByUserId.get(reminder.user_id);
+    const subscriptionStatus = profile?.lemon_subscription_status ?? null;
+    const createdAt = profile?.created_at ?? null;
 
-    if (!hasActiveSubscription(subscriptionStatus)) {
+    if (!hasActiveSubscription(subscriptionStatus, createdAt)) {
       skippedNoSubscription += 1;
       continue;
     }

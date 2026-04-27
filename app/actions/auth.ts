@@ -43,6 +43,16 @@ export async function signup(formData: FormData) {
   const nextPath = getNextPath(formData);
   const email = getString(formData, "email").toLowerCase();
   const password = getString(formData, "password");
+  const confirmPassword = getString(formData, "confirm_password");
+
+  if (password !== confirmPassword) {
+    redirect(
+      buildPathWithQuery("/signup", {
+        error: "Passwords do not match.",
+        next: nextPath !== "/dashboard" ? nextPath : null,
+      }),
+    );
+  }
 
   if (!validateEmail(email)) {
     redirect(
@@ -113,9 +123,13 @@ export async function login(formData: FormData) {
   });
 
   if (error) {
+    let errorMessage = error.message;
+    if (errorMessage.toLowerCase().includes("invalid login credentials")) {
+      errorMessage = "Invalid email or password. If you don't have an account, please sign up.";
+    }
     redirect(
       buildPathWithQuery("/login", {
-        error: error.message,
+        error: errorMessage,
         next: nextPath !== "/dashboard" ? nextPath : null,
       }),
     );
@@ -128,4 +142,72 @@ export async function logout() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
   redirect("/login");
+}
+
+export async function signInWithGoogle(formData: FormData) {
+  const nextPath = getNextPath(formData);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: getAuthCallbackUrl(nextPath),
+    },
+  });
+
+  if (error) {
+    redirect(
+      buildPathWithQuery("/login", {
+        error: error.message,
+        next: nextPath !== "/dashboard" ? nextPath : null,
+      }),
+    );
+  }
+
+  if (data.url) {
+    redirect(data.url);
+  }
+}
+
+export async function requestPasswordReset(formData: FormData) {
+  const email = getString(formData, "email").toLowerCase();
+  
+  if (!validateEmail(email)) {
+    redirect("/forgot-password?error=Enter+a+valid+email+address.");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const appUrl = getRequiredEnv("NEXT_PUBLIC_APP_URL").replace(/\/+$/, "");
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${appUrl}/reset-password`,
+  });
+
+  if (error) {
+    redirect(`/forgot-password?error=${encodeURIComponent(error.message)}`);
+  }
+
+  redirect("/forgot-password?success=Check+your+email+for+a+password+reset+link.");
+}
+
+export async function resetPassword(formData: FormData) {
+  const password = getString(formData, "password");
+  const confirmPassword = getString(formData, "confirm_password");
+
+  if (password.length < 8) {
+    redirect("/reset-password?error=Use+at+least+8+characters+for+your+password.");
+  }
+
+  if (password !== confirmPassword) {
+    redirect("/reset-password?error=Passwords+do+not+match.");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.updateUser({
+    password: password,
+  });
+
+  if (error) {
+    redirect(`/reset-password?error=${encodeURIComponent(error.message)}`);
+  }
+
+  redirect("/login?success=Password+updated+successfully.+You+can+now+log+in.");
 }

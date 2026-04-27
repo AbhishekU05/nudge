@@ -57,7 +57,7 @@ function getCountryFromAcceptLanguage(value: string | null) {
   return null;
 }
 
-function getCountryCode(headerList: Headers) {
+async function getCountryCode(headerList: Headers) {
   const fromGeoHeader =
     headerList.get("x-vercel-ip-country") ??
     headerList.get("cf-ipcountry") ??
@@ -67,6 +67,22 @@ function getCountryCode(headerList: Headers) {
 
   if (fromGeoHeader && fromGeoHeader.length === 2) {
     return fromGeoHeader.toUpperCase();
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    try {
+      const res = await fetch("https://ipapi.co/country/", {
+        signal: AbortSignal.timeout(2000),
+      });
+      if (res.ok) {
+        const text = await res.text();
+        if (text.length === 2) {
+          return text.toUpperCase();
+        }
+      }
+    } catch {
+      // ignore
+    }
   }
 
   return getCountryFromAcceptLanguage(headerList.get("accept-language"));
@@ -114,7 +130,7 @@ function formatMonthlyPrice(amount: number, currency: string) {
 
 export async function getLocalizedMonthlyPrice() {
   const headerList = await headers();
-  const countryCode = getCountryCode(headerList);
+  const countryCode = await getCountryCode(headerList);
   const { amount, currency } = getCurrencyForCountry(countryCode);
   const monthlyPrice = formatMonthlyPrice(amount, currency);
 
