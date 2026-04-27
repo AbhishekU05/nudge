@@ -44,6 +44,7 @@ export async function signup(formData: FormData) {
   const email = getString(formData, "email").toLowerCase();
   const password = getString(formData, "password");
   const confirmPassword = getString(formData, "confirm_password");
+  const fullName = getString(formData, "full_name");
 
   if (password !== confirmPassword) {
     redirect(
@@ -78,6 +79,9 @@ export async function signup(formData: FormData) {
     password,
     options: {
       emailRedirectTo: getAuthCallbackUrl(nextPath),
+      data: {
+        full_name: fullName,
+      },
     },
   });
 

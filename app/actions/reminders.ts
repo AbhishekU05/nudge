@@ -341,7 +341,8 @@ export async function sendTestReminderEmail(reminderId: string) {
 
   try {
     await sendReminderEmail({
-      recipientEmail: user.email!, // Send test to current user
+      senderName: user.user_metadata?.full_name || "Someone",
+      recipientEmail: reminder.recipient_email,
       recipientName: reminder.recipient_name,
       amountOwed: Number(reminder.amount_owed),
       customMessage: reminder.custom_message,

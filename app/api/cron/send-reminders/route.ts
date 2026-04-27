@@ -183,6 +183,14 @@ export async function POST(request: Request) {
     (profiles ?? []).map((profile) => [profile.user_id, profile]),
   );
 
+  const authUsersMap = new Map();
+  for (const uid of userIds) {
+    const { data: { user } } = await supabase.auth.admin.getUserById(uid);
+    if (user) {
+      authUsersMap.set(uid, user.user_metadata?.full_name || "Someone");
+    }
+  }
+
   let claimed = 0;
   let sent = 0;
   let failed = 0;
@@ -224,7 +232,9 @@ export async function POST(request: Request) {
 
       claimed += 1;
 
+      const senderName = authUsersMap.get(reminder.user_id) || "Someone";
       await sendReminderEmail({
+        senderName,
         recipientEmail: reminder.recipient_email,
         recipientName: reminder.recipient_name,
         amountOwed: Number(reminder.amount_owed),

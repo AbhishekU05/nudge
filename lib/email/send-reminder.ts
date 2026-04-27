@@ -4,6 +4,7 @@ import { buildReminderEmail } from "@/lib/email/reminder";
 import { getFromEmail, getResendClient } from "@/lib/resend";
 
 type SendReminderEmailParams = {
+  senderName: string;
   recipientEmail: string;
   recipientName: string;
   amountOwed: number;
@@ -15,6 +16,7 @@ type SendReminderEmailParams = {
 export async function sendReminderEmail(params: SendReminderEmailParams) {
   const resend = getResendClient();
   const { subject, html, text } = buildReminderEmail({
+    senderName: params.senderName,
     recipientName: params.recipientName,
     amountOwed: params.amountOwed,
     customMessage: params.customMessage,
