@@ -68,7 +68,7 @@ export default async function SignupPage({
         </div>
         {error ? (
           <p
-            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+            className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200"
             role="alert"
           >
             {error}
@@ -79,8 +79,8 @@ export default async function SignupPage({
         </Button>
       </form>
 
-      <div className="mt-4 flex items-center gap-4 before:h-px before:flex-1 before:bg-zinc-200 after:h-px after:flex-1 after:bg-zinc-200">
-        <span className="text-xs text-zinc-500 uppercase tracking-wider">or</span>
+      <div className="mt-5 flex items-center gap-4 before:h-px before:flex-1 before:bg-white/10 after:h-px after:flex-1 after:bg-white/10">
+        <span className="text-xs uppercase tracking-wider text-zinc-500">or</span>
       </div>
 
       <form action={signInWithGoogle} className="mt-4">
@@ -96,11 +96,11 @@ export default async function SignupPage({
         </Button>
       </form>
 
-      <div className="mt-6 text-center text-sm text-zinc-600">
+      <div className="mt-6 text-center text-sm text-zinc-500">
         Already have an account?{" "}
         <Link
           href={loginHref}
-          className="font-medium text-zinc-900 underline underline-offset-4"
+          className="font-medium text-zinc-100 underline underline-offset-4 hover:text-white"
         >
           Log in
         </Link>

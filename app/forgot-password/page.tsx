@@ -30,13 +30,13 @@ export default async function ForgotPasswordPage({
           />
         </div>
         {success ? (
-          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
             {success}
           </p>
         ) : null}
         {error ? (
           <p
-            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+            className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200"
             role="alert"
           >
             {error}
@@ -47,11 +47,11 @@ export default async function ForgotPasswordPage({
         </Button>
       </form>
 
-      <div className="mt-6 text-center text-sm text-zinc-600">
+      <div className="mt-6 text-center text-sm text-zinc-500">
         Remembered it?{" "}
         <Link
           href="/login"
-          className="font-medium text-zinc-900 underline underline-offset-4"
+          className="font-medium text-zinc-100 underline underline-offset-4 hover:text-white"
         >
           Log in
         </Link>

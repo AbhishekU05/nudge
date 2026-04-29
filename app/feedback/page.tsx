@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { ArrowLeft, MessageSquareText } from "lucide-react";
+
 import { submitFeedback } from "@/app/actions/feedback";
 import { Container } from "@/components/site/container";
 import { Button } from "@/components/ui/button";
@@ -20,54 +22,68 @@ export default async function FeedbackPage({
   const { error } = await searchParams;
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
-        <Container className="flex h-14 items-center justify-between">
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
+        <Container className="flex h-16 items-center justify-between">
           <Link
             href="/dashboard"
-            className="font-semibold tracking-tight text-zinc-900"
+            className="inline-flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-zinc-100"
           >
-            ← Back
+            <ArrowLeft className="h-4 w-4" />
+            Dashboard
           </Link>
-          <div className="text-sm text-zinc-600">Feedback</div>
+          <div className="text-sm text-zinc-500">Feedback</div>
         </Container>
       </header>
 
       <main className="flex-1">
-        <Container className="py-10">
-          <div className="mx-auto grid max-w-xl gap-6">
-            <Card>
+        <Container className="py-8 sm:py-10">
+          <div className="mx-auto max-w-2xl">
+            <div className="mb-6">
+              <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
+                Send feedback
+              </h1>
+              <p className="mt-3 text-base leading-7 text-zinc-500">
+                Share friction, bugs, or ideas. Short notes are enough.
+              </p>
+            </div>
+
+            <Card className="bg-white/[0.035]">
               <CardHeader>
-                <CardTitle>Send Feedback</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquareText className="h-4 w-4 text-primary" />
+                  Message
+                </CardTitle>
                 <CardDescription>
-                  We'd love to hear your thoughts, feature requests, or bug
-                  reports.
+                  This goes straight to the product inbox.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form action={submitFeedback} className="space-y-4">
                   <Textarea
                     name="message"
-                    placeholder="Tell us what's on your mind..."
-                    rows={5}
+                    placeholder="Tell us what felt confusing, slow, or missing..."
+                    rows={7}
                     required
                     maxLength={2000}
                   />
                   {error ? (
                     <p
-                      className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                      className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200"
                       role="alert"
                     >
                       {error}
                     </p>
                   ) : null}
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
                     <Link href="/dashboard">
-                      <Button type="button" variant="ghost">
+                      <Button type="button" variant="secondary" className="w-full sm:w-auto">
                         Cancel
                       </Button>
                     </Link>
-                    <Button type="submit">Send feedback</Button>
+                    <Button type="submit" className="w-full sm:w-auto">
+                      Send feedback
+                    </Button>
                   </div>
                 </form>
               </CardContent>

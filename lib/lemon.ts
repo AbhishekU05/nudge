@@ -51,6 +51,22 @@ export function hasActiveSubscription(
   return false;
 }
 
+export function getTrialDaysLeft(createdAt?: string | null) {
+  if (!createdAt) {
+    return 0;
+  }
+
+  const trialEnd = new Date(createdAt);
+  trialEnd.setDate(trialEnd.getDate() + 14);
+
+  return Math.max(
+    0,
+    Math.ceil(
+      (trialEnd.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
+    ),
+  );
+}
+
 export async function createHostedCheckout(params: {
   userId: string;
   email: string | null;
@@ -116,4 +132,3 @@ export async function getSubscription(subscriptionId: string) {
 
   return (await res.json()) as LemonSubscriptionResponse;
 }
-

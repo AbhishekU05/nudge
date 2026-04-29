@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { resetPassword } from "@/app/actions/auth";
 import { AuthShell } from "@/components/site/auth-shell";
 import { Button } from "@/components/ui/button";
@@ -41,13 +39,13 @@ export default async function ResetPasswordPage({
           />
         </div>
         {success ? (
-          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
             {success}
           </p>
         ) : null}
         {error ? (
           <p
-            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+            className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200"
             role="alert"
           >
             {error}

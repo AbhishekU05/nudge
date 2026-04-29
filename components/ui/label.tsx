@@ -8,9 +8,8 @@ export function Label({
 }: LabelHTMLAttributes<HTMLLabelElement>) {
   return (
     <label
-      className={cn("text-sm font-medium text-zinc-900", className)}
+      className={cn("text-sm font-medium tracking-tight text-zinc-200", className)}
       {...props}
     />
   );
 }
-
