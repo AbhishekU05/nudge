@@ -1,8 +1,11 @@
+import Link from "next/link";
+
 import { resetPassword } from "@/app/actions/auth";
 import { AuthShell } from "@/components/site/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function ResetPasswordPage({
   searchParams,
@@ -10,6 +13,31 @@ export default async function ResetPasswordPage({
   searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const { error, success } = await searchParams;
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return (
+      <AuthShell
+        title="Reset link required"
+        description="Open the latest reset email or request a new link."
+      >
+        <div className="space-y-4">
+          <p
+            className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200"
+            role="alert"
+          >
+            Your reset link is missing, invalid, or expired.
+          </p>
+          <Link href="/forgot-password">
+            <Button className="w-full">Request a new reset link</Button>
+          </Link>
+        </div>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell

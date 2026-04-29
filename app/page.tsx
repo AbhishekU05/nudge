@@ -3,14 +3,34 @@ import Link from "next/link";
 
 import { redirect } from "next/navigation";
 
+import { AuthErrorRedirect } from "@/components/site/auth-error-redirect";
 import { Container } from "@/components/site/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getEmailLinkErrorMessage } from "@/lib/auth-errors";
 import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    error?: string;
+    error_code?: string;
+    error_description?: string;
+  }>;
+}) {
+  const { error, error_description: errorDescription } = await searchParams;
+
+  if (error || errorDescription) {
+    redirect(
+      `/forgot-password?error=${encodeURIComponent(
+        getEmailLinkErrorMessage(errorDescription ?? error),
+      )}`,
+    );
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -24,6 +44,7 @@ export default async function Home() {
 
   return (
     <div className="flex flex-1 flex-col">
+      <AuthErrorRedirect />
       <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
         <Container className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">

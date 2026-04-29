@@ -7,7 +7,9 @@ import { createSupabaseMiddlewareClient } from "@/lib/supabase/middleware";
 
 const PUBLIC_ROUTES = [
   "/",
+  "/forgot-password",
   "/login",
+  "/reset-password",
   "/signup",
   "/auth/callback",
   "/unsubscribe",

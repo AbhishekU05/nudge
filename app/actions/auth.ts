@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 
+import { getEmailLinkErrorMessage } from "@/lib/auth-errors";
+import { isGoogleAuthEnabled } from "@/lib/auth-providers";
 import { getRequiredEnv } from "@/lib/env";
 import { buildPathWithQuery, getSafeNextPath } from "@/lib/paths";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -150,6 +152,16 @@ export async function logout() {
 
 export async function signInWithGoogle(formData: FormData) {
   const nextPath = getNextPath(formData);
+
+  if (!isGoogleAuthEnabled()) {
+    redirect(
+      buildPathWithQuery("/login", {
+        error: "Google sign-in is not enabled for this workspace. Use email and password instead.",
+        next: nextPath !== "/dashboard" ? nextPath : null,
+      }),
+    );
+  }
+
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -159,9 +171,15 @@ export async function signInWithGoogle(formData: FormData) {
   });
 
   if (error) {
+    const errorMessage = error.message
+      .toLowerCase()
+      .includes("provider is not enabled")
+      ? "Google sign-in is not enabled for this workspace. Use email and password instead."
+      : error.message;
+
     redirect(
       buildPathWithQuery("/login", {
-        error: error.message,
+        error: errorMessage,
         next: nextPath !== "/dashboard" ? nextPath : null,
       }),
     );
@@ -180,9 +198,8 @@ export async function requestPasswordReset(formData: FormData) {
   }
 
   const supabase = await createSupabaseServerClient();
-  const appUrl = getRequiredEnv("NEXT_PUBLIC_APP_URL").replace(/\/+$/, "");
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${appUrl}/reset-password`,
+    redirectTo: getAuthCallbackUrl("/reset-password"),
   });
 
   if (error) {
@@ -205,13 +222,28 @@ export async function resetPassword(formData: FormData) {
   }
 
   const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(
+      `/forgot-password?error=${encodeURIComponent(getEmailLinkErrorMessage())}`,
+    );
+  }
+
   const { error } = await supabase.auth.updateUser({
     password: password,
   });
 
   if (error) {
-    redirect(`/reset-password?error=${encodeURIComponent(error.message)}`);
+    redirect(
+      `/forgot-password?error=${encodeURIComponent(
+        getEmailLinkErrorMessage(error.message),
+      )}`,
+    );
   }
 
+  await supabase.auth.signOut();
   redirect("/login?success=Password+updated+successfully.+You+can+now+log+in.");
 }
