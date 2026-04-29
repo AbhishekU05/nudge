@@ -10,13 +10,15 @@ type SendReminderEmailParams = {
   amountOwed: number;
   customMessage: string | null;
   unsubscribeToken: string;
+  senderEmail?: string | null;
   idempotencyKey?: string;
 };
 
 export async function sendReminderEmail(params: SendReminderEmailParams) {
   const resend = getResendClient();
-  const { subject, html, text } = buildReminderEmail({
+  const { subject, react, text } = buildReminderEmail({
     senderName: params.senderName,
+    senderEmail: params.senderEmail,
     recipientName: params.recipientName,
     amountOwed: params.amountOwed,
     customMessage: params.customMessage,
@@ -27,8 +29,9 @@ export async function sendReminderEmail(params: SendReminderEmailParams) {
     from: getFromEmail(),
     to: params.recipientEmail,
     subject,
-    html,
+    react,
     text,
+    replyTo: params.senderEmail ?? undefined,
   };
 
   const response = params.idempotencyKey

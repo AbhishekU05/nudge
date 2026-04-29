@@ -1,5 +1,9 @@
 import "server-only";
 
+import { createElement } from "react";
+
+import { FeedbackNotificationEmail } from "@/emails/feedback-notification";
+import { getAppUrl } from "@/lib/email/reminder";
 import { getFromEmail, getResendClient } from "@/lib/resend";
 
 type SendFeedbackEmailParams = {
@@ -15,7 +19,11 @@ export async function sendFeedbackEmail(params: SendFeedbackEmailParams) {
     from: getFromEmail(),
     to: feedbackEmail,
     subject: `New Feedback from ${params.userEmail}`,
-    html: `<p><strong>User:</strong> ${params.userEmail}</p><p><strong>Feedback:</strong></p><p>${params.message.replace(/\n/g, "<br>")}</p>`,
+    react: createElement(FeedbackNotificationEmail, {
+      appUrl: getAppUrl(),
+      message: params.message,
+      userEmail: params.userEmail,
+    }),
     text: `User: ${params.userEmail}\n\nFeedback:\n${params.message}`,
   };
 

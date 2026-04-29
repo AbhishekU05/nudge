@@ -1,30 +1,41 @@
 import "server-only";
 
+import { createElement } from "react";
+
+import { PaymentReminderEmail } from "@/emails/payment-reminder";
 import { getRequiredEnv } from "@/lib/env";
 
+export function getAppUrl() {
+  return getRequiredEnv("NEXT_PUBLIC_APP_URL").replace(/\/+$/, "");
+}
+
 export function buildUnsubscribeUrl(unsubscribeToken: string) {
-  const appUrl = getRequiredEnv("NEXT_PUBLIC_APP_URL").replace(/\/+$/, "");
-  return `${appUrl}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`;
+  return `${getAppUrl()}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`;
 }
 
 export function buildReminderEmail(params: {
-  senderName: string;
-  recipientName: string;
   amountOwed: number;
   customMessage: string | null;
+  recipientName: string;
+  senderEmail?: string | null;
+  senderName: string;
   unsubscribeToken: string;
 }) {
   const unsubscribeUrl = buildUnsubscribeUrl(params.unsubscribeToken);
-  const amount = params.amountOwed.toFixed(2);
+  const appUrl = getAppUrl();
+  const amount = new Intl.NumberFormat("en-US", {
+    currency: "USD",
+    style: "currency",
+  }).format(params.amountOwed);
   const safeRecipientName = params.recipientName.trim() || "there";
   const safeSenderName = params.senderName.trim() || "Someone";
 
-  const subject = "Following up on your pending balance";
+  const subject = "A gentle payment reminder";
 
   const lines: string[] = [
     `Hi ${safeRecipientName},`,
     "",
-    `Just floating this to the top of your inbox. This is a gentle automated reminder from ${safeSenderName} that your balance of $${amount} is still outstanding.`,
+    `Just floating this back to the top of your inbox. This is a gentle automated reminder from ${safeSenderName} that your balance of ${amount} is still outstanding.`,
   ];
 
   if (params.customMessage) {
@@ -33,35 +44,26 @@ export function buildReminderEmail(params: {
 
   lines.push(
     "",
-    "If you've recently made a payment, please disregard this note!",
-    "",
-    `Unsubscribe: ${unsubscribeUrl}`,
+    "If you have already made this payment, please disregard this note.",
   );
+
+  if (params.senderEmail) {
+    lines.push("", `Reply to ${safeSenderName}: ${params.senderEmail}`);
+  }
+
+  lines.push("", `Unsubscribe: ${unsubscribeUrl}`);
 
   const text = lines.join("\n");
 
-  const html = `
-    <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height: 1.5; color: #18181b;">
-      <p>Hi ${escapeHtml(safeRecipientName)},</p>
-      <p>Just floating this to the top of your inbox. This is a gentle automated reminder from <strong>${escapeHtml(safeSenderName)}</strong> that your balance of <strong>$${escapeHtml(amount)}</strong> is still outstanding.</p>
-      ${params.customMessage ? `<p>${escapeHtml(params.customMessage.trim())}</p>` : ""}
-      <p style="color:#52525b">If you've recently made a payment, please disregard this note!</p>
-      <hr style="border:0;border-top:1px solid #e4e4e7;margin:16px 0" />
-      <p style="font-size:12px;color:#71717a">
-        <a href="${escapeHtml(unsubscribeUrl)}" style="color:#71717a;text-decoration:underline">Unsubscribe</a>
-      </p>
-    </div>
-  `.trim();
+  const react = createElement(PaymentReminderEmail, {
+    appUrl,
+    amountOwed: params.amountOwed,
+    customMessage: params.customMessage,
+    recipientName: safeRecipientName,
+    senderEmail: params.senderEmail,
+    senderName: safeSenderName,
+    unsubscribeUrl,
+  });
 
-  return { subject, text, html, unsubscribeUrl };
+  return { subject, text, react, unsubscribeUrl };
 }
-
-function escapeHtml(input: string) {
-  return input
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
