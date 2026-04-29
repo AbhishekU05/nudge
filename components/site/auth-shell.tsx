@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import Image from "next/image";
+
 import Link from "next/link";
 
 import { Container } from "@/components/site/container";
@@ -19,8 +21,9 @@ export function AuthShell({
       <Container className="py-12">
         <div className="mx-auto w-full max-w-md">
           <div className="mb-6 flex items-center justify-center">
-            <Link href="/" className="text-sm font-semibold tracking-tight text-zinc-900">
-              Nudge
+            <Link href="/" className="flex items-center gap-2">
+              <Image src="/logo.svg" alt="Nudge Logo" width={32} height={32} className="h-8 w-auto" />
+              <span className="text-xl font-semibold tracking-tight text-zinc-900">Nudge</span>
             </Link>
           </div>
           <Card>

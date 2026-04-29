@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { redirect } from "next/navigation";
@@ -24,8 +25,9 @@ export default async function Home() {
     <div className="flex flex-1 flex-col bg-zinc-50">
       <header className="border-b border-zinc-200 bg-white">
         <Container className="flex h-14 items-center justify-between">
-          <Link href="/" className="font-semibold tracking-tight text-zinc-900">
-            Nudge
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/logo.svg" alt="Nudge Logo" width={24} height={24} className="h-6 w-auto" />
+            <span className="font-semibold tracking-tight text-zinc-900">Nudge</span>
           </Link>
           <div className="flex items-center gap-2">
             <Link href="/login">

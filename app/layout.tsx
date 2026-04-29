@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Nudge",
   description: "Recurring reminder emails for money owed.",
+  icons: {
+    icon: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

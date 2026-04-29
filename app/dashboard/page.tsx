@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { logout } from "@/app/actions/auth";
@@ -191,8 +192,9 @@ export default async function DashboardPage({
       <header className="border-b border-white/10 bg-black/50 backdrop-blur-xl">
         <Container className="flex h-16 items-center justify-between gap-4">
           <div className="min-w-0">
-            <Link href="/" className="font-semibold tracking-wide text-white">
-              Nudge
+            <Link href="/" className="flex items-center gap-2 mb-1">
+              <Image src="/logo.svg" alt="Nudge Logo" width={24} height={24} className="h-6 w-auto" />
+              <span className="font-semibold tracking-wide text-white">Nudge</span>
             </Link>
             <p className="truncate text-xs text-zinc-500">{user.email}</p>
           </div>
