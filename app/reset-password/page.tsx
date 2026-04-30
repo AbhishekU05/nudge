@@ -1,3 +1,6 @@
+/*
+ * reset password page
+ */
 import Link from "next/link";
 
 import { resetPassword } from "@/app/actions/auth";
@@ -7,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+// reset password main function
 export default async function ResetPasswordPage({
   searchParams,
 }: {
