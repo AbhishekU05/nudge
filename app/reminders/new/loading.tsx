@@ -1,5 +1,9 @@
+/*
+ * loading part for reminders page
+ */
 import { Container } from "@/components/site/container";
 
+// skeleton for reminder box
 function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
@@ -8,6 +12,7 @@ function Skeleton({ className = "" }: { className?: string }) {
   );
 }
 
+// loading page skeleton
 export default function NewReminderLoading() {
   return (
     <div className="flex min-h-screen flex-col">

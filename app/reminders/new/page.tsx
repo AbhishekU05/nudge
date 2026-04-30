@@ -1,3 +1,6 @@
+/*
+ * reminder page 
+ */
 import Link from "next/link";
 
 import { ArrowLeft, Clock3, MailPlus, MessageSquare } from "lucide-react";
@@ -22,6 +25,7 @@ import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
+// main function for reminder page
 export default async function NewReminderPage({
   searchParams,
 }: {
@@ -41,11 +45,13 @@ export default async function NewReminderPage({
       created_at: string;
     }>();
 
+    // TODO: ensure reminders created only if under quota
   const hasSubscription = hasActiveSubscription(
     profile?.lemon_subscription_status ?? null,
     profile?.created_at,
   );
 
+  // TODO: change all wordings
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
