@@ -1,5 +1,5 @@
-const FIRST_REMINDER_DELAY_MS = 5 * 60 * 1000;
-const MIN_REMINDER_INTERVAL_MS = 5 * 60 * 1000;
+const FIRST_REMINDER_DELAY_MS = 30 * 60 * 1000;
+const MIN_REMINDER_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 export function computeFirstReminderSendAt(from = new Date()): string {
   return new Date(from.getTime() + FIRST_REMINDER_DELAY_MS).toISOString();

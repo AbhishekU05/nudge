@@ -46,15 +46,6 @@ function isAuthorized(request: Request) {
   const url = new URL(request.url);
   const key = url.searchParams.get("key");
 
-  console.log("EXPECTED:", expected);
-  console.log("RECEIVED:", key);
-  console.log("EQUAL:", key === expected);
-  console.log("EXPECTED LENGTH:", expected.length);
-console.log("RECEIVED LENGTH:", key?.length);
-
-console.log("EXPECTED RAW:", JSON.stringify(expected));
-console.log("RECEIVED RAW:", JSON.stringify(key));
-
   return key === expected;
 }
 
@@ -161,9 +152,6 @@ async function finalizeReminderSend(params: {
 
 export async function POST(request: Request) {
   const url = new URL(request.url);
-
-  console.log("EXPECTED:", process.env.CRON_SECRET);
-  console.log("RECEIVED:", url.searchParams.get("key"));
 
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
