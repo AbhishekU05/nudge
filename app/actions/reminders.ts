@@ -1,3 +1,6 @@
+/*
+ * core reminder action layer
+ */
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -14,6 +17,8 @@ import {
 } from "@/lib/reminder-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+// Get string from form in website
+// TODO: ensure safety
 function getString(formData: FormData, key: string): string | null {
   const value = formData.get(key);
   if (typeof value !== "string") {
@@ -24,6 +29,8 @@ function getString(formData: FormData, key: string): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+// get optional string from form 
+// TODO: ensure safety
 function getOptionalString(formData: FormData, key: string): string | null {
   const value = formData.get(key);
   if (typeof value !== "string") {
@@ -34,6 +41,8 @@ function getOptionalString(formData: FormData, key: string): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+// converts int into currency format 
+// TODO: ensure currency symbol is consistent
 function parseMoney(input: string): number | null {
   const normalized = input.replace(/,/g, "").trim();
   if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
@@ -47,6 +56,7 @@ function parseMoney(input: string): number | null {
   return Math.round(amount * 100) / 100;
 }
 
+// parses integer with minimum constraint
 function parseIntMin(input: string, min: number): number | null {
   const value = Number.parseInt(input, 10);
   if (!Number.isFinite(value) || value < min) {
@@ -56,10 +66,12 @@ function parseIntMin(input: string, min: number): number | null {
   return value;
 }
 
+// checks if valid email
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+// extract error message
 function getErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.message.trim().length > 0) {
     return error.message;
@@ -68,10 +80,12 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+// bruh is there no better way to do this
 function redirectToNewReminder(error: string): never {
   redirect(buildPathWithQuery("/reminders/new", { error }));
 }
 
+// same with this guy
 function redirectToDashboard(params: {
   error?: string;
   success?: string;
@@ -79,6 +93,7 @@ function redirectToDashboard(params: {
   redirect(buildPathWithQuery("/dashboard", params));
 }
 
+// creates a new reminder
 export async function createReminder(formData: FormData) {
   const user = await requireUser();
 
@@ -100,6 +115,7 @@ export async function createReminder(formData: FormData) {
       created_at: string;
     }>();
 
+    // TODO: check for reminder quota as well over here
   if (
     !hasActiveSubscription(
       profile?.lemon_subscription_status ?? null,
