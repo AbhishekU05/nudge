@@ -151,8 +151,6 @@ async function finalizeReminderSend(params: {
 }
 
 export async function POST(request: Request) {
-  const url = new URL(request.url);
-
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
