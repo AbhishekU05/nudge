@@ -49,6 +49,11 @@ function isAuthorized(request: Request) {
   console.log("EXPECTED:", expected);
   console.log("RECEIVED:", key);
   console.log("EQUAL:", key === expected);
+  console.log("EXPECTED LENGTH:", expected.length);
+console.log("RECEIVED LENGTH:", key?.length);
+
+console.log("EXPECTED RAW:", JSON.stringify(expected));
+console.log("RECEIVED RAW:", JSON.stringify(key));
 
   return key === expected;
 }
