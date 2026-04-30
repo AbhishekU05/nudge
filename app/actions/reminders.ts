@@ -17,6 +17,8 @@ import {
 } from "@/lib/reminder-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+const MAX_REMINDERS = 5;
+
 // Get string from form in website
 // TODO: ensure safety
 function getString(formData: FormData, key: string): string | null {
@@ -115,6 +117,12 @@ export async function createReminder(formData: FormData) {
       created_at: string;
     }>();
 
+  const { count } = await supabase
+  .from("reminders")
+  .select("*", { count: "exact", head: true })
+  .eq("user_id", user.id)
+  .eq("unsubscribed", false);
+
     // TODO: check for reminder quota as well over here
   if (
     !hasActiveSubscription(
@@ -124,6 +132,10 @@ export async function createReminder(formData: FormData) {
   ) {
     redirect("/settings/billing?error=subscription_required");
   }
+
+  if ((count ?? 0) >= MAX_REMINDERS) {
+      redirectToNewReminder("You’ve reached the limit of 5 reminders.");
+    }
 
   const recipientName = getString(formData, "recipient_name");
   if (!recipientName) {
@@ -251,6 +263,18 @@ export async function resumeReminder(reminderId: string) {
   ) {
     redirect("/settings/billing?error=subscription_required");
   }
+
+  const { count } = await supabase
+  .from("reminders")
+  .select("*", { count: "exact", head: true })
+  .eq("user_id", user.id)
+  .eq("unsubscribed", false);
+
+  if ((count ?? 0) >= MAX_REMINDERS) {
+      redirectToDashboard({
+        error: "You’ve reached the limit of 5 reminders.",
+      });
+    }
 
   const { data: current, error: selectError } = await supabase
     .from("reminders")
