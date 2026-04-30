@@ -1,3 +1,6 @@
+/*
+ * all logic for auth, signup, signin etc
+ */
 "use server";
 
 import { redirect } from "next/navigation";
@@ -8,6 +11,8 @@ import { getRequiredEnv } from "@/lib/env";
 import { buildPathWithQuery, getSafeNextPath } from "@/lib/paths";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+// Extracts string from form in website
+// TODO: make sure this is csec safe
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key);
   if (typeof value !== "string" || value.trim().length === 0) {
@@ -16,6 +21,7 @@ function getString(formData: FormData, key: string): string {
   return value.trim();
 }
 
+// Same as previous function for some reason?? 
 function getOptionalString(formData: FormData, key: string): string | null {
   const value = formData.get(key);
   if (typeof value !== "string") {
@@ -26,10 +32,14 @@ function getOptionalString(formData: FormData, key: string): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+// gets the next redirect safely
+// TODO: make sure its actually safe
 function getNextPath(formData: FormData) {
   return getSafeNextPath(getOptionalString(formData, "next"));
 }
 
+// gets next url based on auth action
+// TODO: make sure this one is also safe
 function getAuthCallbackUrl(nextPath: string) {
   const appUrl = getRequiredEnv("NEXT_PUBLIC_APP_URL").replace(/\/+$/, "");
   const callbackUrl = new URL("/auth/callback", appUrl);
@@ -37,10 +47,12 @@ function getAuthCallbackUrl(nextPath: string) {
   return callbackUrl.toString();
 }
 
+// basic email format validation
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+// registers a new user
 export async function signup(formData: FormData) {
   const nextPath = getNextPath(formData);
   const email = getString(formData, "email").toLowerCase();
@@ -48,6 +60,7 @@ export async function signup(formData: FormData) {
   const confirmPassword = getString(formData, "confirm_password");
   const fullName = getString(formData, "full_name");
 
+  // TODO: check this redirect. redirect back to signup?
   if (password !== confirmPassword) {
     redirect(
       buildPathWithQuery("/signup", {
@@ -57,6 +70,7 @@ export async function signup(formData: FormData) {
     );
   }
 
+  // TODO: why are we redirecting to dashboard here aaaaaaaah
   if (!validateEmail(email)) {
     redirect(
       buildPathWithQuery("/signup", {
@@ -66,6 +80,7 @@ export async function signup(formData: FormData) {
     );
   }
 
+  // TODO: again?? why the dashboard
   if (password.length < 8) {
     redirect(
       buildPathWithQuery("/signup", {
@@ -87,6 +102,7 @@ export async function signup(formData: FormData) {
     },
   });
 
+  // TODO: bruhh just fix the redirect
   if (error) {
     redirect(
       buildPathWithQuery("/signup", {
@@ -108,11 +124,13 @@ export async function signup(formData: FormData) {
   );
 }
 
+// logs a user in
 export async function login(formData: FormData) {
   const nextPath = getNextPath(formData);
   const email = getString(formData, "email").toLowerCase();
   const password = getString(formData, "password");
 
+  // TODO: fix redirect 
   if (!validateEmail(email)) {
     redirect(
       buildPathWithQuery("/login", {
@@ -133,6 +151,7 @@ export async function login(formData: FormData) {
     if (errorMessage.toLowerCase().includes("invalid login credentials")) {
       errorMessage = "Invalid email or password. If you don't have an account, please sign up.";
     }
+    // TODO: fix redirects
     redirect(
       buildPathWithQuery("/login", {
         error: errorMessage,
@@ -144,15 +163,20 @@ export async function login(formData: FormData) {
   redirect(nextPath);
 }
 
+// logs out user
 export async function logout() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
   redirect("/login");
 }
 
+// sign in user through google
+// TODO: fix the google auth process
 export async function signInWithGoogle(formData: FormData) {
   const nextPath = getNextPath(formData);
 
+  // are we actually gonna display this to the user???
+  // TODO: change it up a bit maybe??
   if (!isGoogleAuthEnabled()) {
     redirect(
       buildPathWithQuery("/login", {
@@ -170,6 +194,8 @@ export async function signInWithGoogle(formData: FormData) {
     },
   });
 
+  // again are we really gonna show this to the user??
+  // TODO: change this message up a bit
   if (error) {
     const errorMessage = error.message
       .toLowerCase()
@@ -177,6 +203,7 @@ export async function signInWithGoogle(formData: FormData) {
       ? "Google sign-in is not enabled for this workspace. Use email and password instead."
       : error.message;
 
+      // TODO: what is this redirect aaaaah
     redirect(
       buildPathWithQuery("/login", {
         error: errorMessage,
