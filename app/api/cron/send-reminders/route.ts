@@ -38,13 +38,17 @@ type ProfileRow = {
 function isAuthorized(request: Request) {
   const expected = getRequiredEnv("CRON_SECRET");
 
-  // Header auth (for future use)
+  // Header auth (future)
   const header = request.headers.get("authorization");
   if (header === `Bearer ${expected}`) return true;
 
-  // Query param auth (for cron-job.org)
+  // Query param auth (cron-job)
   const url = new URL(request.url);
   const key = url.searchParams.get("key");
+
+  console.log("EXPECTED:", expected);
+  console.log("RECEIVED:", key);
+  console.log("EQUAL:", key === expected);
 
   return key === expected;
 }
