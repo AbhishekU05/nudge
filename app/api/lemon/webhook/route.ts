@@ -1,3 +1,7 @@
+/*
+ * Works with the lemon squeezy api
+ *
+ */
 import { NextResponse } from "next/server";
 
 import crypto from "crypto";
@@ -8,6 +12,7 @@ import { getRequiredEnv } from "@/lib/env";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Validate that the webhook request came from lemon squeezy
 function verifySignature(rawBody: string, signatureHeader: string | null) {
   if (!signatureHeader) return false;
   const secret = getRequiredEnv("LEMON_SQUEEZY_WEBHOOK_SECRET");
@@ -39,6 +44,7 @@ type LemonWebhookPayload = {
   };
 };
 
+// webhook handler
 export async function POST(request: Request) {
   const rawBody = await request.text();
   const signature = request.headers.get("x-signature");

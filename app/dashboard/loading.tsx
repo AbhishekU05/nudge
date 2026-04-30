@@ -1,5 +1,9 @@
+/*
+ * loaded quickly by browser and replaced later by actual content
+ */
 import { Container } from "@/components/site/container";
 
+// normal rounded box
 function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
@@ -8,6 +12,7 @@ function Skeleton({ className = "" }: { className?: string }) {
   );
 }
 
+// creates skeleton of the dashboard using the skeleton box
 export default function DashboardLoading() {
   return (
     <div className="flex min-h-screen flex-col">

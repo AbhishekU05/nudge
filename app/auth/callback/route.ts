@@ -1,9 +1,13 @@
+/*
+ * Supabase auth requests and validation
+ */
 import { NextResponse } from "next/server";
 
 import { getEmailLinkErrorMessage } from "@/lib/auth-errors";
 import { buildPathWithQuery, getSafeNextPath } from "@/lib/paths";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+// decide where to send user if auth fails
 function getAuthErrorRedirectPath(message: string, nextPath: string) {
   if (nextPath === "/reset-password") {
     return buildPathWithQuery("/forgot-password", {
@@ -17,6 +21,7 @@ function getAuthErrorRedirectPath(message: string, nextPath: string) {
   });
 }
 
+// auth callback endpoint
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");

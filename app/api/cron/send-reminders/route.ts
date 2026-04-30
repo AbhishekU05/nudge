@@ -1,3 +1,7 @@
+/*
+ * This manages the cron requests from cron-job.org
+ */
+
 import { NextResponse } from "next/server";
 
 import { sendReminderEmail } from "@/lib/email/send-reminder";
@@ -14,6 +18,7 @@ export const dynamic = "force-dynamic";
 
 const CLAIM_WINDOW_MS = 5 * 60 * 1000;
 
+// describes reminder object
 type DueReminder = {
   id: string;
   user_id: string;
@@ -35,6 +40,7 @@ type ProfileRow = {
   created_at: string;
 };
 
+// Check if api request is authorized or not
 function isAuthorized(request: Request) {
   const expected = getRequiredEnv("CRON_SECRET");
 
@@ -49,6 +55,7 @@ function isAuthorized(request: Request) {
   return key === expected;
 }
 
+// Sets a kind of mutex on the database and tries to change the row
 async function claimReminder(params: {
   reminder: DueReminder;
   nowIso: string;
@@ -79,6 +86,7 @@ async function claimReminder(params: {
   return leaseUntil;
 }
 
+// Again puts a mutex on the database and modifies the first send time
 async function deferFirstReminder(params: {
   reminderId: string;
   currentNextSendAt: string;
@@ -102,6 +110,7 @@ async function deferFirstReminder(params: {
   }
 }
 
+// Restores db if mutex previously set fails
 async function restoreClaim(params: {
   reminderId: string;
   leaseUntil: string;
@@ -116,6 +125,7 @@ async function restoreClaim(params: {
     .eq("next_send_at", params.leaseUntil);
 }
 
+// Update database after sending reminder
 async function finalizeReminderSend(params: {
   reminderId: string;
   leaseUntil: string;
@@ -150,6 +160,7 @@ async function finalizeReminderSend(params: {
   }
 }
 
+// Actual function executed by cron job
 export async function POST(request: Request) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -294,6 +305,7 @@ export async function POST(request: Request) {
   });
 }
 
+// Function called by cron job
 export async function GET(request: Request) {
   return POST(request);
 }
