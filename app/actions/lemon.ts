@@ -1,3 +1,6 @@
+/*
+ * connection to lemon squeezy
+ */
 "use server";
 
 import { redirect } from "next/navigation";
@@ -8,6 +11,8 @@ import { buildPathWithQuery } from "@/lib/paths";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createHostedCheckout, getSubscription } from "@/lib/lemon";
 
+// starts payment flow
+// TODO: add multiple subscription options 
 export async function startSubscriptionCheckout() {
   const user = await requireUser();
   const appUrl = getRequiredEnv("NEXT_PUBLIC_APP_URL").replace(/\/+$/, "");
@@ -34,6 +39,7 @@ export async function startSubscriptionCheckout() {
   redirect(checkoutUrl);
 }
 
+// opens customer billing portal
 export async function manageSubscription() {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
