@@ -1,3 +1,6 @@
+/*
+ * sends feedback from user to server
+ */
 "use server";
 
 import { redirect } from "next/navigation";
@@ -5,6 +8,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { sendFeedbackEmail } from "@/lib/email/send-feedback";
 
+// main function
 export async function submitFeedback(formData: FormData) {
   const user = await requireUser();
   const message = formData.get("message");
