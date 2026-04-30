@@ -43,6 +43,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ReminderRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+// formats numbers into currency
+// TODO: format currency based on client location
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("en-US", {
     currency: "USD",
@@ -50,6 +52,7 @@ function formatCurrency(value: number) {
   }).format(Number(value));
 }
 
+// get user initials for icons
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -59,6 +62,7 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
+// shows what subscription plan is active
 function getPlanLabel({
   hasSubscription,
   subscriptionStatus,
@@ -79,6 +83,7 @@ function getPlanLabel({
   return subscriptionStatus === "none" ? "No active plan" : subscriptionStatus;
 }
 
+// alert box
 function Notice({
   children,
   variant,
@@ -101,18 +106,22 @@ function Notice({
   );
 }
 
+// shows status of reminder
+// TODO: Fix display message
 function ReminderStatus({ reminder }: { reminder: ReminderRow }) {
   if (reminder.unsubscribed) {
     return <Badge variant="danger">Opted out</Badge>;
   }
 
   if (reminder.active) {
-    return <Badge variant="success">Sending</Badge>;
+    return <Badge variant="success">Active</Badge>;
   }
 
   return <Badge variant="warning">Paused</Badge>;
 }
 
+// displays a single reminder
+// TODO: Fix wording. Replace "cadence" with something else
 function ReminderCard({
   isDevelopment,
   reminder,
@@ -223,6 +232,8 @@ function ReminderCard({
   );
 }
 
+// for when no reminders exist
+// TODO: Fix wording
 function EmptyActiveState({ hasSubscription }: { hasSubscription: boolean }) {
   return (
     <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-8 text-center">
@@ -247,6 +258,8 @@ function EmptyActiveState({ hasSubscription }: { hasSubscription: boolean }) {
   );
 }
 
+// fast way to create reminder card
+// TODO: fix wording. replace "cadence" with something else
 function QuickCreateCard({
   hasSubscription,
   monthlyPrice,
@@ -321,6 +334,7 @@ function QuickCreateCard({
           </>
         ) : (
           <div className="space-y-5">
+          {/* TODO: uh wtf is this shit. re word this shit*/}
             <p className="text-sm leading-6 text-zinc-500">
               Activate your plan to create and resume automated reminders.
               Nudge is {monthlyPrice}.
@@ -343,6 +357,7 @@ type TimelineEvent = {
   tone: "primary" | "success" | "muted" | "warning";
 };
 
+// converts activities into timeline events
 function buildTimeline(reminders: ReminderRow[]): TimelineEvent[] {
   const events = reminders.flatMap((reminder) => {
     const entries: Array<TimelineEvent | null> = [
@@ -409,6 +424,7 @@ function buildTimeline(reminders: ReminderRow[]): TimelineEvent[] {
     .slice(0, 6);
 }
 
+// ui for the timeline
 function ActivityTimeline({ reminders }: { reminders: ReminderRow[] }) {
   const timeline = buildTimeline(reminders);
 
@@ -462,6 +478,7 @@ function ActivityTimeline({ reminders }: { reminders: ReminderRow[] }) {
   );
 }
 
+// main dashboard page logic
 export default async function DashboardPage({
   searchParams,
 }: {
@@ -489,6 +506,7 @@ export default async function DashboardPage({
       }>(),
   ]);
 
+  // TODO: make sure this subscription logic is perfect. we don't want freeloaders on the website
   const allReminders = reminders ?? [];
   const activeReminders = allReminders.filter(
     (reminder) => reminder.active && !reminder.unsubscribed,
@@ -526,6 +544,7 @@ export default async function DashboardPage({
     trialDaysLeft,
   });
 
+  // TODO: add logic to prevent users from adding reminders if they've hit their limit on the plan
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
@@ -573,6 +592,7 @@ export default async function DashboardPage({
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
                 Nudges
               </h1>
+              {/* TODO: wtf change this wording*/}
               <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
                 Create a reminder, let it run quietly, and resolve it when the
                 payment arrives. Signed in as {user.email}.
@@ -614,6 +634,7 @@ export default async function DashboardPage({
                       <Send className="h-5 w-5 text-primary" />
                       Active nudges
                     </CardTitle>
+                    {/* TODO: bruh wording. change it. wtf. */}
                     <CardDescription>
                       These reminders are currently sending on autopilot.
                     </CardDescription>
@@ -647,6 +668,7 @@ export default async function DashboardPage({
                       <PauseCircle className="h-4 w-4 text-zinc-500" />
                       Quiet nudges
                     </CardTitle>
+                    {/* TODO: why you telling the user that. change it*/}
                     <CardDescription>
                       Paused and opted-out reminders stay here so the active
                       list remains focused.
