@@ -1,3 +1,6 @@
+/*
+ * login page
+ */
 import Link from "next/link";
 
 import { login, signInWithGoogle } from "@/app/actions/auth";
@@ -8,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { isGoogleAuthEnabled } from "@/lib/auth-providers";
 import { buildPathWithQuery, getSafeNextPath } from "@/lib/paths";
 
+// main function for login page
 export default async function LoginPage({
   searchParams,
 }: {
@@ -20,6 +24,7 @@ export default async function LoginPage({
   });
   const googleAuthEnabled = isGoogleAuthEnabled();
 
+  // TODO: fix the wordings
   return (
     <AuthShell
       title="Welcome back"
