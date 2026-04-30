@@ -1,3 +1,6 @@
+/*
+ * billings page
+ */
 import Link from "next/link";
 
 import { ArrowLeft, CreditCard, ShieldCheck } from "lucide-react";
@@ -12,6 +15,8 @@ import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/lemon";
 import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+// display billing message
+// TODO: fix wording
 function getBillingMessage(error?: string) {
   if (!error) return null;
   if (error === "subscription_required") {
@@ -26,6 +31,7 @@ function getBillingMessage(error?: string) {
   return error;
 }
 
+// main function for billing page
 export default async function BillingPage({
   searchParams,
 }: {
@@ -57,6 +63,7 @@ export default async function BillingPage({
     trialDaysLeft = getTrialDaysLeft(profile.created_at);
   }
 
+  // TODO: fix wording
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
