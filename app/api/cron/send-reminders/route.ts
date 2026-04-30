@@ -36,9 +36,17 @@ type ProfileRow = {
 };
 
 function isAuthorized(request: Request) {
-  const header = request.headers.get("authorization") ?? "";
   const expected = getRequiredEnv("CRON_SECRET");
-  return header === `Bearer ${expected}`;
+
+  // Header auth (for future use)
+  const header = request.headers.get("authorization");
+  if (header === `Bearer ${expected}`) return true;
+
+  // Query param auth (for cron-job.org)
+  const url = new URL(request.url);
+  const key = url.searchParams.get("key");
+
+  return key === expected;
 }
 
 async function claimReminder(params: {
@@ -284,4 +292,8 @@ export async function POST(request: Request) {
     failed,
     skippedNoSubscription,
   });
+}
+
+export async function GET(request: Request) {
+  return POST(request);
 }
