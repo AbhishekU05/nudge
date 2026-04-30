@@ -1,3 +1,6 @@
+/*
+ * feedback page 
+ */
 import Link from "next/link";
 
 import { ArrowLeft, MessageSquareText } from "lucide-react";
@@ -14,6 +17,8 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 
+// main function for the feedback page
+// TODO: change wordings
 export default async function FeedbackPage({
   searchParams,
 }: {
@@ -43,6 +48,7 @@ export default async function FeedbackPage({
               <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
                 Send feedback
               </h1>
+              {/* TODO: change wording */}
               <p className="mt-3 text-base leading-7 text-zinc-500">
                 Share friction, bugs, or ideas. Short notes are enough.
               </p>
@@ -54,6 +60,7 @@ export default async function FeedbackPage({
                   <MessageSquareText className="h-4 w-4 text-primary" />
                   Message
                 </CardTitle>
+                {/* TODO: again wtf change wording here as well */}
                 <CardDescription>
                   This goes straight to the product inbox.
                 </CardDescription>

@@ -43,6 +43,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ReminderRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+// TODO: create a contact us page
+
 // formats numbers into currency
 // TODO: format currency based on client location
 function formatCurrency(value: number) {
