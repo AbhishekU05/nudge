@@ -21,6 +21,7 @@ import {
   sendTestReminderEmail,
 } from "@/app/actions/reminders";
 import { Container } from "@/components/site/container";
+import { LocalTime } from "@/components/site/local-time";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,28 +45,6 @@ function formatCurrency(value: number) {
     currency: "USD",
     style: "currency",
   }).format(Number(value));
-}
-
-function formatDateTime(value: string | null) {
-  if (!value) {
-    return "Not sent yet";
-  }
-
-  return new Date(value).toLocaleString(undefined, {
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    month: "short",
-  });
-}
-
-function formatShortDate(value: string) {
-  return new Date(value).toLocaleString(undefined, {
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    month: "short",
-  });
 }
 
 function getInitials(name: string) {
@@ -182,9 +161,11 @@ function ReminderCard({
               <div>
                 <p className="text-xs text-zinc-600">Next send</p>
                 <p className="mt-1 text-zinc-300">
-                  {reminder.unsubscribed || !reminder.active
-                    ? "Not scheduled"
-                    : formatDateTime(reminder.next_send_at)}
+                  {reminder.unsubscribed || !reminder.active ? (
+                    "Not scheduled"
+                  ) : (
+                    <LocalTime value={reminder.next_send_at} />
+                  )}
                 </p>
               </div>
             </div>
@@ -196,7 +177,7 @@ function ReminderCard({
             ) : null}
 
             <p className="mt-4 text-xs text-zinc-600">
-              Last sent: {formatDateTime(reminder.last_sent_at)}
+              Last sent: <LocalTime value={reminder.last_sent_at} />
             </p>
           </div>
 
@@ -461,7 +442,7 @@ function ActivityTimeline({ reminders }: { reminders: ReminderRow[] }) {
                     {event.detail}
                   </p>
                   <p className="mt-1 text-xs text-zinc-600">
-                    {formatShortDate(event.at)}
+                    <LocalTime value={event.at} />
                   </p>
                 </div>
               </div>
