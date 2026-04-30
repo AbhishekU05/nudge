@@ -26,6 +26,7 @@ type DueReminder = {
   next_send_at: string;
   last_sent_at: string | null;
   updated_at: string;
+  created_at: string;
 };
 
 type ProfileRow = {
@@ -152,7 +153,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase
     .from("reminders")
     .select(
-      "id,user_id,recipient_name,recipient_email,amount_owed,custom_message,reminder_frequency_days,unsubscribe_token,next_send_at,last_sent_at,updated_at",
+      "id,user_id,recipient_name,recipient_email,amount_owed,custom_message,reminder_frequency_days,unsubscribe_token,next_send_at,last_sent_at,updated_at,created_at",
     )
     .eq("active", true)
     .eq("unsubscribed", false)
@@ -217,7 +218,7 @@ export async function POST(request: Request) {
     try {
       if (!reminder.last_sent_at) {
         const firstSendAt = computeFirstReminderSendAt(
-          new Date(reminder.updated_at),
+          new Date(reminder.created_at),
         );
 
         if (firstSendAt > reminder.next_send_at && firstSendAt > nowIso) {
