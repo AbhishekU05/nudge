@@ -1,3 +1,6 @@
+/*
+ * forgot password page
+ */
 import Link from "next/link";
 
 import { requestPasswordReset } from "@/app/actions/auth";
@@ -6,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+// main function for the page
 export default async function ForgotPasswordPage({
   searchParams,
 }: {
@@ -47,6 +51,8 @@ export default async function ForgotPasswordPage({
         </Button>
       </form>
 
+      {/* uh wtf is this shit*/}
+      {/* TODO: figure out what this is and remove it if unnecessary */}
       <div className="mt-6 text-center text-sm text-zinc-500">
         Remembered it?{" "}
         <Link
