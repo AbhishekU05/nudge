@@ -519,7 +519,6 @@ export default async function DashboardPage({
   const unsubscribedReminders = allReminders.filter(
     (reminder) => reminder.unsubscribed,
   );
-  const atLimit = pausedReminders.length + activeReminders.length >= 5;
 
   const subscriptionStatus = profile?.lemon_subscription_status ?? "none";
   const hasSubscription = hasActiveSubscription(

@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getRequiredEnv } from "@/lib/env";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function startSubscriptionCheckout() {
   const user = await requireUser();
