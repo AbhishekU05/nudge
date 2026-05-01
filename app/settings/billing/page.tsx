@@ -7,7 +7,9 @@ import { ArrowLeft, CreditCard, ShieldCheck } from "lucide-react";
 
 import { Container } from "@/components/site/container";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { startSubscriptionCheckout, cancelSubscription } from "@/app/actions/razorpay";
 import { requireUser } from "@/lib/auth";
 import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/payments";
 import { getLocalizedMonthlyPrice } from "@/lib/pricing";
@@ -149,20 +151,23 @@ export default async function BillingPage({
                     </div>
                   </div>
 
-                  {/*
                   <div className="flex flex-col gap-2 sm:flex-row">
-                    <form action={startSubscriptionCheckout}>
-                      <Button type="submit" className="w-full sm:w-auto">
-                        {isActive ? "Update subscription" : "Subscribe"}
-                      </Button>
-                    </form>
-                    <form action={manageSubscription}>
-                      <Button variant="secondary" type="submit" className="w-full sm:w-auto" disabled>
-                        Manage billing (coming soon)
-                      </Button>
-                    </form>
+                    {!isActive ? (
+                      <form action={startSubscriptionCheckout}>
+                        <Button type="submit" className="w-full sm:w-auto">
+                          Subscribe
+                        </Button>
+                      </form>
+                    ) : null}
+                    
+                    {isActive ? (
+                      <form action={cancelSubscription}>
+                        <Button variant="secondary" type="submit" className="w-full sm:w-auto text-red-400 hover:text-red-300">
+                          Cancel subscription
+                        </Button>
+                      </form>
+                    ) : null}
                   </div>
-                  */}
                 </CardContent>
               </Card>
             </section>
