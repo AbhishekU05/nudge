@@ -6,13 +6,11 @@ export function hasActiveSubscription(
 ) {
   if (status === "active") return true;
 
-  // keep your trial logic unchanged
   if (createdAt) {
     const trialDays = 14;
-    const trialEnd = new Date(createdAt);
-    trialEnd.setDate(trialEnd.getDate() + trialDays);
+    const trialEndMs = new Date(createdAt).getTime() + (trialDays * 24 * 60 * 60 * 1000);
 
-    if (new Date() < trialEnd) return true;
+    if (Date.now() < trialEndMs) return true;
   }
 
   return false;
@@ -21,13 +19,11 @@ export function hasActiveSubscription(
 export function getTrialDaysLeft(createdAt?: string | null) {
   if (!createdAt) return 0;
 
-  const trialEnd = new Date(createdAt);
-  trialEnd.setDate(trialEnd.getDate() + 14);
+  const trialDays = 14;
+  const trialEndMs = new Date(createdAt).getTime() + (trialDays * 24 * 60 * 60 * 1000);
 
   return Math.max(
     0,
-    Math.ceil(
-      (trialEnd.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
-    ),
+    Math.ceil((trialEndMs - Date.now()) / (1000 * 60 * 60 * 24)),
   );
 }

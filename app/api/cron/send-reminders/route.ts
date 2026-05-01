@@ -229,6 +229,14 @@ export async function POST(request: Request) {
 
     if (!hasActiveSubscription(subscriptionStatus, createdAt)) {
       skippedNoSubscription += 1;
+      
+      // Physically pause active reminders since their trial/subscription expired
+      await supabase
+        .from("reminders")
+        .update({ active: false })
+        .eq("user_id", reminder.user_id)
+        .eq("active", true);
+        
       continue;
     }
 

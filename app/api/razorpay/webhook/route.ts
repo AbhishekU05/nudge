@@ -97,6 +97,9 @@ export async function POST(req: Request) {
         user_id: userId,
         razorpay_subscription_status: "cancelled",
       });
+
+      // Pause active nudges since the subscription is gone
+      await supabase.from("reminders").update({ active: false }).eq("user_id", userId).eq("active", true);
     }
 
     if (event.event === "payment.failed") {
@@ -111,6 +114,9 @@ export async function POST(req: Request) {
         user_id: userId,
         razorpay_subscription_status: "past_due",
       });
+
+      // Pause active nudges due to payment failure
+      await supabase.from("reminders").update({ active: false }).eq("user_id", userId).eq("active", true);
     }
 
     return NextResponse.json({ ok: true });

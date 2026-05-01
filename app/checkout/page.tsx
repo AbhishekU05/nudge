@@ -28,6 +28,9 @@ function CheckoutContent() {
           subscription_id: subscriptionId,
           name: "Nudge",
           description: "Monthly Subscription",
+          theme: {
+            color: "#18181b",
+          },
           handler: function () {
             window.location.href = "/dashboard?success=Subscription+successful";
           },
