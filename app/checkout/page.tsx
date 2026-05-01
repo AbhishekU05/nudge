@@ -31,6 +31,11 @@ function CheckoutContent() {
           theme: {
             color: "#18181b",
           },
+          modal: {
+            ondismiss: function () {
+              window.location.href = "/settings/billing?canceled=true";
+            },
+          },
           handler: function () {
             window.location.href = "/dashboard?success=Subscription+successful";
           },
