@@ -36,7 +36,7 @@ type DueReminder = {
 
 type ProfileRow = {
   user_id: string;
-  lemon_subscription_status: string | null;
+  razorpay_subscription_status: string | null;
   created_at: string;
 };
 
@@ -190,7 +190,7 @@ export async function POST(request: Request) {
   const { data: profiles, error: profileError } = userIds.length
     ? await supabase
         .from("profiles")
-        .select("user_id,lemon_subscription_status,created_at")
+        .select("user_id,razorpay_subscription_status,created_at")
         .in("user_id", userIds)
         .returns<ProfileRow[]>()
     : { data: [], error: null };
@@ -224,7 +224,7 @@ export async function POST(request: Request) {
 
   for (const reminder of reminders) {
     const profile = profileByUserId.get(reminder.user_id);
-    const subscriptionStatus = profile?.lemon_subscription_status ?? null;
+    const subscriptionStatus = profile?.razorpay_subscription_status ?? null;
     const createdAt = profile?.created_at ?? null;
 
     if (!hasActiveSubscription(subscriptionStatus, createdAt)) {

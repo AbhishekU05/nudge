@@ -5,10 +5,8 @@ import Link from "next/link";
 
 import { ArrowLeft, CreditCard, ShieldCheck } from "lucide-react";
 
-import { manageSubscription, startSubscriptionCheckout } from "@/app/actions/lemon";
 import { Container } from "@/components/site/container";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
 import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/payments";
@@ -43,17 +41,17 @@ export default async function BillingPage({
   const supabase = await createSupabaseServerClient();
   const { data: profile } = await supabase
     .from("profiles")
-    .select("lemon_subscription_status,lemon_renews_at,created_at")
+    .select("razorpay_subscription_status,razorpay_renews_at,created_at")
     .eq("user_id", user.id)
     .maybeSingle<{
-      lemon_subscription_status: string | null;
-      lemon_renews_at: string | null;
+      razorpay_subscription_status: string | null;
+      razorpay_renews_at: string | null;
       created_at: string;
     }>();
 
-  const status = profile?.lemon_subscription_status ?? "none";
-  const renewsAt = profile?.lemon_renews_at
-    ? new Date(profile.lemon_renews_at).toLocaleDateString()
+  const status = profile?.razorpay_subscription_status ?? "none";
+  const renewsAt = profile?.razorpay_renews_at
+    ? new Date(profile.razorpay_renews_at).toLocaleDateString()
     : null;
   const billingMessage = getBillingMessage(error);
   const isActive = hasActiveSubscription(status, profile?.created_at);
@@ -151,6 +149,7 @@ export default async function BillingPage({
                     </div>
                   </div>
 
+                  {/*
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <form action={startSubscriptionCheckout}>
                       <Button type="submit" className="w-full sm:w-auto">
@@ -163,6 +162,7 @@ export default async function BillingPage({
                       </Button>
                     </form>
                   </div>
+                  */}
                 </CardContent>
               </Card>
             </section>

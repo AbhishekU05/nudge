@@ -38,16 +38,16 @@ export default async function NewReminderPage({
   const supabase = await createSupabaseServerClient();
   const { data: profile } = await supabase
     .from("profiles")
-    .select("lemon_subscription_status, created_at")
+    .select("razorpay_subscription_status, created_at")
     .eq("user_id", user.id)
     .maybeSingle<{
-      lemon_subscription_status: string | null;
+      razorpay_subscription_status: string | null;
       created_at: string;
     }>();
 
     // TODO: ensure reminders created only if under quota
   const hasSubscription = hasActiveSubscription(
-    profile?.lemon_subscription_status ?? null,
+    profile?.razorpay_subscription_status ?? null,
     profile?.created_at,
   );
 

@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import Razorpay from "razorpay";
+
 import { requireUser } from "@/lib/auth";
 import { getRequiredEnv } from "@/lib/env";
 
@@ -8,22 +10,26 @@ export async function startSubscriptionCheckout() {
   const user = await requireUser();
 
   const keyId = getRequiredEnv("RAZORPAY_KEY_ID");
+  const keySecret = getRequiredEnv("RAZORPAY_KEY_SECRET");
+  const planId = getRequiredEnv("RAZORPAY_PLAN_ID");
 
-  // create order from backend (you should move this to API route ideally)
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/razorpay/create-order`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId: user.id,
-    }),
+  const razorpay = new Razorpay({
+    key_id: keyId,
+    key_secret: keySecret,
   });
 
-  const { orderId } = await res.json();
+  const subscription = await razorpay.subscriptions.create({
+    plan_id: planId,
+    total_count: 120, // 10 years, effectively "until canceled"
+    customer_notify: 1,
+    notes: {
+      user_id: user.id,
+    },
+  });
 
-  redirect(`/checkout?orderId=${orderId}&key=${keyId}`);
+  redirect(`/checkout?subscriptionId=${subscription.id}`);
 }
 
-// Razorpay doesn't have portal like Lemon
 export async function manageSubscription() {
   redirect("/settings/billing?error=not_supported");
 }

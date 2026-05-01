@@ -1,33 +1,123 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
+
 import { getRequiredEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function verifySignature(body: string, signature: string | null) {
+  if (!signature) return false;
+
+  const secret = getRequiredEnv("RAZORPAY_WEBHOOK_SECRET");
+
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(body)
+    .digest("hex");
+
+  return expected === signature;
+}
 
 export async function POST(req: Request) {
   const body = await req.text();
   const signature = req.headers.get("x-razorpay-signature");
 
-  const expected = crypto
-    .createHmac("sha256", getRequiredEnv("RAZORPAY_WEBHOOK_SECRET"))
-    .update(body)
-    .digest("hex");
-
-  if (signature !== expected) {
-    return NextResponse.json({ error: "invalid signature" }, { status: 401 });
+  if (!verifySignature(body, signature)) {
+    return NextResponse.json(
+      { error: "Invalid signature" },
+      { status: 401 }
+    );
   }
 
-  const event = JSON.parse(body);
+  type RazorpayEvent = {
+    event: string;
+    payload: any;
+  };
 
-  if (event.event === "payment.captured") {
-    const userId = event.payload.payment.entity.notes?.user_id;
+  let event: RazorpayEvent;
 
-    const supabase = createSupabaseAdminClient();
-
-    await supabase.from("profiles").upsert({
-      user_id: userId,
-      lemon_subscription_status: "active", // reuse column for now
-    });
+  try {
+    event = JSON.parse(body);
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid JSON" },
+      { status: 400 }
+    );
   }
 
-  return NextResponse.json({ ok: true });
+  const supabase = createSupabaseAdminClient();
+
+  try {
+    if (event.event === "subscription.activated") {
+      const sub = event.payload.subscription.entity;
+      const userId = sub.notes?.user_id;
+
+      if (!userId) {
+        return NextResponse.json({ ok: true, skipped: true });
+      }
+
+      await supabase.from("profiles").upsert({
+        user_id: userId,
+        razorpay_subscription_id: sub.id,
+        razorpay_subscription_status: "active",
+        razorpay_renews_at: sub.current_end
+          ? new Date(sub.current_end * 1000).toISOString()
+          : null,
+      });
+    }
+
+    if (event.event === "subscription.charged") {
+      const sub = event.payload.subscription.entity;
+      const userId = sub.notes?.user_id;
+
+      if (!userId) {
+        return NextResponse.json({ ok: true, skipped: true });
+      }
+
+      await supabase.from("profiles").upsert({
+        user_id: userId,
+        razorpay_subscription_status: "active",
+        razorpay_renews_at: sub.current_end
+          ? new Date(sub.current_end * 1000).toISOString()
+          : null,
+      });
+    }
+
+    if (event.event === "subscription.cancelled" || event.event === "subscription.halted") {
+      const sub = event.payload.subscription.entity;
+      const userId = sub.notes?.user_id;
+
+      if (!userId) {
+        return NextResponse.json({ ok: true, skipped: true });
+      }
+
+      await supabase.from("profiles").upsert({
+        user_id: userId,
+        razorpay_subscription_status: "cancelled",
+      });
+    }
+
+    if (event.event === "payment.failed") {
+      const payment = event.payload.payment.entity;
+      const userId = payment.notes?.user_id;
+
+      if (!userId) {
+        return NextResponse.json({ ok: true, skipped: true });
+      }
+
+      await supabase.from("profiles").upsert({
+        user_id: userId,
+        razorpay_subscription_status: "past_due",
+      });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json(
+      { error: "Webhook processing failed" },
+      { status: 500 }
+    );
+  }
 }

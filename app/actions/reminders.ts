@@ -110,10 +110,10 @@ export async function createReminder(formData: FormData) {
   const supabase = await createSupabaseServerClient();
   const { data: profile } = await supabase
     .from("profiles")
-    .select("lemon_subscription_status, created_at")
+    .select("razorpay_subscription_status, created_at")
     .eq("user_id", user.id)
     .maybeSingle<{
-      lemon_subscription_status: string | null;
+      razorpay_subscription_status: string | null;
       created_at: string;
     }>();
 
@@ -126,7 +126,7 @@ export async function createReminder(formData: FormData) {
     // TODO: check for reminder quota as well over here
   if (
     !hasActiveSubscription(
-      profile?.lemon_subscription_status ?? null,
+      profile?.razorpay_subscription_status ?? null,
       profile?.created_at,
     )
   ) {
@@ -248,16 +248,16 @@ export async function resumeReminder(reminderId: string) {
   const supabase = await createSupabaseServerClient();
   const { data: profile } = await supabase
     .from("profiles")
-    .select("lemon_subscription_status, created_at")
+    .select("razorpay_subscription_status, created_at")
     .eq("user_id", user.id)
     .maybeSingle<{
-      lemon_subscription_status: string | null;
+      razorpay_subscription_status: string | null;
       created_at: string;
     }>();
 
   if (
     !hasActiveSubscription(
-      profile?.lemon_subscription_status ?? null,
+      profile?.razorpay_subscription_status ?? null,
       profile?.created_at,
     )
   ) {

@@ -21,10 +21,10 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
 
-  lemon_customer_id text,
-  lemon_subscription_id text,
-  lemon_subscription_status text,
-  lemon_renews_at timestamptz
+  razorpay_customer_id text,
+  razorpay_subscription_id text,
+  razorpay_subscription_status text,
+  razorpay_renews_at timestamptz
 );
 
 drop trigger if exists profiles_set_updated_at on public.profiles;

@@ -499,11 +499,11 @@ export default async function DashboardPage({
       .returns<ReminderRow[]>(),
     supabase
       .from("profiles")
-      .select("lemon_subscription_status, lemon_renews_at, created_at")
+      .select("razorpay_subscription_status, razorpay_renews_at, created_at")
       .eq("user_id", user.id)
       .maybeSingle<{
-        lemon_subscription_status: string | null;
-        lemon_renews_at: string | null;
+        razorpay_subscription_status: string | null;
+        razorpay_renews_at: string | null;
         created_at: string;
       }>(),
   ]);
@@ -520,14 +520,14 @@ export default async function DashboardPage({
     (reminder) => reminder.unsubscribed,
   );
 
-  const subscriptionStatus = profile?.lemon_subscription_status ?? "none";
+  const subscriptionStatus = profile?.razorpay_subscription_status ?? "none";
   const hasSubscription = hasActiveSubscription(
     subscriptionStatus,
     profile?.created_at,
   );
   const isDevelopment = process.env.NODE_ENV === "development";
-  const renewsAt = profile?.lemon_renews_at
-    ? new Date(profile.lemon_renews_at).toLocaleDateString()
+  const renewsAt = profile?.razorpay_renews_at
+    ? new Date(profile.razorpay_renews_at).toLocaleDateString()
     : null;
 
   let trialDaysLeft = 0;
