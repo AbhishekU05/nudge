@@ -37,7 +37,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { requireUser } from "@/lib/auth";
-import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/lemon";
+import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/payments";
 import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ReminderRow } from "@/lib/types";

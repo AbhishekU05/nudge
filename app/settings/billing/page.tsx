@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
-import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/lemon";
+import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/payments";
 import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -158,8 +158,8 @@ export default async function BillingPage({
                       </Button>
                     </form>
                     <form action={manageSubscription}>
-                      <Button variant="secondary" type="submit" className="w-full sm:w-auto">
-                        Manage billing
+                      <Button variant="secondary" type="submit" className="w-full sm:w-auto" disabled>
+                        Manage billing (coming soon)
                       </Button>
                     </form>
                   </div>

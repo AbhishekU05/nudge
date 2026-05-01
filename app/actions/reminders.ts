@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 import { enforceRateLimit } from "@/lib/abuse";
 import { requireUser } from "@/lib/auth";
 import { sendReminderEmail } from "@/lib/email/send-reminder";
-import { hasActiveSubscription } from "@/lib/lemon";
+import { hasActiveSubscription } from "@/lib/payments";
 import { buildPathWithQuery } from "@/lib/paths";
 import {
   computeFirstReminderSendAt,

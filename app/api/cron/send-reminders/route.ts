@@ -5,7 +5,7 @@
 import { NextResponse } from "next/server";
 
 import { sendReminderEmail } from "@/lib/email/send-reminder";
-import { hasActiveSubscription } from "@/lib/lemon";
+import { hasActiveSubscription } from "@/lib/payments";
 import {
   computeFirstReminderSendAt,
   computeRecurringReminderSendAt,
