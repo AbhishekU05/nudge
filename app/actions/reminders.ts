@@ -152,6 +152,18 @@ export async function createReminder(formData: FormData) {
     redirectToNewReminder("Enter a valid recipient email address.");
   }
 
+  const { data: existingReminder } = await supabase
+    .from("reminders")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("recipient_email", recipientEmail)
+    .eq("unsubscribed", false)
+    .maybeSingle();
+
+  if (existingReminder) {
+    redirectToNewReminder("You already have an active or paused reminder for this email address.");
+  }
+
   const amountInput = getString(formData, "amount_owed");
   if (!amountInput) {
     redirectToNewReminder("Amount owed is required.");
