@@ -152,21 +152,19 @@ export default async function BillingPage({
                   </div>
 
                   <div className="flex flex-col gap-2 sm:flex-row">
-                    {!isActive ? (
-                      <form action={startSubscriptionCheckout}>
-                        <Button type="submit" className="w-full sm:w-auto">
-                          Subscribe
-                        </Button>
-                      </form>
-                    ) : null}
-                    
-                    {isActive ? (
+                    {status === "active" ? (
                       <form action={cancelSubscription}>
                         <Button variant="secondary" type="submit" className="w-full sm:w-auto text-red-400 hover:text-red-300">
                           Cancel subscription
                         </Button>
                       </form>
-                    ) : null}
+                    ) : (
+                      <form action={startSubscriptionCheckout}>
+                        <Button type="submit" className="w-full sm:w-auto">
+                          {trialDaysLeft > 0 ? "Upgrade to basic plan" : "Subscribe"}
+                        </Button>
+                      </form>
+                    )}
                   </div>
                 </CardContent>
               </Card>
