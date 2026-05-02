@@ -214,11 +214,14 @@ export default async function Home({
       </main>
 
       <footer className="border-t border-border">
-        <Container className="flex items-center justify-between py-8 text-sm text-zinc-600">
+        <Container className="flex flex-col sm:flex-row items-center justify-between gap-4 py-8 text-sm text-zinc-600">
           <div>© {new Date().getFullYear()} Nudge</div>
-          <Link href="/support" className="hover:text-zinc-300 transition-colors">
-            Contact Support
-          </Link>
+          <div className="flex items-center gap-1.5">
+            <span>Contact us:</span>
+            <a href="mailto:support@nudgepay.co.in" className="font-medium text-zinc-400 hover:text-zinc-100 transition-colors">
+              support@nudgepay.co.in
+            </a>
+          </div>
         </Container>
       </footer>
     </div>
