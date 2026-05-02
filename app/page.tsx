@@ -214,8 +214,11 @@ export default async function Home({
       </main>
 
       <footer className="border-t border-border">
-        <Container className="py-8 text-sm text-zinc-600">
-          © {new Date().getFullYear()} Nudge
+        <Container className="flex items-center justify-between py-8 text-sm text-zinc-600">
+          <div>© {new Date().getFullYear()} Nudge</div>
+          <Link href="/support" className="hover:text-zinc-300 transition-colors">
+            Contact Support
+          </Link>
         </Container>
       </footer>
     </div>
