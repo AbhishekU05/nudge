@@ -214,11 +214,17 @@ export default async function Home({
       <footer className="border-t border-border">
         <Container className="flex flex-col sm:flex-row items-center justify-between gap-4 py-8 text-sm text-zinc-600">
           <div>© {new Date().getFullYear()} Duely. All rights reserved.</div>
-          <div className="flex items-center gap-1.5">
-            <span>Contact us:</span>
-            <a href="mailto:support@duely.in" className="font-medium text-zinc-400 hover:text-zinc-100 transition-colors">
-              support@duely.in
-            </a>
+          <div className="flex items-center gap-4">
+            <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>
+            <span>·</span>
+            <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link>
+            <span>·</span>
+            <div className="flex items-center gap-1.5">
+              <span>Contact us:</span>
+              <a href="mailto:support@duely.in" className="font-medium text-zinc-400 hover:text-zinc-100 transition-colors">
+                support@duely.in
+              </a>
+            </div>
           </div>
         </Container>
       </footer>
