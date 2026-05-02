@@ -174,6 +174,8 @@ export async function createReminder(formData: FormData) {
     redirectToNewReminder("Enter a valid amount owed.");
   }
 
+  const currencyInput = getString(formData, "currency") ?? "USD";
+
   const frequencyInput = getString(formData, "reminder_frequency_days");
   if (!frequencyInput) {
     redirectToNewReminder("Reminder frequency is required.");
@@ -205,6 +207,7 @@ export async function createReminder(formData: FormData) {
     recipient_name: recipientName,
     recipient_email: recipientEmail,
     amount_owed: amountOwed,
+    currency: currencyInput,
     custom_message: customMessage,
     reminder_frequency_days: reminderFrequencyDays,
     next_send_at: nextSendAt,
@@ -363,7 +366,7 @@ export async function sendTestReminderEmail(reminderId: string) {
   const { data: reminder, error } = await supabase
     .from("reminders")
     .select(
-      "id,recipient_name,recipient_email,amount_owed,custom_message,unsubscribe_token,unsubscribed",
+      "id,recipient_name,recipient_email,amount_owed,currency,custom_message,unsubscribe_token,unsubscribed",
     )
     .eq("id", reminderId)
     .eq("user_id", user.id)
@@ -372,6 +375,7 @@ export async function sendTestReminderEmail(reminderId: string) {
       recipient_name: string;
       recipient_email: string;
       amount_owed: number;
+      currency: string;
       custom_message: string | null;
       unsubscribe_token: string;
       unsubscribed: boolean;
@@ -398,6 +402,7 @@ export async function sendTestReminderEmail(reminderId: string) {
       recipientEmail: reminder.recipient_email,
       recipientName: reminder.recipient_name,
       amountOwed: Number(reminder.amount_owed),
+      currency: reminder.currency,
       customMessage: reminder.custom_message,
       unsubscribeToken: reminder.unsubscribe_token,
     });

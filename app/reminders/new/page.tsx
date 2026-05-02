@@ -7,6 +7,7 @@ import { ArrowLeft, Clock3, MailPlus, MessageSquare } from "lucide-react";
 
 import { createReminder } from "@/app/actions/reminders";
 import { Container } from "@/components/site/container";
+import { CurrencySelect } from "@/components/site/currency-select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -142,14 +143,20 @@ export default async function NewReminderPage({
 
                     <div className="space-y-2">
                       <Label htmlFor="amount_owed">Amount owed</Label>
-                      <Input
-                        id="amount_owed"
-                        name="amount_owed"
-                        inputMode="decimal"
-                        placeholder="420.00"
-                        required
-                        disabled={!hasSubscription}
-                      />
+                      <div className="flex gap-2">
+                        <div className="w-[100px]">
+                          <CurrencySelect id="currency" name="currency" disabled={!hasSubscription} />
+                        </div>
+                        <Input
+                          id="amount_owed"
+                          name="amount_owed"
+                          inputMode="decimal"
+                          placeholder="420.00"
+                          required
+                          disabled={!hasSubscription}
+                          className="flex-1"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">

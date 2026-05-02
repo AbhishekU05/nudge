@@ -25,6 +25,7 @@ type DueReminder = {
   recipient_name: string;
   recipient_email: string;
   amount_owed: number;
+  currency: string;
   custom_message: string | null;
   reminder_frequency_days: number;
   unsubscribe_token: string;
@@ -172,7 +173,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase
     .from("reminders")
     .select(
-      "id,user_id,recipient_name,recipient_email,amount_owed,custom_message,reminder_frequency_days,unsubscribe_token,next_send_at,last_sent_at,updated_at,created_at",
+      "id,user_id,recipient_name,recipient_email,amount_owed,currency,custom_message,reminder_frequency_days,unsubscribe_token,next_send_at,last_sent_at,updated_at,created_at",
     )
     .eq("active", true)
     .eq("unsubscribed", false)
@@ -273,6 +274,7 @@ export async function POST(request: Request) {
         recipientEmail: reminder.recipient_email,
         recipientName: reminder.recipient_name,
         amountOwed: Number(reminder.amount_owed),
+        currency: reminder.currency,
         customMessage: reminder.custom_message,
         unsubscribeToken: reminder.unsubscribe_token,
         idempotencyKey: `reminder:${reminder.id}:${reminder.next_send_at}`,

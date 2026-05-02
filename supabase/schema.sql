@@ -40,6 +40,7 @@ create table if not exists public.reminders (
   recipient_name text not null,
   recipient_email text not null,
   amount_owed numeric(12,2) not null check (amount_owed > 0),
+  currency text not null default 'USD',
   custom_message text,
 
   reminder_frequency_days int not null check (reminder_frequency_days >= 1),

@@ -8,6 +8,7 @@ type SendReminderEmailParams = {
   recipientEmail: string;
   recipientName: string;
   amountOwed: number;
+  currency: string;
   customMessage: string | null;
   unsubscribeToken: string;
   senderEmail?: string | null;
@@ -21,6 +22,7 @@ export async function sendReminderEmail(params: SendReminderEmailParams) {
     senderEmail: params.senderEmail,
     recipientName: params.recipientName,
     amountOwed: params.amountOwed,
+    currency: params.currency,
     customMessage: params.customMessage,
     unsubscribeToken: params.unsubscribeToken,
   });

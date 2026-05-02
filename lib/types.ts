@@ -4,6 +4,7 @@ export type ReminderRow = {
   recipient_name: string;
   recipient_email: string;
   amount_owed: number;
+  currency: string;
   custom_message: string | null;
   reminder_frequency_days: number;
   next_send_at: string;

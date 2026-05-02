@@ -14,6 +14,7 @@ import { baseText, colors, fontFamily } from "@/emails/components/styles";
 export type PaymentReminderEmailProps = {
   appUrl: string;
   amountOwed: number;
+  currency: string;
   customMessage: string | null;
   recipientName: string;
   senderEmail?: string | null;
@@ -24,6 +25,7 @@ export type PaymentReminderEmailProps = {
 export function PaymentReminderEmail({
   appUrl,
   amountOwed,
+  currency,
   customMessage,
   recipientName,
   senderEmail,
@@ -32,7 +34,7 @@ export function PaymentReminderEmail({
 }: PaymentReminderEmailProps) {
   const safeRecipientName = recipientName.trim() || "there";
   const safeSenderName = senderName.trim() || "Someone";
-  const amount = formatAmount(amountOwed);
+  const amount = formatAmount(amountOwed, currency);
   const replyHref = senderEmail
     ? `mailto:${senderEmail}?subject=${encodeURIComponent("Re: Pending balance")}`
     : null;
@@ -85,9 +87,9 @@ export function PaymentReminderEmail({
   );
 }
 
-function formatAmount(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    currency: "USD",
+function formatAmount(value: number, currency: string = "USD") {
+  return new Intl.NumberFormat(undefined, {
+    currency: currency,
     style: "currency",
   }).format(value);
 }

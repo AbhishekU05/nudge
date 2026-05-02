@@ -15,6 +15,7 @@ export function buildUnsubscribeUrl(unsubscribeToken: string) {
 
 export function buildReminderEmail(params: {
   amountOwed: number;
+  currency: string;
   customMessage: string | null;
   recipientName: string;
   senderEmail?: string | null;
@@ -23,8 +24,8 @@ export function buildReminderEmail(params: {
 }) {
   const unsubscribeUrl = buildUnsubscribeUrl(params.unsubscribeToken);
   const appUrl = getAppUrl();
-  const amount = new Intl.NumberFormat("en-US", {
-    currency: "USD",
+  const amount = new Intl.NumberFormat(undefined, {
+    currency: params.currency,
     style: "currency",
   }).format(params.amountOwed);
   const safeRecipientName = params.recipientName.trim() || "there";
@@ -58,6 +59,7 @@ export function buildReminderEmail(params: {
   const react = createElement(PaymentReminderEmail, {
     appUrl,
     amountOwed: params.amountOwed,
+    currency: params.currency,
     customMessage: params.customMessage,
     recipientName: safeRecipientName,
     senderEmail: params.senderEmail,

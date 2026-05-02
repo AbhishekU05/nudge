@@ -21,9 +21,9 @@ import {
   deleteReminder,
   pauseReminder,
   resumeReminder,
-  sendTestReminderEmail,
-} from "@/app/actions/reminders";
+import { createReminder, deleteReminder, pauseReminder, resumeReminder, sendTestReminderEmail } from "@/app/actions/reminders";
 import { Container } from "@/components/site/container";
+import { CurrencySelect } from "@/components/site/currency-select";
 import { LocalTime } from "@/components/site/local-time";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,9 +47,9 @@ import { cn } from "@/lib/utils";
 
 // formats numbers into currency
 // TODO: format currency based on client location
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    currency: "USD",
+function formatCurrency(value: number, currency: string = "USD") {
+  return new Intl.NumberFormat(undefined, {
+    currency: currency,
     style: "currency",
   }).format(Number(value));
 }
@@ -162,7 +162,7 @@ function ReminderCard({
               <div>
                 <p className="text-xs text-zinc-600">Amount</p>
                 <p className="mt-1 font-semibold text-zinc-100">
-                  {formatCurrency(Number(reminder.amount_owed))}
+                  {formatCurrency(Number(reminder.amount_owed), reminder.currency)}
                 </p>
               </div>
               <div>
@@ -310,18 +310,23 @@ function QuickCreateCard({
                   required
                 />
               </div>
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
-                <div>
-                  <Label htmlFor="quick_amount_owed" className="sr-only">
-                    Amount owed
-                  </Label>
-                  <Input
-                    id="quick_amount_owed"
-                    name="amount_owed"
-                    inputMode="decimal"
-                    placeholder="Amount owed"
-                    required
-                  />
+                <div className="flex gap-2 col-span-2 sm:col-span-1">
+                  <div className="w-[100px]">
+                    <Label htmlFor="quick_currency" className="sr-only">Currency</Label>
+                    <CurrencySelect id="quick_currency" name="currency" />
+                  </div>
+                  <div className="flex-1">
+                    <Label htmlFor="quick_amount_owed" className="sr-only">
+                      Amount owed
+                    </Label>
+                    <Input
+                      id="quick_amount_owed"
+                      name="amount_owed"
+                      inputMode="decimal"
+                      placeholder="Amount"
+                      required
+                    />
+                  </div>
                 </div>
                 <Button type="submit">Create</Button>
               </div>
@@ -366,7 +371,7 @@ function buildTimeline(reminders: ReminderRow[]): TimelineEvent[] {
       reminder.active && !reminder.unsubscribed
         ? {
             at: reminder.next_send_at,
-            detail: `${reminder.recipient_name} · ${formatCurrency(Number(reminder.amount_owed))}`,
+            detail: `${reminder.recipient_name} · ${formatCurrency(Number(reminder.amount_owed), reminder.currency)}`,
             id: `${reminder.id}-next`,
             title: "Next reminder queued",
             tone: "primary",
