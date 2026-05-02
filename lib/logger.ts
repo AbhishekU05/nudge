@@ -12,7 +12,7 @@ interface BaseLogData {
 
 export const logger = {
   log(level: LogLevel, data: BaseLogData) {
-    const payload = {
+    const payload: Record<string, any> = {
       timestamp: new Date().toISOString(),
       level,
       ...data,
