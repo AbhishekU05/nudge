@@ -20,7 +20,7 @@ export default async function ForgotPasswordPage({
   return (
     <AuthShell
       title="Reset your password"
-      description="Enter your email and we'll send you a link."
+      description="Enter your email to get a reset link."
     >
       <form action={requestPasswordReset} className="space-y-4">
         <div className="space-y-2">
@@ -54,7 +54,7 @@ export default async function ForgotPasswordPage({
       {/* uh wtf is this shit*/}
       {/* TODO: figure out what this is and remove it if unnecessary */}
       <div className="mt-6 text-center text-sm text-zinc-500">
-        Remembered it?{" "}
+        Remember it now?{" "}
         <Link
           href="/login"
           className="font-medium text-zinc-100 underline underline-offset-4 hover:text-white"

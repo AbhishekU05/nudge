@@ -34,7 +34,7 @@ export function AuthShell({
               </span>
             </Link>
             <p className="max-w-md text-4xl font-semibold tracking-tight text-zinc-50">
-              Gentle payment follow-ups, without the awkward inbox chase.
+              Get paid on time. Without awkward follow-ups.
             </p>
             <div className="mt-8 max-w-md rounded-2xl border border-border bg-white/[0.03] p-5">
               <div className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-500">
@@ -45,19 +45,19 @@ export function AuthShell({
                   <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-xs text-zinc-400">
                     1
                   </span>
-                  Create a nudge in under a minute
+                  Create a reminder in under a minute
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-xs text-zinc-400">
                     2
                   </span>
-                  Let reminders send on your cadence
+                  Let Nudge follow up automatically
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-xs text-zinc-400">
                     3
                   </span>
-                  Mark it resolved when payment lands
+                  Mark it resolved once paid
                 </div>
               </div>
             </div>
