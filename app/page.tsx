@@ -78,11 +78,8 @@ export default async function Home({
               <h1 className="mt-7 text-pretty text-5xl font-semibold tracking-[-0.045em] text-zinc-50 sm:text-6xl lg:text-7xl">
                 Get paid on time. Without awkward follow-ups.
               </h1>
-              <p className="mt-4 text-xl font-medium text-zinc-300">
-                Built for freelancers, founders, and anyone tired of chasing payments.
-              </p>
               <p className="mt-6 max-w-2xl text-pretty text-lg leading-8 text-zinc-400">
-                Automated reminders that help you get paid. No awkward follow-ups. No manual chasing.
+                Set it once. Nudge follows up automatically until you get paid.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link href="/signup">
@@ -140,11 +137,11 @@ export default async function Home({
                       <div>
                         <div className="font-medium text-zinc-50">Sam Carter</div>
                         <div className="mt-1 text-sm text-zinc-500">
-                          sam@example.com
+                          sam@gmail.com
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-semibold text-zinc-50">$420.00</div>
+                        <div className="font-semibold text-zinc-50">$500.00</div>
                         <div className="mt-1 text-xs text-zinc-500">due</div>
                       </div>
                     </div>
@@ -192,15 +189,15 @@ export default async function Home({
             {[
               [
                 "Create",
-                "Add a recipient, amount, and cadence without thinking about accounting software.",
+                "Add a recipient, amount, and schedule in seconds.",
               ],
               [
                 "Track",
-                "See exactly which nudges are active, paused, queued, or recently sent.",
+                "See which reminders are active, queued, or sent—at a glance.",
               ],
               [
                 "Resolve",
-                "Stop the loop as soon as the balance is paid. No extra workflow required.",
+                "Stop reminders automatically once payment is made.",
               ],
             ].map(([title, copy]) => (
               <Card key={title} className="bg-white/[0.025]">
@@ -216,7 +213,7 @@ export default async function Home({
 
       <footer className="border-t border-border">
         <Container className="flex flex-col sm:flex-row items-center justify-between gap-4 py-8 text-sm text-zinc-600">
-          <div>© {new Date().getFullYear()} Nudge</div>
+          <div>© {new Date().getFullYear()} Nudge. All rights reserved.</div>
           <div className="flex items-center gap-1.5">
             <span>Contact us:</span>
             <a href="mailto:support@nudgepay.co.in" className="font-medium text-zinc-400 hover:text-zinc-100 transition-colors">
