@@ -81,9 +81,9 @@ export async function POST(req: Request) {
 
       const userId = sub.notes?.user_id;
 
-      logger.info({
+      logger.payment({
         message: "Processing webhook event",
-        context: "razorpay:webhook",
+        status: "processing",
         event_type: event.event,
         user_id: userId || "missing",
         subscription_id: sub.id,

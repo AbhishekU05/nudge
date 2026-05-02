@@ -10,47 +10,62 @@ import { logger } from "@/lib/logger";
 export async function startSubscriptionCheckout() {
   const user = await requireUser();
 
-  const keyId = getRequiredEnv("RAZORPAY_KEY_ID");
-  const keySecret = getRequiredEnv("RAZORPAY_KEY_SECRET");
-  const planId = getRequiredEnv("RAZORPAY_PLAN_ID");
+  let subscriptionId: string | undefined;
 
-  const razorpay = new Razorpay({
-    key_id: keyId,
-    key_secret: keySecret,
-  });
-
-  const startTime = Date.now();
-  let subscription;
   try {
-    subscription = await razorpay.subscriptions.create({
-      plan_id: planId,
-      total_count: 120, // 10 years, effectively "until canceled"
-      customer_notify: 1,
-      notes: {
+    const keyId = getRequiredEnv("RAZORPAY_KEY_ID");
+    const keySecret = getRequiredEnv("RAZORPAY_KEY_SECRET");
+    const planId = getRequiredEnv("RAZORPAY_PLAN_ID");
+
+    const RazorpayClient = (Razorpay as any).default || Razorpay;
+    const razorpay = new RazorpayClient({
+      key_id: keyId,
+      key_secret: keySecret,
+    });
+
+    const startTime = Date.now();
+    try {
+      const subscription = await razorpay.subscriptions.create({
+        plan_id: planId,
+        total_count: 120, // 10 years, effectively "until canceled"
+        customer_notify: 1,
+        notes: {
+          user_id: user.id,
+        },
+      });
+      subscriptionId = subscription.id;
+      
+      logger.external({
+        service: "Razorpay",
+        action: "create_subscription",
+        success: true,
+        latency: Date.now() - startTime,
         user_id: user.id,
-      },
-    });
-    
-    logger.external({
-      service: "Razorpay",
-      action: "create_subscription",
-      success: true,
-      latency: Date.now() - startTime,
-      user_id: user.id,
-    });
+      });
+    } catch (err) {
+      logger.external({
+        service: "Razorpay",
+        action: "create_subscription",
+        success: false,
+        latency: Date.now() - startTime,
+        error: err instanceof Error ? err.message : "Unknown error",
+        user_id: user.id,
+      });
+      throw err;
+    }
   } catch (err) {
-    logger.external({
-      service: "Razorpay",
-      action: "create_subscription",
-      success: false,
-      latency: Date.now() - startTime,
-      error: err instanceof Error ? err.message : "Unknown error",
+    logger.error({
+      message: "Subscription checkout failed",
+      context: "startSubscriptionCheckout",
       user_id: user.id,
+      error: err instanceof Error ? err.message : "Unknown error",
     });
-    throw err;
+    redirect("/settings/billing?error=no_portal_url");
   }
 
-  redirect(`/checkout?subscriptionId=${subscription.id}`);
+  if (subscriptionId) {
+    redirect(`/checkout?subscriptionId=${subscriptionId}`);
+  }
 }
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
