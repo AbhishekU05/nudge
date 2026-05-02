@@ -22,7 +22,6 @@ function verifySignature(body: string, signature: string | null) {
 }
 
 export async function POST(req: Request) {
-  console.log("🔥 WEBHOOK HIT");
   const requestId = crypto.randomUUID();
   const body = await req.text();
   const signature = req.headers.get("x-razorpay-signature");

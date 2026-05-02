@@ -5,6 +5,10 @@ export function hasActiveSubscription(
   createdAt?: string | null,
 ) {
   if (status === "active") return true;
+  
+  // If they have a Razorpay status other than "none" (e.g. "cancelled", "past_due"), 
+  // they've already subscribed once, so the free trial is voided.
+  if (status && status !== "none") return false;
 
   if (createdAt) {
     const trialDays = 14;
