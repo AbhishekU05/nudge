@@ -621,7 +621,7 @@ export default async function DashboardPage({
                 <div className="text-2xl font-semibold text-zinc-50">
                   {unsubscribedReminders.length}
                 </div>
-                <div className="mt-1 text-xs text-zinc-600">Opted out</div>
+                <div className="mt-1 text-xs text-zinc-600">Unsubscribed</div>
               </div>
             </div>
           </div>
