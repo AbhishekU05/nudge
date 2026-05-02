@@ -30,7 +30,7 @@ export function FeedbackNotificationEmail({
       <EmailCard>
         <EmailHeading>New feedback received</EmailHeading>
         <EmailText>
-          A Nudge user sent feedback from inside the product.
+          A Duely user sent feedback from inside the product.
         </EmailText>
 
         <Section style={meta}>

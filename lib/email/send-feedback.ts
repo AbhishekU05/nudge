@@ -13,7 +13,7 @@ type SendFeedbackEmailParams = {
 
 export async function sendFeedbackEmail(params: SendFeedbackEmailParams) {
   const resend = getResendClient();
-  const feedbackEmail = "support@nudgepay.co.in";
+  const feedbackEmail = "support@duely.in";
 
   const payload = {
     from: getFromEmail(),

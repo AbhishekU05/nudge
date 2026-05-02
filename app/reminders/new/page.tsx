@@ -76,10 +76,10 @@ export default async function NewReminderPage({
             <section className="space-y-6">
               <div>
                 <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
-                  Create a nudge
+                  Create a reminder
                 </h1>
                 <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
-                  Add a few details. Nudge will follow up until you get paid.
+                  Add a few details. Duely will follow up until you get paid.
                 </p>
               </div>
 

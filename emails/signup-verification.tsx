@@ -24,7 +24,7 @@ export function SignupVerificationEmail({
     <EmailLayout
       appUrl={appUrl}
       eyebrow="Verify email"
-      preview="Confirm your email address to use Nudge."
+      preview="Confirm your email address to use Duely."
     >
       <EmailCard>
         <EmailHeading>Confirm your email</EmailHeading>

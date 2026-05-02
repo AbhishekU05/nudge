@@ -26,7 +26,7 @@ function CheckoutContent() {
         const options = {
           key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
           subscription_id: subscriptionId,
-          name: "Nudge",
+          name: "Duely",
           description: "Monthly Subscription",
           theme: {
             color: "#18181b",

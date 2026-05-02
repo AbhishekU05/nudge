@@ -11,14 +11,14 @@ export default function NotFound() {
         <Container className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/logo.svg"
-              alt="Nudge Logo"
-              width={30}
-              height={21}
-              className="h-6 w-auto"
+              src="/icon.png"
+              width={20}
+              height={20}
+              alt="Duely Logo"
+              className="h-5 w-5 rounded-md grayscale"
             />
             <span className="font-semibold tracking-tight text-zinc-50">
-              Nudge
+              Duely
             </span>
           </Link>
           <div className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export default function NotFound() {
 
       <footer className="border-t border-border">
         <Container className="py-8 text-center text-sm text-zinc-600">
-          © {new Date().getFullYear()} Nudge
+          © {new Date().getFullYear()} Duely
         </Container>
       </footer>
     </div>

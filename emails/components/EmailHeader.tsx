@@ -14,12 +14,13 @@ export function EmailHeader({ appUrl, eyebrow }: EmailHeaderProps) {
     <Section style={header}>
       <Link href={normalizedAppUrl} style={brandLink}>
         <Img
-          alt="Nudge"
-          height="22"
-          src={`${normalizedAppUrl}/logo.svg`}
+          src={`${appUrl}/icon.png`}
+          width="24"
+          height="24"
+          alt="Duely"
           style={logo}
         />
-        <Text style={brandName}>Nudge</Text>
+        <Text style={brandName}>Duely</Text>
       </Link>
       {eyebrow ? <Text style={eyebrowStyle}>{eyebrow}</Text> : null}
     </Section>

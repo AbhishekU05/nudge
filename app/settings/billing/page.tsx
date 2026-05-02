@@ -20,13 +20,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 function getBillingMessage(error?: string) {
   if (!error) return null;
   if (error === "subscription_required") {
-    return "Start the subscription before creating or resuming reminders.";
+    return "Start a subscription to create or resume reminders.";
   }
   if (error === "no_subscription") {
-    return "There is no active subscription to manage yet.";
+    return "No active subscription yet.";
   }
   if (error === "no_portal_url") {
-    return "Billing portal is not available yet. Try again in a moment.";
+    return "Billing is temporarily unavailable. Try again in a moment.";
   }
   return error;
 }
@@ -76,7 +76,7 @@ export default async function BillingPage({
             Dashboard
           </Link>
           <Badge variant={isActive ? "success" : "warning"}>
-            {isActive ? "Active access" : "Action needed"}
+            {isActive ? "Active plan" : "Action required"}
           </Badge>
         </Container>
       </header>
@@ -90,22 +90,20 @@ export default async function BillingPage({
                   Billing
                 </h1>
                 <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
-                  Keep automated payment reminders running without exposing
-                  billing complexity in the main workflow.
+                  Manage your plan and keep reminders running.
                 </p>
               </div>
 
               <div className="space-y-3">
                 {success ? (
                   <p className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-                    Checkout completed. Subscription status will refresh when
-                    the webhook arrives.
+                    Payment successful. Your plan will update shortly.
                   </p>
                 ) : null}
 
                 {canceled ? (
                   <p className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-zinc-400">
-                    Checkout was canceled. No changes were made.
+                    Checkout canceled. No changes made.
                   </p>
                 ) : null}
 
@@ -184,7 +182,7 @@ export default async function BillingPage({
                 <CardContent className="text-sm leading-6 text-zinc-500">
                   Emails are sent no more than once every 24 hours, and every
                   message includes a clean one-click unsubscribe link. No spam,
-                  just gentle nudges.
+                  just gentle reminders.
                 </CardContent>
               </Card>
             </aside>

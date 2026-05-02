@@ -49,13 +49,13 @@ export default async function Home({
         <Container className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/logo.svg"
-              alt="Nudge Logo"
-              width={30}
-              height={21}
-              className="h-6 w-auto"
+              src="/icon.png"
+              width={20}
+              height={20}
+              alt="Duely Logo"
+              className="h-5 w-5 rounded-md grayscale"
             />
-            <span className="font-semibold tracking-tight text-zinc-50">Nudge</span>
+            <span className="font-semibold tracking-tight text-zinc-50">Duely</span>
           </Link>
           <div className="flex items-center gap-2">
             <Link href="/login">
@@ -79,7 +79,7 @@ export default async function Home({
                 Get paid on time. Without awkward follow-ups.
               </h1>
               <p className="mt-6 max-w-2xl text-pretty text-lg leading-8 text-zinc-400">
-                Set it once. Nudge follows up automatically until you get paid.
+                Set it once. Duely follows up automatically until you get paid.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link href="/signup">
@@ -120,7 +120,7 @@ export default async function Home({
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-zinc-100">
-                        Active nudges
+                        Active reminders
                       </div>
                       <div className="mt-1 text-xs text-zinc-500">
                         Quietly running in the background
@@ -213,11 +213,11 @@ export default async function Home({
 
       <footer className="border-t border-border">
         <Container className="flex flex-col sm:flex-row items-center justify-between gap-4 py-8 text-sm text-zinc-600">
-          <div>© {new Date().getFullYear()} Nudge. All rights reserved.</div>
+          <div>© {new Date().getFullYear()} Duely. All rights reserved.</div>
           <div className="flex items-center gap-1.5">
             <span>Contact us:</span>
-            <a href="mailto:support@nudgepay.co.in" className="font-medium text-zinc-400 hover:text-zinc-100 transition-colors">
-              support@nudgepay.co.in
+            <a href="mailto:support@duely.in" className="font-medium text-zinc-400 hover:text-zinc-100 transition-colors">
+              support@duely.in
             </a>
           </div>
         </Container>

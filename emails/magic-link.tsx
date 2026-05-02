@@ -24,7 +24,7 @@ export function MagicLinkEmail({
     <EmailLayout
       appUrl={appUrl}
       eyebrow="Secure sign-in"
-      preview="Use this link to sign in to Nudge."
+      preview="Use this link to sign in to Duely."
     >
       <EmailCard>
         <EmailHeading>Sign in</EmailHeading>
@@ -35,7 +35,7 @@ export function MagicLinkEmail({
           <EmailMutedText>This sign-in link was requested for {userEmail}.</EmailMutedText>
         ) : null}
         <Section style={ctaSection}>
-          <EmailButton href={actionUrl}>Open Nudge</EmailButton>
+          <EmailButton href={actionUrl}>Open Duely</EmailButton>
         </Section>
         <EmailMutedText>
           If you did not request this link, please ignore this message.

@@ -247,7 +247,7 @@ function EmptyActiveState({ hasSubscription }: { hasSubscription: boolean }) {
         No reminders yet
       </h3>
       <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-zinc-500">
-        Create your first reminder and Nudge will follow up automatically until you’re paid.
+        Create your first reminder and Duely will follow up automatically until you’re paid.
       </p>
       <div className="mt-6">
         <Link href={hasSubscription ? "/reminders/new" : "/settings/billing"}>
@@ -345,7 +345,7 @@ function QuickCreateCard({
             {/* TODO: uh wtf is this shit. re word this shit*/}
             <p className="text-sm leading-6 text-zinc-500">
               Activate your plan to create and resume automated reminders.
-              Nudge is {monthlyPrice}.
+              Duely is {monthlyPrice}.
             </p>
             <Link href="/settings/billing">
               <Button className="w-full">Open billing</Button>
@@ -392,7 +392,7 @@ function buildTimeline(reminders: ReminderRow[]): TimelineEvent[] {
           at: reminder.updated_at,
           detail: reminder.recipient_name,
           id: `${reminder.id}-paused`,
-          title: "Nudge paused",
+          title: "Reminder paused",
           tone: "warning",
         }
         : null,
@@ -558,14 +558,14 @@ export default async function DashboardPage({
         <Container className="flex h-16 items-center justify-between gap-4">
           <Link href="/dashboard" className="flex items-center gap-2">
             <Image
-              src="/logo.svg"
-              alt="Nudge Logo"
-              width={30}
-              height={21}
-              className="h-6 w-auto"
+              src="/icon.png"
+              width={20}
+              height={20}
+              alt="Duely Logo"
+              className="h-5 w-5 rounded-md grayscale"
             />
             <span className="font-semibold tracking-tight text-zinc-50">
-              Nudge
+              Duely
             </span>
           </Link>
 
@@ -596,12 +596,12 @@ export default async function DashboardPage({
               <Badge variant={hasSubscription ? "success" : "warning"}>
                 {planLabel}
               </Badge>
-              <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
-                Nudges
-              </h1>
+              <div className="text-sm font-medium text-zinc-500">
+                Reminders
+              </div>
               {/* TODO: wtf change this wording*/}
               <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
-                Create a reminder. Nudge follows up until you get paid.
+                Create a reminder. Duely follows up until you get paid.
               </p>
             </div>
             <div className="grid grid-cols-3 gap-3 rounded-2xl border border-border bg-white/[0.03] p-3 text-center">
@@ -636,9 +636,9 @@ export default async function DashboardPage({
               <Card className="bg-white/[0.035]">
                 <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <CardTitle className="flex items-center gap-2 text-2xl">
-                      <Send className="h-5 w-5 text-primary" />
-                      Active nudges
+                    <CardTitle className="flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-emerald-500" />
+                      Active reminders
                     </CardTitle>
                     {/* TODO: bruh wording. change it. wtf. */}
                     <CardDescription>
@@ -648,7 +648,7 @@ export default async function DashboardPage({
                   <Link href={hasSubscription ? "/reminders/new" : "/settings/billing"}>
                     <Button size="sm">
                       <Plus className="h-3.5 w-3.5" />
-                      New nudge
+                      New reminder
                     </Button>
                   </Link>
                 </CardHeader>
@@ -671,9 +671,9 @@ export default async function DashboardPage({
                 <Card className="bg-white/[0.02]">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <PauseCircle className="h-4 w-4 text-zinc-500" />
-                      Quiet nudges
-                    </CardTitle>
+                    <Pause className="h-4 w-4 text-zinc-400" />
+                    Quiet reminders
+                  </CardTitle>
                     {/* TODO: why you telling the user that. change it*/}
                     <CardDescription>
                       Paused and unsubscribed reminders stay here
@@ -710,7 +710,7 @@ export default async function DashboardPage({
                         {hasSubscription ? (
                           <CheckCircle2 className="h-4 w-4" />
                         ) : (
-                          <Mail className="h-4 w-4" />
+                          <Plus className="h-4 w-4" />
                         )}
                       </div>
                       <div>

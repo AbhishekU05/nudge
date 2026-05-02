@@ -24,7 +24,7 @@ export function PasswordResetEmail({
     <EmailLayout
       appUrl={appUrl}
       eyebrow="Password reset"
-      preview="Use this link to reset your Nudge password."
+      preview="Use this link to reset your Duely password."
     >
       <EmailCard>
         <EmailHeading>Reset your password</EmailHeading>

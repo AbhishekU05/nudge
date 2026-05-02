@@ -21,13 +21,13 @@ export function WelcomeEmail({ appUrl, userName }: WelcomeEmailProps) {
     <EmailLayout
       appUrl={appUrl}
       eyebrow="Welcome"
-      preview="Your Nudge account is ready."
+      preview="Your Duely account is ready."
     >
       <EmailCard>
         <EmailHeading>Your account is ready</EmailHeading>
         <EmailText>{greeting}</EmailText>
         <EmailText>
-          Welcome to Nudge. You can now create payment reminders and track their status from your dashboard.
+          Welcome to Duely. You can now create payment reminders and track their status from your dashboard.
         </EmailText>
         <Section style={ctaSection}>
           <EmailButton href={`${appUrl.replace(/\/+$/, "")}/dashboard`}>

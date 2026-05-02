@@ -77,7 +77,7 @@ export function PaymentReminderEmail({
 
         <Hr style={rule} />
         <Text style={finePrint}>
-          This reminder was sent by Nudge on behalf of {safeSenderName}.
+          This reminder was sent by Duely on behalf of {safeSenderName}.
         </Text>
       </EmailCard>
     </EmailLayout>

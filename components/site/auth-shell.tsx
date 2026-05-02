@@ -23,14 +23,14 @@ export function AuthShell({
           <div className="hidden lg:block">
             <Link href="/" className="mb-10 inline-flex items-center gap-3">
               <Image
-                src="/logo.svg"
-                alt="Nudge Logo"
-                width={36}
-                height={26}
-                className="h-7 w-auto"
+                src="/icon.png"
+                width={24}
+                height={24}
+                alt="Duely Logo"
+                className="h-6 w-6 rounded-md grayscale"
               />
-              <span className="text-lg font-semibold tracking-tight text-zinc-50">
-                Nudge
+              <span className="font-semibold tracking-tight text-zinc-50">
+                Duely
               </span>
             </Link>
             <p className="max-w-md text-4xl font-semibold tracking-tight text-zinc-50">
@@ -51,7 +51,7 @@ export function AuthShell({
                   <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-xs text-zinc-400">
                     2
                   </span>
-                  Let Nudge follow up automatically
+                  Let Duely follow up automatically
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-xs text-zinc-400">
@@ -67,14 +67,14 @@ export function AuthShell({
             <div className="mb-8 flex items-center justify-center lg:hidden">
               <Link href="/" className="flex items-center gap-2">
                 <Image
-                  src="/logo.svg"
-                  alt="Nudge Logo"
-                  width={32}
-                  height={23}
-                  className="h-7 w-auto"
+                  src="/icon.png"
+                  width={24}
+                  height={24}
+                  alt="Duely Logo"
+                  className="h-6 w-6 rounded-md grayscale"
                 />
-                <span className="text-xl font-semibold tracking-tight text-zinc-50">
-                  Nudge
+                <span className="font-semibold tracking-tight text-zinc-50">
+                  Duely
                 </span>
               </Link>
             </div>

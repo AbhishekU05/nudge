@@ -20,11 +20,11 @@ export function EmailFooter({
       <Hr style={rule} />
       {children ? <Section style={footerContent}>{children}</Section> : null}
       <Text style={footerText}>
-        Nudge helps people send calm, professional payment follow-ups.
+        Duely helps people send calm, professional payment follow-ups.
       </Text>
-      <Text style={footerText}>
-        <Link href={normalizedAppUrl} style={footerLink}>
-          nudgepay.co.in
+      <Text style={{ ...footerText, marginTop: 12 }}>
+        <Link href={appUrl} style={footerLink}>
+          duely.in
         </Link>
         {unsubscribeUrl ? (
           <>
