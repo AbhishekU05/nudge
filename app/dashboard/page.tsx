@@ -561,12 +561,12 @@ export default async function DashboardPage({
           <Link href="/dashboard" className="flex items-center gap-2">
             <Image
               src="/logo.svg"
-              width={24}
-              height={24}
+              width={32}
+              height={32}
               alt="Duely Logo"
-              className="h-6 w-6 rounded-md grayscale"
+              className="h-8 w-8 rounded-md"
             />
-            <span className="text-lg font-semibold tracking-tight text-zinc-50">
+            <span className="text-2xl font-semibold tracking-tight text-zinc-50">
               Duely
             </span>
           </Link>

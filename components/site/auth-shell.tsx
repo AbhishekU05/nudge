@@ -24,12 +24,12 @@ export function AuthShell({
             <Link href="/" className="mb-10 inline-flex items-center gap-3">
               <Image
                 src="/logo.svg"
-                width={24}
-                height={24}
+                width={32}
+                height={32}
                 alt="Duely Logo"
-                className="h-6 w-6 rounded-md grayscale"
+                className="h-8 w-8 rounded-md"
               />
-              <span className="font-semibold tracking-tight text-zinc-50">
+              <span className="text-2xl font-semibold tracking-tight text-zinc-50">
                 Duely
               </span>
             </Link>
@@ -68,12 +68,12 @@ export function AuthShell({
               <Link href="/" className="flex items-center gap-2">
                 <Image
                   src="/logo.svg"
-                  width={24}
-                  height={24}
+                  width={32}
+                  height={32}
                   alt="Duely Logo"
-                  className="h-6 w-6 rounded-md grayscale"
+                  className="h-8 w-8 rounded-md"
                 />
-                <span className="font-semibold tracking-tight text-zinc-50">
+                <span className="text-2xl font-semibold tracking-tight text-zinc-50">
                   Duely
                 </span>
               </Link>
