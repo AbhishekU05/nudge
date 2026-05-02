@@ -560,13 +560,13 @@ export default async function DashboardPage({
         <Container className="flex h-16 items-center justify-between gap-4">
           <Link href="/dashboard" className="flex items-center gap-2">
             <Image
-              src="/icon.png"
-              width={20}
-              height={20}
+              src="/logo.svg"
+              width={24}
+              height={24}
               alt="Duely Logo"
-              className="h-5 w-5 rounded-md grayscale"
+              className="h-6 w-6 rounded-md grayscale"
             />
-            <span className="font-semibold tracking-tight text-zinc-50">
+            <span className="text-lg font-semibold tracking-tight text-zinc-50">
               Duely
             </span>
           </Link>
@@ -598,9 +598,9 @@ export default async function DashboardPage({
               <Badge variant={hasSubscription ? "success" : "warning"}>
                 {planLabel}
               </Badge>
-              <div className="text-sm font-medium text-zinc-500">
+              <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
                 Reminders
-              </div>
+              </h1>
               {/* TODO: wtf change this wording*/}
               <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
                 Create a reminder. Duely follows up until you get paid.

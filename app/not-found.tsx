@@ -11,13 +11,13 @@ export default function NotFound() {
         <Container className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/icon.png"
-              width={20}
-              height={20}
+              src="/logo.svg"
+              width={24}
+              height={24}
               alt="Duely Logo"
-              className="h-5 w-5 rounded-md grayscale"
+              className="h-6 w-6 rounded-md grayscale"
             />
-            <span className="font-semibold tracking-tight text-zinc-50">
+            <span className="text-lg font-semibold tracking-tight text-zinc-50">
               Duely
             </span>
           </Link>

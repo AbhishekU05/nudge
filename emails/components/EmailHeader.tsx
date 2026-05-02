@@ -14,7 +14,7 @@ export function EmailHeader({ appUrl, eyebrow }: EmailHeaderProps) {
     <Section style={header}>
       <Link href={normalizedAppUrl} style={brandLink}>
         <Img
-          src={`${appUrl}/icon.png`}
+          src={`${appUrl}/logo.svg`}
           width="24"
           height="24"
           alt="Duely"

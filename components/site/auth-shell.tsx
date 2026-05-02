@@ -23,7 +23,7 @@ export function AuthShell({
           <div className="hidden lg:block">
             <Link href="/" className="mb-10 inline-flex items-center gap-3">
               <Image
-                src="/icon.png"
+                src="/logo.svg"
                 width={24}
                 height={24}
                 alt="Duely Logo"
@@ -67,7 +67,7 @@ export function AuthShell({
             <div className="mb-8 flex items-center justify-center lg:hidden">
               <Link href="/" className="flex items-center gap-2">
                 <Image
-                  src="/icon.png"
+                  src="/logo.svg"
                   width={24}
                   height={24}
                   alt="Duely Logo"
