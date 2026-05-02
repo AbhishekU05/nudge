@@ -39,12 +39,13 @@ export default function PrivacyPage() {
                 <li><strong>Reminder Data:</strong> The recipient names, email addresses, amounts, and optional messages you enter to create reminders.</li>
                 <li><strong>Usage Data:</strong> Basic logs of how you interact with our application to help us improve the service.</li>
               </ul>
+              <p className="mt-4">We may use basic cookies or similar technologies to keep you signed in and improve the product experience.</p>
             </div>
 
             <div>
               <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">2. How We Use Your Data</h2>
               <p>
-                We use your data strictly to operate and maintain Duely. Specifically, we use it to authenticate you, send payment reminders on your behalf, and provide customer support. We do not sell or share your data with advertisers.
+                We use your data strictly to operate and maintain Duely. Specifically, we use it to authenticate you, send payment reminders on your behalf, and provide customer support. We do not sell or share your data with advertisers. We process reminder content only to deliver emails on your behalf. We do not use this data for advertising or profiling.
               </p>
             </div>
 
@@ -61,7 +62,7 @@ export default function PrivacyPage() {
             <div>
               <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">4. Data Retention</h2>
               <p>
-                We retain your data for as long as your account is active. If you delete your account, we will remove your personal data and the reminder data you created from our active databases.
+                We retain your data for as long as your account is active. If you delete your account, we will delete your personal data from our active systems within a reasonable period, except where retention is required for legal or operational reasons.
               </p>
             </div>
 

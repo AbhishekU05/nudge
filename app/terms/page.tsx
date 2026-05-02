@@ -28,7 +28,7 @@ export default function TermsPage() {
           
           <div className="prose prose-invert max-w-none text-zinc-400 space-y-6">
             <p>
-              Welcome to Duely. By using our service, you agree to these terms. Please read them carefully.
+              Welcome to Duely. By using Duely, you agree to these terms. Please read them carefully.
             </p>
 
             <div>
@@ -41,7 +41,7 @@ export default function TermsPage() {
             <div>
               <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">2. User Responsibilities</h2>
               <p>
-                You agree to use Duely responsibly. You must not use our service to send spam, harass others, or send deceptive or malicious emails. Accounts found abusing the service or generating high complaint rates will be suspended or terminated immediately without refund.
+                You agree to use Duely responsibly. You must not use our service to send spam, harass others, or send deceptive or malicious emails. Accounts found abusing the service or generating high complaint rates will be suspended or terminated immediately without refund. You are solely responsible for the content and recipients of the emails you send using Duely. You must have a legitimate reason to contact recipients and comply with applicable laws.
               </p>
             </div>
 
@@ -55,7 +55,7 @@ export default function TermsPage() {
             <div>
               <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">4. Limitation of Liability</h2>
               <p>
-                Duely is provided &quot;as is&quot; without any warranties, express or implied. We do not guarantee that emails will always be delivered, nor do we guarantee that your recipients will pay you. In no event shall Duely be liable for any indirect, incidental, or consequential damages arising from your use of the service.
+                Duely is provided &quot;as is&quot; without any warranties, express or implied. We do not guarantee email delivery, timing, or recipient response. Duely is a tool to assist with follow-ups, not a guarantee of payment.
               </p>
             </div>
 
@@ -72,6 +72,17 @@ export default function TermsPage() {
                 If you have any questions about these Terms, please contact us at <a href="mailto:support@duely.in" className="text-zinc-50 hover:underline">support@duely.in</a>.
               </p>
             </div>
+
+            <div>
+              <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">7. Changes to Terms</h2>
+              <p>
+                We may update these Terms from time to time. Continued use of Duely after changes means you accept the updated Terms.
+              </p>
+            </div>
+
+            <p className="pt-4 text-sm">
+              These Terms are governed by the laws of India.
+            </p>
           </div>
         </Container>
       </main>
