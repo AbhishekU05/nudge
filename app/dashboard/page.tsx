@@ -21,7 +21,8 @@ import {
   deleteReminder,
   pauseReminder,
   resumeReminder,
-import { createReminder, deleteReminder, pauseReminder, resumeReminder, sendTestReminderEmail } from "@/app/actions/reminders";
+  sendTestReminderEmail,
+} from "@/app/actions/reminders";
 import { Container } from "@/components/site/container";
 import { CurrencySelect } from "@/components/site/currency-select";
 import { LocalTime } from "@/components/site/local-time";
@@ -310,6 +311,7 @@ function QuickCreateCard({
                   required
                 />
               </div>
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
                 <div className="flex gap-2 col-span-2 sm:col-span-1">
                   <div className="w-[100px]">
                     <Label htmlFor="quick_currency" className="sr-only">Currency</Label>
