@@ -68,39 +68,46 @@ export async function POST(req: Request) {
   const supabase = createSupabaseAdminClient();
 
   try {
-    if (event.event === "subscription.activated") {
-      const sub = event.payload.subscription.entity;
-      const userId = sub.notes?.user_id;
-
-      if (!userId) {
+    if (
+      event.event === "subscription.activated" ||
+      event.event === "subscription.charged" ||
+      event.event === "payment.captured"
+    ) {
+      const sub = event.payload.subscription?.entity;
+      
+      if (!sub) {
         return NextResponse.json({ ok: true, skipped: true });
       }
 
-      await supabase.from("profiles").upsert({
-        user_id: userId,
-        razorpay_subscription_id: sub.id,
-        razorpay_subscription_status: "active",
-        razorpay_renews_at: sub.current_end
-          ? new Date(sub.current_end * 1000).toISOString()
-          : null,
-      });
-    }
-
-    if (event.event === "subscription.charged") {
-      const sub = event.payload.subscription.entity;
       const userId = sub.notes?.user_id;
 
+      logger.info({
+        message: "Processing webhook event",
+        context: "razorpay:webhook",
+        event_type: event.event,
+        user_id: userId || "missing",
+        subscription_id: sub.id,
+        subscription_status: sub.status,
+      });
+
       if (!userId) {
+        logger.error({
+          message: "Missing user_id in subscription notes",
+          context: "razorpay:webhook",
+          request_id: requestId,
+          subscription_id: sub.id,
+        });
         return NextResponse.json({ ok: true, skipped: true });
       }
 
-      await supabase.from("profiles").upsert({
-        user_id: userId,
-        razorpay_subscription_status: "active",
-        razorpay_renews_at: sub.current_end
-          ? new Date(sub.current_end * 1000).toISOString()
-          : null,
-      });
+      await supabase
+        .from("profiles")
+        .update({
+          razorpay_subscription_id: sub.id,
+          razorpay_subscription_status: "active",
+          razorpay_renews_at: sub.current_end ? new Date(sub.current_end * 1000).toISOString() : null,
+        })
+        .eq("user_id", userId);
     }
 
     if (event.event === "subscription.cancelled" || event.event === "subscription.halted") {
@@ -111,10 +118,12 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true, skipped: true });
       }
 
-      await supabase.from("profiles").upsert({
-        user_id: userId,
-        razorpay_subscription_status: "cancelled",
-      });
+      await supabase
+        .from("profiles")
+        .update({
+          razorpay_subscription_status: "cancelled",
+        })
+        .eq("user_id", userId);
 
       // Pause active reminders since the subscription is gone
       await supabase.from("reminders").update({ active: false }).eq("user_id", userId).eq("active", true);
@@ -128,10 +137,12 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true, skipped: true });
       }
 
-      await supabase.from("profiles").upsert({
-        user_id: userId,
-        razorpay_subscription_status: "past_due",
-      });
+      await supabase
+        .from("profiles")
+        .update({
+          razorpay_subscription_status: "past_due",
+        })
+        .eq("user_id", userId);
 
       // Pause active reminders due to payment failure
       await supabase.from("reminders").update({ active: false }).eq("user_id", userId).eq("active", true);
