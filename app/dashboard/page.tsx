@@ -676,8 +676,7 @@ export default async function DashboardPage({
                     </CardTitle>
                     {/* TODO: why you telling the user that. change it*/}
                     <CardDescription>
-                      Paused and opted-out reminders stay here so the active
-                      list remains focused.
+                      Paused and unsubscribed reminders stay here
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">

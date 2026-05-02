@@ -46,11 +46,11 @@ export default async function FeedbackPage({
           <div className="mx-auto max-w-2xl">
             <div className="mb-6">
               <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
-                Send feedback
+                Share feedback
               </h1>
               {/* TODO: change wording */}
               <p className="mt-3 text-base leading-7 text-zinc-500">
-                Share friction, bugs, or ideas. Short notes are enough.
+                What didn’t work, or what would you change? Be direct. Even small issues help.
               </p>
             </div>
 
@@ -62,7 +62,7 @@ export default async function FeedbackPage({
                 </CardTitle>
                 {/* TODO: again wtf change wording here as well */}
                 <CardDescription>
-                  This goes straight to the product inbox.
+                  We read everything.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -89,7 +89,7 @@ export default async function FeedbackPage({
                       </Button>
                     </Link>
                     <Button type="submit" className="w-full sm:w-auto">
-                      Send feedback
+                      Submit feedback
                     </Button>
                   </div>
                 </form>
