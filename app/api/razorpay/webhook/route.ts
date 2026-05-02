@@ -3,6 +3,7 @@ import crypto from "crypto";
 
 import { getRequiredEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,10 +22,16 @@ function verifySignature(body: string, signature: string | null) {
 }
 
 export async function POST(req: Request) {
+  const requestId = crypto.randomUUID();
   const body = await req.text();
   const signature = req.headers.get("x-razorpay-signature");
 
   if (!verifySignature(body, signature)) {
+    logger.error({
+      message: "Invalid razorpay signature",
+      context: "razorpay:webhook",
+      request_id: requestId,
+    });
     return NextResponse.json(
       { error: "Invalid signature" },
       { status: 401 }
@@ -41,11 +48,22 @@ export async function POST(req: Request) {
   try {
     event = JSON.parse(body);
   } catch {
+    logger.error({
+      message: "Invalid JSON in webhook body",
+      context: "razorpay:webhook",
+      request_id: requestId,
+    });
     return NextResponse.json(
       { error: "Invalid JSON" },
       { status: 400 }
     );
   }
+
+  logger.payment({
+    event_type: event.event,
+    status: "received",
+    request_id: requestId,
+  });
 
   const supabase = createSupabaseAdminClient();
 
@@ -119,8 +137,20 @@ export async function POST(req: Request) {
       await supabase.from("reminders").update({ active: false }).eq("user_id", userId).eq("active", true);
     }
 
+    logger.payment({
+      event_type: event.event,
+      status: "processed",
+      request_id: requestId,
+    });
+
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (err) {
+    logger.error({
+      message: "Webhook processing failed",
+      context: "razorpay:webhook",
+      request_id: requestId,
+      error: err instanceof Error ? err.message : "Unknown error",
+    });
     return NextResponse.json(
       { error: "Webhook processing failed" },
       { status: 500 }

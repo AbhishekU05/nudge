@@ -12,6 +12,7 @@ import {
 } from "@/lib/reminder-schedule";
 import { getRequiredEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -163,7 +164,20 @@ async function finalizeReminderSend(params: {
 
 // Actual function executed by cron job
 export async function POST(request: Request) {
+  const requestId = crypto.randomUUID();
+
+  logger.cron({
+    job_name: "send_reminders",
+    status: "start",
+    request_id: requestId,
+  });
+
   if (!isAuthorized(request)) {
+    logger.error({
+      message: "Unauthorized cron request",
+      context: "cron:send_reminders",
+      request_id: requestId,
+    });
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -183,6 +197,12 @@ export async function POST(request: Request) {
     .returns<DueReminder[]>();
 
   if (error) {
+    logger.cron({
+      job_name: "send_reminders",
+      status: "error",
+      error: error.message,
+      request_id: requestId,
+    });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
@@ -197,6 +217,12 @@ export async function POST(request: Request) {
     : { data: [], error: null };
 
   if (profileError) {
+    logger.cron({
+      job_name: "send_reminders",
+      status: "error",
+      error: profileError.message,
+      request_id: requestId,
+    });
     return NextResponse.json({ error: profileError.message }, { status: 500 });
   }
 
@@ -304,6 +330,15 @@ export async function POST(request: Request) {
       }
     }
   }
+
+  logger.cron({
+    job_name: "send_reminders",
+    status: "end",
+    processed: reminders.length,
+    success_count: sent,
+    failure_count: failed,
+    request_id: requestId,
+  });
 
   return NextResponse.json({
     ok: true,

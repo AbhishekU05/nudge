@@ -2,6 +2,7 @@ import "server-only";
 
 import { buildReminderEmail } from "@/lib/email/reminder";
 import { getFromEmail, getResendClient } from "@/lib/resend";
+import { logger } from "@/lib/logger";
 
 type SendReminderEmailParams = {
   senderName: string;
@@ -36,15 +37,31 @@ export async function sendReminderEmail(params: SendReminderEmailParams) {
     replyTo: params.senderEmail ?? undefined,
   };
 
+  const startTime = Date.now();
   const response = params.idempotencyKey
     ? await resend.emails.send(payload, {
         idempotencyKey: params.idempotencyKey,
       })
     : await resend.emails.send(payload);
+  const latency = Date.now() - startTime;
 
   if (response.error) {
+    logger.external({
+      service: "Resend",
+      action: "send_reminder_email",
+      success: false,
+      latency,
+      error: response.error.message,
+    });
     throw new Error(response.error.message);
   }
+
+  logger.external({
+    service: "Resend",
+    action: "send_reminder_email",
+    success: true,
+    latency,
+  });
 
   return response.data;
 }

@@ -16,6 +16,7 @@ import {
   computeRecurringReminderSendAt,
 } from "@/lib/reminder-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/logger";
 
 const MAX_REMINDERS = 5;
 
@@ -216,8 +217,20 @@ export async function createReminder(formData: FormData) {
   });
 
   if (error) {
+    logger.error({
+      message: "Database error creating reminder",
+      context: "createReminder",
+      user_id: user.id,
+      error: error.message,
+    });
     redirectToNewReminder("An unexpected database error occurred.");
   }
+
+  logger.action({
+    action_name: "create_reminder",
+    user_id: user.id,
+    success: true,
+  });
 
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder created." });
@@ -242,8 +255,21 @@ export async function pauseReminder(reminderId: string) {
     .eq("user_id", user.id);
 
   if (error) {
+    logger.error({
+      message: "Database error pausing reminder",
+      context: "pauseReminder",
+      user_id: user.id,
+      error: error.message,
+    });
     redirectToDashboard({ error: "An unexpected database error occurred." });
   }
+
+  logger.action({
+    action_name: "pause_reminder",
+    reminder_id: reminderId,
+    user_id: user.id,
+    success: true,
+  });
 
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder paused." });
@@ -320,8 +346,21 @@ export async function resumeReminder(reminderId: string) {
     .eq("user_id", user.id);
 
   if (error) {
+    logger.error({
+      message: "Database error resuming reminder",
+      context: "resumeReminder",
+      user_id: user.id,
+      error: error.message,
+    });
     redirectToDashboard({ error: "An unexpected database error occurred." });
   }
+
+  logger.action({
+    action_name: "resume_reminder",
+    reminder_id: reminderId,
+    user_id: user.id,
+    success: true,
+  });
 
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder resumed." });
@@ -346,8 +385,21 @@ export async function deleteReminder(reminderId: string) {
     .eq("user_id", user.id);
 
   if (error) {
+    logger.error({
+      message: "Database error deleting reminder",
+      context: "deleteReminder",
+      user_id: user.id,
+      error: error.message,
+    });
     redirectToDashboard({ error: "An unexpected database error occurred." });
   }
+
+  logger.action({
+    action_name: "delete_reminder",
+    reminder_id: reminderId,
+    user_id: user.id,
+    success: true,
+  });
 
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder deleted." });
@@ -406,7 +458,19 @@ export async function sendTestReminderEmail(reminderId: string) {
       customMessage: reminder.custom_message,
       unsubscribeToken: reminder.unsubscribe_token,
     });
+    logger.action({
+      action_name: "send_test_reminder",
+      reminder_id: reminderId,
+      user_id: user.id,
+      success: true,
+    });
   } catch (sendError) {
+    logger.error({
+      message: "Error sending test email",
+      context: "sendTestReminderEmail",
+      user_id: user.id,
+      error: sendError instanceof Error ? sendError.message : "Unknown error",
+    });
     redirectToDashboard({
       error: getErrorMessage(sendError, "Unable to send test email."),
     });
