@@ -99,7 +99,7 @@ function Notice({
       className={cn(
         "rounded-2xl border px-4 py-3 text-sm",
         variant === "success" &&
-          "border-emerald-500/20 bg-emerald-500/10 text-emerald-200",
+        "border-emerald-500/20 bg-emerald-500/10 text-emerald-200",
         variant === "error" && "border-red-500/20 bg-red-500/10 text-red-200",
       )}
       role={variant === "error" ? "alert" : undefined}
@@ -113,7 +113,7 @@ function Notice({
 // TODO: Fix display message
 function ReminderStatus({ reminder }: { reminder: ReminderRow }) {
   if (reminder.unsubscribed) {
-    return <Badge variant="danger">Opted out</Badge>;
+    return <Badge variant="danger">Unsubscribed</Badge>;
   }
 
   if (reminder.active) {
@@ -167,7 +167,7 @@ function ReminderCard({
                 </p>
               </div>
               <div>
-                <p className="text-xs text-zinc-600">Cadence</p>
+                <p className="text-xs text-zinc-600">Schedule</p>
                 <p className="mt-1 text-zinc-300">
                   Every {reminder.reminder_frequency_days} day
                   {reminder.reminder_frequency_days === 1 ? "" : "s"}
@@ -225,7 +225,7 @@ function ReminderCard({
 
             <form action={deleteReminder.bind(null, reminder.id)}>
               <Button variant="ghost" size="sm" type="submit">
-                Mark resolved
+                Mark as paid
               </Button>
             </form>
           </div>
@@ -244,16 +244,15 @@ function EmptyActiveState({ hasSubscription }: { hasSubscription: boolean }) {
         <Inbox className="h-5 w-5" />
       </div>
       <h3 className="mt-5 text-base font-semibold text-zinc-50">
-        No active nudges
+        No reminders yet
       </h3>
       <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-zinc-500">
-        Create one gentle reminder and Nudge will keep the follow-up loop moving
-        until you mark it resolved.
+        Create your first reminder and Nudge will follow up automatically until you’re paid.
       </p>
       <div className="mt-6">
         <Link href={hasSubscription ? "/reminders/new" : "/settings/billing"}>
           <Button>
-            {hasSubscription ? "Create first nudge" : "Activate billing"}
+            {hasSubscription ? "Create your first reminder" : "Activate billing"}
           </Button>
         </Link>
       </div>
@@ -278,7 +277,7 @@ function QuickCreateCard({
           Quick create
         </CardTitle>
         <CardDescription>
-          Start a standard 7-day cadence. Use the full composer for notes.
+          Create a reminder in seconds. We’ll follow up automatically.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -330,7 +329,7 @@ function QuickCreateCard({
                     />
                   </div>
                 </div>
-                <Button type="submit">Create</Button>
+                <Button type="submit">Create reminder</Button>
               </div>
             </form>
             <Link
@@ -343,7 +342,7 @@ function QuickCreateCard({
           </>
         ) : (
           <div className="space-y-5">
-          {/* TODO: uh wtf is this shit. re word this shit*/}
+            {/* TODO: uh wtf is this shit. re word this shit*/}
             <p className="text-sm leading-6 text-zinc-500">
               Activate your plan to create and resume automated reminders.
               Nudge is {monthlyPrice}.
@@ -372,39 +371,39 @@ function buildTimeline(reminders: ReminderRow[]): TimelineEvent[] {
     const entries: Array<TimelineEvent | null> = [
       reminder.active && !reminder.unsubscribed
         ? {
-            at: reminder.next_send_at,
-            detail: `${reminder.recipient_name} · ${formatCurrency(Number(reminder.amount_owed), reminder.currency)}`,
-            id: `${reminder.id}-next`,
-            title: "Next reminder queued",
-            tone: "primary",
-          }
+          at: reminder.next_send_at,
+          detail: `${reminder.recipient_name} · ${formatCurrency(Number(reminder.amount_owed), reminder.currency)}`,
+          id: `${reminder.id}-next`,
+          title: "Next reminder queued",
+          tone: "primary",
+        }
         : null,
       reminder.last_sent_at
         ? {
-            at: reminder.last_sent_at,
-            detail: reminder.recipient_name,
-            id: `${reminder.id}-sent`,
-            title: "Reminder sent",
-            tone: "success",
-          }
+          at: reminder.last_sent_at,
+          detail: reminder.recipient_name,
+          id: `${reminder.id}-sent`,
+          title: "Reminder sent",
+          tone: "success",
+        }
         : null,
       !reminder.active && !reminder.unsubscribed
         ? {
-            at: reminder.updated_at,
-            detail: reminder.recipient_name,
-            id: `${reminder.id}-paused`,
-            title: "Nudge paused",
-            tone: "warning",
-          }
+          at: reminder.updated_at,
+          detail: reminder.recipient_name,
+          id: `${reminder.id}-paused`,
+          title: "Nudge paused",
+          tone: "warning",
+        }
         : null,
       reminder.unsubscribed
         ? {
-            at: reminder.updated_at,
-            detail: reminder.recipient_name,
-            id: `${reminder.id}-unsubscribed`,
-            title: "Recipient opted out",
-            tone: "muted",
-          }
+          at: reminder.updated_at,
+          detail: reminder.recipient_name,
+          id: `${reminder.id}-unsubscribed`,
+          title: "Recipient opted out",
+          tone: "muted",
+        }
         : null,
     ];
 
@@ -445,7 +444,7 @@ function ActivityTimeline({ reminders }: { reminders: ReminderRow[] }) {
           Activity
         </CardTitle>
         <CardDescription>
-          A lightweight timeline of sends, pauses, opt-outs, and upcoming nudges.
+          Track when reminders are sent and when payments are resolved.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -478,8 +477,7 @@ function ActivityTimeline({ reminders }: { reminders: ReminderRow[] }) {
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-sm leading-6 text-zinc-500">
-            No activity yet. Your timeline will fill in as nudges are created
-            and sent.
+            No activity yet. It’ll appear once you create your first reminder.
           </div>
         )}
       </CardContent>
@@ -603,8 +601,7 @@ export default async function DashboardPage({
               </h1>
               {/* TODO: wtf change this wording*/}
               <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
-                Create a reminder, let it run quietly, and resolve it when the
-                payment arrives. Signed in as {user.email}.
+                Create a reminder. Nudge follows up until you get paid.
               </p>
             </div>
             <div className="grid grid-cols-3 gap-3 rounded-2xl border border-border bg-white/[0.03] p-3 text-center">
@@ -645,7 +642,7 @@ export default async function DashboardPage({
                     </CardTitle>
                     {/* TODO: bruh wording. change it. wtf. */}
                     <CardDescription>
-                      These reminders are currently sending on autopilot.
+                      These reminders are running automatically.
                     </CardDescription>
                   </div>
                   <Link href={hasSubscription ? "/reminders/new" : "/settings/billing"}>
