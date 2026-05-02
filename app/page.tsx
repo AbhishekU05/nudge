@@ -76,12 +76,13 @@ export default async function Home({
             <div className="max-w-3xl">
               <Badge variant="default">Automated payment follow-ups</Badge>
               <h1 className="mt-7 text-pretty text-5xl font-semibold tracking-[-0.045em] text-zinc-50 sm:text-6xl lg:text-7xl">
-                Get paid without turning every invoice into a conversation.
+                Get paid on time. Without awkward follow-ups.
               </h1>
+              <p className="mt-4 text-xl font-medium text-zinc-300">
+                Built for freelancers, founders, and anyone tired of chasing payments.
+              </p>
               <p className="mt-6 max-w-2xl text-pretty text-lg leading-8 text-zinc-400">
-                Nudge sends calm, professional reminder emails for money owed.
-                Create a nudge once, track what is active, and mark it resolved
-                when payment lands.
+                Automated reminders that help you get paid. No awkward follow-ups. No manual chasing.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link href="/signup">
@@ -94,14 +95,14 @@ export default async function Home({
                 </Link>
               </div>
               <p className="mt-4 text-sm text-zinc-500">
-                Then {monthlyPrice.inline}. Cancel anytime. Unsubscribe links are included automatically.
+                Free for 14 days. Then {monthlyPrice.inline}. Cancel anytime.
               </p>
 
               <div className="mt-12 grid max-w-xl gap-4 sm:grid-cols-3">
                 {[
-                  ["1 min", "to create"],
-                  ["24h+", "send spacing"],
-                  ["0", "awkward pings"],
+                  ["1 min", "to set up a reminder"],
+                  ["Automatic spacing", "no spammy follow-ups"],
+                  ["No awkward messages", "emails stay professional"],
                 ].map(([value, label]) => (
                   <div
                     key={label}
