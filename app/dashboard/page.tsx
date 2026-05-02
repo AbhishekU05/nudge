@@ -10,9 +10,11 @@ import {
   Clock3,
   Inbox,
   Mail,
+  Pause,
   PauseCircle,
   Plus,
   Send,
+  Zap,
 } from "lucide-react";
 
 import { logout } from "@/app/actions/auth";
