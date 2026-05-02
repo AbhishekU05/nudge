@@ -24,13 +24,12 @@ export function MagicLinkEmail({
     <EmailLayout
       appUrl={appUrl}
       eyebrow="Secure sign-in"
-      preview="Use this secure link to sign in to Nudge."
+      preview="Use this link to sign in to Nudge."
     >
       <EmailCard>
-        <EmailHeading>Sign in to Nudge</EmailHeading>
+        <EmailHeading>Sign in</EmailHeading>
         <EmailText>
-          Use this secure link to open your Nudge workspace. The link is for
-          one-time use and should only be opened by you.
+          Use the secure link below to open your dashboard. The link is for one-time use and should only be opened by you.
         </EmailText>
         {userEmail ? (
           <EmailMutedText>This sign-in link was requested for {userEmail}.</EmailMutedText>
@@ -39,7 +38,7 @@ export function MagicLinkEmail({
           <EmailButton href={actionUrl}>Open Nudge</EmailButton>
         </Section>
         <EmailMutedText>
-          If you did not request this link, you can safely ignore this email.
+          If you did not request this link, please ignore this message.
         </EmailMutedText>
       </EmailCard>
     </EmailLayout>

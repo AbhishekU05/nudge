@@ -31,12 +31,12 @@ export function buildReminderEmail(params: {
   const safeRecipientName = params.recipientName.trim() || "there";
   const safeSenderName = params.senderName.trim() || "Someone";
 
-  const subject = "A gentle payment reminder";
+  const subject = "Payment reminder";
 
   const lines: string[] = [
     `Hi ${safeRecipientName},`,
     "",
-    `Just floating this back to the top of your inbox. This is a gentle automated reminder from ${safeSenderName} that your balance of ${amount} is still outstanding.`,
+    `This is a reminder that your balance of ${amount} to ${safeSenderName} is currently outstanding.`,
   ];
 
   if (params.customMessage) {
@@ -45,11 +45,11 @@ export function buildReminderEmail(params: {
 
   lines.push(
     "",
-    "If you have already made this payment, please disregard this note.",
+    "If you've already paid, please ignore this message.",
   );
 
   if (params.senderEmail) {
-    lines.push("", `Reply to ${safeSenderName}: ${params.senderEmail}`);
+    lines.push("", `Reply to this email: ${params.senderEmail}`);
   }
 
   lines.push("", `Unsubscribe: ${unsubscribeUrl}`);

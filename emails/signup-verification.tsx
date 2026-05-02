@@ -24,13 +24,12 @@ export function SignupVerificationEmail({
     <EmailLayout
       appUrl={appUrl}
       eyebrow="Verify email"
-      preview="Confirm your email address to start using Nudge."
+      preview="Confirm your email address to use Nudge."
     >
       <EmailCard>
         <EmailHeading>Confirm your email</EmailHeading>
         <EmailText>
-          Welcome to Nudge. Confirm your email address to finish creating your
-          account and start sending calm payment follow-ups.
+          Please confirm your email address to finish creating your account.
         </EmailText>
         {userEmail ? (
           <EmailMutedText>This verification link was requested for {userEmail}.</EmailMutedText>
@@ -39,8 +38,7 @@ export function SignupVerificationEmail({
           <EmailButton href={actionUrl}>Confirm email</EmailButton>
         </Section>
         <EmailMutedText>
-          If you did not create a Nudge account, you can safely ignore this
-          email.
+          If you did not create an account, please ignore this message.
         </EmailMutedText>
       </EmailCard>
     </EmailLayout>

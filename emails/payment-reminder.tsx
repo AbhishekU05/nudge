@@ -43,16 +43,14 @@ export function PaymentReminderEmail({
     <EmailLayout
       appUrl={appUrl}
       eyebrow="Payment reminder"
-      preview={`A gentle follow-up from ${safeSenderName} about ${amount}.`}
+      preview={`A reminder from ${safeSenderName} about your pending balance of ${amount}.`}
       unsubscribeUrl={unsubscribeUrl}
     >
       <EmailCard>
-        <EmailHeading>A gentle payment follow-up</EmailHeading>
+        <EmailHeading>Payment reminder</EmailHeading>
         <EmailText>Hi {safeRecipientName},</EmailText>
         <EmailText>
-          Just floating this back to the top of your inbox. This is a gentle
-          automated reminder from <strong>{safeSenderName}</strong> that the
-          balance below is still outstanding.
+          This is a reminder that your balance to <strong>{safeSenderName}</strong> is currently outstanding.
         </EmailText>
 
         <Section style={summary}>
@@ -68,7 +66,7 @@ export function PaymentReminderEmail({
         ) : null}
 
         <EmailMutedText>
-          If you have already made this payment, please disregard this note.
+          If you've already paid, please ignore this message.
         </EmailMutedText>
 
         {replyHref ? (
@@ -79,8 +77,7 @@ export function PaymentReminderEmail({
 
         <Hr style={rule} />
         <Text style={finePrint}>
-          This reminder was sent by Nudge on behalf of {safeSenderName}. It is
-          intended as a professional follow-up, not a collections notice.
+          This reminder was sent by Nudge on behalf of {safeSenderName}.
         </Text>
       </EmailCard>
     </EmailLayout>

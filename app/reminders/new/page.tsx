@@ -46,7 +46,7 @@ export default async function NewReminderPage({
       created_at: string;
     }>();
 
-    // TODO: ensure reminders created only if under quota
+  // TODO: ensure reminders created only if under quota
   const hasSubscription = hasActiveSubscription(
     profile?.razorpay_subscription_status ?? null,
     profile?.created_at,
@@ -79,8 +79,7 @@ export default async function NewReminderPage({
                   Create a nudge
                 </h1>
                 <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
-                  Add the essential details and Nudge will send calm reminders
-                  until the payment is resolved.
+                  Add a few details. Nudge will follow up until you get paid.
                 </p>
               </div>
 
@@ -161,7 +160,7 @@ export default async function NewReminderPage({
 
                     <div className="space-y-2">
                       <Label htmlFor="reminder_frequency_days">
-                        Cadence in days
+                        Reminder frequency (days)
                       </Label>
                       <Input
                         id="reminder_frequency_days"
@@ -206,7 +205,7 @@ export default async function NewReminderPage({
                         </Button>
                       </Link>
                       <Button type="submit" disabled={!hasSubscription} className="w-full sm:w-auto">
-                        Create nudge
+                        Create a reminder
                       </Button>
                     </div>
                   </form>
@@ -222,22 +221,20 @@ export default async function NewReminderPage({
                     Email tone
                   </CardTitle>
                   <CardDescription>
-                    The reminder reads like a polite message, not a collection
-                    notice.
+                    The reminder reads exactly like a standard email.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm leading-6 text-zinc-400">
                   <div className="rounded-2xl border border-white/10 bg-background/70 p-4">
                     <p className="font-medium text-zinc-200">
-                      Subject: Friendly payment reminder
+                      Subject: Payment reminder
                     </p>
                     <p className="mt-3">Hi Sam,</p>
                     <p className="mt-3">
-                      Just floating this back to the top of your inbox. The
-                      balance is still outstanding.
+                      This is a reminder that your balance is currently outstanding.
                     </p>
                     <p className="mt-3 text-zinc-500">
-                      If you have already paid, please disregard this note.
+                      If you've already paid, please ignore this message.
                     </p>
                   </div>
                 </CardContent>

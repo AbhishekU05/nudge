@@ -21,14 +21,13 @@ export function WelcomeEmail({ appUrl, userName }: WelcomeEmailProps) {
     <EmailLayout
       appUrl={appUrl}
       eyebrow="Welcome"
-      preview="Your Nudge workspace is ready."
+      preview="Your Nudge account is ready."
     >
       <EmailCard>
-        <EmailHeading>Your workspace is ready</EmailHeading>
+        <EmailHeading>Your account is ready</EmailHeading>
         <EmailText>{greeting}</EmailText>
         <EmailText>
-          Welcome to Nudge. Create your first payment reminder, choose a calm
-          follow-up cadence, and let Nudge handle the awkward inbox chase.
+          Welcome to Nudge. You can now create payment reminders and track their status from your dashboard.
         </EmailText>
         <Section style={ctaSection}>
           <EmailButton href={`${appUrl.replace(/\/+$/, "")}/dashboard`}>
@@ -36,8 +35,7 @@ export function WelcomeEmail({ appUrl, userName }: WelcomeEmailProps) {
           </EmailButton>
         </Section>
         <EmailMutedText>
-          Nudge is designed to feel more like a productivity assistant than
-          accounting software.
+          If you have any questions, reply to this email.
         </EmailMutedText>
       </EmailCard>
     </EmailLayout>

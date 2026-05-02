@@ -24,13 +24,12 @@ export function PasswordResetEmail({
     <EmailLayout
       appUrl={appUrl}
       eyebrow="Password reset"
-      preview="Use this secure link to reset your Nudge password."
+      preview="Use this link to reset your Nudge password."
     >
       <EmailCard>
         <EmailHeading>Reset your password</EmailHeading>
         <EmailText>
-          We received a request to reset your Nudge password. Use the secure
-          link below to choose a new password.
+          We received a request to reset your password. Use the link below to choose a new password.
         </EmailText>
         {userEmail ? (
           <EmailMutedText>This reset link was requested for {userEmail}.</EmailMutedText>
@@ -39,8 +38,7 @@ export function PasswordResetEmail({
           <EmailButton href={actionUrl}>Reset password</EmailButton>
         </Section>
         <EmailMutedText>
-          If you did not request this, you can ignore this email. For security,
-          use the latest reset email if you requested multiple links.
+          If you did not request this, please ignore this message.
         </EmailMutedText>
       </EmailCard>
     </EmailLayout>
