@@ -18,7 +18,8 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
 
-const MAX_REMINDERS = 5;
+const MAX_REMINDERS = 20;
+const MAX_REMINDERS_MESSAGE = `You’ve reached the limit of ${MAX_REMINDERS} reminders.`;
 
 // Get string from form in website
 // TODO: ensure safety
@@ -135,7 +136,7 @@ export async function createReminder(formData: FormData) {
   }
 
   if ((count ?? 0) >= MAX_REMINDERS) {
-      redirectToNewReminder("You’ve reached the limit of 5 reminders.");
+      redirectToNewReminder(MAX_REMINDERS_MESSAGE);
     }
 
   const recipientName = getString(formData, "recipient_name");
@@ -313,7 +314,7 @@ export async function resumeReminder(reminderId: string) {
 
   if ((count ?? 0) >= MAX_REMINDERS) {
       redirectToDashboard({
-        error: "You’ve reached the limit of 5 reminders.",
+        error: MAX_REMINDERS_MESSAGE,
       });
     }
 
