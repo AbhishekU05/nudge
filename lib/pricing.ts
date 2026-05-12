@@ -7,6 +7,8 @@ type LocalizedMonthlyPrice = {
   standalone: string;
 };
 
+const BASE_MONTHLY_PRICE = 10;
+
 const EURO_COUNTRIES = new Set([
   "AT",
   "BE",
@@ -90,34 +92,34 @@ async function getCountryCode(headerList: Headers) {
 
 function getCurrencyForCountry(countryCode: string | null) {
   if (countryCode === "IN") {
-    return { amount: 100, currency: "INR" };
+    return { amount: BASE_MONTHLY_PRICE * 100, currency: "INR" };
   }
 
   if (countryCode === "GB") {
-    return { amount: 1, currency: "GBP" };
+    return { amount: BASE_MONTHLY_PRICE, currency: "GBP" };
   }
 
   if (EURO_COUNTRIES.has(countryCode ?? "")) {
-    return { amount: 1, currency: "EUR" };
+    return { amount: BASE_MONTHLY_PRICE, currency: "EUR" };
   }
 
   if (countryCode === "CA") {
-    return { amount: 1, currency: "CAD" };
+    return { amount: BASE_MONTHLY_PRICE, currency: "CAD" };
   }
 
   if (countryCode === "AU") {
-    return { amount: 1, currency: "AUD" };
+    return { amount: BASE_MONTHLY_PRICE, currency: "AUD" };
   }
 
   if (countryCode === "NZ") {
-    return { amount: 1, currency: "NZD" };
+    return { amount: BASE_MONTHLY_PRICE, currency: "NZD" };
   }
 
   if (countryCode === "SG") {
-    return { amount: 1, currency: "SGD" };
+    return { amount: BASE_MONTHLY_PRICE, currency: "SGD" };
   }
 
-  return { amount: 1, currency: "USD" };
+  return { amount: BASE_MONTHLY_PRICE, currency: "USD" };
 }
 
 function formatMonthlyPrice(amount: number, currency: string) {
