@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const CURRENCIES = [
@@ -13,6 +13,20 @@ const CURRENCIES = [
   { value: "JPY", label: "JPY (¥)" },
 ];
 
+function getDefaultCurrency() {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz.includes("Kolkata") || tz.includes("Calcutta")) return "INR";
+    if (tz.includes("Europe/London")) return "GBP";
+    if (tz.includes("Europe/")) return "EUR";
+    if (tz.includes("Toronto") || tz.includes("Vancouver")) return "CAD";
+    if (tz.includes("Sydney") || tz.includes("Melbourne")) return "AUD";
+    if (tz.includes("Tokyo")) return "JPY";
+  } catch {}
+
+  return "USD";
+}
+
 export function CurrencySelect({
   disabled,
   id,
@@ -22,19 +36,7 @@ export function CurrencySelect({
   id?: string;
   name?: string;
 }) {
-  const [currency, setCurrency] = useState("USD");
-
-  useEffect(() => {
-    try {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (tz.includes("Kolkata") || tz.includes("Calcutta")) setCurrency("INR");
-      else if (tz.includes("Europe/London")) setCurrency("GBP");
-      else if (tz.includes("Europe/")) setCurrency("EUR");
-      else if (tz.includes("Toronto") || tz.includes("Vancouver")) setCurrency("CAD");
-      else if (tz.includes("Sydney") || tz.includes("Melbourne")) setCurrency("AUD");
-      else if (tz.includes("Tokyo")) setCurrency("JPY");
-    } catch {}
-  }, []);
+  const [currency, setCurrency] = useState(getDefaultCurrency);
 
   return (
     <select

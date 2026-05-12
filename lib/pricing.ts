@@ -7,30 +7,10 @@ type LocalizedMonthlyPrice = {
   standalone: string;
 };
 
-const BASE_MONTHLY_PRICE = 10;
+type BillingRegion = "india" | "international";
 
-const EURO_COUNTRIES = new Set([
-  "AT",
-  "BE",
-  "CY",
-  "DE",
-  "EE",
-  "ES",
-  "FI",
-  "FR",
-  "GR",
-  "HR",
-  "IE",
-  "IT",
-  "LT",
-  "LU",
-  "LV",
-  "MT",
-  "NL",
-  "PT",
-  "SI",
-  "SK",
-]);
+const INDIA_MONTHLY_PRICE = 1000;
+const INTERNATIONAL_MONTHLY_PRICE = 10;
 
 function getCountryFromAcceptLanguage(value: string | null) {
   if (!value) {
@@ -59,7 +39,7 @@ function getCountryFromAcceptLanguage(value: string | null) {
   return null;
 }
 
-async function getCountryCode(headerList: Headers) {
+export async function getCountryCodeFromHeaders(headerList: Headers) {
   const fromGeoHeader =
     headerList.get("x-vercel-ip-country") ??
     headerList.get("cf-ipcountry") ??
@@ -90,36 +70,18 @@ async function getCountryCode(headerList: Headers) {
   return getCountryFromAcceptLanguage(headerList.get("accept-language"));
 }
 
+export function getBillingRegionForCountry(
+  countryCode: string | null,
+): BillingRegion {
+  return countryCode === "IN" ? "india" : "international";
+}
+
 function getCurrencyForCountry(countryCode: string | null) {
-  if (countryCode === "IN") {
-    return { amount: BASE_MONTHLY_PRICE * 100, currency: "INR" };
+  if (getBillingRegionForCountry(countryCode) === "india") {
+    return { amount: INDIA_MONTHLY_PRICE, currency: "INR" };
   }
 
-  if (countryCode === "GB") {
-    return { amount: BASE_MONTHLY_PRICE, currency: "GBP" };
-  }
-
-  if (EURO_COUNTRIES.has(countryCode ?? "")) {
-    return { amount: BASE_MONTHLY_PRICE, currency: "EUR" };
-  }
-
-  if (countryCode === "CA") {
-    return { amount: BASE_MONTHLY_PRICE, currency: "CAD" };
-  }
-
-  if (countryCode === "AU") {
-    return { amount: BASE_MONTHLY_PRICE, currency: "AUD" };
-  }
-
-  if (countryCode === "NZ") {
-    return { amount: BASE_MONTHLY_PRICE, currency: "NZD" };
-  }
-
-  if (countryCode === "SG") {
-    return { amount: BASE_MONTHLY_PRICE, currency: "SGD" };
-  }
-
-  return { amount: BASE_MONTHLY_PRICE, currency: "USD" };
+  return { amount: INTERNATIONAL_MONTHLY_PRICE, currency: "USD" };
 }
 
 function formatMonthlyPrice(amount: number, currency: string) {
@@ -132,7 +94,7 @@ function formatMonthlyPrice(amount: number, currency: string) {
 
 export async function getLocalizedMonthlyPrice() {
   const headerList = await headers();
-  const countryCode = await getCountryCode(headerList);
+  const countryCode = await getCountryCodeFromHeaders(headerList);
   const { amount, currency } = getCurrencyForCountry(countryCode);
   const monthlyPrice = formatMonthlyPrice(amount, currency);
 

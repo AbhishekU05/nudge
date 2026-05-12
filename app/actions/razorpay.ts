@@ -1,24 +1,33 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import Razorpay from "razorpay";
 
 import { requireUser } from "@/lib/auth";
 import { getRequiredEnv } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import {
+  getBillingRegionForCountry,
+  getCountryCodeFromHeaders,
+} from "@/lib/pricing";
 
 export async function startSubscriptionCheckout() {
   const user = await requireUser();
+  const headerList = await headers();
+  const countryCode = await getCountryCodeFromHeaders(headerList);
+  const billingRegion = getBillingRegionForCountry(countryCode);
 
   let subscriptionId: string | undefined;
 
   try {
     const keyId = getRequiredEnv("RAZORPAY_KEY_ID");
     const keySecret = getRequiredEnv("RAZORPAY_KEY_SECRET");
-    const planId = getRequiredEnv("RAZORPAY_PLAN_ID");
+    const planId = getRequiredEnv(
+      billingRegion === "india" ? "RAZORPAY_PLAN_INR" : "RAZORPAY_PLAN_USD",
+    );
 
-    const RazorpayClient = (Razorpay as any).default || Razorpay;
-    const razorpay = new RazorpayClient({
+    const razorpay = new Razorpay({
       key_id: keyId,
       key_secret: keySecret,
     });
@@ -31,6 +40,8 @@ export async function startSubscriptionCheckout() {
         customer_notify: 1,
         notes: {
           user_id: user.id,
+          country_code: countryCode ?? "unknown",
+          billing_region: billingRegion,
         },
       });
       subscriptionId = subscription.id;

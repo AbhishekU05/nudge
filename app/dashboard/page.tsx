@@ -9,11 +9,8 @@ import {
   CheckCircle2,
   Clock3,
   Inbox,
-  Mail,
   Pause,
-  PauseCircle,
   Plus,
-  Send,
   Zap,
 } from "lucide-react";
 

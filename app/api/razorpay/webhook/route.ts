@@ -21,6 +21,33 @@ function verifySignature(body: string, signature: string | null) {
   return expected === signature;
 }
 
+type RazorpaySubscriptionEntity = {
+  id: string;
+  status?: string;
+  current_end?: number;
+  notes?: {
+    user_id?: string;
+  };
+};
+
+type RazorpayPaymentEntity = {
+  notes?: {
+    user_id?: string;
+  };
+};
+
+type RazorpayEvent = {
+  event: string;
+  payload: {
+    subscription?: {
+      entity?: RazorpaySubscriptionEntity;
+    };
+    payment?: {
+      entity?: RazorpayPaymentEntity;
+    };
+  };
+};
+
 export async function POST(req: Request) {
   const requestId = crypto.randomUUID();
   const body = await req.text();
@@ -38,15 +65,10 @@ export async function POST(req: Request) {
     );
   }
 
-  type RazorpayEvent = {
-    event: string;
-    payload: any;
-  };
-
   let event: RazorpayEvent;
 
   try {
-    event = JSON.parse(body);
+    event = JSON.parse(body) as RazorpayEvent;
   } catch {
     logger.error({
       message: "Invalid JSON in webhook body",
@@ -111,7 +133,12 @@ export async function POST(req: Request) {
     }
 
     if (event.event === "subscription.cancelled" || event.event === "subscription.halted") {
-      const sub = event.payload.subscription.entity;
+      const sub = event.payload.subscription?.entity;
+
+      if (!sub) {
+        return NextResponse.json({ ok: true, skipped: true });
+      }
+
       const userId = sub.notes?.user_id;
 
       if (!userId) {
@@ -130,7 +157,12 @@ export async function POST(req: Request) {
     }
 
     if (event.event === "payment.failed") {
-      const payment = event.payload.payment.entity;
+      const payment = event.payload.payment?.entity;
+
+      if (!payment) {
+        return NextResponse.json({ ok: true, skipped: true });
+      }
+
       const userId = payment.notes?.user_id;
 
       if (!userId) {

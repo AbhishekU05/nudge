@@ -3,9 +3,27 @@
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
+type RazorpayCheckoutOptions = {
+  key: string | undefined;
+  subscription_id: string;
+  name: string;
+  description: string;
+  theme: {
+    color: string;
+  };
+  modal: {
+    ondismiss: () => void;
+  };
+  handler: () => void;
+};
+
+type RazorpayCheckout = {
+  open: () => void;
+};
+
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: new (options: RazorpayCheckoutOptions) => RazorpayCheckout;
   }
 }
 
@@ -32,11 +50,11 @@ function CheckoutContent() {
             color: "#18181b",
           },
           modal: {
-            ondismiss: function () {
+            ondismiss: () => {
               window.location.href = "/settings/billing?canceled=true";
             },
           },
-          handler: function () {
+          handler: () => {
             window.location.href = "/dashboard?success=Subscription+successful";
           },
         };

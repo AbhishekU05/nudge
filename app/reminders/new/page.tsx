@@ -234,7 +234,7 @@ export default async function NewReminderPage({
                       This is a reminder that your balance is currently outstanding.
                     </p>
                     <p className="mt-3 text-zinc-500">
-                      If you've already paid, please ignore this message.
+                      If you&apos;ve already paid, please ignore this message.
                     </p>
                   </div>
                 </CardContent>

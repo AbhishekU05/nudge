@@ -13,8 +13,6 @@ export function EmailFooter({
   children,
   unsubscribeUrl,
 }: EmailFooterProps) {
-  const normalizedAppUrl = appUrl.replace(/\/+$/, "");
-
   return (
     <Section style={footer}>
       <Hr style={rule} />

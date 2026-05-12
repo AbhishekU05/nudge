@@ -66,7 +66,7 @@ export function PaymentReminderEmail({
         ) : null}
 
         <EmailMutedText>
-          If you've already paid, please ignore this message.
+          If you&apos;ve already paid, please ignore this message.
         </EmailMutedText>
 
         {replyHref ? (

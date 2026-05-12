@@ -1,5 +1,3 @@
-import { randomUUID } from "crypto";
-
 type LogLevel = "info" | "warn" | "error";
 
 interface BaseLogData {
@@ -7,12 +5,12 @@ interface BaseLogData {
   timestamp?: string;
   request_id?: string;
   user_id?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const logger = {
   log(level: LogLevel, data: BaseLogData) {
-    const payload: Record<string, any> = {
+    const payload: Record<string, unknown> = {
       timestamp: new Date().toISOString(),
       level,
       ...data,
@@ -38,11 +36,11 @@ export const logger = {
     this.log("info", { category: "api", ...data });
   },
 
-  error(data: { message: string; stack?: string; context: string; user_id?: string; request_id?: string; [key: string]: any }) {
+  error(data: { message: string; stack?: string; context: string; user_id?: string; request_id?: string; [key: string]: unknown }) {
     this.log("error", { category: "error", ...data });
   },
 
-  payment(data: { event_type: string; status: string; user_id?: string; subscription_id?: string; payment_id?: string; request_id?: string; [key: string]: any }) {
+  payment(data: { event_type: string; status: string; user_id?: string; subscription_id?: string; payment_id?: string; request_id?: string; [key: string]: unknown }) {
     this.log("info", { category: "payment", ...data });
   },
 
