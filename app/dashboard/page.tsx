@@ -7,15 +7,17 @@ import Link from "next/link";
 import {
   ArrowRight,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   Inbox,
   Link2,
   Pause,
   Plus,
+  UserRound,
   Zap,
 } from "lucide-react";
 
-import { logout } from "@/app/actions/auth";
+import { logout, updateProfileName } from "@/app/actions/auth";
 import {
   createReminder,
   deleteReminder,
@@ -63,6 +65,11 @@ function getInitials(name: string) {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+}
+
+function getDisplayName(name: string | null | undefined, fallback: string) {
+  const trimmed = name?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : fallback;
 }
 
 // shows what subscription plan is active
@@ -564,6 +571,10 @@ export default async function DashboardPage({
   const renewsAt = profile?.razorpay_renews_at
     ? new Date(profile.razorpay_renews_at).toLocaleDateString()
     : null;
+  const displayName = getDisplayName(
+    user.user_metadata?.full_name,
+    user.email?.split("@")[0] ?? "Profile",
+  );
 
   let trialDaysLeft = 0;
   if (
@@ -610,6 +621,53 @@ export default async function DashboardPage({
                 Billing
               </Button>
             </Link>
+            <details className="relative">
+              <summary className="flex h-8 cursor-pointer list-none items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 text-sm text-zinc-200 transition-colors hover:bg-white/[0.08] [&::-webkit-details-marker]:hidden">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-[10px] font-semibold text-zinc-100">
+                  {getInitials(displayName)}
+                </span>
+                <span className="hidden max-w-28 truncate sm:inline">
+                  {displayName}
+                </span>
+                <ChevronDown className="h-3.5 w-3.5 text-zinc-500" />
+              </summary>
+              <div className="absolute right-0 top-[calc(100%+0.75rem)] z-30 w-72 rounded-2xl border border-border bg-card p-4 shadow-2xl shadow-black/30">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-sm font-semibold text-zinc-200">
+                    {getInitials(displayName)}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-zinc-100">
+                      {displayName}
+                    </div>
+                    <div className="truncate text-xs text-zinc-500">
+                      {user.email}
+                    </div>
+                  </div>
+                </div>
+                <form action={updateProfileName} className="mt-4 space-y-3">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="dashboard_profile_name"
+                      className="flex items-center gap-2 text-xs text-zinc-400"
+                    >
+                      <UserRound className="h-3.5 w-3.5" />
+                      Profile name
+                    </Label>
+                    <Input
+                      id="dashboard_profile_name"
+                      name="full_name"
+                      defaultValue={displayName}
+                      maxLength={100}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" size="sm" className="w-full">
+                    Save name
+                  </Button>
+                </form>
+              </div>
+            </details>
             <form action={logout}>
               <Button variant="ghost" size="sm" type="submit">
                 Log out

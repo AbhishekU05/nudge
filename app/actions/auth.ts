@@ -170,6 +170,27 @@ export async function logout() {
   redirect("/login");
 }
 
+export async function updateProfileName(formData: FormData) {
+  const fullName = getString(formData, "full_name");
+
+  if (fullName.length > 100) {
+    redirect("/dashboard?error=Profile+name+is+too+long.");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.updateUser({
+    data: {
+      full_name: fullName,
+    },
+  });
+
+  if (error) {
+    redirect(`/dashboard?error=${encodeURIComponent(error.message)}`);
+  }
+
+  redirect("/dashboard?success=Profile+updated.");
+}
+
 // sign in user through google
 // TODO: fix the google auth process
 export async function signInWithGoogle(formData: FormData) {
