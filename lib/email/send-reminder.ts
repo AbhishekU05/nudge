@@ -11,6 +11,7 @@ type SendReminderEmailParams = {
   amountOwed: number;
   currency: string;
   customMessage: string | null;
+  paymentLink: string | null;
   unsubscribeToken: string;
   senderEmail?: string | null;
   idempotencyKey?: string;
@@ -25,6 +26,7 @@ export async function sendReminderEmail(params: SendReminderEmailParams) {
     amountOwed: params.amountOwed,
     currency: params.currency,
     customMessage: params.customMessage,
+    paymentLink: params.paymentLink,
     unsubscribeToken: params.unsubscribeToken,
   });
 

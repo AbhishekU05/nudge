@@ -6,6 +6,7 @@ export type ReminderRow = {
   amount_owed: number;
   currency: string;
   custom_message: string | null;
+  payment_link: string | null;
   reminder_frequency_days: number;
   next_send_at: string;
   last_sent_at: string | null;
@@ -15,4 +16,3 @@ export type ReminderRow = {
   created_at: string;
   updated_at: string;
 };
-

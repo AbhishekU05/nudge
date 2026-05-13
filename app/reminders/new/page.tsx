@@ -3,7 +3,7 @@
  */
 import Link from "next/link";
 
-import { ArrowLeft, Clock3, MailPlus, MessageSquare } from "lucide-react";
+import { ArrowLeft, Clock3, Link2, MailPlus, MessageSquare } from "lucide-react";
 
 import { createReminder } from "@/app/actions/reminders";
 import { Container } from "@/components/site/container";
@@ -174,6 +174,21 @@ export default async function NewReminderPage({
                     </div>
 
                     <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="payment_link">Payment link (optional)</Label>
+                      <Input
+                        id="payment_link"
+                        name="payment_link"
+                        type="url"
+                        placeholder="https://checkout.example.com/invoice/1234"
+                        maxLength={2048}
+                        disabled={!hasSubscription}
+                      />
+                      <p className="text-xs text-zinc-600">
+                        Added to the email as a Pay now button.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="custom_message">Optional note</Label>
                       <Textarea
                         id="custom_message"
@@ -236,6 +251,10 @@ export default async function NewReminderPage({
                     <p className="mt-3 text-zinc-500">
                       If you&apos;ve already paid, please ignore this message.
                     </p>
+                    <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">
+                      <Link2 className="h-3.5 w-3.5" />
+                      Pay now
+                    </div>
                   </div>
                 </CardContent>
               </Card>

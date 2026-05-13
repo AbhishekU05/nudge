@@ -20,6 +20,7 @@ import { logger } from "@/lib/logger";
 
 const MAX_REMINDERS = 20;
 const MAX_REMINDERS_MESSAGE = `You’ve reached the limit of ${MAX_REMINDERS} reminders.`;
+const MAX_PAYMENT_LINK_LENGTH = 2048;
 
 // Get string from form in website
 // TODO: ensure safety
@@ -73,6 +74,24 @@ function parseIntMin(input: string, min: number): number | null {
 // checks if valid email
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+// validates optional payment links before storing or rendering them in emails
+function normalizePaymentLink(paymentLink: string): string | null {
+  if (paymentLink.length > MAX_PAYMENT_LINK_LENGTH) {
+    return null;
+  }
+
+  try {
+    const url = new URL(paymentLink);
+    if (url.protocol !== "https:" && url.protocol !== "http:") {
+      return null;
+    }
+
+    return url.toString();
+  } catch {
+    return null;
+  }
 }
 
 // extract error message
@@ -189,6 +208,12 @@ export async function createReminder(formData: FormData) {
   }
 
   const customMessage = getOptionalString(formData, "custom_message");
+  const rawPaymentLink = getOptionalString(formData, "payment_link");
+  const paymentLink = rawPaymentLink ? normalizePaymentLink(rawPaymentLink) : null;
+
+  if (rawPaymentLink && !paymentLink) {
+    redirectToNewReminder("Enter a valid payment link.");
+  }
 
   if (recipientName.length > 100) {
     redirectToNewReminder("Recipient name is too long.");
@@ -211,6 +236,7 @@ export async function createReminder(formData: FormData) {
     amount_owed: amountOwed,
     currency: currencyInput,
     custom_message: customMessage,
+    payment_link: paymentLink,
     reminder_frequency_days: reminderFrequencyDays,
     next_send_at: nextSendAt,
     active: true,
@@ -419,7 +445,7 @@ export async function sendTestReminderEmail(reminderId: string) {
   const { data: reminder, error } = await supabase
     .from("reminders")
     .select(
-      "id,recipient_name,recipient_email,amount_owed,currency,custom_message,unsubscribe_token,unsubscribed",
+      "id,recipient_name,recipient_email,amount_owed,currency,custom_message,payment_link,unsubscribe_token,unsubscribed",
     )
     .eq("id", reminderId)
     .eq("user_id", user.id)
@@ -430,6 +456,7 @@ export async function sendTestReminderEmail(reminderId: string) {
       amount_owed: number;
       currency: string;
       custom_message: string | null;
+      payment_link: string | null;
       unsubscribe_token: string;
       unsubscribed: boolean;
     }>();
@@ -457,6 +484,7 @@ export async function sendTestReminderEmail(reminderId: string) {
       amountOwed: Number(reminder.amount_owed),
       currency: reminder.currency,
       customMessage: reminder.custom_message,
+      paymentLink: reminder.payment_link,
       unsubscribeToken: reminder.unsubscribe_token,
     });
     logger.action({

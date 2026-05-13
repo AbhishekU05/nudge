@@ -17,6 +17,7 @@ export function buildReminderEmail(params: {
   amountOwed: number;
   currency: string;
   customMessage: string | null;
+  paymentLink: string | null;
   recipientName: string;
   senderEmail?: string | null;
   senderName: string;
@@ -43,6 +44,10 @@ export function buildReminderEmail(params: {
     lines.push("", params.customMessage.trim());
   }
 
+  if (params.paymentLink) {
+    lines.push("", `Pay here: ${params.paymentLink}`);
+  }
+
   lines.push(
     "",
     "If you've already paid, please ignore this message.",
@@ -61,6 +66,7 @@ export function buildReminderEmail(params: {
     amountOwed: params.amountOwed,
     currency: params.currency,
     customMessage: params.customMessage,
+    paymentLink: params.paymentLink,
     recipientName: safeRecipientName,
     senderEmail: params.senderEmail,
     senderName: safeSenderName,

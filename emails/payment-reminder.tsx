@@ -16,6 +16,7 @@ export type PaymentReminderEmailProps = {
   amountOwed: number;
   currency: string;
   customMessage: string | null;
+  paymentLink: string | null;
   recipientName: string;
   senderEmail?: string | null;
   senderName: string;
@@ -27,6 +28,7 @@ export function PaymentReminderEmail({
   amountOwed,
   currency,
   customMessage,
+  paymentLink,
   recipientName,
   senderEmail,
   senderName,
@@ -69,9 +71,20 @@ export function PaymentReminderEmail({
           If you&apos;ve already paid, please ignore this message.
         </EmailMutedText>
 
-        {replyHref ? (
+        {paymentLink ? (
           <Section style={ctaSection}>
-            <EmailButton href={replyHref}>Reply to {safeSenderName}</EmailButton>
+            <EmailButton href={paymentLink}>Pay now</EmailButton>
+          </Section>
+        ) : null}
+
+        {replyHref ? (
+          <Section style={paymentLink ? secondaryCtaSection : ctaSection}>
+            <EmailButton
+              href={replyHref}
+              variant={paymentLink ? "secondary" : "primary"}
+            >
+              Reply to {safeSenderName}
+            </EmailButton>
           </Section>
         ) : null}
 
@@ -132,6 +145,10 @@ const noteText = {
 
 const ctaSection = {
   margin: "24px 0 0",
+};
+
+const secondaryCtaSection = {
+  margin: "12px 0 0",
 };
 
 const rule = {

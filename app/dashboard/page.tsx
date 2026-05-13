@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Clock3,
   Inbox,
+  Link2,
   Pause,
   Plus,
   Zap,
@@ -190,6 +191,18 @@ function ReminderCard({
               </div>
             ) : null}
 
+            {reminder.payment_link ? (
+              <a
+                href={reminder.payment_link}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-100"
+              >
+                <Link2 className="h-3.5 w-3.5" />
+                Payment link attached
+              </a>
+            ) : null}
+
             <p className="mt-4 text-xs text-zinc-600">
               Last sent: <LocalTime value={reminder.last_sent_at} />
             </p>
@@ -307,6 +320,18 @@ function QuickCreateCard({
                   placeholder="client@example.com"
                   maxLength={320}
                   required
+                />
+              </div>
+              <div>
+                <Label htmlFor="quick_payment_link" className="sr-only">
+                  Payment link
+                </Label>
+                <Input
+                  id="quick_payment_link"
+                  name="payment_link"
+                  type="url"
+                  placeholder="Payment link (optional)"
+                  maxLength={2048}
                 />
               </div>
               <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">

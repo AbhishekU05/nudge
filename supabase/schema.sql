@@ -42,6 +42,7 @@ create table if not exists public.reminders (
   amount_owed numeric(12,2) not null check (amount_owed > 0),
   currency text not null default 'USD',
   custom_message text,
+  payment_link text,
 
   reminder_frequency_days int not null check (reminder_frequency_days >= 1),
   next_send_at timestamptz not null,
@@ -58,6 +59,9 @@ create table if not exists public.reminders (
   -- Abuse prevention: enforce at least 24h between sends (frequency must be >= 1 day)
   constraint reminders_min_interval check (reminder_frequency_days >= 1)
 );
+
+alter table public.reminders
+  add column if not exists payment_link text;
 
 create index if not exists reminders_user_id_idx on public.reminders(user_id);
 create index if not exists reminders_next_send_at_idx on public.reminders(next_send_at) where active = true and unsubscribed = false;
@@ -162,4 +166,3 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure public.handle_new_user();
-
