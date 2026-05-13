@@ -14,6 +14,7 @@ import { baseText, colors, fontFamily } from "@/emails/components/styles";
 export type PaymentReminderEmailProps = {
   appUrl: string;
   amountOwed: number;
+  clientPaidUrl: string;
   currency: string;
   customMessage: string | null;
   paymentLink: string | null;
@@ -26,6 +27,7 @@ export type PaymentReminderEmailProps = {
 export function PaymentReminderEmail({
   appUrl,
   amountOwed,
+  clientPaidUrl,
   currency,
   customMessage,
   paymentLink,
@@ -77,11 +79,20 @@ export function PaymentReminderEmail({
           </Section>
         ) : null}
 
+        <Section style={paymentLink ? secondaryCtaSection : ctaSection}>
+          <EmailButton
+            href={clientPaidUrl}
+            variant={paymentLink ? "secondary" : "primary"}
+          >
+            I&apos;ve paid
+          </EmailButton>
+        </Section>
+
         {replyHref ? (
-          <Section style={paymentLink ? secondaryCtaSection : ctaSection}>
+          <Section style={secondaryCtaSection}>
             <EmailButton
               href={replyHref}
-              variant={paymentLink ? "secondary" : "primary"}
+              variant="secondary"
             >
               Reply to {safeSenderName}
             </EmailButton>

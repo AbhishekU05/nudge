@@ -157,6 +157,12 @@ function ReminderCard({
                 </p>
               </div>
               <ReminderStatus reminder={reminder} />
+              {reminder.client_paid_at ? (
+                <Badge variant="success" className="gap-1.5">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Client marked paid
+                </Badge>
+              ) : null}
             </div>
 
             <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">

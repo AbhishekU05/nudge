@@ -43,6 +43,7 @@ create table if not exists public.reminders (
   currency text not null default 'USD',
   custom_message text,
   payment_link text,
+  client_paid_at timestamptz,
 
   reminder_frequency_days int not null check (reminder_frequency_days >= 1),
   next_send_at timestamptz not null,
@@ -62,6 +63,9 @@ create table if not exists public.reminders (
 
 alter table public.reminders
   add column if not exists payment_link text;
+
+alter table public.reminders
+  add column if not exists client_paid_at timestamptz;
 
 create index if not exists reminders_user_id_idx on public.reminders(user_id);
 create index if not exists reminders_next_send_at_idx on public.reminders(next_send_at) where active = true and unsubscribed = false;

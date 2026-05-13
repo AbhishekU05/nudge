@@ -13,6 +13,10 @@ export function buildUnsubscribeUrl(unsubscribeToken: string) {
   return `${getAppUrl()}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`;
 }
 
+export function buildClientPaidUrl(unsubscribeToken: string) {
+  return `${getAppUrl()}/payment-received?token=${encodeURIComponent(unsubscribeToken)}`;
+}
+
 export function buildReminderEmail(params: {
   amountOwed: number;
   currency: string;
@@ -24,6 +28,7 @@ export function buildReminderEmail(params: {
   unsubscribeToken: string;
 }) {
   const unsubscribeUrl = buildUnsubscribeUrl(params.unsubscribeToken);
+  const clientPaidUrl = buildClientPaidUrl(params.unsubscribeToken);
   const appUrl = getAppUrl();
   const amount = new Intl.NumberFormat(undefined, {
     currency: params.currency,
@@ -48,6 +53,8 @@ export function buildReminderEmail(params: {
     lines.push("", `Pay here: ${params.paymentLink}`);
   }
 
+  lines.push("", `Mark this invoice as paid: ${clientPaidUrl}`);
+
   lines.push(
     "",
     "If you've already paid, please ignore this message.",
@@ -66,6 +73,7 @@ export function buildReminderEmail(params: {
     amountOwed: params.amountOwed,
     currency: params.currency,
     customMessage: params.customMessage,
+    clientPaidUrl,
     paymentLink: params.paymentLink,
     recipientName: safeRecipientName,
     senderEmail: params.senderEmail,
