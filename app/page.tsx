@@ -130,7 +130,7 @@ export default async function Home({
           <Card className="overflow-hidden bg-white/[0.025] p-2">
             <CardContent className="p-0">
               <Image
-                src="/dashboard-preview.svg"
+                src="/dashboard-preview.png"
                 width={1200}
                 height={720}
                 alt="Duely dashboard preview showing active reminders, quick create, and reminder activity"
