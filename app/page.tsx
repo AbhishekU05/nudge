@@ -92,7 +92,7 @@ export default async function Home({
               <Card className="overflow-hidden bg-white/[0.025] p-2">
                 <CardContent className="p-0">
                   <Image
-                    src="/email-reminder-preview.svg"
+                    src="/email-reminder-preview.png"
                     width={720}
                     height={540}
                     alt="Dark-mode email preview showing a Duely payment reminder"
