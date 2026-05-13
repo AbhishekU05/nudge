@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getEmailLinkErrorMessage } from "@/lib/auth-errors";
-import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function Home({
@@ -39,8 +38,6 @@ export default async function Home({
   if (user) {
     redirect("/dashboard");
   }
-
-  const monthlyPrice = await getLocalizedMonthlyPrice();
 
   return (
     <div className="flex flex-1 flex-col">
@@ -76,42 +73,11 @@ export default async function Home({
             <div className="max-w-3xl">
               <Badge variant="default">Automated payment follow-ups</Badge>
               <h1 className="mt-7 text-pretty text-5xl font-semibold tracking-[-0.045em] text-zinc-50 sm:text-6xl lg:text-7xl">
-                Get paid on time. Without awkward follow-ups.
+                Clients forget invoices. Duely doesn’t.
               </h1>
               <p className="mt-6 max-w-2xl text-pretty text-lg leading-8 text-zinc-400">
-                Set it once. Duely follows up automatically until you get paid.
+                Professional invoice follow-ups sent automatically until you get paid.
               </p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Link href="/signup">
-                  <Button size="lg">Start free trial</Button>
-                </Link>
-                <Link href="/login">
-                  <Button variant="secondary" size="lg">
-                    View dashboard
-                  </Button>
-                </Link>
-              </div>
-              <p className="mt-4 text-sm text-zinc-500">
-                Free for 14 days. Then {monthlyPrice.inline}. Cancel anytime.
-              </p>
-
-              <div className="mt-12 grid max-w-xl gap-4 sm:grid-cols-3">
-                {[
-                  ["1 min", "to set up a reminder"],
-                  ["Automatic spacing", "no spammy follow-ups"],
-                  ["No awkward messages", "emails stay professional"],
-                ].map(([value, label]) => (
-                  <div
-                    key={label}
-                    className="rounded-2xl border border-border bg-white/[0.03] p-4"
-                  >
-                    <div className="text-2xl font-semibold tracking-tight text-zinc-50">
-                      {value}
-                    </div>
-                    <div className="mt-1 text-sm text-zinc-500">{label}</div>
-                  </div>
-                ))}
-              </div>
             </div>
 
             <Card className="overflow-hidden bg-white/[0.035]">
@@ -120,93 +86,75 @@ export default async function Home({
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-zinc-100">
-                        Active reminders
+                        Automated reminder email
                       </div>
                       <div className="mt-1 text-xs text-zinc-500">
-                        Quietly running in the background
+                        Prepared from your invoice details
                       </div>
                     </div>
-                    <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-200">
-                      3 sending
+                    <span className="rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-xs text-primary-foreground">
+                      Queued
                     </span>
                   </div>
                 </div>
-                <div className="space-y-3 p-4">
-                  <div className="rounded-2xl border border-white/10 bg-background/70 p-4">
-                    <div className="flex items-start justify-between gap-4">
+                <div className="p-4 sm:p-5">
+                  <div className="rounded-2xl border border-white/10 bg-background/70 p-5">
+                    <div className="space-y-3 border-b border-white/10 pb-4">
                       <div>
-                        <div className="font-medium text-zinc-50">Sam Carter</div>
-                        <div className="mt-1 text-sm text-zinc-500">
-                          sam@gmail.com
+                        <div className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-600">
+                          To
+                        </div>
+                        <div className="mt-1 text-sm text-zinc-200">
+                          Morgan Lee &lt;morgan@northstar.co&gt;
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-zinc-50">$500.00</div>
-                        <div className="mt-1 text-xs text-zinc-500">due</div>
+                      <div>
+                        <div className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-600">
+                          Subject
+                        </div>
+                        <div className="mt-1 text-sm font-medium text-zinc-50">
+                          Reminder: Invoice INV-1048 from Avery Studio
+                        </div>
                       </div>
                     </div>
-                    <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-400">
-                      Next reminder queued for Thursday at 9:00 AM.
+
+                    <div className="space-y-4 pt-5 text-sm leading-6 text-zinc-300">
+                      <p>Hi Morgan,</p>
+                      <p>
+                        I hope you’re well. This is a quick reminder that invoice
+                        INV-1048 for the March brand refresh is still awaiting
+                        payment.
+                      </p>
+                      <p>
+                        When you have a moment, you can complete payment using the
+                        original invoice link. Please let me know if anything needs
+                        updating.
+                      </p>
+                      <p>
+                        Best,
+                        <br />
+                        Avery Studio
+                      </p>
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-background/70 p-4">
-                    <div className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-600">
-                      Timeline
-                    </div>
-                    <div className="mt-4 space-y-4">
-                      <div className="flex gap-3">
-                        <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
-                        <div>
-                          <p className="text-sm text-zinc-200">
-                            Reminder sent to Riley
-                          </p>
-                          <p className="mt-1 text-xs text-zinc-500">
-                            Yesterday at 9:04 AM
-                          </p>
-                        </div>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                      <div className="text-xs text-zinc-500">Automation</div>
+                      <div className="mt-1 text-sm font-medium text-zinc-100">
+                        Next reminder in 5 days
                       </div>
-                      <div className="flex gap-3">
-                        <span className="mt-1 h-2 w-2 rounded-full bg-zinc-600" />
-                        <div>
-                          <p className="text-sm text-zinc-200">
-                            Payment marked resolved
-                          </p>
-                          <p className="mt-1 text-xs text-zinc-500">
-                            Monday at 2:18 PM
-                          </p>
-                        </div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                      <div className="text-xs text-zinc-500">Automation</div>
+                      <div className="mt-1 text-sm font-medium text-zinc-100">
+                        Stops automatically when paid
                       </div>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </Container>
-
-        <Container className="pb-20">
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              [
-                "Create",
-                "Add a recipient, amount, and schedule in seconds.",
-              ],
-              [
-                "Track",
-                "See which reminders are active, queued, or sent—at a glance.",
-              ],
-              [
-                "Resolve",
-                "Stop reminders automatically once payment is made.",
-              ],
-            ].map(([title, copy]) => (
-              <Card key={title} className="bg-white/[0.025]">
-                <CardContent className="p-6">
-                  <div className="text-sm font-semibold text-zinc-50">{title}</div>
-                  <p className="mt-3 text-sm leading-6 text-zinc-500">{copy}</p>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </Container>
       </main>
