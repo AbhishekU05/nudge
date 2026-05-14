@@ -20,6 +20,7 @@ import {
   Check,
   Link2,
   AlertCircle,
+  Undo2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,8 @@ import {
   recordPaymentPromise,
   saveInternalNotes,
   markFullyPaid,
+  undoMarkAsPaid,
+  correctAmountPaid,
 } from "@/app/actions/customers";
 import { FOLLOWUP_TEMPLATES } from "@/lib/followup-templates";
 import { pauseReminder, resumeReminder } from "@/app/actions/reminders";
@@ -134,6 +137,7 @@ function PaymentTab({ customer }: { customer: CustomerRecord }) {
     customer.amount_owed > 0
       ? Math.min(100, (Number(customer.amount_paid) / Number(customer.amount_owed)) * 100)
       : 0;
+  const isFullyPaid = remaining <= 0;
 
   return (
     <div className="space-y-6">
@@ -165,7 +169,68 @@ function PaymentTab({ customer }: { customer: CustomerRecord }) {
         </p>
       </div>
 
-      {remaining > 0 ? (
+      {isFullyPaid ? (
+        <div className="space-y-3">
+          {/* Fully paid badge */}
+          <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <span>
+              Fully paid
+              {customer.client_paid_at ? (
+                <span className="ml-2 text-xs text-emerald-400/70">— customer confirmed</span>
+              ) : (
+                <span className="ml-2 text-xs text-emerald-400/70">— marked by you</span>
+              )}
+            </span>
+          </div>
+          {customer.client_paid_at && (
+            <p className="text-xs text-zinc-600">
+              Customer confirmed on{" "}
+              {new Date(customer.client_paid_at).toLocaleDateString(undefined, {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </p>
+          )}
+
+          {/* Undo */}
+          <Section title="Undo payment">
+            <form action={undoMarkAsPaid}>
+              <input type="hidden" name="customer_id" value={customer.id} />
+              <Button
+                type="submit"
+                variant="secondary"
+                size="sm"
+                className="w-full gap-1.5 text-zinc-400 hover:text-zinc-100"
+              >
+                <Undo2 className="h-3.5 w-3.5" />
+                Undo — reset to outstanding
+              </Button>
+            </form>
+            <p className="mt-1.5 text-xs text-zinc-600">
+              Resets amount paid to 0 and moves the customer back to your
+              active pipeline.
+            </p>
+          </Section>
+
+          {/* Correct amount */}
+          <Section title="Correct amount">
+            <form action={correctAmountPaid} className="space-y-2">
+              <input type="hidden" name="customer_id" value={customer.id} />
+              <Input
+                name="new_amount_paid"
+                inputMode="decimal"
+                placeholder={`Correct amount (of ${formatCurrency(Number(customer.amount_owed), customer.currency)})`}
+                required
+              />
+              <Button type="submit" variant="secondary" size="sm" className="w-full">
+                Update amount
+              </Button>
+            </form>
+          </Section>
+        </div>
+      ) : (
         <>
           {/* Record partial payment */}
           <Section title="Log payment">
@@ -189,6 +254,28 @@ function PaymentTab({ customer }: { customer: CustomerRecord }) {
             </form>
           </Section>
 
+          {/* Correct previously logged amount */}
+          {Number(customer.amount_paid) > 0 && (
+            <Section title="Correct amount paid">
+              <form action={correctAmountPaid} className="space-y-2">
+                <input type="hidden" name="customer_id" value={customer.id} />
+                <Input
+                  name="new_amount_paid"
+                  inputMode="decimal"
+                  defaultValue={String(customer.amount_paid)}
+                  placeholder="Corrected amount"
+                  required
+                />
+                <Button type="submit" variant="secondary" size="sm" className="w-full">
+                  Update amount
+                </Button>
+              </form>
+              <p className="mt-1.5 text-xs text-zinc-600">
+                Overwrites the recorded amount and recalculates status.
+              </p>
+            </Section>
+          )}
+
           {/* Mark fully paid shortcut */}
           <Section title="Mark as fully paid">
             <form action={markFullyPaid}>
@@ -200,30 +287,6 @@ function PaymentTab({ customer }: { customer: CustomerRecord }) {
             </form>
           </Section>
         </>
-      ) : (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-            <CheckCircle2 className="h-4 w-4 shrink-0" />
-            <span>
-              Fully paid
-              {customer.client_paid_at ? (
-                <span className="ml-2 text-xs text-emerald-400/70">— customer confirmed</span>
-              ) : (
-                <span className="ml-2 text-xs text-emerald-400/70">— marked by you</span>
-              )}
-            </span>
-          </div>
-          {customer.client_paid_at && (
-            <p className="text-xs text-zinc-600">
-              Customer confirmed on{" "}
-              {new Date(customer.client_paid_at).toLocaleDateString(undefined, {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </p>
-          )}
-        </div>
       )}
     </div>
   );

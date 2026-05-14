@@ -237,6 +237,145 @@ export async function markFullyPaid(formData: FormData) {
 }
 
 // ---------------------------------------------------------------------------
+// Undo mark-as-paid — resets the customer back to 'outstanding'
+// ---------------------------------------------------------------------------
+export async function undoMarkAsPaid(formData: FormData) {
+  const user = await requireUser();
+
+  try {
+    await enforceRateLimit(user.id, "reminder_toggle");
+  } catch (error) {
+    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
+  }
+
+  const customerId = formData.get("customer_id");
+  if (typeof customerId !== "string" || !customerId) {
+    redirectToDashboard({ error: "Invalid customer." });
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from("reminders")
+    .update({
+      workflow_status: "outstanding",
+      amount_paid: 0,
+      client_paid_at: null,
+      active: false,
+    })
+    .eq("id", customerId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    logger.error({
+      message: "Database error undoing paid status",
+      context: "undoMarkAsPaid",
+      user_id: user.id,
+      error: error.message,
+    });
+    redirectToDashboard({ error: "An unexpected error occurred." });
+  }
+
+  logger.action({
+    action_name: "undo_mark_paid",
+    reminder_id: customerId as string,
+    user_id: user.id,
+    success: true,
+  });
+
+  revalidatePath("/dashboard");
+  redirectToDashboard({ success: "Payment status reset to outstanding." });
+}
+
+// ---------------------------------------------------------------------------
+// Correct the amount paid — overwrites amount_paid and recalculates status
+// ---------------------------------------------------------------------------
+export async function correctAmountPaid(formData: FormData) {
+  const user = await requireUser();
+
+  try {
+    await enforceRateLimit(user.id, "reminder_toggle");
+  } catch (error) {
+    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
+  }
+
+  const customerId = formData.get("customer_id");
+  if (typeof customerId !== "string" || !customerId) {
+    redirectToDashboard({ error: "Invalid customer." });
+  }
+
+  const newAmountInput = formData.get("new_amount_paid");
+  if (typeof newAmountInput !== "string" || !newAmountInput.trim()) {
+    redirectToDashboard({ error: "New amount is required." });
+  }
+
+  const newAmountPaid = parseMoney(newAmountInput as string);
+  if (newAmountPaid === null || newAmountPaid < 0) {
+    redirectToDashboard({ error: "Enter a valid non-negative amount." });
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  const { data: customer, error: fetchError } = await supabase
+    .from("reminders")
+    .select("amount_owed")
+    .eq("id", customerId)
+    .eq("user_id", user.id)
+    .maybeSingle<Pick<CustomerRecord, "amount_owed">>();
+
+  if (fetchError || !customer) {
+    redirectToDashboard({ error: "Customer not found." });
+  }
+
+  const amountOwed = Number(customer!.amount_owed);
+  const paid = newAmountPaid as number;
+  const newStatus: WorkflowStatus =
+    paid >= amountOwed ? "paid" : paid > 0 ? "partial" : "outstanding";
+
+  const updatePayload: Record<string, unknown> = {
+    amount_paid: paid,
+    workflow_status: newStatus,
+    // Clear client_paid_at if we're un-fully-paying (amount < owed)
+    ...(paid < amountOwed ? { client_paid_at: null } : {}),
+  };
+
+  if (newStatus === "paid") {
+    updatePayload.active = false;
+  }
+
+  const { error } = await supabase
+    .from("reminders")
+    .update(updatePayload)
+    .eq("id", customerId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    logger.error({
+      message: "Database error correcting amount paid",
+      context: "correctAmountPaid",
+      user_id: user.id,
+      error: error.message,
+    });
+    redirectToDashboard({ error: "An unexpected error occurred." });
+  }
+
+  logger.action({
+    action_name: "correct_amount_paid",
+    reminder_id: customerId as string,
+    user_id: user.id,
+    success: true,
+  });
+
+  revalidatePath("/dashboard");
+  redirectToDashboard({
+    success:
+      newStatus === "paid"
+        ? "Amount corrected — customer is now fully paid."
+        : `Amount corrected — ${paid.toFixed(2)} recorded.`,
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Record a payment promise
 // ---------------------------------------------------------------------------
 export async function recordPaymentPromise(formData: FormData) {
@@ -531,12 +670,20 @@ export async function enableAutomation(formData: FormData) {
 
   const { data: customer, error: fetchError } = await supabase
     .from("reminders")
-    .select("id, last_sent_at")
+    .select("id, last_sent_at, workflow_status")
     .eq("id", customerId)
     .eq("user_id", user.id)
-    .maybeSingle<{ id: string; last_sent_at: string | null }>();
+    .maybeSingle<{ id: string; last_sent_at: string | null; workflow_status: WorkflowStatus }>();
 
   if (fetchError || !customer) redirectToDashboard({ error: "Customer not found." });
+
+  // Block automation on already-paid customers
+  if (customer!.workflow_status === "paid") {
+    redirectToNewReminder(
+      customerId as string,
+      "This customer is already marked as paid. Undo the payment first if you need to re-enable reminders.",
+    );
+  }
 
   const nextSendAt = (customer!.last_sent_at
     ? computeRecurringReminderSendAt(frequency as number)

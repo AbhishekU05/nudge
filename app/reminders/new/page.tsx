@@ -53,13 +53,18 @@ export default async function SetupAutomationPage({
     >();
 
   if (!customer) {
-    // Customer not found or not owned by this user
     redirect("/dashboard?error=Customer+not+found.");
   }
 
   if (customer.unsubscribed) {
     redirect(
       "/dashboard?error=This+customer+has+unsubscribed+from+reminders.",
+    );
+  }
+
+  if (customer.workflow_status === "paid") {
+    redirect(
+      "/dashboard?error=This+customer+is+already+marked+as+paid.+Open+their+drawer+and+undo+the+payment+first.",
     );
   }
 
