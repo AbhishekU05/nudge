@@ -99,9 +99,14 @@ export default async function Home({
               </p>
               <Card className="overflow-hidden bg-white/[0.025] p-2">
                 <CardContent className="p-0">
-                  <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.02] text-sm text-zinc-500">
-                    [Pipeline Dashboard Screenshot]
-                  </div>
+                  <Image
+                    src="/dashboard-preview.png"
+                    width={1200}
+                    height={720}
+                    alt="Collections dashboard overview"
+                    sizes="(max-width: 1024px) 100vw, 800px"
+                    className="h-auto w-full rounded-xl"
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -143,18 +148,17 @@ export default async function Home({
           {/* 1. Track what clients owe */}
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <div className="order-2 lg:order-1 relative">
-              <Card className="overflow-hidden bg-white/[0.025] p-6 flex flex-col justify-center gap-6 aspect-[16/9] border-dashed">
-                <div className="w-full max-w-sm mx-auto rounded-xl border border-white/10 bg-background/50 p-5 shadow-2xl">
-                  <div className="mb-3 flex items-center justify-between text-sm">
-                    <span className="text-zinc-400">Paid: <span className="font-semibold text-zinc-100">$2,500</span></span>
-                    <span className="text-zinc-400">Remaining: <span className="font-semibold text-zinc-100">$2,500</span></span>
-                  </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
-                    <div className="h-full rounded-full bg-emerald-500 w-1/2" />
-                  </div>
-                  <p className="mt-2 text-right text-xs text-zinc-500">50% collected of $5,000</p>
-                </div>
-                <div className="text-center text-xs text-zinc-600 uppercase tracking-widest">[Partial Payment UI Preview]</div>
+              <Card className="overflow-hidden bg-white/[0.025] p-2">
+                <CardContent className="p-0">
+                  <Image
+                    src="/partial-payment.png"
+                    width={800}
+                    height={500}
+                    alt="Partial payment tracking feature"
+                    sizes="(max-width: 1024px) 100vw, 600px"
+                    className="h-auto w-full rounded-xl"
+                  />
+                </CardContent>
               </Card>
             </div>
             <div className="order-1 lg:order-2 max-w-xl lg:pl-10">
@@ -178,16 +182,17 @@ export default async function Home({
               </p>
             </div>
             <div className="relative">
-              <Card className="overflow-hidden bg-white/[0.025] p-6 flex flex-col justify-center gap-4 aspect-[16/9] border-dashed items-center">
-                <div className="flex gap-3">
-                  <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 shadow-xl">
-                    <Clock className="h-4 w-4 text-amber-400" /> Promised Friday
-                  </div>
-                  <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 shadow-xl">
-                    <FileText className="h-4 w-4 text-indigo-400" /> Internal Notes
-                  </div>
-                </div>
-                <div className="mt-4 text-center text-xs text-zinc-600 uppercase tracking-widest">[Client Detail UI Preview]</div>
+              <Card className="overflow-hidden bg-white/[0.025] p-2">
+                <CardContent className="p-0">
+                  <Image
+                    src="/promise-notes.png"
+                    width={800}
+                    height={500}
+                    alt="Tracking promises and notes"
+                    sizes="(max-width: 1024px) 100vw, 600px"
+                    className="h-auto w-full rounded-xl"
+                  />
+                </CardContent>
               </Card>
             </div>
           </div>
@@ -197,9 +202,14 @@ export default async function Home({
             <div className="order-2 lg:order-1 relative">
               <Card className="overflow-hidden bg-white/[0.025] p-2">
                 <CardContent className="p-0">
-                  <div className="flex aspect-[16/9] w-full items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.02] text-sm text-zinc-500">
-                    [Message Drafter Screenshot]
-                  </div>
+                  <Image
+                    src="/follow-up.png"
+                    width={800}
+                    height={500}
+                    alt="Message drafter and follow-up tools"
+                    sizes="(max-width: 1024px) 100vw, 600px"
+                    className="h-auto w-full rounded-xl"
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -226,9 +236,14 @@ export default async function Home({
             <div className="relative">
               <Card className="overflow-hidden bg-white/[0.025] p-2">
                 <CardContent className="p-0 relative group">
-                  <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.02] text-sm text-zinc-500">
-                    [Email Template Preview Screenshot]
-                  </div>
+                  <Image
+                    src="/email-reminder-preview.png"
+                    width={720}
+                    height={540}
+                    alt="Dark-mode email preview showing a Duely payment reminder"
+                    sizes="(max-width: 1024px) 100vw, 600px"
+                    className="h-auto w-full rounded-xl"
+                  />
                 </CardContent>
               </Card>
             </div>
