@@ -69,82 +69,140 @@ export default async function Home({
 
       <main className="flex-1">
         <Container className="py-16 sm:py-24">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(25rem,0.82fr)] lg:items-center">
+          {/* HERO */}
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <div className="max-w-3xl">
-              <Badge variant="default">Automated payment follow-ups</Badge>
+              <Badge variant="default">Client payment management</Badge>
               <h1 className="mt-7 text-pretty text-5xl font-semibold tracking-[-0.045em] text-zinc-50 sm:text-6xl lg:text-7xl">
-                Clients forget invoices. Duely doesn’t.
+                Collect payments without the spreadsheet.
               </h1>
               <p className="mt-6 max-w-2xl text-pretty text-lg leading-8 text-zinc-400">
-                Professional invoice follow-ups sent automatically until you get paid.
+                A lightweight collections workflow for agencies. Track what clients owe, manage promises, and organize follow-ups without the mental overhead.
               </p>
-              <div className="mt-10 flex max-w-xl flex-wrap gap-x-6 gap-y-2 text-sm text-zinc-500">
-                <span>Sent automatically</span>
-                <span>Professionally spaced</span>
-                <span>No awkward client follow-ups</span>
+              <div className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-sm text-zinc-500">
+                <span>Track unpaid work</span>
+                <span>Organize follow-ups</span>
+                <span>Manage receivables</span>
               </div>
             </div>
 
             <div className="relative">
               <p className="mb-3 ml-2 text-xs font-medium uppercase tracking-[0.18em] text-zinc-600">
-                Real reminder email
+                Operational Overview
               </p>
               <Card className="overflow-hidden bg-white/[0.025] p-2">
                 <CardContent className="p-0">
-                  <Image
-                    src="/email-reminder-preview.png"
-                    width={720}
-                    height={540}
-                    alt="Dark-mode email preview showing a Duely payment reminder"
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 38vw"
-                    className="h-auto w-full rounded-xl"
-                  />
+                  <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.02] text-sm text-zinc-500">
+                    [Collections Dashboard Placeholder]
+                  </div>
                 </CardContent>
               </Card>
-              <div className="mt-4 flex flex-wrap justify-between gap-3 px-1 text-xs text-zinc-600">
-                <span>Quietly runs in the background</span>
-                <span>Stops when paid</span>
-              </div>
             </div>
           </div>
         </Container>
 
-        <Container className="pb-24 sm:pb-28">
-          <div className="mb-7 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-xl">
-              <p className="text-sm font-medium text-zinc-400">
-                Track every reminder
-              </p>
-              <h2 className="mt-3 text-pretty text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
-                Know what’s still outstanding without chasing the client yourself.
+        {/* WORKFLOW SECTIONS */}
+        <Container className="pb-24 sm:pb-32 space-y-24 sm:space-y-32">
+          
+          {/* 1. Track what clients owe */}
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <div className="order-2 lg:order-1 relative">
+              <Card className="overflow-hidden bg-white/[0.025] p-2">
+                <CardContent className="p-0">
+                  <div className="flex aspect-[16/9] w-full items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.02] text-sm text-zinc-500">
+                    [Client Tracking Screenshot Placeholder]
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="order-1 lg:order-2 max-w-xl lg:pl-10">
+              <h2 className="text-pretty text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
+                Know exactly what's outstanding.
               </h2>
-            </div>
-            <div className="flex max-w-md flex-wrap gap-x-6 gap-y-2 text-sm text-zinc-500 lg:justify-end">
-              <span>Stops when paid</span>
-              <span>Designed for agencies and freelancers</span>
-              <span>Professionally spaced</span>
+              <p className="mt-6 text-lg leading-8 text-zinc-400">
+                Get a clear view of your receivables. Track full balances, log partial payments, and monitor due dates all in one organized place.
+              </p>
             </div>
           </div>
 
-          <Card className="overflow-hidden bg-white/[0.025] p-2">
-            <CardContent className="p-0">
-              <Image
-                src="/dashboard-preview.png"
-                width={1200}
-                height={720}
-                alt="Duely dashboard preview showing active reminders, quick create, and reminder activity"
-                sizes="(max-width: 768px) 100vw, 1120px"
-                className="h-auto w-full rounded-xl"
-              />
-            </CardContent>
-          </Card>
-
-          <div className="mt-4 flex flex-wrap gap-x-7 gap-y-2 px-1 text-xs text-zinc-600 sm:px-2">
-            <span>Sent automatically</span>
-            <span>Track every reminder</span>
-            <span>No awkward client follow-ups</span>
+          {/* 2. Keep track of promises */}
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <div className="max-w-xl lg:pr-10">
+              <h2 className="text-pretty text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
+                Never forget a payment promise.
+              </h2>
+              <p className="mt-6 text-lg leading-8 text-zinc-400">
+                When a client says they'll pay next Friday, log it. Duely acts as your operational memory so verbal commitments and promised dates don't slip through the cracks.
+              </p>
+            </div>
+            <div className="relative">
+              <Card className="overflow-hidden bg-white/[0.025] p-2">
+                <CardContent className="p-0">
+                  <div className="flex aspect-[16/9] w-full items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.02] text-sm text-zinc-500">
+                    [Promise Tracking Screenshot Placeholder]
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
+
+          {/* 3. Follow up professionally */}
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <div className="order-2 lg:order-1 relative">
+              <Card className="overflow-hidden bg-white/[0.025] p-2">
+                <CardContent className="p-0">
+                  <div className="flex aspect-[16/9] w-full items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.02] text-sm text-zinc-500">
+                    [Manual Follow-up Screenshot Placeholder]
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="order-1 lg:order-2 max-w-xl lg:pl-10">
+              <h2 className="text-pretty text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
+                Follow up with confidence.
+              </h2>
+              <p className="mt-6 text-lg leading-8 text-zinc-400">
+                Keep a history of internal notes for context. Draft the perfect message using customizable templates, and choose the right tone—friendly, professional, or firm—for each follow-up.
+              </p>
+            </div>
+          </div>
+
+          {/* 4. Automate only when needed */}
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <div className="max-w-xl lg:pr-10">
+              <h2 className="text-pretty text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
+                Automate as a backup escalation.
+              </h2>
+              <p className="mt-6 text-lg leading-8 text-zinc-400">
+                For clients who need a persistent push, set up an automated email sequence. It runs quietly in the background as a supporting workflow and stops instantly when you mark them as paid.
+              </p>
+            </div>
+            <div className="relative">
+              <Card className="overflow-hidden bg-white/[0.025] p-2">
+                <CardContent className="p-0">
+                  <div className="flex aspect-[16/9] w-full items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.02] text-sm text-zinc-500">
+                    [Automation Settings Screenshot Placeholder]
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="rounded-3xl border border-white/10 bg-white/[0.02] px-6 py-16 text-center sm:px-12 sm:py-20 lg:px-16">
+            <h2 className="mx-auto max-w-2xl text-pretty text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
+              Ready to organize your receivables?
+            </h2>
+            <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-zinc-400">
+              Bring operational clarity to your post-invoice workflow. Stop chasing clients out of your inbox and start collecting payments professionally.
+            </p>
+            <div className="mt-10 flex items-center justify-center gap-4">
+              <Link href="/signup">
+                <Button size="lg">Start tracking payments</Button>
+              </Link>
+            </div>
+          </div>
+
         </Container>
       </main>
 
