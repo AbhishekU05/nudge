@@ -11,7 +11,12 @@ import { redirect } from "next/navigation";
 
 import { enforceRateLimit } from "@/lib/abuse";
 import { requireUser } from "@/lib/auth";
+import { hasActiveSubscription } from "@/lib/payments";
 import { buildPathWithQuery } from "@/lib/paths";
+import {
+  computeFirstReminderSendAt,
+  computeRecurringReminderSendAt,
+} from "@/lib/reminder-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
 import type { WorkflowStatus, FollowUpTone, CustomerRecord } from "@/lib/types";
@@ -21,8 +26,19 @@ import { getRemainingBalance } from "@/lib/types";
 // Helpers
 // ---------------------------------------------------------------------------
 
+const MAX_CUSTOMERS = 20;
+const MAX_PAYMENT_LINK_LENGTH = 2048;
+
 function redirectToDashboard(params: { error?: string; success?: string }): never {
   redirect(buildPathWithQuery("/dashboard", params));
+}
+
+function redirectToNewCustomer(error: string): never {
+  redirect(buildPathWithQuery("/customers/new", { error }));
+}
+
+function redirectToNewReminder(customerId: string, error: string): never {
+  redirect(buildPathWithQuery("/reminders/new", { customer_id: customerId, error }));
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -38,6 +54,28 @@ function parseMoney(input: string): number | null {
   const amount = Number.parseFloat(normalized);
   if (!Number.isFinite(amount) || amount <= 0) return null;
   return Math.round(amount * 100) / 100;
+}
+
+function getString(formData: FormData, key: string): string | null {
+  const value = formData.get(key);
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function normalizePaymentLink(link: string): string | null {
+  if (link.length > MAX_PAYMENT_LINK_LENGTH) return null;
+  try {
+    const url = new URL(link);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -371,3 +409,189 @@ export const FOLLOWUP_TEMPLATES: Record<
   firm: (name, amount, days) =>
     `Dear ${name},\n\nThis is a follow-up regarding an overdue balance of ${amount}${days ? ` — now ${days} day${days === 1 ? "" : "s"} past due` : ""}. Prompt payment is required to avoid further escalation.\n\nPlease arrange payment at your earliest convenience and confirm via reply.\n\nRegards,`,
 };
+
+// ---------------------------------------------------------------------------
+// Create a new customer record — no automation enabled yet.
+// Redirects to /customers/new on error, /dashboard on success.
+// ---------------------------------------------------------------------------
+export async function createCustomer(formData: FormData) {
+  const user = await requireUser();
+
+  try {
+    await enforceRateLimit(user.id, "reminder_create");
+  } catch (error) {
+    redirectToNewCustomer(getErrorMessage(error, "Please wait a moment and try again."));
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("razorpay_subscription_status, created_at")
+    .eq("user_id", user.id)
+    .maybeSingle<{ razorpay_subscription_status: string | null; created_at: string }>();
+
+  if (!hasActiveSubscription(profile?.razorpay_subscription_status ?? null, profile?.created_at)) {
+    redirect("/settings/billing?error=subscription_required");
+  }
+
+  const { count } = await supabase
+    .from("reminders")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("unsubscribed", false);
+
+  if ((count ?? 0) >= MAX_CUSTOMERS) {
+    redirectToNewCustomer(`You've reached the limit of ${MAX_CUSTOMERS} customers.`);
+  }
+
+  const recipientName = getString(formData, "recipient_name");
+  if (!recipientName) redirectToNewCustomer("Customer name is required.");
+
+  const recipientEmailRaw = getString(formData, "recipient_email");
+  if (!recipientEmailRaw) redirectToNewCustomer("Customer email is required.");
+
+  const recipientEmail = (recipientEmailRaw as string).toLowerCase();
+  if (!isValidEmail(recipientEmail)) redirectToNewCustomer("Enter a valid email address.");
+
+  if ((recipientName as string).length > 100) redirectToNewCustomer("Name is too long (max 100 chars).");
+  if (recipientEmail.length > 320) redirectToNewCustomer("Email is too long.");
+
+  const { data: existing } = await supabase
+    .from("reminders")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("recipient_email", recipientEmail)
+    .eq("unsubscribed", false)
+    .maybeSingle();
+
+  if (existing) redirectToNewCustomer("A customer with this email already exists.");
+
+  const amountInput = getString(formData, "amount_owed");
+  if (!amountInput) redirectToNewCustomer("Amount owed is required.");
+
+  const amountOwed = parseMoney(amountInput as string);
+  if (amountOwed === null) redirectToNewCustomer("Enter a valid amount (e.g. 420.00).");
+
+  const currency = getString(formData, "currency") ?? "USD";
+  const dueDateRaw = getString(formData, "due_date");
+
+  // next_send_at is required by schema — set it even though active=false
+  const nextSendAt = computeFirstReminderSendAt();
+
+  const { data: newCustomer, error } = await supabase
+    .from("reminders")
+    .insert({
+      user_id: user.id,
+      recipient_name: recipientName as string,
+      recipient_email: recipientEmail,
+      amount_owed: amountOwed,
+      currency: currency as string,
+      due_date: dueDateRaw ?? null,
+      reminder_frequency_days: 7, // default; will be overridden when automation is enabled
+      next_send_at: nextSendAt,
+      active: false, // no automation yet
+      unsubscribed: false,
+      workflow_status: "outstanding",
+    })
+    .select("id")
+    .maybeSingle<{ id: string }>();
+
+  if (error) {
+    logger.error({
+      message: "Database error creating customer",
+      context: "createCustomer",
+      user_id: user.id,
+      error: error.message,
+    });
+    redirectToNewCustomer("An unexpected error occurred. Please try again.");
+  }
+
+  logger.action({ action_name: "create_customer", user_id: user.id, success: true });
+
+  revalidatePath("/dashboard");
+  redirectToDashboard({ success: `${recipientName} added to your pipeline.` });
+}
+
+// ---------------------------------------------------------------------------
+// Enable automation on an existing customer.
+// Sets active=true, schedules next_send_at, persists tone/message/link.
+// ---------------------------------------------------------------------------
+export async function enableAutomation(formData: FormData) {
+  const user = await requireUser();
+
+  try {
+    await enforceRateLimit(user.id, "reminder_toggle");
+  } catch (error) {
+    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
+  }
+
+  const customerId = getString(formData, "customer_id");
+  if (!customerId) redirectToDashboard({ error: "Invalid customer." });
+
+  const frequencyRaw = getString(formData, "reminder_frequency_days") ?? "7";
+  const frequency = parseInt(frequencyRaw as string, 10);
+  if (!Number.isFinite(frequency) || frequency < 1) {
+    redirectToNewReminder(customerId as string, "Frequency must be at least 1 day.");
+  }
+
+  const customMessage = getString(formData, "custom_message");
+  const messageValue =
+    typeof customMessage === "string" && customMessage.length > 0
+      ? customMessage.slice(0, 500)
+      : null;
+
+  const rawPaymentLink = getString(formData, "payment_link");
+  const paymentLink = rawPaymentLink ? normalizePaymentLink(rawPaymentLink) : null;
+  if (rawPaymentLink && !paymentLink) {
+    redirectToNewReminder(customerId as string, "Enter a valid payment link (must start with https://).");
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  const { data: customer, error: fetchError } = await supabase
+    .from("reminders")
+    .select("id, last_sent_at")
+    .eq("id", customerId)
+    .eq("user_id", user.id)
+    .maybeSingle<{ id: string; last_sent_at: string | null }>();
+
+  if (fetchError || !customer) redirectToDashboard({ error: "Customer not found." });
+
+  const nextSendAt = (customer!.last_sent_at
+    ? computeRecurringReminderSendAt(frequency as number)
+    : computeFirstReminderSendAt());
+
+  const { error } = await supabase
+    .from("reminders")
+    .update({
+      custom_message: messageValue,
+      payment_link: paymentLink,
+      reminder_frequency_days: frequency as number,
+      active: true,
+      next_send_at: nextSendAt,
+    })
+    .eq("id", customerId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    logger.error({
+      message: "Database error enabling automation",
+      context: "enableAutomation",
+      user_id: user.id,
+      error: error.message,
+    });
+    redirectToDashboard({ error: "An unexpected error occurred." });
+  }
+
+  logger.action({
+    action_name: "enable_automation",
+    reminder_id: customerId as string,
+    user_id: user.id,
+    success: true,
+  });
+
+  revalidatePath("/dashboard");
+  redirectToDashboard({ success: "Automation enabled. Reminders will start sending shortly." });
+}
+

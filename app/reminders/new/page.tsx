@@ -1,60 +1,81 @@
 /*
- * reminder page 
+ * /reminders/new — Set up automated email reminders for an existing customer.
+ * Requires ?customer_id= query param. If missing, redirects to /customers/new.
+ * Renders the AutomationSetupForm client component with live email preview.
  */
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { ArrowLeft, Mail, User, AtSign, DollarSign } from "lucide-react";
 
-import { ArrowLeft, Clock3, Link2, MailPlus, MessageSquare } from "lucide-react";
-
-import { createReminder } from "@/app/actions/reminders";
+import { AutomationSetupForm } from "@/components/site/automation-setup-form";
 import { Container } from "@/components/site/container";
-import { CurrencySelect } from "@/components/site/currency-select";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
-import { hasActiveSubscription } from "@/lib/payments";
-import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { cn } from "@/lib/utils";
+import type { CustomerRecord } from "@/lib/types";
 
-// main function for reminder page
-export default async function NewReminderPage({
+export default async function SetupAutomationPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ customer_id?: string; error?: string }>;
 }) {
+  const { customer_id, error } = await searchParams;
+
+  // No customer_id → send to add-customer flow first
+  if (!customer_id) {
+    redirect("/customers/new");
+  }
+
   const user = await requireUser();
-  const { error } = await searchParams;
-  const monthlyPrice = await getLocalizedMonthlyPrice();
-
   const supabase = await createSupabaseServerClient();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("razorpay_subscription_status, created_at")
+
+  // Fetch the customer — must belong to this user
+  const { data: customer } = await supabase
+    .from("reminders")
+    .select(
+      "id, recipient_name, recipient_email, amount_owed, currency, active, unsubscribed, workflow_status",
+    )
+    .eq("id", customer_id)
     .eq("user_id", user.id)
-    .maybeSingle<{
-      razorpay_subscription_status: string | null;
-      created_at: string;
-    }>();
+    .maybeSingle<
+      Pick<
+        CustomerRecord,
+        | "id"
+        | "recipient_name"
+        | "recipient_email"
+        | "amount_owed"
+        | "currency"
+        | "active"
+        | "unsubscribed"
+        | "workflow_status"
+      >
+    >();
 
-  // TODO: ensure reminders created only if under quota
-  const hasSubscription = hasActiveSubscription(
-    profile?.razorpay_subscription_status ?? null,
-    profile?.created_at,
-  );
+  if (!customer) {
+    // Customer not found or not owned by this user
+    redirect("/dashboard?error=Customer+not+found.");
+  }
 
-  // TODO: change all wordings
+  if (customer.unsubscribed) {
+    redirect(
+      "/dashboard?error=This+customer+has+unsubscribed+from+reminders.",
+    );
+  }
+
+  const displayName: string =
+    (user.user_metadata?.full_name as string | undefined)?.trim() ||
+    user.email?.split("@")[0] ||
+    "You";
+
+  const amount = new Intl.NumberFormat(undefined, {
+    currency: customer.currency,
+    style: "currency",
+  }).format(Number(customer.amount_owed));
+
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Header */}
       <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
         <Container className="flex h-16 items-center justify-between gap-4">
           <Link
@@ -64,220 +85,66 @@ export default async function NewReminderPage({
             <ArrowLeft className="h-4 w-4" />
             Dashboard
           </Link>
-          <Badge variant={hasSubscription ? "success" : "warning"}>
-            {hasSubscription ? "Ready to send" : "Billing required"}
+          <Badge variant={customer.active ? "success" : "default"}>
+            {customer.active ? "Automation active" : "Automation off"}
           </Badge>
         </Container>
       </header>
 
       <main className="flex-1">
         <Container className="py-8 sm:py-10">
-          <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_23rem]">
-            <section className="space-y-6">
-              <div>
-                <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
-                  Add customer
-                </h1>
-                <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
-                  Track a customer's outstanding balance. Log payments, record promises, and follow up — all from the dashboard.
+          <div className="mx-auto max-w-5xl space-y-8">
+            {/* Page heading */}
+            <div>
+              <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
+                Set up automation
+              </h1>
+              <p className="mt-3 max-w-xl text-base leading-7 text-zinc-500">
+                Configure recurring email reminders for this customer. Pick a
+                tone, customise the note, and set how often to send.
+              </p>
+            </div>
+
+            {/* Customer context card */}
+            <Card className="bg-white/[0.035]">
+              <CardContent className="p-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-600">
+                  Sending reminders to
                 </p>
-              </div>
-
-              {!hasSubscription ? (
-                <Card className="border-amber-500/20 bg-amber-500/10">
-                  <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="font-medium text-amber-100">
-                        Your trial has ended.
-                      </p>
-                      <p className="mt-1 text-sm leading-6 text-amber-100/70">
-                        Activate billing for {monthlyPrice.inline} to track
-                        customers and send automated follow-ups.
-                      </p>
-                    </div>
-                    <Link href="/settings/billing">
-                      <Button>Open billing</Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ) : null}
-
-              <Card className={cn("bg-white/[0.035]", !hasSubscription && "opacity-60")}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-2xl">
-                    <MailPlus className="h-5 w-5 text-primary" />
-                    Customer details
-                  </CardTitle>
-                  <CardDescription>
-                    Enter the basics. You can log partial payments, record
-                    promises, and draft follow-ups from the dashboard.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form action={createReminder} className="grid gap-5 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="recipient_name">Customer name</Label>
-                      <Input
-                        id="recipient_name"
-                        name="recipient_name"
-                        placeholder="Sam Carter"
-                        maxLength={100}
-                        required
-                        disabled={!hasSubscription}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="recipient_email">Customer email</Label>
-                      <Input
-                        id="recipient_email"
-                        name="recipient_email"
-                        type="email"
-                        placeholder="sam@example.com"
-                        maxLength={320}
-                        required
-                        disabled={!hasSubscription}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="amount_owed">Total amount due</Label>
-                      <div className="flex gap-2">
-                        <div className="w-[100px]">
-                          <CurrencySelect id="currency" name="currency" disabled={!hasSubscription} />
-                        </div>
-                        <Input
-                          id="amount_owed"
-                          name="amount_owed"
-                          inputMode="decimal"
-                          placeholder="420.00"
-                          required
-                          disabled={!hasSubscription}
-                          className="flex-1"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="reminder_frequency_days">
-                        Auto-reminder frequency (days)
-                      </Label>
-                      <Input
-                        id="reminder_frequency_days"
-                        name="reminder_frequency_days"
-                        type="number"
-                        min={1}
-                        defaultValue={7}
-                        required
-                        disabled={!hasSubscription}
-                      />
-                    </div>
-
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="payment_link">Payment link (optional)</Label>
-                      <Input
-                        id="payment_link"
-                        name="payment_link"
-                        type="url"
-                        placeholder="https://checkout.example.com/invoice/1234"
-                        maxLength={2048}
-                        disabled={!hasSubscription}
-                      />
-                      <p className="text-xs text-zinc-600">
-                        Added to the email as a Pay now button.
-                      </p>
-                    </div>
-
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="custom_message">Optional note</Label>
-                      <Textarea
-                        id="custom_message"
-                        name="custom_message"
-                        maxLength={500}
-                        placeholder="Example: Following up on invoice #1234."
-                        disabled={!hasSubscription}
-                      />
-                      <p className="text-xs text-zinc-600">
-                        Short, factual notes work best. Maximum 500 characters.
-                      </p>
-                    </div>
-
-                    {error ? (
-                      <div className="sm:col-span-2">
-                        <p
-                          className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200"
-                          role="alert"
-                        >
-                          {error}
-                        </p>
-                      </div>
-                    ) : null}
-
-                    <div className="flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-end">
-                      <Link href="/dashboard">
-                        <Button type="button" variant="secondary" className="w-full sm:w-auto">
-                          Cancel
-                        </Button>
-                      </Link>
-                      <Button type="submit" disabled={!hasSubscription} className="w-full sm:w-auto">
-                        Add customer
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </section>
-
-            <aside className="space-y-5">
-              <Card className="bg-white/[0.025]">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-primary" />
-                    Automated follow-up
-                  </CardTitle>
-                  <CardDescription>
-                    If you escalate to automation, this is the email your customer receives.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4 text-sm leading-6 text-zinc-400">
-                  <div className="rounded-2xl border border-white/10 bg-background/70 p-4">
-                    <p className="font-medium text-zinc-200">
-                      Subject: Payment reminder
-                    </p>
-                    <p className="mt-3">Hi Sam,</p>
-                    <p className="mt-3">
-                      This is a reminder that your balance is currently outstanding.
-                    </p>
-                    <p className="mt-3 text-zinc-500">
-                      If you&apos;ve already paid, please ignore this message.
-                    </p>
-                    <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">
-                      <Link2 className="h-3.5 w-3.5" />
-                      Pay now
-                    </div>
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <User className="h-3.5 w-3.5 text-zinc-500" />
+                    <span className="font-semibold">{customer.recipient_name}</span>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white/[0.02]">
-                <CardContent className="p-5">
-                  <div className="flex gap-3">
-                    <div className="rounded-full border border-white/10 bg-white/[0.04] p-2 text-zinc-400">
-                      <Clock3 className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-zinc-200">
-                        Automation is optional.
-                      </p>
-                      <p className="mt-1 text-sm leading-6 text-zinc-500">
-                        Use the dashboard to manually log payments and follow up first.
-                        Enable automated reminders later if you need to escalate.
-                      </p>
-                    </div>
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <AtSign className="h-3.5 w-3.5 text-zinc-500" />
+                    {customer.recipient_email}
                   </div>
-                </CardContent>
-              </Card>
-            </aside>
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <DollarSign className="h-3.5 w-3.5 text-zinc-500" />
+                    <span className="font-semibold text-zinc-200">{amount}</span>
+                    <span>outstanding</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <Mail className="h-3.5 w-3.5 text-zinc-500" />
+                    Emails sent from Duely on your behalf
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Interactive form + live preview */}
+            <AutomationSetupForm
+              customer={{
+                id: customer.id,
+                recipient_name: customer.recipient_name,
+                recipient_email: customer.recipient_email,
+                amount_owed: Number(customer.amount_owed),
+                currency: customer.currency,
+              }}
+              senderName={displayName}
+              error={error}
+            />
           </div>
         </Container>
       </main>

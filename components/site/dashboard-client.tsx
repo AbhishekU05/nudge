@@ -17,7 +17,6 @@ import {
   Plus,
   Zap,
   MessageSquare,
-  Link2,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -29,10 +28,6 @@ import { cn } from "@/lib/utils";
 import type { CustomerRecord, WorkflowStatus } from "@/lib/types";
 import { getRemainingBalance, getDaysOverdue, isEffectivelyPaid } from "@/lib/types";
 import Link from "next/link";
-import { createReminder } from "@/app/actions/reminders";
-import { CurrencySelect } from "@/components/site/currency-select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -283,7 +278,7 @@ function PipelineSection({
 }
 
 // ---------------------------------------------------------------------------
-// Quick add customer form (sidebar)
+// Quick add customer card (sidebar)
 // ---------------------------------------------------------------------------
 function QuickAddCard({ hasSubscription }: { hasSubscription: boolean }) {
   return (
@@ -295,71 +290,29 @@ function QuickAddCard({ hasSubscription }: { hasSubscription: boolean }) {
         </CardTitle>
         <CardDescription>Track a new outstanding balance.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
         {hasSubscription ? (
           <>
-            <form action={createReminder} className="space-y-3">
-              <input type="hidden" name="reminder_frequency_days" value="7" />
-              <div>
-                <Label htmlFor="qc_recipient_name" className="sr-only">
-                  Customer name
-                </Label>
-                <Input
-                  id="qc_recipient_name"
-                  name="recipient_name"
-                  placeholder="Customer name"
-                  maxLength={100}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="qc_recipient_email" className="sr-only">
-                  Customer email
-                </Label>
-                <Input
-                  id="qc_recipient_email"
-                  name="recipient_email"
-                  type="email"
-                  placeholder="customer@example.com"
-                  maxLength={320}
-                  required
-                />
-              </div>
-              <div className="flex gap-2">
-                <div className="w-[90px]">
-                  <Label htmlFor="qc_currency" className="sr-only">Currency</Label>
-                  <CurrencySelect id="qc_currency" name="currency" />
-                </div>
-                <Input
-                  id="qc_amount_owed"
-                  name="amount_owed"
-                  inputMode="decimal"
-                  placeholder="Amount owed"
-                  required
-                  className="flex-1"
-                />
-              </div>
-              <Button type="submit" className="w-full">
+            <p className="text-sm leading-6 text-zinc-500">
+              Enter their details, log payments, and set up automated reminders
+              whenever you&apos;re ready.
+            </p>
+            <Link href="/customers/new" className="block">
+              <Button className="w-full gap-2">
+                <Plus className="h-3.5 w-3.5" />
                 Add customer
               </Button>
-            </form>
-            <Link
-              href="/reminders/new"
-              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-zinc-400 hover:text-zinc-100"
-            >
-              Full form
-              <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           </>
         ) : (
-          <div className="space-y-4">
+          <>
             <p className="text-sm leading-6 text-zinc-500">
               Activate your plan to start tracking customers.
             </p>
-            <Link href="/settings/billing">
+            <Link href="/settings/billing" className="block">
               <Button className="w-full">Open billing</Button>
             </Link>
-          </div>
+          </>
         )}
       </CardContent>
     </Card>

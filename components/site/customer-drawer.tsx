@@ -404,6 +404,51 @@ function AutomationTab({
   isDevelopment: boolean;
 }) {
   const isActive = customer.active && !customer.unsubscribed;
+  // "Never configured" = no sends yet and currently inactive
+  const neverConfigured = !customer.active && !customer.last_sent_at;
+
+  if (customer.unsubscribed) {
+    return (
+      <div className="rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm text-zinc-400">
+        This customer opted out of email reminders and cannot receive automated
+        emails.
+      </div>
+    );
+  }
+
+  if (neverConfigured) {
+    return (
+      <div className="space-y-5">
+        <div className="rounded-xl border border-white/10 bg-white/[0.025] p-4 text-sm leading-6 text-zinc-400">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
+            <p>
+              Automated reminders are a{" "}
+              <span className="font-medium text-zinc-300">
+                backup escalation
+              </span>{" "}
+              — use them when manual follow-ups haven&apos;t worked. They email
+              the customer on a schedule until you mark them as paid or stop the
+              sequence.
+            </p>
+          </div>
+        </div>
+        <a
+          href={`/reminders/new?customer_id=${customer.id}`}
+          className="block"
+        >
+          <Button className="w-full gap-2">
+            <Zap className="h-3.5 w-3.5" />
+            Set up automation
+          </Button>
+        </a>
+        <p className="text-xs text-zinc-600">
+          Choose your email tone, add a payment link, and set the send
+          frequency — all on the next page.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -411,9 +456,11 @@ function AutomationTab({
         <div className="flex items-start gap-3">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
           <p>
-            Automated reminders are a <span className="text-zinc-300 font-medium">backup escalation</span> — use them
-            when manual follow-ups haven't worked. They email the customer on a
-            schedule until you mark them as paid or stop the sequence.
+            Automated reminders are a{" "}
+            <span className="font-medium text-zinc-300">backup escalation</span>{" "}
+            — use them when manual follow-ups haven&apos;t worked. They email
+            the customer on a schedule until you mark them as paid or stop the
+            sequence.
           </p>
         </div>
       </div>
@@ -422,39 +469,42 @@ function AutomationTab({
         <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3">
           <div>
             <p className="text-sm font-medium text-zinc-200">
-              {customer.unsubscribed
-                ? "Customer opted out"
-                : isActive
-                  ? "Sending reminders"
-                  : "Reminders paused"}
+              {isActive ? "Sending reminders" : "Reminders paused"}
             </p>
-            {!customer.unsubscribed && (
-              <p className="mt-0.5 text-xs text-zinc-600">
-                Every {customer.reminder_frequency_days} day
-                {customer.reminder_frequency_days === 1 ? "" : "s"}
-              </p>
-            )}
+            <p className="mt-0.5 text-xs text-zinc-600">
+              Every {customer.reminder_frequency_days} day
+              {customer.reminder_frequency_days === 1 ? "" : "s"}
+            </p>
           </div>
 
-          {!customer.unsubscribed &&
-            (isActive ? (
-              <form action={pauseReminder.bind(null, customer.id)}>
-                <Button variant="secondary" size="sm" type="submit">
-                  Pause
-                </Button>
-              </form>
-            ) : (
-              <form action={resumeReminder.bind(null, customer.id)}>
-                <Button variant="primary" size="sm" type="submit">
-                  Enable
-                </Button>
-              </form>
-            ))}
+          {isActive ? (
+            <form action={pauseReminder.bind(null, customer.id)}>
+              <Button variant="secondary" size="sm" type="submit">
+                Pause
+              </Button>
+            </form>
+          ) : (
+            <form action={resumeReminder.bind(null, customer.id)}>
+              <Button variant="primary" size="sm" type="submit">
+                Resume
+              </Button>
+            </form>
+          )}
         </div>
       </Section>
 
-      {isDevelopment && !customer.unsubscribed && (
-        <p className="text-xs text-zinc-600">Dev: use the test button on the dashboard card.</p>
+      <a
+        href={`/reminders/new?customer_id=${customer.id}`}
+        className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300"
+      >
+        <Zap className="h-3 w-3" />
+        Edit automation settings
+      </a>
+
+      {isDevelopment && (
+        <p className="text-xs text-zinc-600">
+          Dev: use the test button on the dashboard card.
+        </p>
       )}
     </div>
   );
