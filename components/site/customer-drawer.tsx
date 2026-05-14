@@ -32,8 +32,8 @@ import {
   recordPaymentPromise,
   saveInternalNotes,
   markFullyPaid,
-  FOLLOWUP_TEMPLATES,
 } from "@/app/actions/customers";
+import { FOLLOWUP_TEMPLATES } from "@/lib/followup-templates";
 import { pauseReminder, resumeReminder } from "@/app/actions/reminders";
 import { cn } from "@/lib/utils";
 import type { CustomerRecord, FollowUpTone } from "@/lib/types";

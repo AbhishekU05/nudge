@@ -19,7 +19,7 @@ import {
 } from "@/lib/reminder-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
-import type { WorkflowStatus, FollowUpTone, CustomerRecord } from "@/lib/types";
+import type { WorkflowStatus, CustomerRecord } from "@/lib/types";
 import { getRemainingBalance } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
@@ -389,26 +389,6 @@ export async function updateWorkflowStatus(formData: FormData) {
   redirectToDashboard({ success: "Status updated." });
 }
 
-// ---------------------------------------------------------------------------
-// Generate follow-up draft (template-based, tone-aware)
-// Returns the draft text — used by client components via a separate API route
-// since server actions can't return arbitrary data to client drawers easily.
-// The templates live here so they can be imported by the API route too.
-// ---------------------------------------------------------------------------
-
-export const FOLLOWUP_TEMPLATES: Record<
-  FollowUpTone,
-  (name: string, amount: string, daysOverdue: number | null) => string
-> = {
-  friendly: (name, amount, days) =>
-    `Hi ${name},\n\nI hope you're doing well! I just wanted to send a quick, friendly reminder that we have an outstanding balance of ${amount} on your account${days ? ` (${days} day${days === 1 ? "" : "s"} overdue)` : ""}.\n\nIf you've already arranged payment, please disregard this message. Otherwise, whenever you're ready — no rush!\n\nThanks so much,`,
-
-  professional: (name, amount, days) =>
-    `Dear ${name},\n\nI'm following up regarding an outstanding balance of ${amount} on your account${days ? `, which is currently ${days} day${days === 1 ? "" : "s"} past due` : ""}.\n\nPlease let me know if you have any questions, or if there's anything I can do to help facilitate payment.\n\nKind regards,`,
-
-  firm: (name, amount, days) =>
-    `Dear ${name},\n\nThis is a follow-up regarding an overdue balance of ${amount}${days ? ` — now ${days} day${days === 1 ? "" : "s"} past due` : ""}. Prompt payment is required to avoid further escalation.\n\nPlease arrange payment at your earliest convenience and confirm via reply.\n\nRegards,`,
-};
 
 // ---------------------------------------------------------------------------
 // Create a new customer record — no automation enabled yet.
