@@ -76,10 +76,10 @@ export default async function NewReminderPage({
             <section className="space-y-6">
               <div>
                 <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
-                  Create a reminder
+                  Add customer
                 </h1>
                 <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
-                  Add a few details. Duely will follow up until you get paid.
+                  Track a customer's outstanding balance. Log payments, record promises, and follow up — all from the dashboard.
                 </p>
               </div>
 
@@ -91,8 +91,8 @@ export default async function NewReminderPage({
                         Your trial has ended.
                       </p>
                       <p className="mt-1 text-sm leading-6 text-amber-100/70">
-                        Activate billing for {monthlyPrice.inline} to create or
-                        resume automated reminders.
+                        Activate billing for {monthlyPrice.inline} to track
+                        customers and send automated follow-ups.
                       </p>
                     </div>
                     <Link href="/settings/billing">
@@ -106,17 +106,17 @@ export default async function NewReminderPage({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-2xl">
                     <MailPlus className="h-5 w-5 text-primary" />
-                    Reminder details
+                    Customer details
                   </CardTitle>
                   <CardDescription>
-                    Keep it simple. The email stays professional and includes an
-                    unsubscribe link automatically.
+                    Enter the basics. You can log partial payments, record
+                    promises, and draft follow-ups from the dashboard.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form action={createReminder} className="grid gap-5 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="recipient_name">Client name</Label>
+                      <Label htmlFor="recipient_name">Customer name</Label>
                       <Input
                         id="recipient_name"
                         name="recipient_name"
@@ -128,7 +128,7 @@ export default async function NewReminderPage({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="recipient_email">Client email</Label>
+                      <Label htmlFor="recipient_email">Customer email</Label>
                       <Input
                         id="recipient_email"
                         name="recipient_email"
@@ -141,7 +141,7 @@ export default async function NewReminderPage({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="amount_owed">Amount owed</Label>
+                      <Label htmlFor="amount_owed">Total amount due</Label>
                       <div className="flex gap-2">
                         <div className="w-[100px]">
                           <CurrencySelect id="currency" name="currency" disabled={!hasSubscription} />
@@ -160,7 +160,7 @@ export default async function NewReminderPage({
 
                     <div className="space-y-2">
                       <Label htmlFor="reminder_frequency_days">
-                        Reminder frequency (days)
+                        Auto-reminder frequency (days)
                       </Label>
                       <Input
                         id="reminder_frequency_days"
@@ -220,7 +220,7 @@ export default async function NewReminderPage({
                         </Button>
                       </Link>
                       <Button type="submit" disabled={!hasSubscription} className="w-full sm:w-auto">
-                        Create a reminder
+                        Add customer
                       </Button>
                     </div>
                   </form>
@@ -233,10 +233,10 @@ export default async function NewReminderPage({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4 text-primary" />
-                    Email tone
+                    Automated follow-up
                   </CardTitle>
                   <CardDescription>
-                    The reminder reads exactly like a standard email.
+                    If you escalate to automation, this is the email your customer receives.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm leading-6 text-zinc-400">
@@ -267,11 +267,11 @@ export default async function NewReminderPage({
                     </div>
                     <div>
                       <p className="text-sm font-medium text-zinc-200">
-                        First send is scheduled automatically.
+                        Automation is optional.
                       </p>
                       <p className="mt-1 text-sm leading-6 text-zinc-500">
-                        Backend scheduling and rate limits are unchanged. This
-                        page only changes how the workflow feels.
+                        Use the dashboard to manually log payments and follow up first.
+                        Enable automated reminders later if you need to escalate.
                       </p>
                     </div>
                   </div>

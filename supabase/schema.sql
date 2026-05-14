@@ -170,3 +170,42 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure public.handle_new_user();
+
+-- ============================================================
+-- PHASE 1 MIGRATION: Workflow-first collections columns
+-- Apply these in Supabase SQL editor. All are additive (no data loss).
+-- ============================================================
+
+-- Payment tracking: due date + partial payment support
+alter table public.reminders
+  add column if not exists due_date date;
+
+alter table public.reminders
+  add column if not exists amount_paid numeric(12,2) not null default 0
+  check (amount_paid >= 0);
+
+-- Promise tracking: lightweight commitment log on the record
+alter table public.reminders
+  add column if not exists promised_date date;
+
+alter table public.reminders
+  add column if not exists promise_notes text;
+
+-- Workflow pipeline status
+-- Values: 'outstanding' | 'promised' | 'partial' | 'paid' | 'overdue' | 'written_off'
+alter table public.reminders
+  add column if not exists workflow_status text not null default 'outstanding';
+
+-- Relationship tag for quick segmentation
+-- Values: 'new_client' | 'returning' | 'at_risk' | 'vip'
+alter table public.reminders
+  add column if not exists relationship_tag text;
+
+-- Internal notes (not sent to customer)
+alter table public.reminders
+  add column if not exists internal_notes text;
+
+-- Index on workflow_status for pipeline queries
+create index if not exists reminders_workflow_status_idx
+  on public.reminders(user_id, workflow_status)
+  where unsubscribed = false;
