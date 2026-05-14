@@ -66,7 +66,11 @@ export function getRemainingBalance(customer: CustomerRecord): number {
 
 export function getDaysOverdue(customer: CustomerRecord): number | null {
   if (!customer.due_date) return null;
-  const due = new Date(customer.due_date);
+  // Parse as local date to avoid UTC-midnight vs local-midnight offset bug.
+  // new Date("2026-05-13") creates UTC midnight; in IST (+5:30) that's 5:30am,
+  // so "yesterday" appears < 24h ago and diff rounds to 0.
+  const [year, month, day] = customer.due_date.split("-").map(Number);
+  const due = new Date(year, month - 1, day); // local midnight
   const now = new Date();
   now.setHours(0, 0, 0, 0);
   const diff = Math.floor((now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));

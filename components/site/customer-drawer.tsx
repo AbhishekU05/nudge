@@ -21,6 +21,7 @@ import {
   Link2,
   AlertCircle,
   Undo2,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ import {
   markFullyPaid,
   undoMarkAsPaid,
   correctAmountPaid,
+  deleteCustomer,
 } from "@/app/actions/customers";
 import { FOLLOWUP_TEMPLATES } from "@/lib/followup-templates";
 import { pauseReminder, resumeReminder } from "@/app/actions/reminders";
@@ -348,17 +350,23 @@ function PromiseTab({ customer }: { customer: CustomerRecord }) {
 // Follow-up drafting tab (template-based, no AI)
 // ---------------------------------------------------------------------------
 function FollowUpTab({ customer }: { customer: CustomerRecord }) {
-  const [tone, setTone] = useState<FollowUpTone>("professional");
-  const [copied, setCopied] = useState(false);
-
   const daysOverdue = getDaysOverdue(customer);
   const remaining = getRemainingBalance(customer);
   const amountStr = formatCurrency(remaining, customer.currency);
 
-  const draft = FOLLOWUP_TEMPLATES[tone](customer.recipient_name, amountStr, daysOverdue);
+  const [tone, setTone] = useState<FollowUpTone>("professional");
+  const [editedDraft, setEditedDraft] = useState(
+    () => FOLLOWUP_TEMPLATES["professional"](customer.recipient_name, amountStr, daysOverdue),
+  );
+  const [copied, setCopied] = useState(false);
+
+  function handleToneChange(newTone: FollowUpTone) {
+    setTone(newTone);
+    setEditedDraft(FOLLOWUP_TEMPLATES[newTone](customer.recipient_name, amountStr, daysOverdue));
+  }
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(draft);
+    await navigator.clipboard.writeText(editedDraft);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -377,7 +385,7 @@ function FollowUpTab({ customer }: { customer: CustomerRecord }) {
             <button
               key={t.value}
               type="button"
-              onClick={() => setTone(t.value)}
+              onClick={() => handleToneChange(t.value)}
               className={cn(
                 "rounded-xl border px-3 py-2.5 text-left transition-colors",
                 tone === t.value
@@ -393,26 +401,26 @@ function FollowUpTab({ customer }: { customer: CustomerRecord }) {
       </Section>
 
       <Section title="Draft message">
-        <div className="relative rounded-xl border border-white/10 bg-background/70">
-          <pre className="whitespace-pre-wrap p-4 text-sm leading-6 text-zinc-300 font-sans">
-            {draft}
-          </pre>
+        <div className="relative">
+          <Textarea
+            value={editedDraft}
+            onChange={(e) => setEditedDraft(e.target.value)}
+            rows={9}
+            className="resize-none pr-20 font-mono text-xs leading-6 text-zinc-300"
+          />
           <button
             type="button"
             onClick={handleCopy}
-            className="absolute right-3 top-3 flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-zinc-100"
+            className="absolute right-3 top-3 flex items-center gap-1.5 rounded-lg border border-white/10 bg-background/90 px-2.5 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-zinc-100"
           >
             {copied ? (
-              <>
-                <Check className="h-3 w-3 text-emerald-400" /> Copied
-              </>
+              <><Check className="h-3 w-3 text-emerald-400" /> Copied</>
             ) : (
-              <>
-                <Copy className="h-3 w-3" /> Copy
-              </>
+              <><Copy className="h-3 w-3" /> Copy</>
             )}
           </button>
         </div>
+        <p className="text-xs text-zinc-600">Edit freely — switching tone resets to template.</p>
       </Section>
 
       {customer.payment_link && (
@@ -701,14 +709,35 @@ export function CustomerDrawer({
         </div>
 
         {/* Tab content */}
-        <div className="flex-1 overflow-y-auto p-5">
-          {tab === "payment" && <PaymentTab customer={customer} />}
-          {tab === "promise" && <PromiseTab customer={customer} />}
-          {tab === "followup" && <FollowUpTab customer={customer} />}
-          {tab === "notes" && <NotesTab customer={customer} />}
-          {tab === "automation" && (
-            <AutomationTab customer={customer} isDevelopment={isDevelopment} />
-          )}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-5">
+            {tab === "payment" && <PaymentTab customer={customer} />}
+            {tab === "promise" && <PromiseTab customer={customer} />}
+            {tab === "followup" && <FollowUpTab customer={customer} />}
+            {tab === "notes" && <NotesTab customer={customer} />}
+            {tab === "automation" && (
+              <AutomationTab customer={customer} isDevelopment={isDevelopment} />
+            )}
+          </div>
+
+          {/* Danger zone — always visible at bottom */}
+          <div className="border-t border-white/[0.04] px-5 py-4">
+            <form action={deleteCustomer}>
+              <input type="hidden" name="customer_id" value={customer.id} />
+              <button
+                type="submit"
+                className="flex items-center gap-2 text-xs text-zinc-700 transition-colors hover:text-red-400"
+                onClick={(e) => {
+                  if (!window.confirm(`Delete ${customer.recipient_name}? This cannot be undone.`)) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete customer
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </>

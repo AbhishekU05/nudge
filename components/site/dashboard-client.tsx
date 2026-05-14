@@ -512,7 +512,7 @@ export function DashboardClient({
                 record promises, and draft follow-ups from one place.
               </p>
               <div className="mt-6">
-                <Link href={hasSubscription ? "/reminders/new" : "/settings/billing"}>
+                <Link href={hasSubscription ? "/customers/new" : "/settings/billing"}>
                   <Button>{hasSubscription ? "Add your first customer" : "Activate billing"}</Button>
                 </Link>
               </div>

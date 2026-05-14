@@ -554,16 +554,6 @@ export async function createCustomer(formData: FormData) {
     redirect("/settings/billing?error=subscription_required");
   }
 
-  const { count } = await supabase
-    .from("reminders")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("unsubscribed", false);
-
-  if ((count ?? 0) >= MAX_CUSTOMERS) {
-    redirectToNewCustomer(`You've reached the limit of ${MAX_CUSTOMERS} customers.`);
-  }
-
   const recipientName = getString(formData, "recipient_name");
   if (!recipientName) redirectToNewCustomer("Customer name is required.");
 
@@ -576,15 +566,20 @@ export async function createCustomer(formData: FormData) {
   if ((recipientName as string).length > 100) redirectToNewCustomer("Name is too long (max 100 chars).");
   if (recipientEmail.length > 320) redirectToNewCustomer("Email is too long.");
 
+  // Block duplicate emails regardless of unsubscribed status
   const { data: existing } = await supabase
     .from("reminders")
-    .select("id")
+    .select("id, unsubscribed")
     .eq("user_id", user.id)
     .eq("recipient_email", recipientEmail)
-    .eq("unsubscribed", false)
-    .maybeSingle();
+    .maybeSingle<{ id: string; unsubscribed: boolean }>();
 
-  if (existing) redirectToNewCustomer("A customer with this email already exists.");
+  if (existing) {
+    const msg = existing.unsubscribed
+      ? "This customer previously unsubscribed. Their record still exists in your pipeline."
+      : "A customer with this email already exists.";
+    redirectToNewCustomer(msg);
+  }
 
   const amountInput = getString(formData, "amount_owed");
   if (!amountInput) redirectToNewCustomer("Amount owed is required.");
@@ -685,6 +680,21 @@ export async function enableAutomation(formData: FormData) {
     );
   }
 
+  // Cap active automated reminders at MAX_ACTIVE_REMINDERS
+  const MAX_ACTIVE_REMINDERS = 20;
+  const { count: activeCount } = await supabase
+    .from("reminders")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("active", true);
+
+  if ((activeCount ?? 0) >= MAX_ACTIVE_REMINDERS) {
+    redirectToNewReminder(
+      customerId as string,
+      `You have ${MAX_ACTIVE_REMINDERS} active automated reminders. Pause some before enabling more.`,
+    );
+  }
+
   const nextSendAt = (customer!.last_sent_at
     ? computeRecurringReminderSendAt(frequency as number)
     : computeFirstReminderSendAt());
@@ -722,3 +732,48 @@ export async function enableAutomation(formData: FormData) {
   redirectToDashboard({ success: "Automation enabled. Reminders will start sending shortly." });
 }
 
+// ---------------------------------------------------------------------------
+// Delete a customer — hard deletes the row from the database.
+// ---------------------------------------------------------------------------
+export async function deleteCustomer(formData: FormData) {
+  const user = await requireUser();
+
+  try {
+    await enforceRateLimit(user.id, "reminder_toggle");
+  } catch (error) {
+    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
+  }
+
+  const customerId = formData.get("customer_id");
+  if (typeof customerId !== "string" || !customerId) {
+    redirectToDashboard({ error: "Invalid customer." });
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from("reminders")
+    .delete()
+    .eq("id", customerId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    logger.error({
+      message: "Database error deleting customer",
+      context: "deleteCustomer",
+      user_id: user.id,
+      error: error.message,
+    });
+    redirectToDashboard({ error: "Failed to delete customer." });
+  }
+
+  logger.action({
+    action_name: "delete_customer",
+    reminder_id: customerId as string,
+    user_id: user.id,
+    success: true,
+  });
+
+  revalidatePath("/dashboard");
+  redirectToDashboard({ success: "Customer deleted." });
+}

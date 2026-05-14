@@ -142,21 +142,13 @@ export async function createReminder(formData: FormData) {
   .from("reminders")
   .select("*", { count: "exact", head: true })
   .eq("user_id", user.id)
-  .eq("unsubscribed", false);
-
-    // TODO: check for reminder quota as well over here
-  if (
-    !hasActiveSubscription(
-      profile?.razorpay_subscription_status ?? null,
-      profile?.created_at,
-    )
-  ) {
-    redirect("/settings/billing?error=subscription_required");
-  }
+  .eq("active", true);
 
   if ((count ?? 0) >= MAX_REMINDERS) {
-      redirectToNewReminder(MAX_REMINDERS_MESSAGE);
-    }
+    redirectToNewReminder(
+      `You have reached the limit of ${MAX_REMINDERS} active automated reminders. Pause or remove existing ones first.`,
+    );
+  }
 
   const recipientName = getString(formData, "recipient_name");
   if (!recipientName) {
