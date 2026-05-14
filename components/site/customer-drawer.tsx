@@ -582,6 +582,21 @@ function AutomationTab({
             </form>
           )}
         </div>
+
+        <div className="mt-3 flex flex-col gap-2 rounded-xl border border-white/5 bg-black/20 p-3 text-xs text-zinc-400">
+          <div className="flex justify-between">
+            <span className="text-zinc-500">Next send:</span>
+            <span className="text-zinc-300">
+              {isActive ? new Date(customer.next_send_at).toLocaleString() : "Paused"}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-zinc-500">Last sent:</span>
+            <span className={customer.last_sent_at ? "text-zinc-300" : "text-zinc-500"}>
+              {customer.last_sent_at ? new Date(customer.last_sent_at).toLocaleString() : "Never"}
+            </span>
+          </div>
+        </div>
       </Section>
 
       <a
