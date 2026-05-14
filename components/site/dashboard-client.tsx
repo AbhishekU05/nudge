@@ -146,14 +146,28 @@ function CustomerCard({
                 <span className="truncate text-sm font-semibold text-zinc-100">
                   {customer.recipient_name}
                 </span>
-                <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
-                {daysOverdue && (
+                {customer.unsubscribed && (
+                  <Badge variant="muted">Opted out</Badge>
+                )}
+                {paid && (
+                  <Badge variant="success">Paid</Badge>
+                )}
+                {status === "partial" && !paid && (
+                  <Badge variant="default">Partial</Badge>
+                )}
+                {daysOverdue !== null && !paid && (
                   <Badge variant="danger">{daysOverdue}d overdue</Badge>
                 )}
-                {customer.promised_date && status === "promised" && (
+                {customer.promised_date && !paid && (
                   <Badge variant="default">
                     Promised {new Date(customer.promised_date).toLocaleDateString()}
                   </Badge>
+                )}
+                {status === "promised" && !customer.promised_date && !paid && (
+                  <Badge variant="default">Promised</Badge>
+                )}
+                {status === "written_off" && !paid && (
+                  <Badge variant="muted">Written off</Badge>
                 )}
               </div>
               <p className="mt-0.5 truncate text-xs text-zinc-600">
