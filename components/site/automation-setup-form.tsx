@@ -97,48 +97,53 @@ function EmailPreview({
   paymentLink: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#f8f8fc] text-[#1a1a1a] shadow-xl shadow-black/30">
-      {/* Email chrome */}
-      <div className="border-b border-black/[0.06] bg-white/80 px-5 py-3">
-        <p className="text-xs font-medium text-[#888]">Subject</p>
-        <p className="mt-0.5 text-sm font-semibold text-[#111]">
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 shadow-xl shadow-black/40">
+      {/* Email chrome bar */}
+      <div className="border-b border-white/[0.06] bg-white/[0.03] px-5 py-3">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+          Subject
+        </p>
+        <p className="mt-0.5 text-sm font-semibold text-zinc-200">
           Payment reminder
         </p>
       </div>
 
       {/* Body */}
       <div className="px-5 py-5 text-sm leading-6">
-        <p className="text-[#555]">Hi {recipientName || "there"},</p>
-        <p className="mt-3 text-[#333]">
+        <p className="text-zinc-400">
+          Hi {recipientName || "there"},
+        </p>
+        <p className="mt-3 text-zinc-300">
           This is a reminder that your balance to{" "}
-          <strong>{senderName}</strong> is currently outstanding.
+          <span className="font-semibold text-zinc-100">{senderName}</span> is
+          currently outstanding.
         </p>
 
         {/* Amount box */}
-        <div className="my-4 rounded-xl border border-[#e4e4f0] bg-[#f0f0f8] px-4 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-[#888]">
+        <div className="my-4 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
             Pending balance
           </p>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-[#111]">
+          <p className="mt-1 text-2xl font-bold tracking-tight text-zinc-50">
             {amount}
           </p>
         </div>
 
         {/* Note */}
         {note && (
-          <div className="my-4 border-l-2 border-indigo-400 pl-3">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-[#888]">
+          <div className="my-4 border-l-2 border-indigo-500/60 pl-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
               Note from {senderName}
             </p>
-            <p className="mt-1 text-sm text-[#444]">{note}</p>
+            <p className="mt-1 text-sm text-zinc-400">{note}</p>
           </div>
         )}
 
-        <p className="text-xs text-[#aaa]">
+        <p className="text-xs text-zinc-600">
           If you&apos;ve already paid, please ignore this message.
         </p>
 
-        {/* Buttons */}
+        {/* CTA buttons */}
         <div className="mt-4 flex flex-wrap gap-2">
           {paymentLink && (
             <div className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white">
@@ -146,12 +151,12 @@ function EmailPreview({
               Pay now
             </div>
           )}
-          <div className="inline-flex items-center gap-2 rounded-lg border border-[#ddd] bg-white px-3 py-2 text-xs font-semibold text-[#333]">
+          <div className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-zinc-300">
             I&apos;ve paid
           </div>
         </div>
 
-        <p className="mt-5 text-[11px] text-[#ccc]">
+        <p className="mt-5 text-[11px] text-zinc-700">
           This reminder was sent by Duely on behalf of {senderName}.
         </p>
       </div>
