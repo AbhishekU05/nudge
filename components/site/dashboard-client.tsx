@@ -442,21 +442,15 @@ export function DashboardClient({
     setActiveCustomer(customer);
   }
 
-  // Pipeline groupings
+  // Pipeline groupings — simplified: overdue / outstanding / paid / opted out
   const overdue = customers.filter(
-    (c) => c.workflow_status === "overdue" || getDaysOverdue(c) !== null && !isEffectivelyPaid(c),
+    (c) => getDaysOverdue(c) !== null && !isEffectivelyPaid(c) && !c.unsubscribed,
   );
   const outstanding = customers.filter(
-    (c) =>
-      (c.workflow_status === "outstanding" || c.workflow_status === "partial") &&
-      !isEffectivelyPaid(c) &&
-      getDaysOverdue(c) === null,
+    (c) => !isEffectivelyPaid(c) && getDaysOverdue(c) === null && !c.unsubscribed,
   );
-  const promised = customers.filter(
-    (c) => c.workflow_status === "promised" && !isEffectivelyPaid(c),
-  );
-  const paid = customers.filter(isEffectivelyPaid);
-  const writtenOff = customers.filter((c) => c.workflow_status === "written_off");
+  const paid = customers.filter((c) => isEffectivelyPaid(c) && !c.unsubscribed);
+  const optedOut = customers.filter((c) => c.unsubscribed);
 
   // Stats
   const totalOutstanding = customers
@@ -483,17 +477,17 @@ export function DashboardClient({
           accent="red"
         />
         <StatCard
-          icon={Clock}
-          label="Promised"
-          value={String(promised.length)}
-          sub={promised.length > 0 ? "Payment committed" : undefined}
-          accent="amber"
-        />
-        <StatCard
           icon={CheckCircle2}
           label="Paid"
           value={String(paid.length)}
           accent="emerald"
+        />
+        <StatCard
+          icon={Users}
+          label="Opted out"
+          value={String(optedOut.length)}
+          sub={optedOut.length > 0 ? "Unsubscribed" : undefined}
+          accent="amber"
         />
       </div>
 
@@ -530,20 +524,15 @@ export function DashboardClient({
                 onOpen={handleOpen}
               />
               <PipelineSection
-                title="Promised"
-                customers={promised}
-                onOpen={handleOpen}
-              />
-              <PipelineSection
                 title="Paid"
                 customers={paid}
                 onOpen={handleOpen}
                 defaultOpen={false}
               />
-              {writtenOff.length > 0 && (
+              {optedOut.length > 0 && (
                 <PipelineSection
-                  title="Written off"
-                  customers={writtenOff}
+                  title="Opted out"
+                  customers={optedOut}
                   onOpen={handleOpen}
                   defaultOpen={false}
                 />

@@ -37,6 +37,7 @@ import {
   undoMarkAsPaid,
   correctAmountPaid,
   deleteCustomer,
+  updateDueDate,
 } from "@/app/actions/customers";
 import { FOLLOWUP_TEMPLATES } from "@/lib/followup-templates";
 import { pauseReminder, resumeReminder } from "@/app/actions/reminders";
@@ -170,6 +171,25 @@ function PaymentTab({ customer }: { customer: CustomerRecord }) {
           {formatCurrency(Number(customer.amount_owed), customer.currency)}
         </p>
       </div>
+
+      {/* Edit due date */}
+      <Section title="Due date">
+        <form action={updateDueDate} className="flex items-center gap-2">
+          <input type="hidden" name="customer_id" value={customer.id} />
+          <Input
+            type="date"
+            name="due_date"
+            defaultValue={customer.due_date ?? undefined}
+            className="flex-1"
+          />
+          <Button type="submit" size="sm" variant="secondary">
+            Save
+          </Button>
+        </form>
+        <p className="mt-1.5 text-xs text-zinc-600">
+          Leave blank to clear the due date.
+        </p>
+      </Section>
 
       {isFullyPaid ? (
         <div className="space-y-3">
@@ -730,6 +750,8 @@ export function CustomerDrawer({
                 onClick={(e) => {
                   if (!window.confirm(`Delete ${customer.recipient_name}? This cannot be undone.`)) {
                     e.preventDefault();
+                  } else {
+                    onClose();
                   }
                 }}
               >

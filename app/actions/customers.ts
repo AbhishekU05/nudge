@@ -777,3 +777,58 @@ export async function deleteCustomer(formData: FormData) {
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Customer deleted." });
 }
+
+// ---------------------------------------------------------------------------
+// Update (or clear) the due date for a customer.
+// ---------------------------------------------------------------------------
+export async function updateDueDate(formData: FormData) {
+  const user = await requireUser();
+
+  try {
+    await enforceRateLimit(user.id, "reminder_toggle");
+  } catch (error) {
+    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
+  }
+
+  const customerId = formData.get("customer_id");
+  if (typeof customerId !== "string" || !customerId) {
+    redirectToDashboard({ error: "Invalid customer." });
+  }
+
+  // due_date is optional — empty string clears it
+  const rawDate = formData.get("due_date");
+  const dueDate =
+    typeof rawDate === "string" && rawDate.trim().length > 0
+      ? rawDate.trim()
+      : null;
+
+  const supabase = await createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from("reminders")
+    .update({ due_date: dueDate })
+    .eq("id", customerId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    logger.error({
+      message: "Database error updating due date",
+      context: "updateDueDate",
+      user_id: user.id,
+      error: error.message,
+    });
+    redirectToDashboard({ error: "An unexpected error occurred." });
+  }
+
+  logger.action({
+    action_name: "update_due_date",
+    reminder_id: customerId as string,
+    user_id: user.id,
+    success: true,
+  });
+
+  revalidatePath("/dashboard");
+  redirectToDashboard({
+    success: dueDate ? `Due date set to ${dueDate}.` : "Due date cleared.",
+  });
+}
