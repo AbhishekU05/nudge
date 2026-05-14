@@ -43,6 +43,9 @@ create table if not exists public.reminders (
   currency text not null default 'USD',
   custom_message text,
   payment_link text,
+  -- Set ONLY when the customer clicks "I've paid" in the reminder email.
+  -- Agent-marked payments (dashboard) do NOT set this field.
+  -- Use this as an unambiguous signal that the customer self-reported payment.
   client_paid_at timestamptz,
 
   reminder_frequency_days int not null check (reminder_frequency_days >= 1),

@@ -96,10 +96,11 @@ export async function recordPartialPayment(formData: FormData) {
     workflow_status: newStatus,
   };
 
-  // Auto-set client_paid_at when fully paid
+  // When fully paid via dashboard, set active=false to stop automation.
+  // NOTE: client_paid_at is intentionally NOT set here — it is reserved
+  // exclusively for customer self-reports via the "I've paid" email link.
   if (newStatus === "paid") {
-    updatePayload.client_paid_at = new Date().toISOString();
-    updatePayload.active = false; // stop automation when fully paid
+    updatePayload.active = false;
   }
 
   const { error } = await supabase
@@ -169,7 +170,8 @@ export async function markFullyPaid(formData: FormData) {
     .update({
       amount_paid: customer!.amount_owed,
       workflow_status: "paid",
-      client_paid_at: new Date().toISOString(),
+      // NOTE: client_paid_at is intentionally NOT set here — it is reserved
+      // exclusively for customer self-reports via the "I've paid" email link.
       active: false,
     })
     .eq("id", customerId)
@@ -329,7 +331,8 @@ export async function updateWorkflowStatus(formData: FormData) {
 
     if (customer) {
       updatePayload.amount_paid = customer.amount_owed;
-      updatePayload.client_paid_at = new Date().toISOString();
+      // NOTE: client_paid_at is intentionally NOT set here — it is reserved
+      // exclusively for customer self-reports via the "I've paid" email link.
       updatePayload.active = false;
     }
   }

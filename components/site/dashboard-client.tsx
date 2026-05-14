@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Plus,
   Zap,
+  MessageSquare,
   Link2,
 } from "lucide-react";
 
@@ -110,12 +111,14 @@ function StatCard({
 // ---------------------------------------------------------------------------
 // Customer card (pipeline row)
 // ---------------------------------------------------------------------------
+type Tab = "payment" | "promise" | "followup" | "notes" | "automation";
+
 function CustomerCard({
   customer,
   onOpen,
 }: {
   customer: CustomerRecord;
-  onOpen: (c: CustomerRecord) => void;
+  onOpen: (c: CustomerRecord, tab?: Tab) => void;
 }) {
   const remaining = getRemainingBalance(customer);
   const daysOverdue = getDaysOverdue(customer);
@@ -124,80 +127,107 @@ function CustomerCard({
   const paid = isEffectivelyPaid(customer);
 
   return (
-    <button
-      type="button"
-      onClick={() => onOpen(customer)}
+    <div
       className={cn(
-        "group w-full rounded-2xl border border-border bg-white/[0.025] p-4 text-left transition-colors hover:border-white/20 hover:bg-white/[0.04]",
+        "group w-full rounded-2xl border border-border bg-white/[0.025] transition-colors hover:border-white/20 hover:bg-white/[0.04]",
         paid && "opacity-60",
       )}
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          {/* Avatar */}
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-xs font-semibold text-zinc-300">
-            {getInitials(customer.recipient_name)}
+      {/* Main clickable area */}
+      <button
+        type="button"
+        onClick={() => onOpen(customer)}
+        className="w-full p-4 text-left"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            {/* Avatar */}
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-xs font-semibold text-zinc-300">
+              {getInitials(customer.recipient_name)}
+            </div>
+            {/* Info */}
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="truncate text-sm font-semibold text-zinc-100">
+                  {customer.recipient_name}
+                </span>
+                <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
+                {daysOverdue && (
+                  <Badge variant="danger">{daysOverdue}d overdue</Badge>
+                )}
+                {customer.promised_date && status === "promised" && (
+                  <Badge variant="default">
+                    Promised {new Date(customer.promised_date).toLocaleDateString()}
+                  </Badge>
+                )}
+              </div>
+              <p className="mt-0.5 truncate text-xs text-zinc-600">
+                {customer.recipient_email}
+              </p>
+            </div>
           </div>
-          {/* Info */}
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="truncate text-sm font-semibold text-zinc-100">
-                {customer.recipient_name}
-              </span>
-              <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
-              {daysOverdue && (
-                <Badge variant="danger">{daysOverdue}d overdue</Badge>
+
+          {/* Amount + chevron */}
+          <div className="flex shrink-0 items-center gap-3">
+            <div className="text-right">
+              <p className="text-sm font-semibold text-zinc-100">
+                {formatCurrency(remaining, customer.currency)}
+              </p>
+              {customer.amount_paid > 0 && (
+                <p className="mt-0.5 text-xs text-zinc-600">
+                  {formatCurrency(Number(customer.amount_paid), customer.currency)} paid
+                </p>
               )}
-              {customer.promised_date && status === "promised" && (
-                <Badge variant="default">
-                  Promised {new Date(customer.promised_date).toLocaleDateString()}
-                </Badge>
+              {customer.due_date && (
+                <p
+                  className={cn(
+                    "mt-0.5 text-xs",
+                    daysOverdue ? "text-red-400" : "text-zinc-600",
+                  )}
+                >
+                  Due {new Date(customer.due_date).toLocaleDateString()}
+                </p>
               )}
             </div>
-            <p className="mt-0.5 truncate text-xs text-zinc-600">
-              {customer.recipient_email}
-            </p>
+            <ChevronRight className="h-4 w-4 shrink-0 text-zinc-700 transition-colors group-hover:text-zinc-400" />
           </div>
         </div>
 
-        {/* Amount + chevron */}
-        <div className="flex shrink-0 items-center gap-3">
-          <div className="text-right">
-            <p className="text-sm font-semibold text-zinc-100">
-              {formatCurrency(remaining, customer.currency)}
-            </p>
-            {customer.amount_paid > 0 && (
-              <p className="mt-0.5 text-xs text-zinc-600">
-                {formatCurrency(Number(customer.amount_paid), customer.currency)} paid
-              </p>
-            )}
-            {customer.due_date && (
-              <p
-                className={cn(
-                  "mt-0.5 text-xs",
-                  daysOverdue ? "text-red-400" : "text-zinc-600",
-                )}
-              >
-                Due {new Date(customer.due_date).toLocaleDateString()}
-              </p>
-            )}
+        {/* Mini payment progress bar */}
+        {customer.amount_paid > 0 && !paid && (
+          <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-white/[0.06]">
+            <div
+              className="h-full rounded-full bg-emerald-500/70"
+              style={{
+                width: `${Math.min(100, (Number(customer.amount_paid) / Number(customer.amount_owed)) * 100)}%`,
+              }}
+            />
           </div>
-          <ChevronRight className="h-4 w-4 shrink-0 text-zinc-700 transition-colors group-hover:text-zinc-400" />
-        </div>
-      </div>
+        )}
+      </button>
 
-      {/* Mini payment progress bar */}
-      {customer.amount_paid > 0 && !paid && (
-        <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-white/[0.06]">
-          <div
-            className="h-full rounded-full bg-emerald-500/70"
-            style={{
-              width: `${Math.min(100, (Number(customer.amount_paid) / Number(customer.amount_owed)) * 100)}%`,
-            }}
-          />
+      {/* Quick action buttons */}
+      {!paid && (
+        <div className="flex items-center gap-1 border-t border-white/[0.04] px-4 py-2">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onOpen(customer, "followup"); }}
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-200"
+          >
+            <MessageSquare className="h-3 w-3" />
+            Follow up
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onOpen(customer, "automation"); }}
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-200"
+          >
+            <Zap className="h-3 w-3" />
+            Automate
+          </button>
         </div>
       )}
-    </button>
+    </div>
   );
 }
 
@@ -212,7 +242,7 @@ function PipelineSection({
 }: {
   title: string;
   customers: CustomerRecord[];
-  onOpen: (c: CustomerRecord) => void;
+  onOpen: (c: CustomerRecord, tab?: Tab) => void;
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -355,9 +385,17 @@ function ActivityFeed({ customers }: { customers: CustomerRecord[] }) {
       if (c.client_paid_at) {
         entries.push({
           id: `${c.id}-paid`,
-          label: "Fully paid",
+          label: "Paid — customer confirmed",
           sub: c.recipient_name,
           at: c.client_paid_at,
+          tone: "success",
+        });
+      } else if (c.workflow_status === "paid") {
+        entries.push({
+          id: `${c.id}-paid`,
+          label: "Marked as paid",
+          sub: c.recipient_name,
+          at: c.updated_at,
           tone: "success",
         });
       }
@@ -444,6 +482,12 @@ export function DashboardClient({
   isDevelopment: boolean;
 }) {
   const [activeCustomer, setActiveCustomer] = useState<CustomerRecord | null>(null);
+  const [initialTab, setInitialTab] = useState<Tab>("payment");
+
+  function handleOpen(customer: CustomerRecord, tab: Tab = "payment") {
+    setInitialTab(tab);
+    setActiveCustomer(customer);
+  }
 
   // Pipeline groupings
   const overdue = customers.filter(
@@ -525,29 +569,29 @@ export function DashboardClient({
               <PipelineSection
                 title="Overdue"
                 customers={overdue}
-                onOpen={setActiveCustomer}
+                onOpen={handleOpen}
               />
               <PipelineSection
                 title="Outstanding"
                 customers={outstanding}
-                onOpen={setActiveCustomer}
+                onOpen={handleOpen}
               />
               <PipelineSection
                 title="Promised"
                 customers={promised}
-                onOpen={setActiveCustomer}
+                onOpen={handleOpen}
               />
               <PipelineSection
                 title="Paid"
                 customers={paid}
-                onOpen={setActiveCustomer}
+                onOpen={handleOpen}
                 defaultOpen={false}
               />
               {writtenOff.length > 0 && (
                 <PipelineSection
                   title="Written off"
                   customers={writtenOff}
-                  onOpen={setActiveCustomer}
+                  onOpen={handleOpen}
                   defaultOpen={false}
                 />
               )}
@@ -566,6 +610,7 @@ export function DashboardClient({
       {activeCustomer && (
         <CustomerDrawer
           customer={activeCustomer}
+          initialTab={initialTab}
           isDevelopment={isDevelopment}
           onClose={() => setActiveCustomer(null)}
         />

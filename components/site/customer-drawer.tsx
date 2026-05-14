@@ -201,9 +201,28 @@ function PaymentTab({ customer }: { customer: CustomerRecord }) {
           </Section>
         </>
       ) : (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
-          Fully paid
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <span>
+              Fully paid
+              {customer.client_paid_at ? (
+                <span className="ml-2 text-xs text-emerald-400/70">— customer confirmed</span>
+              ) : (
+                <span className="ml-2 text-xs text-emerald-400/70">— marked by you</span>
+              )}
+            </span>
+          </div>
+          {customer.client_paid_at && (
+            <p className="text-xs text-zinc-600">
+              Customer confirmed on{" "}
+              {new Date(customer.client_paid_at).toLocaleDateString(undefined, {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -446,14 +465,16 @@ function AutomationTab({
 // ---------------------------------------------------------------------------
 export function CustomerDrawer({
   customer,
+  initialTab = "payment",
   isDevelopment,
   onClose,
 }: {
   customer: CustomerRecord | null;
+  initialTab?: Tab;
   isDevelopment: boolean;
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<Tab>("payment");
+  const [tab, setTab] = useState<Tab>(initialTab);
 
   if (!customer) return null;
 

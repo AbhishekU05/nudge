@@ -40,9 +40,25 @@ export default async function PaymentReceivedPage({
   }
 
   const supabase = createSupabaseAdminClient();
+
+  // Fetch the amount_owed so we can set amount_paid correctly
+  const { data: reminder } = await supabase
+    .from("reminders")
+    .select("amount_owed")
+    .eq("unsubscribe_token", token)
+    .maybeSingle<{ amount_owed: number }>();
+
+  // customer_paid_at is set ONLY via this path (customer self-reporting).
+  // Agent-marked payments (from the dashboard) never touch this field,
+  // so it remains an unambiguous signal of who confirmed the payment.
   const { data, error } = await supabase
     .from("reminders")
-    .update({ client_paid_at: new Date().toISOString() })
+    .update({
+      client_paid_at: new Date().toISOString(),
+      workflow_status: "paid",
+      amount_paid: reminder?.amount_owed ?? 0,
+      active: false,
+    })
     .eq("unsubscribe_token", token)
     .select("id")
     .maybeSingle<{ id: string }>();
