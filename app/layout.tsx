@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Duely — automated payment reminders",
-  description: "Send polite payment reminders automatically and get paid without awkward follow-ups.",
+  title: "Duely — Collect what you're owed, keep the relationship",
+  description: "Track what clients owe, follow up without the awkwardness, and get paid. Collections management built for freelancers and agencies.",
   icons: {
     icon: "/logo.svg",
   },
