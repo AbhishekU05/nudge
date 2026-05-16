@@ -23,136 +23,136 @@ import {
 const painPoints = [
   {
     icon: Inbox,
-    title: "Chasing invoices through email threads",
+    title: "Lorem ipsum dolor sit amet",
     description:
-      "Scrolling back through hundreds of emails just to remember whether a client paid, promised to pay, or went silent. It costs you time you don't have.",
+      "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa quae ab illo inventore.",
   },
   {
     icon: BarChart3,
-    title: "No clear picture of what's outstanding",
+    title: "Nemo enim ipsam voluptatem",
     description:
-      "Partial payments, disputed amounts, and verbal promises scattered across sticky notes and spreadsheets. You never know the real number until it's too late.",
+      "Quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt neque porro quisquam.",
   },
   {
     icon: AlertTriangle,
-    title: "Following up feels uncomfortable",
+    title: "Quis autem vel eum iure",
     description:
-      "Drafting every reminder from scratch is exhausting, and getting the tone wrong risks damaging a client relationship you've spent months building.",
+      "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur aut incidunt.",
   },
 ];
 
 const features = [
   {
     icon: CreditCard,
-    title: "Payment Tracking",
+    title: "Lorem Ipsum Dolor",
     description:
-      "Get a single source of truth for every client balance. Duely tracks the original invoice amount, records payments as they come in, and keeps a running outstanding total at all times. No spreadsheet juggling, no mental arithmetic.",
+      "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi.",
   },
   {
     icon: SplitSquareVertical,
-    title: "Partial Payments",
+    title: "Consectetur Adipiscing",
     description:
-      "Real-world clients rarely pay in one shot. Log installments against an invoice and watch the remaining balance update automatically. Every partial payment is timestamped and attributed so your records are always audit-ready.",
+      "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.",
   },
   {
     icon: BookMarked,
-    title: "Promise Logging",
+    title: "Eiusmod Tempor Incididunt",
     description:
-      "When a client says \u201cI\u2019ll send it by Friday,\u201d hold them to it. Log the promise with a date and note, and Duely surfaces it when that deadline approaches. Never again lose track of a verbal commitment.",
+      "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi.",
   },
   {
     icon: MessageSquare,
-    title: "Follow-up Drafting with Tone Selection",
+    title: "Labore Et Dolore Magna",
     description:
-      "Select from friendly, professional, or firm tones and Duely drafts a contextual follow-up message in seconds. The draft references the actual amount owed and days overdue, so every message feels personal—not templated.",
+      "Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur.",
   },
   {
     icon: Bell,
-    title: "Automated Reminders",
+    title: "Ullamco Laboris Nisi",
     description:
-      "For clients who need a persistent nudge, enable automated email sequences that run quietly in the background. Sequences pause the moment a payment is recorded and resume only if the balance remains open, keeping your outreach relevant and non-intrusive.",
+      "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae itaque earum.",
   },
 ];
 
 const steps = [
   {
     number: "01",
-    title: "Add your clients and invoices",
+    title: "Lorem ipsum dolor sit amet",
     description:
-      "Import or manually enter client details and outstanding invoice amounts. Duely stores everything in one organised profile per client, accessible in seconds.",
+      "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis.",
   },
   {
     number: "02",
-    title: "Track payments and log conversations",
+    title: "Nemo enim ipsam voluptatem",
     description:
-      "Record partial payments as they arrive, log promises with due dates, and attach internal notes after every call or email exchange. Your operational memory, always up to date.",
+      "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet consectetur adipisci velit sed quia non numquam eius modi tempora incidunt ut labore et dolore.",
   },
   {
     number: "03",
-    title: "Follow up and collect",
+    title: "Quis autem vel eum iure",
     description:
-      "Draft tone-matched follow-up messages with one click or activate automated reminder sequences. Duely escalates only when necessary and stops the moment you're paid.",
+      "Ut enim ad minima veniam quis nostrum exercitationem ullam corporis suscipit laboriosam nisi ut aliquid ex ea commodi consequatur aut incidunt magnam aliquam.",
   },
 ];
 
 const comparisonRows = [
-  { label: "Partial payment tracking", duely: true, manual: false, generic: false },
-  { label: "Promise logging with due dates", duely: true, manual: false, generic: false },
-  { label: "Tone-based follow-up drafting", duely: true, manual: false, generic: false },
-  { label: "Automated reminder sequences", duely: true, manual: false, generic: true },
-  { label: "Client notes per profile", duely: true, manual: true, generic: false },
-  { label: "Outstanding balance view", duely: true, manual: true, generic: true },
-  { label: "Collections pipeline view", duely: true, manual: false, generic: false },
+  { label: "Lorem ipsum dolor sit", duely: true, manual: false, generic: false },
+  { label: "Consectetur adipiscing elit", duely: true, manual: false, generic: false },
+  { label: "Sed do eiusmod tempor", duely: true, manual: false, generic: false },
+  { label: "Incididunt ut labore dolore", duely: true, manual: false, generic: true },
+  { label: "Ut enim ad minim veniam", duely: true, manual: true, generic: false },
+  { label: "Quis nostrud exercitation", duely: true, manual: true, generic: true },
+  { label: "Ullamco laboris nisi aliquip", duely: true, manual: false, generic: false },
 ];
 
 const testimonials = [
   {
-    initials: "RK",
-    name: "Rohit Kapoor",
-    role: "Founder, Kapoor Creative Studio",
+    initials: "LI",
+    name: "Lorem Ipsum",
+    role: "Dolor Sit, Amet Consectetur",
     quote:
-      "Before Duely I was copy-pasting reminder emails from a notes app. Now I draft a perfect follow-up in under a minute and actually know who owes me what. It's saved us at least ₹2L in delayed collections this quarter alone.",
+      "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis.",
   },
   {
-    initials: "PM",
-    name: "Priya Mehta",
-    role: "Operations Lead, Pixel Forge Agency",
+    initials: "NE",
+    name: "Nemo Enim",
+    role: "Voluptatem, Quia Voluptas Agency",
     quote:
-      "The promise logging feature is the one thing I didn't know I needed. Clients would commit to a date verbally and we'd forget. Now it's logged, dated, and visible. Our follow-up rate went from ad-hoc to consistent overnight.",
+      "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi occaecati.",
   },
   {
-    initials: "AS",
-    name: "Arjun Singh",
-    role: "Independent Consultant",
+    initials: "QA",
+    name: "Quis Autem",
+    role: "Vel Eum Iure Consultant",
     quote:
-      "I run solo and chasing payments was eating into billable hours. Automated reminders handle the quiet follow-ups while I focus on client work. When things escalate, I switch to manual and the tone selector makes those conversations much less awkward.",
+      "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae itaque earum.",
   },
 ];
 
 const faqs = [
   {
-    q: "What exactly does Duely do?",
-    a: "Duely is a lightweight collections workflow tool for service businesses. It helps you track outstanding invoices, log partial payments, record client promises, draft follow-up messages, and automate reminder sequences—all in one place without the bloat of full accounting software.",
+    q: "Lorem ipsum dolor sit amet consectetur?",
+    a: "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
   },
   {
-    q: "Is Duely a replacement for my accounting software?",
-    a: "No. Duely is purpose-built for the post-invoice collections workflow, not bookkeeping. Think of it as the operational layer that sits on top of your invoicing tool—focused entirely on helping you collect what's already owed.",
+    q: "Nemo enim ipsam voluptatem quia?",
+    a: "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet consectetur adipisci velit sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
   },
   {
-    q: "How does the tone selection for follow-ups work?",
-    a: "When drafting a follow-up, you choose from three tones: Friendly (warm, non-confrontational), Professional (neutral, business-standard), or Firm (direct, emphasises urgency). Duely generates a message that references the client's actual balance and days overdue, so every draft is contextual rather than generic.",
+    q: "Ut enim ad minima veniam quis nostrum?",
+    a: "Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur vel illum qui dolorem eum fugiat quo voluptas nulla pariatur omnis dolor repellendus.",
   },
   {
-    q: "Can I stop automated reminders for a specific client?",
-    a: "Yes. Automated sequences can be paused, stopped, or adjusted per client at any time. They also pause automatically the moment you log a payment against that client's balance, so you never accidentally send a reminder to someone who just paid.",
+    q: "Temporibus autem quibusdam et aut officiis?",
+    a: "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.",
   },
   {
-    q: "How does partial payment tracking work?",
-    a: "When a client makes an installment, you record the payment amount and date in Duely. The platform subtracts it from the outstanding balance and keeps a full payment history. You can see exactly how much has been received, when, and what still remains.",
+    q: "Itaque earum rerum hic tenetur a sapiente?",
+    a: "Nam libero tempore cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus omnis voluptas assumenda est omnis dolor repellendus temporibus.",
   },
   {
-    q: "Is my data secure?",
-    a: "All data is stored in a Supabase-backed database with row-level security enabled, meaning each user can only access their own records. Communication with the server is encrypted in transit over HTTPS, and no payment card data is stored on Duely's infrastructure.",
+    q: "Similique sunt in culpa qui officia deserunt?",
+    a: "Et harum quidem rerum facilis est et expedita distinctio nam libero tempore cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.",
   },
 ];
 
@@ -213,10 +213,10 @@ export default function ArticleTemplatePage() {
         <section className="border-b border-white/5 bg-gradient-to-b from-indigo-950/20 to-transparent">
           <Container className="py-20 sm:py-28 text-center">
             <Badge variant="default" className="mb-6 bg-white/[0.03] text-zinc-400 border-white/10">
-              Collections &amp; Payment Workflow
+              Lorem Ipsum Dolor Sit
             </Badge>
             <h1 className="mx-auto max-w-3xl text-pretty text-5xl font-semibold tracking-[-0.045em] text-zinc-50 sm:text-6xl">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit
+              Lorem ipsum dolor sit amet consectetur adipiscing elit sed
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-8 text-zinc-400">
               Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
@@ -229,7 +229,7 @@ export default function ArticleTemplatePage() {
                   size="lg"
                   className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/40 transition-all"
                 >
-                  Start collecting payments
+                  Lorem ipsum dolor
                 </Button>
               </Link>
             </div>
@@ -241,10 +241,10 @@ export default function ArticleTemplatePage() {
           <Container className="py-20 sm:py-28">
             <div className="mx-auto max-w-2xl text-center mb-14">
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500 mb-4">
-                The problem
+                Lorem ipsum
               </p>
               <h2 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
-                Collections management is broken for small teams
+                Nemo enim ipsam voluptatem quia voluptas
               </h2>
               <p className="mt-4 text-zinc-400 leading-7">
                 Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia
@@ -274,14 +274,14 @@ export default function ArticleTemplatePage() {
           <Container className="py-20 sm:py-28">
             <div className="mx-auto max-w-2xl text-center mb-14">
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500 mb-4">
-                Features
+                Lorem ipsum
               </p>
               <h2 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
-                Everything you need. Nothing you don't.
+                At vero eos et accusamus iusto odio dignissimos
               </h2>
               <p className="mt-4 text-zinc-400 leading-7">
-                At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis
-                praesentium voluptatum deleniti atque corrupti quos dolores.
+                Blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas
+                molestias excepturi sint occaecati cupiditate non provident.
               </p>
             </div>
 
@@ -309,14 +309,14 @@ export default function ArticleTemplatePage() {
           <Container className="py-20 sm:py-28">
             <div className="mx-auto max-w-2xl text-center mb-16">
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500 mb-4">
-                How it works
+                Lorem ipsum
               </p>
               <h2 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
-                Up and running in three steps
+                Temporibus autem quibusdam et aut officiis
               </h2>
               <p className="mt-4 text-zinc-400 leading-7">
-                Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe
-                eveniet ut et voluptates repudiandae sint et molestiae non recusandae.
+                Debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint
+                et molestiae non recusandae itaque earum rerum hic tenetur a sapiente.
               </p>
             </div>
 
@@ -344,13 +344,13 @@ export default function ArticleTemplatePage() {
           <Container className="py-20 sm:py-28">
             <div className="mx-auto max-w-2xl text-center mb-14">
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500 mb-4">
-                Comparison
+                Lorem ipsum
               </p>
               <h2 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
-                Duely vs. the alternatives
+                Lorem ipsum dolor sit amet consectetur
               </h2>
               <p className="mt-4 text-zinc-400 leading-7">
-                Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus
+                Itaque earum rerum hic tenetur a sapiente delectus ut aut reiciendis voluptatibus
                 maiores alias consequatur aut perferendis doloribus asperiores repellat.
               </p>
             </div>
@@ -359,10 +359,10 @@ export default function ArticleTemplatePage() {
               <table className="w-full min-w-[540px] text-sm">
                 <thead>
                   <tr className="border-b border-white/[0.07] bg-white/[0.03]">
-                    <th className="py-4 pl-6 pr-4 text-left font-medium text-zinc-400">Feature</th>
-                    <th className="py-4 px-4 text-center font-semibold text-indigo-300">Duely</th>
-                    <th className="py-4 px-4 text-center font-medium text-zinc-400">Manual tracking</th>
-                    <th className="py-4 px-4 text-center font-medium text-zinc-400">Generic tools</th>
+                    <th className="py-4 pl-6 pr-4 text-left font-medium text-zinc-400">Lorem ipsum</th>
+                    <th className="py-4 px-4 text-center font-semibold text-indigo-300">Dolor sit</th>
+                    <th className="py-4 px-4 text-center font-medium text-zinc-400">Amet consectetur</th>
+                    <th className="py-4 px-4 text-center font-medium text-zinc-400">Adipiscing elit</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -402,10 +402,10 @@ export default function ArticleTemplatePage() {
           <Container className="py-20 sm:py-28">
             <div className="mx-auto max-w-2xl text-center mb-14">
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500 mb-4">
-                Testimonials
+                Lorem ipsum
               </p>
               <h2 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
-                Trusted by teams collecting every day
+                Neque porro quisquam est qui dolorem ipsum
               </h2>
             </div>
 
@@ -436,10 +436,10 @@ export default function ArticleTemplatePage() {
           <Container className="py-20 sm:py-28">
             <div className="mx-auto max-w-2xl text-center mb-14">
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500 mb-4">
-                FAQ
+                Lorem ipsum
               </p>
               <h2 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
-                Common questions
+                Sed ut perspiciatis unde omnis iste natus
               </h2>
             </div>
 
@@ -462,11 +462,11 @@ export default function ArticleTemplatePage() {
           <Container className="py-20 sm:py-28">
             <div className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-gradient-to-b from-indigo-950/30 to-transparent px-8 py-16 text-center sm:px-14 sm:py-20">
               <h2 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
-                Ready to stop chasing and start collecting?
+                Lorem ipsum dolor sit amet consectetur adipiscing
               </h2>
               <p className="mx-auto mt-5 max-w-lg text-base leading-7 text-zinc-400">
-                Excepteur sint occaecat cupidatat non proident. Sunt in culpa qui officia deserunt
-                mollit anim id est laborum. Join hundreds of service businesses already using Duely.
+                Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt
+                mollit anim id est laborum nemo enim ipsam voluptatem quia voluptas sit.
               </p>
               <div className="mt-10">
                 <Link href="/signup">
@@ -474,7 +474,7 @@ export default function ArticleTemplatePage() {
                     size="lg"
                     className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/40 transition-all"
                   >
-                    Create your free account
+                    Lorem ipsum dolor
                   </Button>
                 </Link>
               </div>
