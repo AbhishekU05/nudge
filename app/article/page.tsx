@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/site/container";
+import { HeroEmailCapture } from "@/components/site/hero-email-capture";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -223,15 +224,8 @@ export default function ArticleTemplatePage() {
               ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
               cillum dolore eu fugiat nulla pariatur.
             </p>
-            <div className="mt-10 flex items-center justify-center">
-              <Link href="/signup">
-                <Button
-                  size="lg"
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/40 transition-all"
-                >
-                  Lorem ipsum dolor
-                </Button>
-              </Link>
+            <div className="mt-10 max-w-lg mx-auto w-full">
+              <HeroEmailCapture />
             </div>
           </Container>
         </section>

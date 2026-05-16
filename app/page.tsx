@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { AuthErrorRedirect } from "@/components/site/auth-error-redirect";
 import { Container } from "@/components/site/container";
+import { HeroEmailCapture } from "@/components/site/hero-email-capture";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -86,7 +87,8 @@ export default async function Home({
               <p className="mt-6 max-w-2xl text-pretty text-lg leading-8 text-zinc-400">
                 A lightweight collections workflow for service businesses. Track unpaid work, log partial payments, and follow up professionally without the mental overhead.
               </p>
-              <div className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-sm text-zinc-500">
+              <HeroEmailCapture />
+              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-1.5 text-xs text-zinc-600">
                 <span>No accounting bloat</span>
                 <span>Organize follow-ups</span>
                 <span>Manage promises</span>
