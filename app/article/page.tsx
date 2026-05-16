@@ -110,7 +110,7 @@ export default function ArticleTemplatePage() {
         <Container className="py-12 pb-24">
           <div className="flex flex-col items-center justify-center border-t border-white/5 pt-12">
             <Link href="/signup">
-              <Button variant="outline" className="text-zinc-400 hover:text-zinc-100">
+              <Button variant="secondary">
                 Start tracking payments
               </Button>
             </Link>
