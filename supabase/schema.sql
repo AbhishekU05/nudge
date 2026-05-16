@@ -24,7 +24,9 @@ create table if not exists public.profiles (
   razorpay_customer_id text,
   razorpay_subscription_id text,
   razorpay_subscription_status text,
-  razorpay_renews_at timestamptz
+  razorpay_renews_at timestamptz,
+
+  referral_source text
 );
 
 drop trigger if exists profiles_set_updated_at on public.profiles;
@@ -162,8 +164,11 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (user_id)
-  values (new.id)
+  insert into public.profiles (user_id, referral_source)
+  values (
+    new.id,
+    new.raw_user_meta_data->>'referral_source'
+  )
   on conflict (user_id) do nothing;
   return new;
 end;

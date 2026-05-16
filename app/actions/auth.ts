@@ -3,6 +3,7 @@
  */
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getEmailLinkErrorMessage } from "@/lib/auth-errors";
@@ -90,6 +91,9 @@ export async function signup(formData: FormData) {
     );
   }
 
+  const cookieStore = await cookies();
+  const referralSource = cookieStore.get("nudge_referral")?.value;
+
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -98,6 +102,7 @@ export async function signup(formData: FormData) {
       emailRedirectTo: getAuthCallbackUrl(nextPath),
       data: {
         full_name: fullName,
+        referral_source: referralSource || null,
       },
     },
   });

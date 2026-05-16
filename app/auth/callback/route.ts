@@ -1,10 +1,12 @@
 /*
  * Supabase auth requests and validation
  */
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { getEmailLinkErrorMessage } from "@/lib/auth-errors";
 import { buildPathWithQuery, getSafeNextPath } from "@/lib/paths";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // decide where to send user if auth fails
@@ -44,12 +46,24 @@ export async function GET(request: Request) {
   }
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
     return NextResponse.redirect(
       new URL(getAuthErrorRedirectPath(error.message, nextPath), url.origin),
     );
+  }
+
+  const cookieStore = await cookies();
+  const referralSource = cookieStore.get("nudge_referral")?.value;
+
+  if (referralSource && data.user) {
+    const adminSupabase = createSupabaseAdminClient();
+    await adminSupabase
+      .from("profiles")
+      .update({ referral_source: referralSource })
+      .eq("user_id", data.user.id)
+      .is("referral_source", null);
   }
 
   return NextResponse.redirect(new URL(nextPath, url.origin));
