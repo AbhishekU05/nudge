@@ -108,18 +108,12 @@ export default function ArticleTemplatePage() {
 
         {/* CTA section */}
         <Container className="py-12 pb-24">
-          <div className="rounded-3xl border border-white/10 bg-white/[0.02] px-6 py-16 text-center sm:px-12 sm:py-20 lg:px-16">
-            <h2 className="mx-auto max-w-2xl text-pretty text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
-              Ready to organize your receivables?
-            </h2>
-            <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-zinc-400">
-              Bring operational clarity to your post-invoice workflow. Stop chasing clients out of your inbox and start collecting payments professionally.
-            </p>
-            <div className="mt-10 flex items-center justify-center gap-4">
-              <Link href="/signup">
-                <Button size="lg">Start tracking payments</Button>
-              </Link>
-            </div>
+          <div className="flex flex-col items-center justify-center border-t border-white/5 pt-12">
+            <Link href="/signup">
+              <Button variant="outline" className="text-zinc-400 hover:text-zinc-100">
+                Start tracking payments
+              </Button>
+            </Link>
           </div>
         </Container>
       </main>
