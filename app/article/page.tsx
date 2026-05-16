@@ -36,7 +36,7 @@ export default function ArticleTemplatePage() {
         <Container className="max-w-3xl py-16 sm:py-24">
           {/* Article Header */}
           <div className="mb-12">
-            <Badge variant="secondary" className="mb-6 bg-white/[0.03] text-zinc-400 border-white/10">
+            <Badge variant="default" className="mb-6 bg-white/[0.03] text-zinc-400 border-white/10">
               Design Template
             </Badge>
             <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl mb-6">
@@ -77,7 +77,7 @@ export default function ArticleTemplatePage() {
 
             <div className="my-10 border-l-2 border-zinc-700 pl-6 italic">
               <p className="text-xl text-zinc-300">
-                "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+                &quot;Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.&quot;
               </p>
             </div>
 
