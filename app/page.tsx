@@ -87,7 +87,7 @@ export default async function Home({
 
       <main className="flex-1">
         {/* HERO SECTION */}
-        <section className="relative overflow-hidden pt-20 pb-24 sm:pt-32 sm:pb-32 lg:pb-40">
+        <section className="relative pt-12 pb-20 sm:pt-16 sm:pb-32 lg:pb-40">
           {/* Subtle background glow */}
           <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_-20%,rgba(79,70,229,0.15),transparent_60%),radial-gradient(ellipse_at_80%_40%,rgba(168,85,247,0.08),transparent_50%)]" />
           
@@ -99,7 +99,7 @@ export default async function Home({
                   The receivables workspace
                 </Badge>
                 <h1 className="mt-8 text-pretty text-5xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-6xl lg:text-[4.5rem] lg:leading-[1.05]">
-                  Collect what you&apos;re owed. <span className="text-zinc-400">Skip the awkwardness.</span>
+                  Collect what you&apos;re owed, <span className="text-zinc-400">keep the relationship.</span>
                 </h1>
                 <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-zinc-400">
                   Duely gives freelancers and service teams a focused workspace
@@ -121,45 +121,47 @@ export default async function Home({
                 </div>
               </FadeIn>
 
-              <Reveal delay={0.2} className="relative z-10 lg:ml-auto w-full max-w-[600px] lg:max-w-none">
+              <Reveal delay={0.2} className="relative z-10 lg:ml-auto w-full max-w-[800px] lg:max-w-none">
                 {/* Floating decorative elements with z-index fixes */}
-                <div className="absolute -left-6 top-8 z-20 hidden animate-in fade-in slide-in-from-bottom-4 duration-1000 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3.5 text-sm font-medium text-emerald-200 shadow-2xl shadow-emerald-950/40 backdrop-blur-xl lg:block">
+                <div className="absolute -left-8 top-12 z-30 hidden animate-in fade-in slide-in-from-bottom-4 duration-1000 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3.5 text-sm font-medium text-emerald-200 shadow-2xl shadow-emerald-950/40 backdrop-blur-xl lg:block">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                     $1,280 collected today
                   </div>
                 </div>
+
+                <div className="absolute -right-6 top-24 z-30 hidden animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-150 rounded-2xl border border-white/10 bg-black/80 px-4 py-3 shadow-2xl shadow-black/40 backdrop-blur-xl lg:block">
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
+                        Active Pipeline
+                      </p>
+                      <p className="mt-0.5 text-sm font-medium text-zinc-200">
+                        14 clients
+                      </p>
+                    </div>
+                    <Badge variant="warning" className="border-amber-500/30 bg-amber-500/10 text-amber-300">
+                      3 need attention
+                    </Badge>
+                  </div>
+                </div>
                 
-                <Card className="relative overflow-hidden border-white/10 bg-zinc-900/50 p-2 shadow-2xl shadow-black/60 backdrop-blur-sm">
+                <Card className="relative z-20 overflow-hidden border-white/10 bg-zinc-900/50 p-2 shadow-2xl shadow-black/60 backdrop-blur-sm max-w-full">
                   <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 to-purple-500/5 opacity-50" />
                   <CardContent className="relative p-0 rounded-xl overflow-hidden border border-white/5 bg-zinc-950">
-                    {/* Top overlay badge */}
-                    <div className="absolute inset-x-4 top-4 z-20 flex items-center justify-between rounded-xl border border-white/10 bg-black/60 px-4 py-3 backdrop-blur-md">
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
-                          Active Pipeline
-                        </p>
-                        <p className="mt-0.5 text-sm font-medium text-zinc-200">
-                          14 clients
-                        </p>
-                      </div>
-                      <Badge variant="warning" className="border-amber-500/30 bg-amber-500/10 text-amber-300">
-                        3 need attention
-                      </Badge>
-                    </div>
                     <Image
                       src="/dashboard-preview.png"
                       width={1200}
                       height={720}
                       alt="Duely collections dashboard overview"
                       sizes="(max-width: 1024px) 100vw, 800px"
-                      className="h-auto w-full object-cover opacity-90 transition-transform duration-700 hover:scale-[1.02]"
+                      className="h-auto w-full max-w-full object-cover opacity-90 transition-transform duration-700 hover:scale-[1.02]"
                       priority
                     />
                   </CardContent>
                 </Card>
 
-                <div className="absolute -bottom-5 right-4 z-20 hidden w-64 rounded-2xl border border-white/10 bg-zinc-900/90 p-4 shadow-2xl shadow-black/60 backdrop-blur-xl sm:block animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+                <div className="absolute -right-6 -bottom-6 z-30 hidden w-64 rounded-2xl border border-white/10 bg-zinc-900/90 p-4 shadow-2xl shadow-black/60 backdrop-blur-xl sm:block animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
                   <div className="flex items-center gap-3.5">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-500/20 text-indigo-300">
                       <MessageSquare className="h-4 w-4" />
@@ -181,11 +183,16 @@ export default async function Home({
 
         {/* WORKFLOW OVERVIEW */}
         <section className="relative z-20 border-y border-white/5 bg-zinc-950/50 backdrop-blur-sm">
-          <Container className="py-14">
+          <Container className="py-10">
             <FadeIn>
-              <h3 className="mb-8 text-center text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                The Post-Invoice Pipeline
-              </h3>
+              <div className="mb-8 text-center">
+                <h2 className="text-xl font-medium tracking-tight text-zinc-100 sm:text-2xl">
+                  Every client moves through a clear workflow
+                </h2>
+                <p className="mt-3 text-sm text-zinc-400">
+                  Track the exact status of your receivables from overdue to paid.
+                </p>
+              </div>
               <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4 md:gap-6 text-sm font-medium">
                 <div className="flex w-full sm:w-auto items-center justify-center gap-2.5 rounded-xl border border-red-500/20 bg-red-500/10 px-5 py-3 text-red-300 shadow-sm transition-colors hover:bg-red-500/15">
                   <AlertTriangle className="h-4 w-4" /> Overdue
@@ -317,7 +324,7 @@ export default async function Home({
 
           {/* Section 4: Automate as backup */}
           <Container>
-            <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+            <div className="grid gap-12 lg:grid-cols-[1fr_0.8fr] lg:items-center">
               <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 mb-6">
                   <Zap className="h-6 w-6 text-emerald-300" />
@@ -329,8 +336,8 @@ export default async function Home({
                   For clients who need a persistent push, set up an automated email sequence. It runs quietly in the background as a supporting workflow and stops instantly when you record a payment.
                 </p>
               </FadeIn>
-              <SlideIn right delay={0.2}>
-                <div className="relative">
+              <SlideIn right delay={0.2} className="flex justify-center">
+                <div className="relative w-full max-w-[22rem]">
                   <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.06),transparent_50%)]" />
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-2 shadow-xl shadow-black/20">
                     <CardContent className="p-0 rounded-xl border border-white/5 bg-zinc-950 overflow-hidden relative group">
@@ -339,7 +346,7 @@ export default async function Home({
                         width={720}
                         height={540}
                         alt="Dark-mode email preview showing a Duely payment reminder"
-                        sizes="(max-width: 1024px) 100vw, 600px"
+                        sizes="(max-width: 1024px) 100vw, 400px"
                         className="h-auto w-full object-cover"
                       />
                     </CardContent>
@@ -352,42 +359,37 @@ export default async function Home({
         </section>
 
         {/* REDESIGNED CTA SECTION */}
-        <section className="relative py-24 sm:py-32 overflow-hidden mt-12 mb-20">
+        <section className="relative py-24 sm:py-32 overflow-hidden border-t border-white/5 bg-zinc-950">
+          {/* Decorative background elements inside CTA */}
+          <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+            <div className="absolute left-1/2 top-0 -ml-[40rem] h-[40rem] w-[80rem] rounded-full bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.15),transparent_60%)]" />
+            <div className="absolute bottom-0 right-0 -mr-40 -mb-40 h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(ellipse_at_bottom_right,rgba(168,85,247,0.15),transparent_50%)]" />
+            {/* Grid pattern overlay */}
+            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.03] mix-blend-overlay" />
+          </div>
+
           <Container>
             <SlideUp>
-              <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-zinc-900/40 px-6 py-20 text-center shadow-2xl backdrop-blur-md sm:px-12 sm:py-24 lg:px-20">
-                {/* Decorative background elements inside CTA */}
-                <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-[2.5rem]">
-                  <div className="absolute left-1/2 top-0 -ml-[40rem] h-[40rem] w-[80rem] rounded-full bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.15),transparent_60%)]" />
-                  <div className="absolute bottom-0 right-0 -mr-40 -mb-40 h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(ellipse_at_bottom_right,rgba(168,85,247,0.15),transparent_50%)]" />
-                  {/* Grid pattern overlay */}
-                  <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.03] mix-blend-overlay" />
+              <div className="relative z-10 mx-auto max-w-2xl text-center">
+                <h2 className="text-pretty text-4xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-5xl">
+                  Ready to organize your receivables?
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Bring operational clarity to your post-invoice workflow. Stop chasing clients out of your inbox and start collecting payments professionally.
+                </p>
+                
+                <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                  <Link href="/signup">
+                    <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
+                      Start collecting payments
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
-
-                <div className="relative z-10 mx-auto max-w-2xl">
-                  <Badge variant="default" className="mb-8 border-indigo-500/30 bg-indigo-500/10 text-indigo-300">
-                    Get started today
-                  </Badge>
-                  <h2 className="text-pretty text-4xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-5xl">
-                    Ready to organize your receivables?
-                  </h2>
-                  <p className="mt-6 text-lg leading-relaxed text-zinc-400">
-                    Bring operational clarity to your post-invoice workflow. Stop chasing clients out of your inbox and start collecting payments professionally.
-                  </p>
-                  
-                  <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                    <Link href="/signup">
-                      <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
-                        Set up your workspace
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
-                  
-                  <p className="mt-8 text-sm text-zinc-500">
-                    No credit card required. Free for up to 5 active clients.
-                  </p>
-                </div>
+                
+                <p className="mt-8 text-sm text-zinc-500">
+                  14-day free trial. No credit card required.
+                </p>
               </div>
             </SlideUp>
           </Container>
