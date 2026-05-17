@@ -7,7 +7,7 @@
  */
 
 import { useState } from "react";
-import { Zap, Link2, Clock, Leaf, FileText, AlertOctagon } from "lucide-react";
+import { Zap, Link2, Clock, Leaf, FileText, AlertOctagon, Pencil } from "lucide-react";
 
 import { enableAutomation } from "@/app/actions/customers";
 import { Button } from "@/components/ui/button";
@@ -209,12 +209,13 @@ export function AutomationSetupForm({
                   type="button"
                   onClick={() => handleToneSelect(t)}
                   className={cn(
-                    "flex flex-col items-start gap-2 rounded-xl border p-3.5 text-left transition-all",
+                    "relative flex flex-col items-start gap-2 rounded-xl border p-3.5 text-left transition-all",
                     active
                       ? cfg.activeClass
                       : "border-white/10 bg-white/[0.025] hover:border-white/20 hover:bg-white/[0.04]",
                   )}
                 >
+                  <Pencil className="absolute right-3 top-3 h-3 w-3 text-zinc-600" />
                   <Icon
                     className={cn(
                       "h-4 w-4",
@@ -242,7 +243,8 @@ export function AutomationSetupForm({
 
         {/* Note (editable, pre-filled from tone) */}
         <div className="space-y-2">
-          <Label htmlFor="custom_message">
+          <Label htmlFor="custom_message" className="flex items-center gap-1.5">
+            <Pencil className="h-3.5 w-3.5 text-indigo-300" />
             Note in email{" "}
             <span className="text-zinc-600">(optional — edit freely)</span>
           </Label>
