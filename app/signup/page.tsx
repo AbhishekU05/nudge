@@ -24,34 +24,34 @@ export default async function SignupPage({
 
   return (
     <AuthShell
-      title="Create your account"
-      description="Start with a clean receivables workflow, then add automation only where it helps."
+      title="Join Duely."
+      description="Let's set up your workspace so you can start tracking and collecting without the awkwardness."
     >
       <form action={signup} className="space-y-4">
         <input type="hidden" name="next" value={nextPath} />
         <div className="space-y-2">
-          <Label htmlFor="full_name">Full Name</Label>
+          <Label htmlFor="full_name">What should we call you?</Label>
           <Input
             id="full_name"
             name="full_name"
             type="text"
-            placeholder="Jane Doe"
+            placeholder="e.g., Alex Rivera"
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Where should we send notifications?</Label>
           <Input
             id="email"
             name="email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="e.g., alex@agency.com"
             defaultValue={initialEmail}
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Choose a secure password</Label>
           <Input
             id="password"
             name="password"

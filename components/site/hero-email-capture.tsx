@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { captureLead } from "@/app/actions/leads";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight } from "lucide-react";
@@ -22,7 +24,8 @@ export function HeroEmailCapture() {
       return;
     }
 
-    startTransition(() => {
+    startTransition(async () => {
+      await captureLead(trimmedEmail);
       const params = new URLSearchParams({ email: trimmedEmail });
       router.push(`/signup?${params.toString()}`);
     });

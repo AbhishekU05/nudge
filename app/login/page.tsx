@@ -28,24 +28,24 @@ export default async function LoginPage({
   // TODO: fix the wordings
   return (
     <AuthShell
-      title="Welcome back"
-      description="Get back to your collections pipeline and payment history."
+      title="Welcome back."
+      description="Let's get you back to your workspace."
     >
       <form action={login} className="space-y-4">
         <input type="hidden" name="next" value={nextPath} />
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Your email</Label>
           <Input
             id="email"
             name="email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="e.g., alex@agency.com"
             required
           />
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Your password</Label>
             <Link
               href="/forgot-password"
               className="text-xs font-medium text-zinc-500 underline underline-offset-4 hover:text-zinc-200"
@@ -69,7 +69,7 @@ export default async function LoginPage({
           </p>
         ) : null}
         <Button type="submit" className="w-full">
-          Log in
+          Sign in
         </Button>
       </form>
 
