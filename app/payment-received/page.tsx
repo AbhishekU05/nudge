@@ -41,12 +41,17 @@ export default async function PaymentReceivedPage({
 
   const supabase = createSupabaseAdminClient();
 
-  // Fetch the amount_owed so we can set amount_paid correctly
+  // Fetch the balance so we can set amount_paid and log the customer signal.
   const { data: reminder } = await supabase
     .from("reminders")
-    .select("amount_owed")
+    .select("amount_owed, amount_paid, currency, user_id")
     .eq("unsubscribe_token", token)
-    .maybeSingle<{ amount_owed: number }>();
+    .maybeSingle<{
+      amount_owed: number;
+      amount_paid: number;
+      currency: string;
+      user_id: string;
+    }>();
 
   // customer_paid_at is set ONLY via this path (customer self-reporting).
   // Agent-marked payments (from the dashboard) never touch this field,
@@ -64,6 +69,23 @@ export default async function PaymentReceivedPage({
     .maybeSingle<{ id: string }>();
 
   const succeeded = Boolean(data) && !error;
+
+  if (succeeded && reminder && data) {
+    const remaining = Math.max(
+      0,
+      Number(reminder.amount_owed) - Number(reminder.amount_paid),
+    );
+
+    if (remaining > 0) {
+      await supabase.from("payment_logs").insert({
+        reminder_id: data.id,
+        user_id: reminder.user_id,
+        amount: remaining,
+        currency: reminder.currency,
+        source: "customer",
+      });
+    }
+  }
 
   return (
     <div className="flex flex-1 items-center">

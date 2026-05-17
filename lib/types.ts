@@ -13,6 +13,18 @@ export type RelationshipTag = "new_client" | "returning" | "at_risk" | "vip";
 // Tone options for follow-up message drafting
 export type FollowUpTone = "friendly" | "professional" | "firm";
 
+export type PaymentLogSource = "user" | "customer" | "adjustment";
+
+export type PaymentLog = {
+  id: string;
+  reminder_id: string;
+  user_id: string;
+  amount: number;
+  currency: string;
+  source: PaymentLogSource;
+  created_at: string;
+};
+
 // Core database row type — extended with workflow-first columns
 export type ReminderRow = {
   id: string;
@@ -54,6 +66,8 @@ export type ReminderRow = {
 
   created_at: string;
   updated_at: string;
+
+  payment_history: PaymentLog[];
 };
 
 // Semantic alias — the UI uses this name when thinking customer-first
@@ -80,4 +94,3 @@ export function getDaysOverdue(customer: CustomerRecord): number | null {
 export function isEffectivelyPaid(customer: CustomerRecord): boolean {
   return customer.workflow_status === "paid" || customer.client_paid_at !== null;
 }
-

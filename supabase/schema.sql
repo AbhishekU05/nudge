@@ -92,10 +92,29 @@ create table if not exists public.usage_events (
 create index if not exists usage_events_user_type_created_idx
   on public.usage_events(user_id, event_type, created_at desc);
 
+-- Payment history for customer balances
+create table if not exists public.payment_logs (
+  id uuid primary key default gen_random_uuid(),
+  reminder_id uuid not null references public.reminders(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  amount numeric(12,2) not null check (amount > 0),
+  currency text not null default 'USD',
+  source text not null default 'user'
+    check (source in ('user', 'customer', 'adjustment')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists payment_logs_reminder_created_idx
+  on public.payment_logs(reminder_id, created_at desc);
+
+create index if not exists payment_logs_user_created_idx
+  on public.payment_logs(user_id, created_at desc);
+
 -- Row Level Security
 alter table public.profiles enable row level security;
 alter table public.reminders enable row level security;
 alter table public.usage_events enable row level security;
+alter table public.payment_logs enable row level security;
 
 -- Profiles policies
 drop policy if exists "profiles_select_own" on public.profiles;
@@ -153,6 +172,19 @@ using (auth.uid() = user_id);
 drop policy if exists "usage_events_insert_own" on public.usage_events;
 create policy "usage_events_insert_own"
 on public.usage_events
+for insert
+with check (auth.uid() = user_id);
+
+-- Payment log policies (owner-only)
+drop policy if exists "payment_logs_select_own" on public.payment_logs;
+create policy "payment_logs_select_own"
+on public.payment_logs
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "payment_logs_insert_own" on public.payment_logs;
+create policy "payment_logs_insert_own"
+on public.payment_logs
 for insert
 with check (auth.uid() = user_id);
 

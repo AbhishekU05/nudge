@@ -23,8 +23,10 @@ import { requireUser } from "@/lib/auth";
 import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/payments";
 import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { CustomerRecord } from "@/lib/types";
+import type { CustomerRecord, PaymentLog } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+type CustomerRow = Omit<CustomerRecord, "payment_history">;
 
 // ──────────────────────────────────────────────────────────
 // Helpers
@@ -97,12 +99,22 @@ export default async function DashboardPage({
 
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: customers }, { data: profile }] = await Promise.all([
+  const [
+    { data: customers },
+    { data: paymentLogs },
+    { data: profile },
+  ] = await Promise.all([
     supabase
       .from("reminders")
       .select("*")
       .order("created_at", { ascending: false })
-      .returns<CustomerRecord[]>(),
+      .returns<CustomerRow[]>(),
+    supabase
+      .from("payment_logs")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .returns<PaymentLog[]>(),
     supabase
       .from("profiles")
       .select("razorpay_subscription_status, razorpay_renews_at, created_at")
@@ -114,7 +126,17 @@ export default async function DashboardPage({
       }>(),
   ]);
 
-  const allCustomers = customers ?? [];
+  const logsByCustomer = new Map<string, PaymentLog[]>();
+  for (const log of paymentLogs ?? []) {
+    const existing = logsByCustomer.get(log.reminder_id) ?? [];
+    existing.push(log);
+    logsByCustomer.set(log.reminder_id, existing);
+  }
+
+  const allCustomers = (customers ?? []).map((customer) => ({
+    ...customer,
+    payment_history: logsByCustomer.get(customer.id) ?? [],
+  }));
 
   const subscriptionStatus = profile?.razorpay_subscription_status ?? "none";
   const hasSubscription = hasActiveSubscription(subscriptionStatus, profile?.created_at);

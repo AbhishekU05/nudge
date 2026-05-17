@@ -19,8 +19,7 @@ import {
 } from "@/lib/reminder-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
-import type { WorkflowStatus, CustomerRecord } from "@/lib/types";
-import { getRemainingBalance } from "@/lib/types";
+import type { WorkflowStatus, CustomerRecord, PaymentLogSource } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -78,6 +77,42 @@ function normalizePaymentLink(link: string): string | null {
   }
 }
 
+async function insertPaymentLog({
+  supabase,
+  customerId,
+  userId,
+  amount,
+  currency,
+  source,
+}: {
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  customerId: string;
+  userId: string;
+  amount: number;
+  currency: string;
+  source: PaymentLogSource;
+}) {
+  const { error } = await supabase.from("payment_logs").insert({
+    reminder_id: customerId,
+    user_id: userId,
+    amount,
+    currency,
+    source,
+  });
+
+  if (error) {
+    logger.error({
+      message: "Database error inserting payment log",
+      context: "insertPaymentLog",
+      user_id: userId,
+      error: error.message,
+    });
+    return false;
+  }
+
+  return true;
+}
+
 // ---------------------------------------------------------------------------
 // Record a partial payment
 // Increments amount_paid, recalculates workflow_status automatically.
@@ -111,19 +146,23 @@ export async function recordPartialPayment(formData: FormData) {
   // Fetch the current record to compute new totals
   const { data: customer, error: fetchError } = await supabase
     .from("reminders")
-    .select("amount_owed, amount_paid")
+    .select("amount_owed, amount_paid, currency")
     .eq("id", customerId)
     .eq("user_id", user.id)
-    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "amount_paid">>();
+    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "amount_paid" | "currency">>();
 
   if (fetchError || !customer) {
     redirectToDashboard({ error: "Customer not found." });
   }
 
-  const newAmountPaid = Math.min(
-    Number(customer!.amount_owed),
-    Number(customer!.amount_paid) + amount!,
-  );
+  const remainingBefore = Number(customer!.amount_owed) - Number(customer!.amount_paid);
+  if (amount! > remainingBefore) {
+    redirectToDashboard({
+      error: `Payment cannot exceed the remaining balance of ${remainingBefore.toFixed(2)}.`,
+    });
+  }
+
+  const newAmountPaid = Number(customer!.amount_paid) + amount!;
 
   const remaining = Number(customer!.amount_owed) - newAmountPaid;
   const newStatus: WorkflowStatus =
@@ -155,6 +194,21 @@ export async function recordPartialPayment(formData: FormData) {
       error: error.message,
     });
     redirectToDashboard({ error: "An unexpected error occurred." });
+  }
+
+  const logInserted = await insertPaymentLog({
+    supabase,
+    customerId: customerId as string,
+    userId: user.id,
+    amount: amount!,
+    currency: customer!.currency,
+    source: "user",
+  });
+
+  if (!logInserted) {
+    redirectToDashboard({
+      error: "Payment was recorded, but the payment history entry could not be saved.",
+    });
   }
 
   logger.action({
@@ -194,14 +248,19 @@ export async function markFullyPaid(formData: FormData) {
 
   const { data: customer, error: fetchError } = await supabase
     .from("reminders")
-    .select("amount_owed")
+    .select("amount_owed, amount_paid, currency")
     .eq("id", customerId)
     .eq("user_id", user.id)
-    .maybeSingle<Pick<CustomerRecord, "amount_owed">>();
+    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "amount_paid" | "currency">>();
 
   if (fetchError || !customer) {
     redirectToDashboard({ error: "Customer not found." });
   }
+
+  const remainingBefore = Math.max(
+    0,
+    Number(customer!.amount_owed) - Number(customer!.amount_paid),
+  );
 
   const { error } = await supabase
     .from("reminders")
@@ -223,6 +282,23 @@ export async function markFullyPaid(formData: FormData) {
       error: error.message,
     });
     redirectToDashboard({ error: "An unexpected error occurred." });
+  }
+
+  if (remainingBefore > 0) {
+    const logInserted = await insertPaymentLog({
+      supabase,
+      customerId: customerId as string,
+      userId: user.id,
+      amount: remainingBefore,
+      currency: customer!.currency,
+      source: "user",
+    });
+
+    if (!logInserted) {
+      redirectToDashboard({
+        error: "Customer was marked paid, but the payment history entry could not be saved.",
+      });
+    }
   }
 
   logger.action({
@@ -318,10 +394,10 @@ export async function correctAmountPaid(formData: FormData) {
 
   const { data: customer, error: fetchError } = await supabase
     .from("reminders")
-    .select("amount_owed")
+    .select("amount_owed, currency")
     .eq("id", customerId)
     .eq("user_id", user.id)
-    .maybeSingle<Pick<CustomerRecord, "amount_owed">>();
+    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "currency">>();
 
   if (fetchError || !customer) {
     redirectToDashboard({ error: "Customer not found." });
@@ -357,6 +433,23 @@ export async function correctAmountPaid(formData: FormData) {
       error: error.message,
     });
     redirectToDashboard({ error: "An unexpected error occurred." });
+  }
+
+  if (paid > 0) {
+    const logInserted = await insertPaymentLog({
+      supabase,
+      customerId: customerId as string,
+      userId: user.id,
+      amount: paid,
+      currency: customer!.currency,
+      source: "adjustment",
+    });
+
+    if (!logInserted) {
+      redirectToDashboard({
+        error: "Amount was corrected, but the payment history entry could not be saved.",
+      });
+    }
   }
 
   logger.action({

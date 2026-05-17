@@ -150,7 +150,9 @@ function CustomerCard({
                   <Badge variant="muted">Opted out</Badge>
                 )}
                 {paid && (
-                  <Badge variant="success">Paid</Badge>
+                  <Badge variant={customer.client_paid_at ? "success" : "default"}>
+                    {customer.client_paid_at ? "Customer marked paid" : "You marked paid"}
+                  </Badge>
                 )}
                 {status === "partial" && !paid && (
                   <Badge variant="default">Partial</Badge>

@@ -15,13 +15,13 @@ import {
   MessageSquare,
   FileText,
   Zap,
-  ChevronDown,
   Copy,
   Check,
   Link2,
   AlertCircle,
   Undo2,
   Trash2,
+  ReceiptText,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -131,6 +131,61 @@ function RelationshipBadge({ tag }: { tag: CustomerRecord["relationship_tag"] })
   );
 }
 
+function PaymentSourceBadge({ source }: { source: "user" | "customer" | "adjustment" }) {
+  if (source === "customer") {
+    return <Badge variant="success">Customer confirmed</Badge>;
+  }
+
+  if (source === "adjustment") {
+    return <Badge variant="muted">Adjusted by you</Badge>;
+  }
+
+  return <Badge variant="default">Logged by you</Badge>;
+}
+
+function PaymentHistory({ customer }: { customer: CustomerRecord }) {
+  const history = customer.payment_history ?? [];
+
+  return (
+    <Section title="Payment history">
+      {history.length > 0 ? (
+        <div className="space-y-2">
+          {history.map((payment) => (
+            <div
+              key={payment.id}
+              className="flex items-start justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3 py-3"
+            >
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-zinc-100">
+                    {formatCurrency(Number(payment.amount), payment.currency)}
+                  </p>
+                  <PaymentSourceBadge source={payment.source} />
+                </div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  {new Date(payment.created_at).toLocaleString(undefined, {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
+              <ReceiptText className="mt-0.5 h-4 w-4 shrink-0 text-zinc-600" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-4 py-4 text-sm text-zinc-600">
+          Payments you record for this customer will appear here with the exact
+          amount and timestamp.
+        </div>
+      )}
+    </Section>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Payment tab
 // ---------------------------------------------------------------------------
@@ -194,14 +249,20 @@ function PaymentTab({ customer }: { customer: CustomerRecord }) {
       {isFullyPaid ? (
         <div className="space-y-3">
           {/* Fully paid badge */}
-          <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          <div
+            className={cn(
+              "flex items-center gap-2 rounded-xl border px-4 py-3 text-sm",
+              customer.client_paid_at
+                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
+                : "border-indigo-500/25 bg-indigo-500/10 text-indigo-100",
+            )}
+          >
             <CheckCircle2 className="h-4 w-4 shrink-0" />
             <span>
-              Fully paid
               {customer.client_paid_at ? (
-                <span className="ml-2 text-xs text-emerald-400/70">— customer confirmed</span>
+                "Marked as paid by customer"
               ) : (
-                <span className="ml-2 text-xs text-emerald-400/70">— marked by you</span>
+                "Marked as paid by you"
               )}
             </span>
           </div>
@@ -215,6 +276,8 @@ function PaymentTab({ customer }: { customer: CustomerRecord }) {
               })}
             </p>
           )}
+
+          <PaymentHistory customer={customer} />
 
           {/* Undo */}
           <Section title="Undo payment">
@@ -275,6 +338,8 @@ function PaymentTab({ customer }: { customer: CustomerRecord }) {
               </Button>
             </form>
           </Section>
+
+          <PaymentHistory customer={customer} />
 
           {/* Correct previously logged amount */}
           {Number(customer.amount_paid) > 0 && (
@@ -660,6 +725,11 @@ export function CustomerDrawer({
                 {customer.recipient_name}
               </h2>
               <RelationshipBadge tag={customer.relationship_tag} />
+              {remaining <= 0 && (
+                <Badge variant={customer.client_paid_at ? "success" : "default"}>
+                  {customer.client_paid_at ? "Customer marked paid" : "You marked paid"}
+                </Badge>
+              )}
               {daysOverdue && (
                 <Badge variant="danger">
                   {daysOverdue}d overdue
@@ -765,8 +835,6 @@ export function CustomerDrawer({
                 onClick={(e) => {
                   if (!window.confirm(`Delete ${customer.recipient_name}? This cannot be undone.`)) {
                     e.preventDefault();
-                  } else {
-                    onClose();
                   }
                 }}
               >
