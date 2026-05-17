@@ -365,7 +365,7 @@ export default async function Home({
                 </div>
 
                 <div className="relative z-10 mx-auto max-w-2xl">
-                  <Badge variant="outline" className="mb-8 border-indigo-500/30 bg-indigo-500/10 text-indigo-300">
+                  <Badge variant="default" className="mb-8 border-indigo-500/30 bg-indigo-500/10 text-indigo-300">
                     Get started today
                   </Badge>
                   <h2 className="text-pretty text-4xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-5xl">
