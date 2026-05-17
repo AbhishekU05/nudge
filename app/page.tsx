@@ -122,30 +122,6 @@ export default async function Home({
               </FadeIn>
 
               <Reveal delay={0.2} className="relative z-10 lg:ml-auto w-full max-w-[800px] lg:max-w-none">
-                {/* Floating decorative elements with z-index fixes */}
-                <div className="absolute -left-8 top-12 z-30 hidden animate-in fade-in slide-in-from-bottom-4 duration-1000 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3.5 text-sm font-medium text-emerald-200 shadow-2xl shadow-emerald-950/40 backdrop-blur-xl lg:block">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                    $1,280 collected today
-                  </div>
-                </div>
-
-                <div className="absolute -right-6 top-24 z-30 hidden animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-150 rounded-2xl border border-white/10 bg-black/80 px-4 py-3 shadow-2xl shadow-black/40 backdrop-blur-xl lg:block">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
-                        Active Pipeline
-                      </p>
-                      <p className="mt-0.5 text-sm font-medium text-zinc-200">
-                        14 clients
-                      </p>
-                    </div>
-                    <Badge variant="warning" className="border-amber-500/30 bg-amber-500/10 text-amber-300">
-                      3 need attention
-                    </Badge>
-                  </div>
-                </div>
-                
                 <Card className="relative z-20 overflow-hidden border-white/10 bg-zinc-900/50 p-2 shadow-2xl shadow-black/60 backdrop-blur-sm max-w-full">
                   <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 to-purple-500/5 opacity-50" />
                   <CardContent className="relative p-0 rounded-xl overflow-hidden border border-white/5 bg-zinc-950">
@@ -161,21 +137,6 @@ export default async function Home({
                   </CardContent>
                 </Card>
 
-                <div className="absolute -right-6 -bottom-6 z-30 hidden w-64 rounded-2xl border border-white/10 bg-zinc-900/90 p-4 shadow-2xl shadow-black/60 backdrop-blur-xl sm:block animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
-                  <div className="flex items-center gap-3.5">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-500/20 text-indigo-300">
-                      <MessageSquare className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-zinc-100">
-                        Follow-up drafted
-                      </p>
-                      <p className="mt-0.5 text-xs text-zinc-400 line-clamp-1">
-                        Professional tone, editable
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </Reveal>
             </div>
           </Container>
@@ -290,9 +251,9 @@ export default async function Home({
 
           {/* Section 3: Follow up professionally */}
           <Container>
-            <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-              <SlideIn left>
-                <div className="relative order-2 lg:order-1">
+            <div className="grid gap-12 lg:grid-cols-[0.8fr_1fr] lg:items-center">
+              <SlideIn left className="flex justify-center order-2 lg:order-1">
+                <div className="relative w-full max-w-[26rem]">
                   <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.08),transparent_50%)]" />
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-2 shadow-xl shadow-black/20">
                     <CardContent className="p-0 rounded-xl border border-white/5 bg-zinc-950 overflow-hidden">
@@ -301,7 +262,7 @@ export default async function Home({
                         width={800}
                         height={500}
                         alt="Message drafter and follow-up tools"
-                        sizes="(max-width: 1024px) 100vw, 600px"
+                        sizes="(max-width: 1024px) 100vw, 400px"
                         className="h-auto w-full object-cover"
                       />
                     </CardContent>

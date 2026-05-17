@@ -32,7 +32,7 @@ export function HeroEmailCapture() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-9 max-w-xl">
+    <form onSubmit={handleSubmit} className="mt-9 max-w-md">
       <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.045] p-2 shadow-2xl shadow-indigo-950/20 backdrop-blur sm:flex-row">
         <div className="min-w-0 flex-1">
           <Input
