@@ -14,9 +14,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   Clock,
   ArrowRight,
-  FileText,
   AlertTriangle,
   CheckCircle2,
+  MessageSquare,
+  Sparkles,
 } from "lucide-react";
 
 export default async function Home({
@@ -63,6 +64,12 @@ export default async function Home({
             <span className="text-2xl font-semibold tracking-tight text-zinc-50">Duely</span>
           </Link>
           <div className="flex items-center gap-2">
+            <Link
+              href="/faq"
+              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-white/[0.04] hover:text-zinc-200 sm:inline-flex"
+            >
+              FAQ
+            </Link>
             <Link href="/login">
               <Button variant="ghost" size="sm">
                 Log in
@@ -76,41 +83,81 @@ export default async function Home({
       </header>
 
       <main className="flex-1">
-        <Container className="py-16 sm:py-24">
+        <Container className="relative py-16 sm:py-24">
+          <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_0%,rgba(79,70,229,0.24),transparent_28rem),radial-gradient(circle_at_80%_8%,rgba(168,85,247,0.14),transparent_22rem)]" />
           {/* HERO */}
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(28rem,1fr)] lg:items-center">
             <div className="max-w-3xl">
-              <Badge variant="default">Client payment management</Badge>
+              <Badge variant="default" className="gap-1.5">
+                <Sparkles className="h-3 w-3" />
+                Receivables command center
+              </Badge>
               <h1 className="mt-7 text-pretty text-5xl font-semibold tracking-[-0.045em] text-zinc-50 sm:text-6xl lg:text-7xl">
-                Collect what you're owed, keep the relationship.
+                Collect what you&apos;re owed without making every follow-up awkward.
               </h1>
               <p className="mt-6 max-w-2xl text-pretty text-lg leading-8 text-zinc-400">
-                A lightweight collections workflow for service businesses. Track unpaid work, log partial payments, and follow up professionally without the mental overhead.
+                Duely gives freelancers and service teams a focused workspace
+                for balances, promises, partial payments, and respectful
+                reminders.
               </p>
               <HeroEmailCapture />
-              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-1.5 text-xs text-zinc-600">
-                <span>No accounting bloat</span>
-                <span>Organize follow-ups</span>
-                <span>Manage promises</span>
+              <div className="mt-6 grid max-w-2xl gap-2 text-sm text-zinc-500 sm:grid-cols-3">
+                {[
+                  "Partial payment history",
+                  "Customer vs user paid labels",
+                  "Editable reminder templates",
+                ].map((item) => (
+                  <div key={item} className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+                    <span>{item}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
             <div className="relative">
-              <p className="mb-3 ml-2 text-xs font-medium uppercase tracking-[0.18em] text-zinc-600">
-                Operational Overview
-              </p>
-              <Card className="overflow-hidden bg-white/[0.025] p-2">
-                <CardContent className="p-0">
+              <div className="absolute -left-8 top-10 hidden rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100 shadow-2xl shadow-emerald-950/30 lg:block">
+                $1,280 collected today
+              </div>
+              <Card className="overflow-hidden border-white/10 bg-white/[0.03] p-2 shadow-2xl shadow-black/40">
+                <CardContent className="relative p-0">
+                  <div className="absolute inset-x-4 top-4 z-10 flex items-center justify-between rounded-2xl border border-white/10 bg-black/45 px-4 py-3 backdrop-blur">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">
+                        Pipeline
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-zinc-100">
+                        14 active customers
+                      </p>
+                    </div>
+                    <Badge variant="warning">3 need attention</Badge>
+                  </div>
                   <Image
                     src="/dashboard-preview.png"
                     width={1200}
                     height={720}
-                    alt="Collections dashboard overview"
+                    alt="Duely collections dashboard overview"
                     sizes="(max-width: 1024px) 100vw, 800px"
-                    className="h-auto w-full rounded-xl"
+                    className="h-auto w-full rounded-xl opacity-90"
+                    priority
                   />
                 </CardContent>
               </Card>
+              <div className="absolute -bottom-6 right-4 hidden w-64 rounded-2xl border border-white/10 bg-card/95 p-4 shadow-2xl shadow-black/45 backdrop-blur sm:block">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-200">
+                    <MessageSquare className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-100">
+                      Follow-up drafted
+                    </p>
+                    <p className="text-xs text-zinc-600">
+                      Professional tone, editable before sending
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </Container>
@@ -165,7 +212,7 @@ export default async function Home({
             </div>
             <div className="order-1 lg:order-2 max-w-xl lg:pl-10">
               <h2 className="text-pretty text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
-                Know exactly what's outstanding.
+                Know exactly what&apos;s outstanding.
               </h2>
               <p className="mt-6 text-lg leading-8 text-zinc-400">
                 Get a clear view of your receivables. Track full balances, log partial payments installments, and monitor due dates all in one organized place. Stop guessing who owes what.
@@ -180,7 +227,7 @@ export default async function Home({
                 Never forget a promise or detail.
               </h2>
               <p className="mt-6 text-lg leading-8 text-zinc-400">
-                When a client says they'll pay next Friday, log it. Attach internal notes to their profile so you remember previous conversations. Duely acts as your operational memory.
+                When a client says they&apos;ll pay next Friday, log it. Attach internal notes to their profile so you remember previous conversations. Duely acts as your operational memory.
               </p>
             </div>
             <div className="relative">
@@ -273,6 +320,8 @@ export default async function Home({
         <Container className="flex flex-col sm:flex-row items-center justify-between gap-4 py-8 text-sm text-zinc-600">
           <div>© {new Date().getFullYear()} Duely. All rights reserved.</div>
           <div className="flex items-center gap-4">
+            <Link href="/faq" className="hover:text-zinc-300 transition-colors">FAQ</Link>
+            <span>·</span>
             <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>
             <span>·</span>
             <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link>

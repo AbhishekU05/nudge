@@ -10,6 +10,7 @@ import { getEmailLinkErrorMessage } from "@/lib/auth-errors";
 import { isGoogleAuthEnabled } from "@/lib/auth-providers";
 import { getRequiredEnv } from "@/lib/env";
 import { buildPathWithQuery, getSafeNextPath } from "@/lib/paths";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // Extracts string from form in website
@@ -53,6 +54,49 @@ function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function getSignupErrorPath({
+  error,
+  nextPath,
+  email,
+}: {
+  error: string;
+  nextPath: string;
+  email?: string;
+}) {
+  return buildPathWithQuery("/signup", {
+    error,
+    email,
+    next: nextPath !== "/dashboard" ? nextPath : null,
+  });
+}
+
+async function isExistingAuthEmail(email: string) {
+  const adminSupabase = createSupabaseAdminClient();
+  const normalizedEmail = email.toLowerCase();
+  const perPage = 1000;
+
+  for (let page = 1; page <= 10; page += 1) {
+    const { data, error } = await adminSupabase.auth.admin.listUsers({
+      page,
+      perPage,
+    });
+
+    if (error) return false;
+
+    if (
+      data.users.some((user) => user.email?.toLowerCase() === normalizedEmail)
+    ) {
+      return true;
+    }
+
+    if (data.users.length < perPage) {
+      return false;
+    }
+  }
+
+  return false;
+}
+
 // registers a new user
 export async function signup(formData: FormData) {
   const nextPath = getNextPath(formData);
@@ -63,30 +107,25 @@ export async function signup(formData: FormData) {
 
   // TODO: check this redirect. redirect back to signup?
   if (password !== confirmPassword) {
-    redirect(
-      buildPathWithQuery("/signup", {
-        error: "Passwords do not match.",
-        next: nextPath !== "/dashboard" ? nextPath : null,
-      }),
-    );
+    redirect(getSignupErrorPath({ error: "Passwords do not match.", nextPath, email }));
   }
 
   // TODO: why are we redirecting to dashboard here aaaaaaaah
   if (!validateEmail(email)) {
-    redirect(
-      buildPathWithQuery("/signup", {
-        error: "Enter a valid email address.",
-        next: nextPath !== "/dashboard" ? nextPath : null,
-      }),
-    );
+    redirect(getSignupErrorPath({ error: "Enter a valid email address.", nextPath, email }));
   }
 
   // TODO: again?? why the dashboard
   if (password.length < 8) {
+    redirect(getSignupErrorPath({ error: "Use at least 8 characters for your password.", nextPath, email }));
+  }
+
+  if (await isExistingAuthEmail(email)) {
     redirect(
-      buildPathWithQuery("/signup", {
-        error: "Use at least 8 characters for your password.",
-        next: nextPath !== "/dashboard" ? nextPath : null,
+      getSignupErrorPath({
+        error: "An account with this email already exists. Log in instead.",
+        nextPath,
+        email,
       }),
     );
   }
@@ -109,10 +148,15 @@ export async function signup(formData: FormData) {
 
   // TODO: bruhh just fix the redirect
   if (error) {
+    redirect(getSignupErrorPath({ error: error.message, nextPath, email }));
+  }
+
+  if (data.user?.identities && data.user.identities.length === 0) {
     redirect(
-      buildPathWithQuery("/signup", {
-        error: error.message,
-        next: nextPath !== "/dashboard" ? nextPath : null,
+      getSignupErrorPath({
+        error: "An account with this email already exists. Log in instead.",
+        nextPath,
+        email,
       }),
     );
   }
@@ -241,6 +285,13 @@ export async function signInWithGoogle(formData: FormData) {
   if (data.url) {
     redirect(data.url);
   }
+
+  redirect(
+    buildPathWithQuery("/login", {
+      error: "Google sign-in did not return a login URL. Please try again.",
+      next: nextPath !== "/dashboard" ? nextPath : null,
+    }),
+  );
 }
 
 export async function requestPasswordReset(formData: FormData) {

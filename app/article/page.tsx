@@ -409,7 +409,9 @@ export default function ArticleTemplatePage() {
                   key={name}
                   className="flex flex-col justify-between rounded-2xl border border-white/[0.07] bg-white/[0.025] p-7 transition-colors hover:border-white/[0.12]"
                 >
-                  <p className="mb-6 text-sm leading-7 text-zinc-300 italic">"{quote}"</p>
+                  <p className="mb-6 text-sm leading-7 text-zinc-300 italic">
+                    &ldquo;{quote}&rdquo;
+                  </p>
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600/20 text-indigo-300 border border-indigo-500/20">
                       <span className="text-xs font-semibold">{initials}</span>
