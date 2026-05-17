@@ -16,9 +16,10 @@ const PUBLIC_ROUTES = [
   "/terms",
   "/privacy",
   "/article",
+  "/leonard",
 ];
 
-const PASS_THROUGH_ROUTES = ["/", "/auth/callback", "/unsubscribe", "/terms", "/privacy", "/article"];
+const PASS_THROUGH_ROUTES = ["/", "/auth/callback", "/unsubscribe", "/terms", "/privacy", "/article", "/leonard"];
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -31,7 +32,12 @@ export async function proxy(request: NextRequest) {
   );
 
   const applyReferralCookie = (res: NextResponse) => {
-    const referral = request.nextUrl.searchParams.get("ref") || request.nextUrl.searchParams.get("via");
+    let referral = request.nextUrl.searchParams.get("ref") || request.nextUrl.searchParams.get("via");
+    
+    if (!referral && (path === "/leonard" || path.startsWith("/leonard/"))) {
+      referral = "leonard";
+    }
+
     if (referral && !request.cookies.has("nudge_referral")) {
       res.cookies.set("nudge_referral", referral, { maxAge: 60 * 60 * 24 * 30, path: "/" });
     }
