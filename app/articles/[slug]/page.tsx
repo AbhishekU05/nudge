@@ -28,7 +28,7 @@ export default async function ArticlePage({
   const { slug } = await params;
 
   const filePath = path.join(process.cwd(), "public", "articles", `${slug}.md`);
-  
+
   if (!fs.existsSync(filePath)) {
     return (
       <div className="flex flex-1 items-center justify-center p-20">
