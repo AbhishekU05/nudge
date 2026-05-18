@@ -382,6 +382,8 @@ export default async function Home({
             <span>© {new Date().getFullYear()} Duely. All rights reserved.</span>
           </div>
           <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-3">
+            <Link href="/about" className="hover:text-zinc-300 transition-colors">About</Link>
+            <Link href="/articles" className="hover:text-zinc-300 transition-colors">Articles</Link>
             <Link href="/faq" className="hover:text-zinc-300 transition-colors">FAQ</Link>
             <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>
             <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link>
