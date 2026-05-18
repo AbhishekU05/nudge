@@ -46,6 +46,12 @@ export default function ArticlesPage() {
           </Link>
           <div className="flex items-center gap-3">
             <Link
+              href="/about"
+              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100 sm:inline-flex"
+            >
+              About
+            </Link>
+            <Link
               href="/articles"
               className="hidden rounded-lg bg-white/[0.04] px-3 py-2 text-sm font-medium text-zinc-100 transition-colors sm:inline-flex"
             >

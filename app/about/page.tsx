@@ -61,6 +61,12 @@ export default function AboutPage() {
           </Link>
           <div className="flex items-center gap-3">
             <Link
+              href="/about"
+              className="hidden rounded-lg bg-white/[0.04] px-3 py-2 text-sm font-medium text-zinc-100 transition-colors sm:inline-flex"
+            >
+              About
+            </Link>
+            <Link
               href="/articles"
               className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100 sm:inline-flex"
             >
@@ -94,6 +100,13 @@ export default function AboutPage() {
             <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-8 text-zinc-400">
               The lightweight collections management tool designed to help you get paid professionally.
             </p>
+            <div className="mt-10 flex justify-center">
+              <Link href="/signup">
+                <Button size="lg" className="shadow-lg shadow-indigo-500/20">
+                  Get started
+                </Button>
+              </Link>
+            </div>
           </Container>
         </section>
 
