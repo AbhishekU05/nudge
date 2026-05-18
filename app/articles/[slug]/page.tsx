@@ -72,9 +72,28 @@ export default async function ArticlePage({
   const title = data.title || "Article";
   const description = data.description || "";
   const audience = data.audience || "Guides";
+  const datePublished = data.date || new Date().toISOString().split("T")[0];
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: title,
+    description: description,
+    author: {
+      "@type": "Organization",
+      name: "Duely",
+      url: "https://duely.in",
+    },
+    datePublished: datePublished,
+    url: `https://duely.in/articles/${slug}`,
+  };
 
   return (
     <div className="flex flex-1 flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* ── Navbar ── */}
       <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
         <Container className="flex h-16 items-center justify-between">

@@ -1,0 +1,50 @@
+# Duely - Lightweight Collections Management
+
+## What is Duely?
+Duely is a lightweight collections management tool built specifically for modern service businesses. It bridges the gap between sending an invoice and actually getting paid. 
+
+Key features include:
+- Track outstanding balances across your client base
+- Log partial payments
+- Record client payment promises and deadlines
+- Draft professional follow-up messages
+- Add internal client notes
+- Send automated payment reminders with payment links
+
+## Who is it for?
+Duely is designed exclusively for independent professionals and small teams, including:
+- Freelancers
+- Small agency owners
+- Independent consultants
+
+## Important Links
+- Homepage: https://duely.in
+- About Duely: https://duely.in/about
+- Articles Library: https://duely.in/articles
+
+## Articles & Guides
+- https://duely.in/articles/automated-payment-reminders-when-to-use-them
+- https://duely.in/articles/client-keeps-paying-late-should-i-fire-them
+- https://duely.in/articles/client-said-theyll-pay-friday-now-what
+- https://duely.in/articles/client-said-theyll-pay-next-month-how-do-i-hold-them-to-it
+- https://duely.in/articles/freelance-late-payment-statistics-2025
+- https://duely.in/articles/how-to-ask-for-a-deposit-before-starting-work
+- https://duely.in/articles/how-to-charge-late-fee-as-a-freelancer
+- https://duely.in/articles/how-to-check-ar-every-week-without-it-taking-hours
+- https://duely.in/articles/how-to-escalate-a-late-payment-without-burning-the-relationship
+- https://duely.in/articles/how-to-follow-up-on-an-overdue-invoice-professionally
+- https://duely.in/articles/how-to-follow-up-on-an-unpaid-invoice-without-being-awkward
+- https://duely.in/articles/how-to-follow-up-on-late-invoices-without-sounding-desperate
+- https://duely.in/articles/how-to-handle-a-client-who-paid-partially-and-went-silent
+- https://duely.in/articles/how-to-manage-accounts-receivables-for-a-small-agency
+- https://duely.in/articles/how-to-pause-work-on-a-client-who-hasnt-paid
+- https://duely.in/articles/how-to-record-a-client-payment-promise
+- https://duely.in/articles/how-to-track-payment-promises-from-clients
+- https://duely.in/articles/how-to-track-which-clients-owe-you-money
+- https://duely.in/articles/how-to-write-a-demand-letter-as-a-consultant
+- https://duely.in/articles/late-payment-follow-up-email-templates
+- https://duely.in/articles/red-flags-that-a-client-wont-pay
+- https://duely.in/articles/should-i-keep-working-for-a-client-who-hasnt-paid-me-yet
+- https://duely.in/articles/should-i-keep-working-for-a-client-who-hasnt-paid-yet
+- https://duely.in/articles/what-to-say-when-a-client-misses-a-payment-deadline
+- https://duely.in/articles/what-to-say-when-a-client-misses-their-own-payment-deadline
