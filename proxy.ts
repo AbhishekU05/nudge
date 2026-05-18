@@ -16,11 +16,12 @@ const PUBLIC_ROUTES = [
   "/terms",
   "/privacy",
   "/article",
+  "/articles",
   "/leonard",
   "/faq",
 ];
 
-const PASS_THROUGH_ROUTES = ["/", "/auth/callback", "/unsubscribe", "/terms", "/privacy", "/article", "/leonard", "/faq"];
+const PASS_THROUGH_ROUTES = ["/", "/auth/callback", "/unsubscribe", "/terms", "/privacy", "/article", "/articles", "/leonard", "/faq"];
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
