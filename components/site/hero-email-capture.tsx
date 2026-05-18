@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight } from "lucide-react";
 
-export function HeroEmailCapture() {
+export function HeroEmailCapture({ className }: { className?: string }) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -32,7 +32,7 @@ export function HeroEmailCapture() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-9 max-w-md">
+    <form onSubmit={handleSubmit} className={className || "mt-9 max-w-md"}>
       <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.045] p-2 shadow-2xl shadow-indigo-950/20 backdrop-blur sm:flex-row">
         <div className="min-w-0 flex-1">
           <Input
