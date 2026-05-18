@@ -88,9 +88,6 @@ export default function ArticlesPage() {
                 <Link key={article.slug} href={`/articles/${article.slug}`}>
                   <div className="group flex h-full flex-col justify-between rounded-2xl border border-white/[0.07] bg-white/[0.025] p-7 transition-colors hover:border-indigo-500/30 hover:bg-white/[0.04]">
                     <div>
-                      <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-indigo-400">
-                        {article.audience}
-                      </p>
                       <h3 className="mb-3 font-semibold text-zinc-100 transition-colors group-hover:text-indigo-300">
                         {article.title}
                       </h3>
