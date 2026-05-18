@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import type { Metadata } from "next";
 
 import { Container } from "@/components/site/container";
 import { HeroEmailCapture } from "@/components/site/hero-email-capture";
@@ -18,6 +19,34 @@ export async function generateStaticParams() {
   return files.map((file) => ({
     slug: file.replace(".md", ""),
   }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const filePath = path.join(process.cwd(), "public", "articles", `${slug}.md`);
+
+  if (!fs.existsSync(filePath)) {
+    return {
+      title: "Article Not Found | Duely",
+    };
+  }
+
+  const fileContent = fs.readFileSync(filePath, "utf8");
+  const { data } = matter(fileContent);
+
+  return {
+    title: `${data.title || "Article"} | Duely`,
+    description: data.description || "",
+    openGraph: {
+      title: `${data.title || "Article"} | Duely`,
+      description: data.description || "",
+      type: "article",
+    },
+  };
 }
 
 export default async function ArticlePage({
