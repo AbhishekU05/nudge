@@ -84,7 +84,7 @@ export default async function ArticlePage({
             >
               {audience}
             </Badge>
-            <h1 className="mx-auto max-w-4xl text-pretty text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl lg:text-6xl">
+            <h1 className="mx-auto max-w-4xl text-pretty text-3xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-4xl">
               {title}
             </h1>
             {description && (
@@ -92,9 +92,6 @@ export default async function ArticlePage({
                 {description}
               </p>
             )}
-            <div className="mt-10 mx-auto w-full max-w-lg">
-              <HeroEmailCapture />
-            </div>
           </Container>
         </section>
 
@@ -119,15 +116,8 @@ export default async function ArticlePage({
                 to your post-invoice workflow and start collecting payments
                 professionally.
               </p>
-              <div className="mt-10">
-                <Link href="/signup">
-                  <Button
-                    size="lg"
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/40 transition-all"
-                  >
-                    Start collecting payments
-                  </Button>
-                </Link>
+              <div className="mt-10 flex justify-center">
+                <HeroEmailCapture className="w-full max-w-md" />
               </div>
             </div>
           </Container>
