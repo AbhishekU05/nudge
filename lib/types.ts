@@ -55,6 +55,8 @@ export type ReminderRow = {
   custom_message: string | null;
   internal_notes: string | null;
   payment_link: string | null;
+  stripe_invoice_id: string | null;
+  paid: boolean;
 
   // Automation (supporting feature)
   reminder_frequency_days: number;

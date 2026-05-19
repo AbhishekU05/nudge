@@ -171,6 +171,7 @@ export async function recordPartialPayment(formData: FormData) {
   const updatePayload: Record<string, unknown> = {
     amount_paid: newAmountPaid,
     workflow_status: newStatus,
+    paid: newStatus === "paid",
   };
 
   // When fully paid via dashboard, set active=false to stop automation.
@@ -267,6 +268,7 @@ export async function markFullyPaid(formData: FormData) {
     .update({
       amount_paid: customer!.amount_owed,
       workflow_status: "paid",
+      paid: true,
       // NOTE: client_paid_at is intentionally NOT set here — it is reserved
       // exclusively for customer self-reports via the "I've paid" email link.
       active: false,
@@ -336,6 +338,7 @@ export async function undoMarkAsPaid(formData: FormData) {
     .update({
       workflow_status: "outstanding",
       amount_paid: 0,
+      paid: false,
       client_paid_at: null,
       active: false,
     })
@@ -411,6 +414,7 @@ export async function correctAmountPaid(formData: FormData) {
   const updatePayload: Record<string, unknown> = {
     amount_paid: paid,
     workflow_status: newStatus,
+    paid: newStatus === "paid",
     // Clear client_paid_at if we're un-fully-paying (amount < owed)
     ...(paid < amountOwed ? { client_paid_at: null } : {}),
   };
@@ -590,6 +594,7 @@ export async function updateWorkflowStatus(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const updatePayload: Record<string, unknown> = { workflow_status: status };
+  updatePayload.paid = status === "paid";
 
   if (status === "paid") {
     const { data: customer } = await supabase
@@ -605,6 +610,8 @@ export async function updateWorkflowStatus(formData: FormData) {
       // exclusively for customer self-reports via the "I've paid" email link.
       updatePayload.active = false;
     }
+  } else {
+    updatePayload.client_paid_at = null;
   }
 
   const { error } = await supabase

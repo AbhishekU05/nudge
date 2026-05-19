@@ -62,6 +62,7 @@ export default async function PaymentReceivedPage({
       client_paid_at: new Date().toISOString(),
       workflow_status: "paid",
       amount_paid: reminder?.amount_owed ?? 0,
+      paid: true,
       active: false,
     })
     .eq("unsubscribe_token", token)

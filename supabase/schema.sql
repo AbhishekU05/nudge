@@ -110,11 +110,20 @@ create index if not exists payment_logs_reminder_created_idx
 create index if not exists payment_logs_user_created_idx
   on public.payment_logs(user_id, created_at desc);
 
+-- Stripe Connect OAuth connections
+create table if not exists public.stripe_connections (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  stripe_account_id text not null unique,
+  access_token text not null,
+  created_at timestamptz not null default now()
+);
+
 -- Row Level Security
 alter table public.profiles enable row level security;
 alter table public.reminders enable row level security;
 alter table public.usage_events enable row level security;
 alter table public.payment_logs enable row level security;
+alter table public.stripe_connections enable row level security;
 
 -- Profiles policies
 drop policy if exists "profiles_select_own" on public.profiles;
@@ -188,6 +197,26 @@ on public.payment_logs
 for insert
 with check (auth.uid() = user_id);
 
+-- Stripe connection policies (owner-only)
+drop policy if exists "stripe_connections_select_own" on public.stripe_connections;
+create policy "stripe_connections_select_own"
+on public.stripe_connections
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "stripe_connections_insert_own" on public.stripe_connections;
+create policy "stripe_connections_insert_own"
+on public.stripe_connections
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "stripe_connections_update_own" on public.stripe_connections;
+create policy "stripe_connections_update_own"
+on public.stripe_connections
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
 -- Auto-create profile rows on signup
 create or replace function public.handle_new_user()
 returns trigger
@@ -249,3 +278,23 @@ alter table public.reminders
 create index if not exists reminders_workflow_status_idx
   on public.reminders(user_id, workflow_status)
   where unsubscribed = false;
+
+alter table public.reminders
+  add column if not exists stripe_invoice_id text;
+
+alter table public.reminders
+  add column if not exists paid boolean not null default false;
+
+create index if not exists reminders_stripe_invoice_id_idx
+  on public.reminders(stripe_invoice_id)
+  where stripe_invoice_id is not null;
+
+-- Add webhook_secret to stripe_connections and relax constraints for manual setup
+alter table public.stripe_connections
+  add column if not exists webhook_secret text;
+
+alter table public.stripe_connections
+  alter column stripe_account_id drop not null;
+
+alter table public.stripe_connections
+  alter column access_token drop not null;
