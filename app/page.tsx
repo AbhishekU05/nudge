@@ -99,7 +99,7 @@ export default async function Home({
         {/* HERO SECTION */}
         <section className="relative pt-12 pb-20 sm:pt-16 sm:pb-32 lg:pb-40">
           <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_-20%,rgba(79,70,229,0.15),transparent_60%),radial-gradient(ellipse_at_80%_40%,rgba(168,85,247,0.08),transparent_50%)]" />
-          
+
           <Container>
             <div className="grid gap-16 lg:grid-cols-[1fr_1.1fr] lg:items-center">
               <FadeIn className="max-w-2xl">
@@ -148,7 +148,7 @@ export default async function Home({
 
         {/* WORKFLOW SECTIONS */}
         <section className="relative overflow-hidden py-24 sm:py-32 space-y-32 sm:space-y-40 bg-zinc-950/50 border-y border-white/5 backdrop-blur-sm">
-          
+
           {/* Section 1: Promise Logging */}
           <Container>
             <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
@@ -225,9 +225,14 @@ export default async function Home({
                   <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(79,70,229,0.08),transparent_50%)]" />
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-2 shadow-xl shadow-black/20">
                     <CardContent className="p-0 rounded-xl border border-white/5 bg-zinc-950 overflow-hidden">
-                      <div className="flex h-[350px] sm:h-[450px] w-full items-center justify-center bg-zinc-900 border border-white/5 text-sm font-medium text-zinc-500 text-center px-4">
-                        [SCREENSHOT: client list with balances]
-                      </div>
+                      <Image
+                        src="/outstanding_payments.png"
+                        width={800}
+                        height={500}
+                        alt="Outstanding payments and balances"
+                        sizes="(max-width: 1024px) 100vw, 600px"
+                        className="h-auto w-full object-cover"
+                      />
                     </CardContent>
                   </Card>
                 </div>
@@ -282,7 +287,7 @@ export default async function Home({
         </section>
 
         {/* SOCIAL PROOF */}
-        <section className="py-24 border-b border-white/5 bg-zinc-950/30">
+        <section className="hidden py-24 border-b border-white/5 bg-zinc-950/30">
           <Container>
             <div className="mx-auto max-w-4xl flex h-40 items-center justify-center rounded-2xl bg-zinc-800/50 border border-white/10 text-sm font-medium text-zinc-500 text-center px-4">
               [SOCIAL PROOF: add a customer quote or stat here before launch]
@@ -461,7 +466,7 @@ export default async function Home({
                 <p className="mt-6 text-lg leading-relaxed text-zinc-400">
                   Stop chasing clients out of your inbox and start collecting payments professionally.
                 </p>
-                
+
                 <div className="mt-10">
                   <Link href="/signup">
                     <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
