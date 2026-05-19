@@ -113,6 +113,9 @@ export default async function Home({
                 <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-zinc-400">
                   Duely is the missing layer between your invoice and your bank account.
                 </p>
+                <p className="mt-4 max-w-xl text-pretty text-base font-medium text-zinc-300">
+                  Works with any invoicing tool. Or none at all. Add your first client in 30 seconds.
+                </p>
                 <div className="mt-10">
                   <Link href="/signup">
                     <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
@@ -278,6 +281,15 @@ export default async function Home({
           </Container>
         </section>
 
+        {/* SOCIAL PROOF */}
+        <section className="py-24 border-b border-white/5 bg-zinc-950/30">
+          <Container>
+            <div className="mx-auto max-w-4xl flex h-40 items-center justify-center rounded-2xl bg-zinc-800/50 border border-white/10 text-sm font-medium text-zinc-500 text-center px-4">
+              [SOCIAL PROOF: add a customer quote or stat here before launch]
+            </div>
+          </Container>
+        </section>
+
         {/* WORKS WITH */}
         <section className="py-16 border-b border-white/5 bg-zinc-950 text-center">
           <Container>
@@ -320,6 +332,9 @@ export default async function Home({
                         Full access to everything
                       </li>
                     </ul>
+                    <p className="mt-6 text-sm text-zinc-500 leading-relaxed">
+                      After 14 days you&apos;ll be asked to subscribe. Your data is always yours — export anytime.
+                    </p>
                     <div className="mt-10">
                       <Link href="/signup">
                         <Button variant="secondary" className="w-full">Start trial</Button>
@@ -375,11 +390,10 @@ export default async function Home({
                   <User className="h-8 w-8 text-zinc-400" />
                 </div>
                 <blockquote className="text-lg leading-relaxed text-zinc-400">
-                  &quot;I&apos;m Abhishek, a student at IIT Bombay. I built Duely as a side project after watching people around me stress over chasing clients for money. It turned into something I wanted to actually ship. This is my first startup and I&apos;m building it in public. If you have feedback, I want to hear it.&quot;
+                  &quot;I built Duely because I watched people lose thousands to payment awkwardness — not bad clients, just no system. I&apos;m building this seriously and in public.<br /><br />
+                  If you have feedback — <a href="mailto:abhishek@duely.in" className="text-indigo-400 hover:text-indigo-300 transition-colors">abhishek@duely.in</a><br />
+                  — Abhishek&quot;
                 </blockquote>
-                <div className="mt-6 font-medium text-zinc-300">
-                  <a href="mailto:abhishek@duely.in" className="text-indigo-400 hover:text-indigo-300 transition-colors">abhishek@duely.in</a>
-                </div>
               </div>
             </FadeIn>
           </Container>
