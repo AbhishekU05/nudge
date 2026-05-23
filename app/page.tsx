@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { AuthErrorRedirect } from "@/components/site/auth-error-redirect";
 import { Container } from "@/components/site/container";
 import { FadeIn, Reveal, SlideUp, SlideIn } from "@/components/site/scroll-animation";
-import { Badge } from "@/components/ui/badge";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getEmailLinkErrorMessage } from "@/lib/auth-errors";
@@ -103,10 +103,6 @@ export default async function Home({
           <Container>
             <div className="grid gap-16 lg:grid-cols-[1fr_1.1fr] lg:items-center">
               <FadeIn className="max-w-2xl">
-                <Badge variant="default" className="gap-1.5 border-indigo-500/30 bg-indigo-500/10 text-indigo-300 backdrop-blur-md">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  The receivables workspace
-                </Badge>
                 <h1 className="mt-8 text-pretty text-5xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-6xl lg:text-[4.5rem] lg:leading-[1.05]">
                   Getting paid is the easy part. <span className="text-zinc-400">Getting clients to pay isn&apos;t.</span>
                 </h1>
@@ -143,6 +139,51 @@ export default async function Home({
                 </Card>
               </Reveal>
             </div>
+          </Container>
+        </section>
+
+        {/* STATS SECTION */}
+        <section className="py-16 sm:py-20">
+          <Container>
+            <FadeIn>
+              <div className="grid grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-8 lg:gap-16 mx-auto max-w-4xl text-center">
+                {[
+                  {
+                    stat: "$40B+",
+                    label: "The global cost",
+                    description: "Lost globally every year to late payments",
+                    source: "World Bank",
+                  },
+                  {
+                    stat: "50%",
+                    label: "The default rate",
+                    description: "of US B2B invoices are currently overdue",
+                    source: "Atradius 2024",
+                  },
+                  {
+                    stat: "52%",
+                    label: "The silent write-off",
+                    description: "of small businesses give up chasing payments to avoid the awkwardness",
+                    source: "GoCardless / FSB 2025",
+                  },
+                ].map((item) => (
+                  <div key={item.stat}>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
+                      {item.label}
+                    </p>
+                    <p className="text-4xl font-semibold tracking-tight text-zinc-50 sm:text-5xl">
+                      {item.stat}
+                    </p>
+                    <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+                      {item.description}
+                    </p>
+                    <p className="mt-2 text-xs text-zinc-600">
+                      {item.source}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </FadeIn>
           </Container>
         </section>
 
@@ -415,7 +456,7 @@ export default async function Home({
                   <User className="h-8 w-8 text-zinc-400" />
                 </div>
                 <blockquote className="text-lg leading-relaxed text-zinc-400">
-                  &quot;I built Duely because I watched people lose thousands to payment awkwardness — not bad clients, just no system. I&apos;m building this seriously and in public.<br /><br />
+                  &quot;I built Duely because I watched people lose thousands to payment awkwardness — not bad clients, just no system. I&apos;m building this seriously and in public (<a href="https://x.com/AbhishekU008" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 transition-colors">follow along here</a>).<br /><br />
                   If you have feedback — <a href="mailto:abhishek@duely.in" className="text-indigo-400 hover:text-indigo-300 transition-colors">abhishek@duely.in</a><br />
                   — Abhishek&quot;
                 </blockquote>
