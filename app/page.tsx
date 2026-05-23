@@ -287,11 +287,31 @@ export default async function Home({
         </section>
 
         {/* SOCIAL PROOF */}
-        <section className="hidden py-24 border-b border-white/5 bg-zinc-950/30">
+        <section className="py-24 border-b border-white/5 bg-zinc-950/30">
           <Container>
-            <div className="mx-auto max-w-4xl flex h-40 items-center justify-center rounded-2xl bg-zinc-800/50 border border-white/10 text-sm font-medium text-zinc-500 text-center px-4">
-              [SOCIAL PROOF: add a customer quote or stat here before launch]
-            </div>
+            <FadeIn>
+              <div className="mx-auto max-w-4xl flex flex-col items-center justify-center rounded-2xl bg-zinc-900/50 border border-white/10 p-8 sm:p-12 text-center shadow-xl backdrop-blur-sm">
+                <div className="flex gap-1 mb-6">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="h-5 w-5 text-amber-500 fill-amber-500" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <blockquote className="text-xl sm:text-2xl md:text-3xl font-medium tracking-tight text-zinc-100 mb-8 leading-snug">
+                  &quot;This is what you call a complete product.&quot;
+                </blockquote>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 font-semibold">
+                    S
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium text-zinc-200">Samiksha</div>
+                    <div className="text-sm text-zinc-500">Former Agency Owner</div>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
           </Container>
         </section>
 
