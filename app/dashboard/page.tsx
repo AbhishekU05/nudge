@@ -104,6 +104,7 @@ export default async function DashboardPage({
     { data: customerEvents },
     { data: profile },
     { data: xeroIntegration },
+    { data: quickbooksIntegration },
   ] = await Promise.all([
     supabase
       .from("customers")
@@ -130,6 +131,12 @@ export default async function DashboardPage({
       .select("provider")
       .eq("user_id", user.id)
       .eq("provider", "xero")
+      .maybeSingle<{ provider: string }>(),
+    supabase
+      .from("integrations")
+      .select("provider")
+      .eq("user_id", user.id)
+      .eq("provider", "quickbooks")
       .maybeSingle<{ provider: string }>(),
   ]);
 
@@ -297,6 +304,9 @@ export default async function DashboardPage({
                 </Badge>
                 {xeroIntegration && (
                   <Badge variant="success">Connected to Xero</Badge>
+                )}
+                {quickbooksIntegration && (
+                  <Badge variant="success">Connected to QuickBooks</Badge>
                 )}
               </div>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">

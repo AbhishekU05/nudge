@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth";
 import { buildPathWithQuery } from "@/lib/paths";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { revokeXeroIntegration, syncXeroInvoicesForUser } from "@/lib/xero";
+import { revokeQuickBooksIntegration, syncQuickBooksInvoicesForUser } from "@/lib/quickbooks";
 
 function redirectToIntegrations(params: { error?: string; success?: string }): never {
   redirect(buildPathWithQuery("/settings/integrations", params));
@@ -50,4 +51,44 @@ export async function disconnectXero() {
   revalidatePath("/dashboard");
   revalidatePath("/settings/integrations");
   redirectToIntegrations({ success: "Xero disconnected." });
+}
+
+export async function syncQuickBooksNow() {
+  const user = await requireUser();
+  let result: Awaited<ReturnType<typeof syncQuickBooksInvoicesForUser>>;
+
+  try {
+    result = await syncQuickBooksInvoicesForUser(user.id);
+  } catch (error) {
+    redirectToIntegrations({
+      error: error instanceof Error ? error.message : "Unable to sync QuickBooks.",
+    });
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/settings/integrations");
+  redirectToIntegrations({
+    success: `QuickBooks sync complete. Imported ${result.imported}, updated ${result.updated}, marked paid ${result.markedPaid}.`,
+  });
+}
+
+export async function disconnectQuickBooks() {
+  const user = await requireUser();
+
+  await revokeQuickBooksIntegration(user.id);
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("integrations")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("provider", "quickbooks");
+
+  if (error) {
+    redirectToIntegrations({ error: "Unable to disconnect QuickBooks." });
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/settings/integrations");
+  redirectToIntegrations({ success: "QuickBooks disconnected." });
 }

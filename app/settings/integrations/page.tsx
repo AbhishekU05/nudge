@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, PlugZap, RefreshCw, Unplug } from "lucide-react";
 
-import { disconnectXero, syncXeroNow } from "@/app/actions/integrations";
+import { disconnectXero, syncXeroNow, disconnectQuickBooks, syncQuickBooksNow } from "@/app/actions/integrations";
 import { Container } from "@/components/site/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 type IntegrationRow = {
   expires_at: string;
   last_synced_at: string | null;
-  tenant_id: string;
+  tenant_id?: string | null;
+  realm_id?: string | null;
 };
 
 function Notice({
@@ -69,7 +70,15 @@ export default async function IntegrationsPage({
     .eq("provider", "xero")
     .maybeSingle<IntegrationRow>();
 
-  const isConnected = Boolean(xero);
+  const { data: quickbooks } = await supabase
+    .from("integrations")
+    .select("realm_id,last_synced_at,expires_at")
+    .eq("user_id", user.id)
+    .eq("provider", "quickbooks")
+    .maybeSingle<IntegrationRow>();
+
+  const isConnectedXero = Boolean(xero);
+  const isConnectedQuickBooks = Boolean(quickbooks);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -94,8 +103,8 @@ export default async function IntegrationsPage({
         <Container className="py-8 sm:py-10">
           <div className="mx-auto max-w-4xl space-y-6">
             <div>
-              <Badge variant={isConnected ? "success" : "default"}>
-                {isConnected ? "Connected" : "Optional"}
+              <Badge variant={isConnectedXero || isConnectedQuickBooks ? "success" : "default"}>
+                {isConnectedXero || isConnectedQuickBooks ? "Connected" : "Optional"}
               </Badge>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
                 Integrations
@@ -126,7 +135,7 @@ export default async function IntegrationsPage({
                       aligned with Xero.
                     </CardDescription>
                   </div>
-                  {isConnected ? (
+                  {isConnectedXero ? (
                     <Badge variant="success" className="gap-1.5">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       Connected to Xero
@@ -138,7 +147,7 @@ export default async function IntegrationsPage({
               </CardHeader>
 
               <CardContent className="space-y-6 p-6">
-                {isConnected ? (
+                  {isConnectedXero ? (
                   <>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
@@ -188,6 +197,86 @@ export default async function IntegrationsPage({
                     </div>
                     <Link href="/api/integrations/xero/connect">
                       <Button className="w-full sm:w-auto">Connect Xero</Button>
+                    </Link>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden border-white/10 bg-white/[0.035]">
+              <CardHeader className="border-b border-white/10">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-2xl">
+                      <PlugZap className="h-5 w-5 text-primary" />
+                      QuickBooks
+                    </CardTitle>
+                    <CardDescription className="mt-2 max-w-xl">
+                      Import outstanding invoices and keep Duely payment status
+                      aligned with QuickBooks Online.
+                    </CardDescription>
+                  </div>
+                  {isConnectedQuickBooks ? (
+                    <Badge variant="success" className="gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Connected to QuickBooks
+                    </Badge>
+                  ) : (
+                    <Badge variant="muted">Not connected</Badge>
+                  )}
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-6 p-6">
+                {isConnectedQuickBooks ? (
+                  <>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                        <p className="text-xs text-zinc-600">Last synced</p>
+                        <p className="mt-2 text-sm font-semibold text-zinc-100">
+                          {formatDate(quickbooks?.last_synced_at ?? null)}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                        <p className="text-xs text-zinc-600">Company ID (Realm)</p>
+                        <p className="mt-2 truncate font-mono text-xs text-zinc-300">
+                          {quickbooks?.realm_id}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <form action={syncQuickBooksNow}>
+                        <Button type="submit" className="w-full sm:w-auto">
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          Sync now
+                        </Button>
+                      </form>
+                      <form action={disconnectQuickBooks}>
+                        <Button
+                          type="submit"
+                          variant="secondary"
+                          className="w-full text-red-400 hover:text-red-300 sm:w-auto"
+                        >
+                          <Unplug className="h-3.5 w-3.5" />
+                          Disconnect
+                        </Button>
+                      </form>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col gap-4 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-zinc-200">
+                        Connect your QuickBooks company
+                      </p>
+                      <p className="mt-1 max-w-xl text-sm leading-6 text-zinc-500">
+                        Duely will request read-only invoice access to keep your
+                        payment status aligned automatically.
+                      </p>
+                    </div>
+                    <Link href="/api/integrations/quickbooks/connect">
+                      <Button className="w-full sm:w-auto">Connect QuickBooks</Button>
                     </Link>
                   </div>
                 )}

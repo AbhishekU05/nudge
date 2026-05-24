@@ -60,16 +60,37 @@ export default function PrivacyPage() {
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">4. Gmail Integration</h2>
-              <p className="mb-2">We request permission to send emails on your behalf using your Gmail account. Here is how we handle this integration:</p>
+              <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">4. Third Party Integrations</h2>
+              <p className="mb-2">We request permission to connect with external services to provide our core features. Here is how we handle these integrations:</p>
+              
+              <h3 className="text-lg font-medium text-zinc-50 mt-6 mb-2">Gmail</h3>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Duely requests permission to send emails on your behalf via your Gmail account.</li>
                 <li>This permission is only used to send payment reminder emails to your own clients.</li>
+                <li>Duely only sends emails, it never reads your inbox.</li>
                 <li>Emails are sent only when you set up automated reminders or manually trigger a follow-up.</li>
                 <li>Duely stores Google OAuth tokens securely to enable this feature.</li>
+                <li>Gmail tokens are deleted when you disconnect the integration or delete your account.</li>
                 <li>You can revoke this access at any time from your Google account settings at <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer" className="text-zinc-50 hover:underline">myaccount.google.com/permissions</a>.</li>
-                <li>Duely does not read, access, or store any emails from your Gmail inbox.</li>
                 <li>Duely does not share Gmail access tokens with any third parties.</li>
+              </ul>
+
+              <h3 className="text-lg font-medium text-zinc-50 mt-6 mb-2">Xero</h3>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Duely requests read access to your Xero account to import outstanding invoices.</li>
+                <li>Access is only used to sync invoice status and stop reminders when invoices are marked paid in Xero.</li>
+                <li>Duely does not read, store, or share any other Xero data.</li>
+                <li>Xero OAuth tokens are stored encrypted and deleted when you disconnect the integration or delete your account.</li>
+                <li>You can revoke access at any time from the Xero integration settings page.</li>
+              </ul>
+
+              <h3 className="text-lg font-medium text-zinc-50 mt-6 mb-2">QuickBooks</h3>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Duely requests read access to your QuickBooks account to import outstanding invoices.</li>
+                <li>Access is only used to sync invoice status and stop reminders when invoices are marked paid in QuickBooks.</li>
+                <li>Duely does not read, store, or share any other QuickBooks data.</li>
+                <li>QuickBooks OAuth tokens are stored encrypted and deleted when you disconnect the integration or delete your account.</li>
+                <li>You can revoke access at any time from the QuickBooks integration settings page.</li>
               </ul>
             </div>
 
