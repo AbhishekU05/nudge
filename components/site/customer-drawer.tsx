@@ -609,7 +609,7 @@ function FollowUpTab({ customer }: { customer: CustomerRecord }) {
               className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-white/20 focus:border-primary/40 focus:outline-none"
             >
               {OUTCOME_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
+                <option key={o.value} value={o.value} className="bg-zinc-900 text-zinc-300">
                   {o.label}
                 </option>
               ))}
