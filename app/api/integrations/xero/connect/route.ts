@@ -27,6 +27,7 @@ export async function GET() {
 
   try {
     const consentUrl = await buildXeroConsentUrl(user.id);
+    console.log("XERO CONSENT URL GENERATED:", consentUrl);
     return NextResponse.redirect(consentUrl);
   } catch (error) {
     return redirectToSettings(
