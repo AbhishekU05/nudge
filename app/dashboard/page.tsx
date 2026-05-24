@@ -103,6 +103,7 @@ export default async function DashboardPage({
     { data: customers },
     { data: customerEvents },
     { data: profile },
+    { data: xeroIntegration },
   ] = await Promise.all([
     supabase
       .from("customers")
@@ -124,6 +125,12 @@ export default async function DashboardPage({
         razorpay_renews_at: string | null;
         created_at: string;
       }>(),
+    supabase
+      .from("integrations")
+      .select("provider")
+      .eq("user_id", user.id)
+      .eq("provider", "xero")
+      .maybeSingle<{ provider: string }>(),
   ]);
 
   const logsByCustomer = new Map<string, PaymentLog[]>();
@@ -218,6 +225,11 @@ export default async function DashboardPage({
                 Billing
               </Button>
             </Link>
+            <Link href="/settings/integrations">
+              <Button variant="ghost" size="sm">
+                Integrations
+              </Button>
+            </Link>
 
             {/* Profile dropdown */}
             <details className="relative">
@@ -279,9 +291,14 @@ export default async function DashboardPage({
           {/* Page heading */}
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <Badge variant={hasSubscription ? "success" : "warning"}>
-                {planLabel}
-              </Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={hasSubscription ? "success" : "warning"}>
+                  {planLabel}
+                </Badge>
+                {xeroIntegration && (
+                  <Badge variant="success">Connected to Xero</Badge>
+                )}
+              </div>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
                 Collections
               </h1>

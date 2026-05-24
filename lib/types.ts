@@ -87,6 +87,7 @@ export type ReminderRow = {
   internal_notes: string | null;
   payment_link: string | null;
   stripe_invoice_id: string | null;
+  xero_invoice_id: string | null;
 
   // Automation (supporting feature)
   reminder_frequency_days: number;

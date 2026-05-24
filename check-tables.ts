@@ -14,7 +14,15 @@ const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_PU
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function check() {
-  const tables = ['profiles', 'customers', 'customer_events', 'usage_events', 'stripe_connections', 'leads'];
+  const tables = [
+    'profiles',
+    'customers',
+    'customer_events',
+    'usage_events',
+    'stripe_connections',
+    'integrations',
+    'leads',
+  ];
 
   for (const table of tables) {
     const { data, error } = await supabase.from(table).select('*').limit(1);

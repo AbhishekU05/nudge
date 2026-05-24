@@ -75,6 +75,7 @@ create table if not exists public.customers (
   unsubscribe_token uuid not null default gen_random_uuid(),
 
   stripe_invoice_id text,
+  xero_invoice_id text,
 
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -103,6 +104,10 @@ create unique index if not exists customers_unsubscribe_token_idx
 create index if not exists customers_stripe_invoice_id_idx
   on public.customers(stripe_invoice_id)
   where stripe_invoice_id is not null;
+
+create unique index if not exists customers_user_xero_invoice_id_idx
+  on public.customers(user_id, xero_invoice_id)
+;
 
 drop trigger if exists customers_set_updated_at on public.customers;
 create trigger customers_set_updated_at
@@ -192,6 +197,31 @@ create index if not exists stripe_connections_webhook_configured_idx
   on public.stripe_connections(user_id)
   where webhook_secret is not null;
 
+-- Third-party data sync integrations.
+create table if not exists public.integrations (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  provider text not null check (provider in ('xero')),
+  access_token text not null,
+  refresh_token text not null,
+  expires_at timestamptz not null,
+  tenant_id text not null,
+  last_synced_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, provider)
+);
+
+create index if not exists integrations_provider_idx
+  on public.integrations(provider);
+
+create index if not exists integrations_provider_last_synced_idx
+  on public.integrations(provider, last_synced_at);
+
+drop trigger if exists integrations_set_updated_at on public.integrations;
+create trigger integrations_set_updated_at
+before update on public.integrations
+for each row execute function public.set_updated_at();
+
 -- Landing-page lead capture.
 create table if not exists public.leads (
   id uuid primary key default gen_random_uuid(),
@@ -208,6 +238,7 @@ alter table public.customers enable row level security;
 alter table public.customer_events enable row level security;
 alter table public.usage_events enable row level security;
 alter table public.stripe_connections enable row level security;
+alter table public.integrations enable row level security;
 alter table public.leads enable row level security;
 
 -- Profiles policies
@@ -301,6 +332,32 @@ on public.stripe_connections
 for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
+
+-- Integration policies
+drop policy if exists "integrations_select_own" on public.integrations;
+create policy "integrations_select_own"
+on public.integrations
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "integrations_insert_own" on public.integrations;
+create policy "integrations_insert_own"
+on public.integrations
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "integrations_update_own" on public.integrations;
+create policy "integrations_update_own"
+on public.integrations
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "integrations_delete_own" on public.integrations;
+create policy "integrations_delete_own"
+on public.integrations
+for delete
+using (auth.uid() = user_id);
 
 -- Lead policies. Inserts are public; reads are service-role only by absence of
 -- a select policy.

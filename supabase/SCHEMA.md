@@ -29,7 +29,7 @@ Important columns: `user_id`, `recipient_name`, `recipient_email`,
 `promised_date`, `promise_notes`, `internal_notes`, `custom_message`,
 `payment_link`, `client_paid_at`, `reminder_frequency_days`, `next_send_at`,
 `last_sent_at`, `active`, `unsubscribed`, `unsubscribe_token`,
-`stripe_invoice_id`
+`stripe_invoice_id`, `xero_invoice_id`
 
 Valid `workflow_status` values: `outstanding`, `promised`, `partial`, `paid`,
 `overdue`, `written_off`
@@ -69,6 +69,15 @@ Primary key: `user_id`
 
 Important columns: `stripe_account_id`, `access_token`, `webhook_secret`
 
+### `integrations`
+
+Per-user third-party data sync connections. Currently supports Xero.
+
+Primary key: `(user_id, provider)`
+
+Important columns: `provider`, `access_token`, `refresh_token`, `expires_at`,
+`tenant_id`, `last_synced_at`
+
 ### `leads`
 
 Landing-page email capture. Public clients can insert only; reads should use
@@ -99,11 +108,14 @@ Important columns: `email`, `created_at`
 - `customers_unsubscribe_token_idx`: one-click unsubscribe/payment-confirmation
   lookups.
 - `customers_stripe_invoice_id_idx`: Stripe invoice webhook updates.
+- `customers_user_xero_invoice_id_idx`: idempotent Xero invoice imports.
 - `customer_events_customer_created_idx`: per-customer timeline display.
 - `customer_events_user_created_idx`: dashboard activity loading.
 - `customer_events_user_type_created_idx`: event-type filtered activity queries.
 - `usage_events_user_type_created_idx`: minute/day rate-limit counts.
 - `stripe_connections_webhook_configured_idx`: Stripe webhook secret scan.
+- `integrations_provider_idx`: scheduled provider sync lookup.
+- `integrations_provider_last_synced_idx`: stale integration discovery.
 - `leads_created_at_idx`: admin lead review by recency.
 
 ## Security Model
