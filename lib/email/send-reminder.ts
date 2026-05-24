@@ -1,69 +1,62 @@
 import "server-only";
 
-import { buildReminderEmail } from "@/lib/email/reminder";
-import { getFromEmail, getResendClient } from "@/lib/resend";
+import { sendGmail } from "@/lib/gmail";
 import { logger } from "@/lib/logger";
 
 type SendReminderEmailParams = {
+  userId: string;
   senderName: string;
+  senderEmail: string;
   recipientEmail: string;
   recipientName: string;
-  amountOwed: number;
-  currency: string;
   customMessage: string | null;
-  paymentLink: string | null;
-  unsubscribeToken: string;
-  senderEmail?: string | null;
-  idempotencyKey?: string;
 };
 
+/**
+ * Send a plain-text payment reminder from the user's own Gmail.
+ *
+ * Format:
+ *   Hey [client name],
+ *
+ *   [follow-up message]
+ *
+ *   [user's name]
+ */
 export async function sendReminderEmail(params: SendReminderEmailParams) {
-  const resend = getResendClient();
-  const { subject, react, text } = buildReminderEmail({
-    senderName: params.senderName,
-    senderEmail: params.senderEmail,
-    recipientName: params.recipientName,
-    amountOwed: params.amountOwed,
-    currency: params.currency,
-    customMessage: params.customMessage,
-    paymentLink: params.paymentLink,
-    unsubscribeToken: params.unsubscribeToken,
-  });
+  const safeRecipientName = params.recipientName.trim() || "there";
+  const safeSenderName = params.senderName.trim() || "Someone";
 
-  const payload = {
-    from: getFromEmail(),
-    to: params.recipientEmail,
-    subject,
-    react,
-    text,
-    replyTo: params.senderEmail ?? undefined,
-  };
+  // Build the plain-text body
+  const bodyLines: string[] = [
+    `Hey ${safeRecipientName},`,
+  ];
 
-  const startTime = Date.now();
-  const response = params.idempotencyKey
-    ? await resend.emails.send(payload, {
-        idempotencyKey: params.idempotencyKey,
-      })
-    : await resend.emails.send(payload);
-  const latency = Date.now() - startTime;
-
-  if (response.error) {
-    logger.external({
-      service: "Resend",
-      action: "send_reminder_email",
-      success: false,
-      latency,
-      error: response.error.message,
-    });
-    throw new Error(response.error.message);
+  if (params.customMessage?.trim()) {
+    bodyLines.push("", params.customMessage.trim());
   }
 
-  logger.external({
-    service: "Resend",
-    action: "send_reminder_email",
-    success: true,
-    latency,
-  });
+  bodyLines.push("", safeSenderName);
 
-  return response.data;
+  const body = bodyLines.join("\n");
+  const subject = "Following up";
+
+  try {
+    await sendGmail({
+      userId: params.userId,
+      senderName: safeSenderName,
+      senderEmail: params.senderEmail,
+      to: params.recipientEmail,
+      subject,
+      body,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    logger.external({
+      service: "Gmail",
+      action: "send_reminder_email",
+      success: false,
+      error: message,
+    });
+    throw error;
+  }
 }

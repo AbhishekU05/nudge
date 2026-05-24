@@ -298,3 +298,10 @@ alter table public.stripe_connections
 
 alter table public.stripe_connections
   alter column access_token drop not null;
+
+-- Google OAuth tokens for Gmail API sending
+alter table public.profiles
+  add column if not exists google_access_token text;
+
+alter table public.profiles
+  add column if not exists google_refresh_token text;

@@ -27,6 +27,11 @@ export function GoogleAuthButton({
         options: {
           redirectTo: callbackUrl.toString(),
           skipBrowserRedirect: true,
+          scopes: "https://www.googleapis.com/auth/gmail.send",
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
       });
 

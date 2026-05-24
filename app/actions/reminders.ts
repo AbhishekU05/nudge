@@ -469,15 +469,12 @@ export async function sendTestReminderEmail(reminderId: string) {
 
   try {
     await sendReminderEmail({
+      userId: user.id,
       senderName: user.user_metadata?.full_name || "Someone",
-      senderEmail: user.email ?? null,
+      senderEmail: user.email ?? "",
       recipientEmail: reminder.recipient_email,
       recipientName: reminder.recipient_name,
-      amountOwed: Number(reminder.amount_owed),
-      currency: reminder.currency,
       customMessage: reminder.custom_message,
-      paymentLink: reminder.payment_link,
-      unsubscribeToken: reminder.unsubscribe_token,
     });
     logger.action({
       action_name: "send_test_reminder",

@@ -295,17 +295,19 @@ export async function POST(request: Request) {
       claimed += 1;
 
       const sender = authUsersMap.get(reminder.user_id);
+      if (!sender?.email) {
+        // Can't send via Gmail without the user's email address
+        failed += 1;
+        continue;
+      }
+
       await sendReminderEmail({
-        senderName: sender?.name ?? "Someone",
-        senderEmail: sender?.email ?? null,
+        userId: reminder.user_id,
+        senderName: sender.name,
+        senderEmail: sender.email,
         recipientEmail: reminder.recipient_email,
         recipientName: reminder.recipient_name,
-        amountOwed: Number(reminder.amount_owed),
-        currency: reminder.currency,
         customMessage: reminder.custom_message,
-        paymentLink: reminder.payment_link,
-        unsubscribeToken: reminder.unsubscribe_token,
-        idempotencyKey: `reminder:${reminder.id}:${reminder.next_send_at}`,
       });
 
       const sentAt = new Date();
