@@ -25,7 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { CustomerDrawer } from "@/components/site/customer-drawer";
 import { LocalTime } from "@/components/site/local-time";
 import { cn } from "@/lib/utils";
-import type { CustomerRecord, WorkflowStatus } from "@/lib/types";
+import type { CustomerRecord } from "@/lib/types";
 import { getRemainingBalance, getDaysOverdue, isEffectivelyPaid } from "@/lib/types";
 import Link from "next/link";
 
@@ -45,21 +45,6 @@ function getInitials(name: string) {
     .slice(0, 2)
     .toUpperCase();
 }
-
-// ---------------------------------------------------------------------------
-// Status config
-// ---------------------------------------------------------------------------
-const STATUS_CONFIG: Record<
-  WorkflowStatus,
-  { label: string; variant: "success" | "warning" | "danger" | "muted" | "default" }
-> = {
-  outstanding: { label: "Outstanding", variant: "warning" },
-  promised: { label: "Promised", variant: "default" },
-  partial: { label: "Partial", variant: "default" },
-  paid: { label: "Paid", variant: "success" },
-  overdue: { label: "Overdue", variant: "danger" },
-  written_off: { label: "Written off", variant: "muted" },
-};
 
 // ---------------------------------------------------------------------------
 // Stats bar
@@ -118,7 +103,6 @@ function CustomerCard({
   const remaining = getRemainingBalance(customer);
   const daysOverdue = getDaysOverdue(customer);
   const status = customer.workflow_status;
-  const statusCfg = STATUS_CONFIG[status];
   const paid = isEffectivelyPaid(customer);
 
   return (

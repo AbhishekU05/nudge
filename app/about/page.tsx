@@ -128,10 +128,10 @@ export default function AboutPage() {
                 </p>
               </div>
 
-              {/* Who It's For */}
+              {/* Who It&apos;s For */}
               <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-8 sm:p-10">
                 <h2 className="text-sm font-semibold uppercase tracking-widest text-indigo-400">
-                  Who it's for
+                  Who it&apos;s for
                 </h2>
                 <p className="mt-4 text-lg leading-8 text-zinc-300">
                   Duely is crafted exclusively for independent professionals and small teams who rely on timely payments to keep their business running smoothly:

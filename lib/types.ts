@@ -7,9 +7,6 @@ export type WorkflowStatus =
   | "overdue"
   | "written_off";
 
-// Relationship tag for customer segmentation
-export type RelationshipTag = "new_client" | "returning" | "at_risk" | "vip";
-
 // Tone options for follow-up message drafting
 export type FollowUpTone = "friendly" | "professional" | "firm";
 
@@ -23,7 +20,7 @@ export type FollowUpOutcome =
 
 export type FollowUpLog = {
   id: string;
-  reminder_id: string;
+  customer_id: string;
   user_id: string;
   followup_date: string;
   method: FollowUpMethod;
@@ -36,11 +33,28 @@ export type PaymentLogSource = "user" | "customer" | "adjustment";
 
 export type PaymentLog = {
   id: string;
-  reminder_id: string;
+  customer_id: string;
   user_id: string;
   amount: number;
   currency: string;
   source: PaymentLogSource;
+  created_at: string;
+};
+
+export type CustomerEventType = "payment" | "followup";
+
+export type CustomerEvent = {
+  id: string;
+  customer_id: string;
+  user_id: string;
+  event_type: CustomerEventType;
+  event_date: string;
+  amount: number | null;
+  currency: string | null;
+  payment_source: PaymentLogSource | null;
+  followup_method: FollowUpMethod | null;
+  followup_outcome: FollowUpOutcome | null;
+  note: string | null;
   created_at: string;
 };
 
@@ -64,8 +78,6 @@ export type ReminderRow = {
 
   // Workflow & pipeline
   workflow_status: WorkflowStatus;
-  relationship_tag: RelationshipTag | null;
-
   // Promise tracking
   promised_date: string | null;
   promise_notes: string | null;
@@ -75,7 +87,6 @@ export type ReminderRow = {
   internal_notes: string | null;
   payment_link: string | null;
   stripe_invoice_id: string | null;
-  paid: boolean;
 
   // Automation (supporting feature)
   reminder_frequency_days: number;

@@ -67,7 +67,7 @@ async function claimReminder(params: {
   const supabase = createSupabaseAdminClient();
 
   const { data, error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({ next_send_at: leaseUntil })
     .eq("id", params.reminder.id)
     .eq("active", true)
@@ -99,7 +99,7 @@ async function deferFirstReminder(params: {
   const supabase = createSupabaseAdminClient();
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({ next_send_at: params.deferredUntil })
     .eq("id", params.reminderId)
     .eq("active", true)
@@ -122,7 +122,7 @@ async function restoreClaim(params: {
   const supabase = createSupabaseAdminClient();
 
   await supabase
-    .from("reminders")
+    .from("customers")
     .update({ next_send_at: params.originalNextSendAt })
     .eq("id", params.reminderId)
     .eq("next_send_at", params.leaseUntil);
@@ -138,7 +138,7 @@ async function finalizeReminderSend(params: {
   const supabase = createSupabaseAdminClient();
 
   const update = await supabase
-    .from("reminders")
+    .from("customers")
     .update({
       last_sent_at: params.lastSentAt,
       next_send_at: params.nextSendAt,
@@ -151,7 +151,7 @@ async function finalizeReminderSend(params: {
   }
 
   const fallback = await supabase
-    .from("reminders")
+    .from("customers")
     .update({
       last_sent_at: params.lastSentAt,
       next_send_at: params.nextSendAt,
@@ -186,7 +186,7 @@ export async function POST(request: Request) {
 
   const nowIso = new Date().toISOString();
   const { data, error } = await supabase
-    .from("reminders")
+    .from("customers")
     .select(
       "id,user_id,recipient_name,recipient_email,amount_owed,currency,custom_message,payment_link,reminder_frequency_days,unsubscribe_token,next_send_at,last_sent_at,updated_at,created_at",
     )
@@ -260,7 +260,7 @@ export async function POST(request: Request) {
       
       // Physically pause active reminders since their trial/subscription expired
       await supabase
-        .from("reminders")
+        .from("customers")
         .update({ active: false })
         .eq("user_id", reminder.user_id)
         .eq("active", true);

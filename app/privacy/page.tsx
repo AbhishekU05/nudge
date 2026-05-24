@@ -78,7 +78,7 @@ export default function PrivacyPage() {
               <p className="mb-2">We clarify how we store and manage your security data:</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>OAuth tokens are stored encrypted in our database.</li>
-                <li>Tokens are only used to send emails on the user's behalf.</li>
+                <li>Tokens are only used to send emails on the user&apos;s behalf.</li>
                 <li>Tokens are deleted when a user deletes their account.</li>
               </ul>
             </div>

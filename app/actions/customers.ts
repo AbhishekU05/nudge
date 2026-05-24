@@ -25,7 +25,6 @@ import type { WorkflowStatus, CustomerRecord, PaymentLogSource, FollowUpMethod, 
 // Helpers
 // ---------------------------------------------------------------------------
 
-const MAX_CUSTOMERS = 20;
 const MAX_PAYMENT_LINK_LENGTH = 2048;
 
 function redirectToDashboard(params: { error?: string; success?: string }): never {
@@ -92,12 +91,14 @@ async function insertPaymentLog({
   currency: string;
   source: PaymentLogSource;
 }) {
-  const { error } = await supabase.from("payment_logs").insert({
-    reminder_id: customerId,
+  const { error } = await supabase.from("customer_events").insert({
+    customer_id: customerId,
     user_id: userId,
+    event_type: "payment",
+    event_date: new Date().toISOString().slice(0, 10),
     amount,
     currency,
-    source,
+    payment_source: source,
   });
 
   if (error) {
@@ -145,7 +146,7 @@ export async function recordPartialPayment(formData: FormData) {
 
   // Fetch the current record to compute new totals
   const { data: customer, error: fetchError } = await supabase
-    .from("reminders")
+    .from("customers")
     .select("amount_owed, amount_paid, currency")
     .eq("id", customerId)
     .eq("user_id", user.id)
@@ -171,7 +172,6 @@ export async function recordPartialPayment(formData: FormData) {
   const updatePayload: Record<string, unknown> = {
     amount_paid: newAmountPaid,
     workflow_status: newStatus,
-    paid: newStatus === "paid",
   };
 
   // When fully paid via dashboard, set active=false to stop automation.
@@ -182,7 +182,7 @@ export async function recordPartialPayment(formData: FormData) {
   }
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update(updatePayload)
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -248,7 +248,7 @@ export async function markFullyPaid(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { data: customer, error: fetchError } = await supabase
-    .from("reminders")
+    .from("customers")
     .select("amount_owed, amount_paid, currency")
     .eq("id", customerId)
     .eq("user_id", user.id)
@@ -264,11 +264,10 @@ export async function markFullyPaid(formData: FormData) {
   );
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({
       amount_paid: customer!.amount_owed,
       workflow_status: "paid",
-      paid: true,
       // NOTE: client_paid_at is intentionally NOT set here — it is reserved
       // exclusively for customer self-reports via the "I've paid" email link.
       active: false,
@@ -334,11 +333,10 @@ export async function undoMarkAsPaid(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({
       workflow_status: "outstanding",
       amount_paid: 0,
-      paid: false,
       client_paid_at: null,
       active: false,
     })
@@ -396,7 +394,7 @@ export async function correctAmountPaid(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { data: customer, error: fetchError } = await supabase
-    .from("reminders")
+    .from("customers")
     .select("amount_owed, currency")
     .eq("id", customerId)
     .eq("user_id", user.id)
@@ -414,7 +412,6 @@ export async function correctAmountPaid(formData: FormData) {
   const updatePayload: Record<string, unknown> = {
     amount_paid: paid,
     workflow_status: newStatus,
-    paid: newStatus === "paid",
     // Clear client_paid_at if we're un-fully-paying (amount < owed)
     ...(paid < amountOwed ? { client_paid_at: null } : {}),
   };
@@ -424,7 +421,7 @@ export async function correctAmountPaid(formData: FormData) {
   }
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update(updatePayload)
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -503,7 +500,7 @@ export async function recordPaymentPromise(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({
       promised_date: promisedDateRaw as string,
       promise_notes: notesValue,
@@ -553,7 +550,7 @@ export async function saveInternalNotes(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({ internal_notes: notesValue })
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -594,11 +591,10 @@ export async function updateWorkflowStatus(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const updatePayload: Record<string, unknown> = { workflow_status: status };
-  updatePayload.paid = status === "paid";
 
   if (status === "paid") {
     const { data: customer } = await supabase
-      .from("reminders")
+      .from("customers")
       .select("amount_owed")
       .eq("id", customerId)
       .eq("user_id", user.id)
@@ -615,7 +611,7 @@ export async function updateWorkflowStatus(formData: FormData) {
   }
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update(updatePayload)
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -668,7 +664,7 @@ export async function createCustomer(formData: FormData) {
 
   // Block duplicate emails regardless of unsubscribed status
   const { data: existing } = await supabase
-    .from("reminders")
+    .from("customers")
     .select("id, unsubscribed")
     .eq("user_id", user.id)
     .eq("recipient_email", recipientEmail)
@@ -693,8 +689,8 @@ export async function createCustomer(formData: FormData) {
   // next_send_at is required by schema — set it even though active=false
   const nextSendAt = computeFirstReminderSendAt();
 
-  const { data: newCustomer, error } = await supabase
-    .from("reminders")
+  const { error } = await supabase
+    .from("customers")
     .insert({
       user_id: user.id,
       recipient_name: recipientName as string,
@@ -707,9 +703,7 @@ export async function createCustomer(formData: FormData) {
       active: false, // no automation yet
       unsubscribed: false,
       workflow_status: "outstanding",
-    })
-    .select("id")
-    .maybeSingle<{ id: string }>();
+    });
 
   if (error) {
     logger.error({
@@ -764,7 +758,7 @@ export async function enableAutomation(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { data: customer, error: fetchError } = await supabase
-    .from("reminders")
+    .from("customers")
     .select("id, last_sent_at, workflow_status")
     .eq("id", customerId)
     .eq("user_id", user.id)
@@ -783,7 +777,7 @@ export async function enableAutomation(formData: FormData) {
   // Cap active automated reminders at MAX_ACTIVE_REMINDERS
   const MAX_ACTIVE_REMINDERS = 20;
   const { count: activeCount } = await supabase
-    .from("reminders")
+    .from("customers")
     .select("*", { count: "exact", head: true })
     .eq("user_id", user.id)
     .eq("active", true);
@@ -800,7 +794,7 @@ export async function enableAutomation(formData: FormData) {
     : computeFirstReminderSendAt());
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({
       custom_message: messageValue,
       payment_link: paymentLink,
@@ -852,7 +846,7 @@ export async function deleteCustomer(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .delete()
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -905,7 +899,7 @@ export async function updateDueDate(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({ due_date: dueDate })
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -984,7 +978,7 @@ export async function logFollowUp(formData: FormData) {
 
   // Verify the customer belongs to this user
   const { data: customer, error: fetchError } = await supabase
-    .from("reminders")
+    .from("customers")
     .select("id")
     .eq("id", customerId)
     .eq("user_id", user.id)
@@ -994,13 +988,14 @@ export async function logFollowUp(formData: FormData) {
     redirectToDashboard({ error: "Customer not found." });
   }
 
-  const { error } = await supabase.from("followup_logs").insert({
-    reminder_id: customerId as string,
+  const { error } = await supabase.from("customer_events").insert({
+    customer_id: customerId as string,
     user_id: user.id,
-    followup_date: (followupDate as string).trim(),
-    method,
+    event_type: "followup",
+    event_date: (followupDate as string).trim(),
+    followup_method: method,
     note,
-    outcome,
+    followup_outcome: outcome,
   });
 
   if (error) {

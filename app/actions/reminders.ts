@@ -129,17 +129,9 @@ export async function createReminder(formData: FormData) {
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("razorpay_subscription_status, created_at")
-    .eq("user_id", user.id)
-    .maybeSingle<{
-      razorpay_subscription_status: string | null;
-      created_at: string;
-    }>();
 
   const { count } = await supabase
-  .from("reminders")
+  .from("customers")
   .select("*", { count: "exact", head: true })
   .eq("user_id", user.id)
   .eq("active", true);
@@ -166,7 +158,7 @@ export async function createReminder(formData: FormData) {
   }
 
   const { data: existingReminder } = await supabase
-    .from("reminders")
+    .from("customers")
     .select("id")
     .eq("user_id", user.id)
     .eq("recipient_email", recipientEmail)
@@ -221,7 +213,7 @@ export async function createReminder(formData: FormData) {
 
   const nextSendAt = computeFirstReminderSendAt();
 
-  const { error } = await supabase.from("reminders").insert({
+  const { error } = await supabase.from("customers").insert({
     user_id: user.id,
     recipient_name: recipientName,
     recipient_email: recipientEmail,
@@ -268,7 +260,7 @@ export async function pauseReminder(reminderId: string) {
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({ active: false })
     .eq("id", reminderId)
     .eq("user_id", user.id);
@@ -325,7 +317,7 @@ export async function resumeReminder(reminderId: string) {
   }
 
   const { count } = await supabase
-  .from("reminders")
+  .from("customers")
   .select("*", { count: "exact", head: true })
   .eq("user_id", user.id)
   .eq("unsubscribed", false);
@@ -337,7 +329,7 @@ export async function resumeReminder(reminderId: string) {
     }
 
   const { data: current, error: selectError } = await supabase
-    .from("reminders")
+    .from("customers")
     .select("reminder_frequency_days,last_sent_at")
     .eq("id", reminderId)
     .eq("user_id", user.id)
@@ -359,7 +351,7 @@ export async function resumeReminder(reminderId: string) {
     : computeFirstReminderSendAt();
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({ active: true, next_send_at: nextSendAt })
     .eq("id", reminderId)
     .eq("user_id", user.id);
@@ -398,7 +390,7 @@ export async function deleteReminder(reminderId: string) {
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .delete()
     .eq("id", reminderId)
     .eq("user_id", user.id);
@@ -435,7 +427,7 @@ export async function sendTestReminderEmail(reminderId: string) {
 
   const supabase = await createSupabaseServerClient();
   const { data: reminder, error } = await supabase
-    .from("reminders")
+    .from("customers")
     .select(
       "id,recipient_name,recipient_email,amount_owed,currency,custom_message,payment_link,unsubscribe_token,unsubscribed",
     )

@@ -1,5 +1,6 @@
--- Nudge: Supabase schema for recurring payment reminders
--- Apply this in the Supabase SQL editor.
+-- Duely Supabase schema
+-- Canonical schema for a fresh database. Existing databases should apply the
+-- numbered migrations in supabase/migrations/.
 
 -- Extensions
 create extension if not exists "pgcrypto";
@@ -15,7 +16,7 @@ begin
 end;
 $$;
 
--- Profiles for billing metadata
+-- User-owned billing, referral, and email-provider metadata.
 create table if not exists public.profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   created_at timestamptz not null default now(),
@@ -26,7 +27,9 @@ create table if not exists public.profiles (
   razorpay_subscription_status text,
   razorpay_renews_at timestamptz,
 
-  referral_source text
+  referral_source text,
+  google_access_token text,
+  google_refresh_token text
 );
 
 drop trigger if exists profiles_set_updated_at on public.profiles;
@@ -34,54 +37,138 @@ create trigger profiles_set_updated_at
 before update on public.profiles
 for each row execute function public.set_updated_at();
 
--- Reminders
-create table if not exists public.reminders (
+-- Customer balance records plus optional reminder automation state.
+create table if not exists public.customers (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
 
   recipient_name text not null,
   recipient_email text not null,
   amount_owed numeric(12,2) not null check (amount_owed > 0),
+  amount_paid numeric(12,2) not null default 0 check (amount_paid >= 0),
   currency text not null default 'USD',
+  due_date date,
+
+  workflow_status text not null default 'outstanding'
+    check (workflow_status in (
+      'outstanding',
+      'promised',
+      'partial',
+      'paid',
+      'overdue',
+      'written_off'
+    )),
+
+  promised_date date,
+  promise_notes text,
+  internal_notes text,
+
   custom_message text,
   payment_link text,
-  -- Set ONLY when the customer clicks "I've paid" in the reminder email.
-  -- Agent-marked payments (dashboard) do NOT set this field.
-  -- Use this as an unambiguous signal that the customer self-reported payment.
   client_paid_at timestamptz,
 
-  reminder_frequency_days int not null check (reminder_frequency_days >= 1),
+  reminder_frequency_days int not null default 7 check (reminder_frequency_days >= 1),
   next_send_at timestamptz not null,
   last_sent_at timestamptz,
-
-  active boolean not null default true,
+  active boolean not null default false,
   unsubscribed boolean not null default false,
-
   unsubscribe_token uuid not null default gen_random_uuid(),
 
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
+  stripe_invoice_id text,
 
-  -- Abuse prevention: enforce at least 24h between sends (frequency must be >= 1 day)
-  constraint reminders_min_interval check (reminder_frequency_days >= 1)
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
-alter table public.reminders
-  add column if not exists payment_link text;
+create index if not exists customers_user_id_idx
+  on public.customers(user_id);
 
-alter table public.reminders
-  add column if not exists client_paid_at timestamptz;
+create index if not exists customers_user_created_idx
+  on public.customers(user_id, created_at desc);
 
-create index if not exists reminders_user_id_idx on public.reminders(user_id);
-create index if not exists reminders_next_send_at_idx on public.reminders(next_send_at) where active = true and unsubscribed = false;
-create unique index if not exists reminders_unsubscribe_token_idx on public.reminders(unsubscribe_token);
+create index if not exists customers_user_email_idx
+  on public.customers(user_id, recipient_email);
 
-drop trigger if exists reminders_set_updated_at on public.reminders;
-create trigger reminders_set_updated_at
-before update on public.reminders
+create index if not exists customers_user_status_idx
+  on public.customers(user_id, workflow_status)
+  where unsubscribed = false;
+
+create index if not exists customers_next_send_at_idx
+  on public.customers(next_send_at)
+  where active = true and unsubscribed = false;
+
+create unique index if not exists customers_unsubscribe_token_idx
+  on public.customers(unsubscribe_token);
+
+create index if not exists customers_stripe_invoice_id_idx
+  on public.customers(stripe_invoice_id)
+  where stripe_invoice_id is not null;
+
+drop trigger if exists customers_set_updated_at on public.customers;
+create trigger customers_set_updated_at
+before update on public.customers
 for each row execute function public.set_updated_at();
 
--- Simple usage events for basic rate limiting / abuse monitoring
+-- Unified customer timeline. Replaces separate payment_logs and followup_logs.
+create table if not exists public.customer_events (
+  id uuid primary key default gen_random_uuid(),
+  customer_id uuid not null references public.customers(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  event_type text not null check (event_type in ('payment', 'followup')),
+  event_date date not null default current_date,
+
+  amount numeric(12,2) check (amount is null or amount > 0),
+  currency text,
+  payment_source text check (
+    payment_source is null or payment_source in ('user', 'customer', 'adjustment')
+  ),
+
+  followup_method text check (
+    followup_method is null or followup_method in ('email', 'call', 'whatsapp', 'other')
+  ),
+  followup_outcome text check (
+    followup_outcome is null or followup_outcome in (
+      'no_response',
+      'promise_made',
+      'partial_payment',
+      'paid_in_full'
+    )
+  ),
+  note text,
+
+  created_at timestamptz not null default now(),
+
+  constraint customer_events_shape check (
+    (
+      event_type = 'payment'
+      and amount is not null
+      and currency is not null
+      and payment_source is not null
+      and followup_method is null
+      and followup_outcome is null
+    )
+    or
+    (
+      event_type = 'followup'
+      and amount is null
+      and currency is null
+      and payment_source is null
+      and followup_method is not null
+      and followup_outcome is not null
+    )
+  )
+);
+
+create index if not exists customer_events_customer_created_idx
+  on public.customer_events(customer_id, created_at desc);
+
+create index if not exists customer_events_user_created_idx
+  on public.customer_events(user_id, created_at desc);
+
+create index if not exists customer_events_user_type_created_idx
+  on public.customer_events(user_id, event_type, created_at desc);
+
+-- Simple usage events for rate limiting and abuse monitoring.
 create table if not exists public.usage_events (
   id bigserial primary key,
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -92,38 +179,36 @@ create table if not exists public.usage_events (
 create index if not exists usage_events_user_type_created_idx
   on public.usage_events(user_id, event_type, created_at desc);
 
--- Payment history for customer balances
-create table if not exists public.payment_logs (
-  id uuid primary key default gen_random_uuid(),
-  reminder_id uuid not null references public.reminders(id) on delete cascade,
-  user_id uuid not null references auth.users(id) on delete cascade,
-  amount numeric(12,2) not null check (amount > 0),
-  currency text not null default 'USD',
-  source text not null default 'user'
-    check (source in ('user', 'customer', 'adjustment')),
-  created_at timestamptz not null default now()
-);
-
-create index if not exists payment_logs_reminder_created_idx
-  on public.payment_logs(reminder_id, created_at desc);
-
-create index if not exists payment_logs_user_created_idx
-  on public.payment_logs(user_id, created_at desc);
-
--- Stripe Connect OAuth connections
+-- Stripe Connect/manual webhook configuration.
 create table if not exists public.stripe_connections (
   user_id uuid primary key references auth.users(id) on delete cascade,
-  stripe_account_id text not null unique,
-  access_token text not null,
+  stripe_account_id text unique,
+  access_token text,
+  webhook_secret text,
   created_at timestamptz not null default now()
 );
+
+create index if not exists stripe_connections_webhook_configured_idx
+  on public.stripe_connections(user_id)
+  where webhook_secret is not null;
+
+-- Landing-page lead capture.
+create table if not exists public.leads (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists leads_created_at_idx
+  on public.leads(created_at desc);
 
 -- Row Level Security
 alter table public.profiles enable row level security;
-alter table public.reminders enable row level security;
+alter table public.customers enable row level security;
+alter table public.customer_events enable row level security;
 alter table public.usage_events enable row level security;
-alter table public.payment_logs enable row level security;
 alter table public.stripe_connections enable row level security;
+alter table public.leads enable row level security;
 
 -- Profiles policies
 drop policy if exists "profiles_select_own" on public.profiles;
@@ -145,33 +230,46 @@ for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
--- Reminders policies (owner-only)
-drop policy if exists "reminders_select_own" on public.reminders;
-create policy "reminders_select_own"
-on public.reminders
+-- Customer policies
+drop policy if exists "customers_select_own" on public.customers;
+create policy "customers_select_own"
+on public.customers
 for select
 using (auth.uid() = user_id);
 
-drop policy if exists "reminders_insert_own" on public.reminders;
-create policy "reminders_insert_own"
-on public.reminders
+drop policy if exists "customers_insert_own" on public.customers;
+create policy "customers_insert_own"
+on public.customers
 for insert
 with check (auth.uid() = user_id);
 
-drop policy if exists "reminders_update_own" on public.reminders;
-create policy "reminders_update_own"
-on public.reminders
+drop policy if exists "customers_update_own" on public.customers;
+create policy "customers_update_own"
+on public.customers
 for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
-drop policy if exists "reminders_delete_own" on public.reminders;
-create policy "reminders_delete_own"
-on public.reminders
+drop policy if exists "customers_delete_own" on public.customers;
+create policy "customers_delete_own"
+on public.customers
 for delete
 using (auth.uid() = user_id);
 
--- Usage events policies (owner-only)
+-- Customer event policies
+drop policy if exists "customer_events_select_own" on public.customer_events;
+create policy "customer_events_select_own"
+on public.customer_events
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "customer_events_insert_own" on public.customer_events;
+create policy "customer_events_insert_own"
+on public.customer_events
+for insert
+with check (auth.uid() = user_id);
+
+-- Usage event policies
 drop policy if exists "usage_events_select_own" on public.usage_events;
 create policy "usage_events_select_own"
 on public.usage_events
@@ -184,20 +282,7 @@ on public.usage_events
 for insert
 with check (auth.uid() = user_id);
 
--- Payment log policies (owner-only)
-drop policy if exists "payment_logs_select_own" on public.payment_logs;
-create policy "payment_logs_select_own"
-on public.payment_logs
-for select
-using (auth.uid() = user_id);
-
-drop policy if exists "payment_logs_insert_own" on public.payment_logs;
-create policy "payment_logs_insert_own"
-on public.payment_logs
-for insert
-with check (auth.uid() = user_id);
-
--- Stripe connection policies (owner-only)
+-- Stripe connection policies
 drop policy if exists "stripe_connections_select_own" on public.stripe_connections;
 create policy "stripe_connections_select_own"
 on public.stripe_connections
@@ -217,7 +302,17 @@ for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
--- Auto-create profile rows on signup
+-- Lead policies. Inserts are public; reads are service-role only by absence of
+-- a select policy.
+drop policy if exists "leads_insert_anon" on public.leads;
+create policy "leads_insert_anon"
+on public.leads
+for insert
+with check (true);
+
+drop policy if exists "leads_select_admin" on public.leads;
+
+-- Auto-create profile rows on signup.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -239,101 +334,3 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure public.handle_new_user();
-
--- ============================================================
--- PHASE 1 MIGRATION: Workflow-first collections columns
--- Apply these in Supabase SQL editor. All are additive (no data loss).
--- ============================================================
-
--- Payment tracking: due date + partial payment support
-alter table public.reminders
-  add column if not exists due_date date;
-
-alter table public.reminders
-  add column if not exists amount_paid numeric(12,2) not null default 0
-  check (amount_paid >= 0);
-
--- Promise tracking: lightweight commitment log on the record
-alter table public.reminders
-  add column if not exists promised_date date;
-
-alter table public.reminders
-  add column if not exists promise_notes text;
-
--- Workflow pipeline status
--- Values: 'outstanding' | 'promised' | 'partial' | 'paid' | 'overdue' | 'written_off'
-alter table public.reminders
-  add column if not exists workflow_status text not null default 'outstanding';
-
--- Relationship tag for quick segmentation
--- Values: 'new_client' | 'returning' | 'at_risk' | 'vip'
-alter table public.reminders
-  add column if not exists relationship_tag text;
-
--- Internal notes (not sent to customer)
-alter table public.reminders
-  add column if not exists internal_notes text;
-
--- Index on workflow_status for pipeline queries
-create index if not exists reminders_workflow_status_idx
-  on public.reminders(user_id, workflow_status)
-  where unsubscribed = false;
-
-alter table public.reminders
-  add column if not exists stripe_invoice_id text;
-
-alter table public.reminders
-  add column if not exists paid boolean not null default false;
-
-create index if not exists reminders_stripe_invoice_id_idx
-  on public.reminders(stripe_invoice_id)
-  where stripe_invoice_id is not null;
-
--- Add webhook_secret to stripe_connections and relax constraints for manual setup
-alter table public.stripe_connections
-  add column if not exists webhook_secret text;
-
-alter table public.stripe_connections
-  alter column stripe_account_id drop not null;
-
-alter table public.stripe_connections
-  alter column access_token drop not null;
-
--- Google OAuth tokens for Gmail API sending
-alter table public.profiles
-  add column if not exists google_access_token text;
-
-alter table public.profiles
-  add column if not exists google_refresh_token text;
-
--- Follow-up activity logs for customer timeline
-create table if not exists public.followup_logs (
-  id uuid primary key default gen_random_uuid(),
-  reminder_id uuid not null references public.reminders(id) on delete cascade,
-  user_id uuid not null references auth.users(id) on delete cascade,
-  followup_date date not null,
-  method text not null check (method in ('email', 'call', 'whatsapp', 'other')),
-  note text,
-  outcome text not null check (outcome in ('no_response', 'promise_made', 'partial_payment', 'paid_in_full')),
-  created_at timestamptz not null default now()
-);
-
-create index if not exists followup_logs_reminder_created_idx
-  on public.followup_logs(reminder_id, created_at desc);
-
-create index if not exists followup_logs_user_created_idx
-  on public.followup_logs(user_id, created_at desc);
-
-alter table public.followup_logs enable row level security;
-
-drop policy if exists "followup_logs_select_own" on public.followup_logs;
-create policy "followup_logs_select_own"
-on public.followup_logs
-for select
-using (auth.uid() = user_id);
-
-drop policy if exists "followup_logs_insert_own" on public.followup_logs;
-create policy "followup_logs_insert_own"
-on public.followup_logs
-for insert
-with check (auth.uid() = user_id);

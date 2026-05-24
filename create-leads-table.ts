@@ -21,7 +21,7 @@ const supabaseKey = env1.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function createTable() {
-  const { data, error } = await supabase.rpc('exec_sql', { sql: `
+  const { error } = await supabase.rpc('exec_sql', { sql: `
     create table if not exists public.leads (
       id uuid primary key default gen_random_uuid(),
       email text not null unique,

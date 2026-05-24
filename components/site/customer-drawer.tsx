@@ -112,28 +112,6 @@ function Section({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Relationship tag badge
-// ---------------------------------------------------------------------------
-function RelationshipBadge({ tag }: { tag: CustomerRecord["relationship_tag"] }) {
-  if (!tag) return null;
-  const labels: Record<string, string> = {
-    new_client: "New client",
-    returning: "Returning",
-    at_risk: "At risk",
-    vip: "VIP",
-  };
-  const variants: Record<string, "default" | "success" | "warning" | "danger" | "muted"> = {
-    new_client: "default",
-    returning: "success",
-    at_risk: "danger",
-    vip: "muted",
-  };
-  return (
-    <Badge variant={variants[tag] ?? "muted"}>{labels[tag] ?? tag}</Badge>
-  );
-}
-
 function PaymentSourceBadge({ source }: { source: "user" | "customer" | "adjustment" }) {
   if (source === "customer") {
     return <Badge variant="success">Customer confirmed</Badge>;
@@ -887,7 +865,6 @@ export function CustomerDrawer({
               <h2 className="text-lg font-semibold tracking-tight text-zinc-50">
                 {customer.recipient_name}
               </h2>
-              <RelationshipBadge tag={customer.relationship_tag} />
               {remaining <= 0 && (
                 <Badge variant={customer.client_paid_at ? "success" : "default"}>
                   {customer.client_paid_at ? "Customer marked paid" : "You marked paid"}

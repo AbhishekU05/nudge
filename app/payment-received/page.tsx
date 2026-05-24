@@ -43,7 +43,7 @@ export default async function PaymentReceivedPage({
 
   // Fetch the balance so we can set amount_paid and log the customer signal.
   const { data: reminder } = await supabase
-    .from("reminders")
+    .from("customers")
     .select("amount_owed, amount_paid, currency, user_id")
     .eq("unsubscribe_token", token)
     .maybeSingle<{
@@ -53,16 +53,15 @@ export default async function PaymentReceivedPage({
       user_id: string;
     }>();
 
-  // customer_paid_at is set ONLY via this path (customer self-reporting).
+  // client_paid_at is set ONLY via this path (customer self-reporting).
   // Agent-marked payments (from the dashboard) never touch this field,
   // so it remains an unambiguous signal of who confirmed the payment.
   const { data, error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({
       client_paid_at: new Date().toISOString(),
       workflow_status: "paid",
       amount_paid: reminder?.amount_owed ?? 0,
-      paid: true,
       active: false,
     })
     .eq("unsubscribe_token", token)
@@ -78,12 +77,14 @@ export default async function PaymentReceivedPage({
     );
 
     if (remaining > 0) {
-      await supabase.from("payment_logs").insert({
-        reminder_id: data.id,
+      await supabase.from("customer_events").insert({
+        customer_id: data.id,
         user_id: reminder.user_id,
+        event_type: "payment",
+        event_date: new Date().toISOString().slice(0, 10),
         amount: remaining,
         currency: reminder.currency,
-        source: "customer",
+        payment_source: "customer",
       });
     }
   }

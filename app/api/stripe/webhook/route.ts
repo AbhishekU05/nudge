@@ -51,13 +51,12 @@ async function handleInvoiceCreated(invoice: Stripe.Invoice, userId: string) {
     due_date: dueDate,
     stripe_invoice_id: invoice.id,
     payment_link: invoice.hosted_invoice_url,
-    paid: false,
     client_paid_at: null,
     workflow_status: getWorkflowStatus(dueDate),
   };
 
   const { data: existingReminder } = await supabase
-    .from("reminders")
+    .from("customers")
     .select("id")
     .eq("user_id", userId)
     .eq("recipient_email", email)
@@ -65,7 +64,7 @@ async function handleInvoiceCreated(invoice: Stripe.Invoice, userId: string) {
 
   if (existingReminder) {
     const { error } = await supabase
-      .from("reminders")
+      .from("customers")
       .update(updatePayload)
       .eq("id", existingReminder.id);
     if (error) {
@@ -74,7 +73,7 @@ async function handleInvoiceCreated(invoice: Stripe.Invoice, userId: string) {
     return;
   }
 
-  const { error } = await supabase.from("reminders").insert({
+  const { error } = await supabase.from("customers").insert({
     user_id: userId,
     recipient_name: name,
     recipient_email: email,
@@ -85,7 +84,6 @@ async function handleInvoiceCreated(invoice: Stripe.Invoice, userId: string) {
     custom_message: null,
     payment_link: invoice.hosted_invoice_url,
     stripe_invoice_id: invoice.id,
-    paid: false,
     reminder_frequency_days: 7,
     next_send_at: computeFirstReminderSendAt(),
     active: false,
@@ -102,10 +100,9 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   const supabase = createSupabaseAdminClient();
 
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({
       amount_paid: invoice.amount_paid ? Number(invoice.amount_paid) / 100 : 0,
-      paid: true,
       workflow_status: "paid",
       client_paid_at: new Date().toISOString(),
       active: false,

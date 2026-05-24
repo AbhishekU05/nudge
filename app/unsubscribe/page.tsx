@@ -37,7 +37,7 @@ export default async function UnsubscribePage({
   // Set workflow_status to 'written_off' so the customer moves to the
   // "Written off" section of the pipeline \u2014 emails won\u2019t be sent to them anymore.
   const { error } = await supabase
-    .from("reminders")
+    .from("customers")
     .update({ unsubscribed: true, active: false, workflow_status: "written_off" })
     .eq("unsubscribe_token", token);
 

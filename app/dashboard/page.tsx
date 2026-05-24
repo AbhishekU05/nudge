@@ -23,7 +23,7 @@ import { requireUser } from "@/lib/auth";
 import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/payments";
 import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { CustomerRecord, PaymentLog, FollowUpLog } from "@/lib/types";
+import type { CustomerEvent, CustomerRecord, FollowUpLog, PaymentLog } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type CustomerRow = Omit<CustomerRecord, "payment_history" | "followup_history">;
@@ -101,27 +101,20 @@ export default async function DashboardPage({
 
   const [
     { data: customers },
-    { data: paymentLogs },
-    { data: followupLogs },
+    { data: customerEvents },
     { data: profile },
   ] = await Promise.all([
     supabase
-      .from("reminders")
+      .from("customers")
       .select("*")
       .order("created_at", { ascending: false })
       .returns<CustomerRow[]>(),
     supabase
-      .from("payment_logs")
+      .from("customer_events")
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .returns<PaymentLog[]>(),
-    supabase
-      .from("followup_logs")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .returns<FollowUpLog[]>(),
+      .returns<CustomerEvent[]>(),
     supabase
       .from("profiles")
       .select("razorpay_subscription_status, razorpay_renews_at, created_at")
@@ -134,17 +127,40 @@ export default async function DashboardPage({
   ]);
 
   const logsByCustomer = new Map<string, PaymentLog[]>();
-  for (const log of paymentLogs ?? []) {
-    const existing = logsByCustomer.get(log.reminder_id) ?? [];
-    existing.push(log);
-    logsByCustomer.set(log.reminder_id, existing);
-  }
-
   const followupsByCustomer = new Map<string, FollowUpLog[]>();
-  for (const log of followupLogs ?? []) {
-    const existing = followupsByCustomer.get(log.reminder_id) ?? [];
-    existing.push(log);
-    followupsByCustomer.set(log.reminder_id, existing);
+
+  for (const event of customerEvents ?? []) {
+    if (event.event_type === "payment") {
+      const payment: PaymentLog = {
+        id: event.id,
+        customer_id: event.customer_id,
+        user_id: event.user_id,
+        amount: Number(event.amount),
+        currency: event.currency ?? "USD",
+        source: event.payment_source ?? "user",
+        created_at: event.created_at,
+      };
+      const existing = logsByCustomer.get(event.customer_id) ?? [];
+      existing.push(payment);
+      logsByCustomer.set(event.customer_id, existing);
+      continue;
+    }
+
+    if (event.event_type === "followup") {
+      const followup: FollowUpLog = {
+        id: event.id,
+        customer_id: event.customer_id,
+        user_id: event.user_id,
+        followup_date: event.event_date,
+        method: event.followup_method ?? "other",
+        note: event.note,
+        outcome: event.followup_outcome ?? "no_response",
+        created_at: event.created_at,
+      };
+      const existing = followupsByCustomer.get(event.customer_id) ?? [];
+      existing.push(followup);
+      followupsByCustomer.set(event.customer_id, existing);
+    }
   }
 
   const allCustomers = (customers ?? []).map((customer) => ({
