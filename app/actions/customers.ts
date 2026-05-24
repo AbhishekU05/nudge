@@ -19,7 +19,7 @@ import {
 } from "@/lib/reminder-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
-import type { WorkflowStatus, CustomerRecord, PaymentLogSource } from "@/lib/types";
+import type { WorkflowStatus, CustomerRecord, PaymentLogSource, FollowUpMethod, FollowUpOutcome } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -931,4 +931,95 @@ export async function updateDueDate(formData: FormData) {
   redirectToDashboard({
     success: dueDate ? `Due date set to ${dueDate}.` : "Due date cleared.",
   });
+}
+
+// ---------------------------------------------------------------------------
+// Log a manual follow-up — appears in the client's timeline/history.
+// ---------------------------------------------------------------------------
+
+const VALID_METHODS: FollowUpMethod[] = ["email", "call", "whatsapp", "other"];
+const VALID_OUTCOMES: FollowUpOutcome[] = [
+  "no_response",
+  "promise_made",
+  "partial_payment",
+  "paid_in_full",
+];
+
+export async function logFollowUp(formData: FormData) {
+  const user = await requireUser();
+
+  try {
+    await enforceRateLimit(user.id, "reminder_toggle");
+  } catch (error) {
+    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
+  }
+
+  const customerId = formData.get("customer_id");
+  if (typeof customerId !== "string" || !customerId) {
+    redirectToDashboard({ error: "Invalid customer." });
+  }
+
+  const followupDate = formData.get("followup_date");
+  if (typeof followupDate !== "string" || !followupDate.trim()) {
+    redirectToDashboard({ error: "Follow-up date is required." });
+  }
+
+  const method = formData.get("method") as FollowUpMethod;
+  if (!VALID_METHODS.includes(method)) {
+    redirectToDashboard({ error: "Invalid follow-up method." });
+  }
+
+  const outcome = formData.get("outcome") as FollowUpOutcome;
+  if (!VALID_OUTCOMES.includes(outcome)) {
+    redirectToDashboard({ error: "Invalid follow-up outcome." });
+  }
+
+  const noteRaw = formData.get("note");
+  const note =
+    typeof noteRaw === "string" && noteRaw.trim().length > 0
+      ? noteRaw.trim().slice(0, 500)
+      : null;
+
+  const supabase = await createSupabaseServerClient();
+
+  // Verify the customer belongs to this user
+  const { data: customer, error: fetchError } = await supabase
+    .from("reminders")
+    .select("id")
+    .eq("id", customerId)
+    .eq("user_id", user.id)
+    .maybeSingle<{ id: string }>();
+
+  if (fetchError || !customer) {
+    redirectToDashboard({ error: "Customer not found." });
+  }
+
+  const { error } = await supabase.from("followup_logs").insert({
+    reminder_id: customerId as string,
+    user_id: user.id,
+    followup_date: (followupDate as string).trim(),
+    method,
+    note,
+    outcome,
+  });
+
+  if (error) {
+    logger.error({
+      message: "Database error logging follow-up",
+      context: "logFollowUp",
+      user_id: user.id,
+      error: error.message,
+    });
+    redirectToDashboard({ error: "Failed to log follow-up." });
+  }
+
+  logger.action({
+    action_name: "log_followup",
+    reminder_id: customerId as string,
+    user_id: user.id,
+    success: true,
+  });
+
+  revalidatePath("/dashboard");
+  redirectToDashboard({ success: "Follow-up logged." });
 }

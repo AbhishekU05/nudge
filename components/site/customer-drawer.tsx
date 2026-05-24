@@ -22,6 +22,8 @@ import {
   Undo2,
   Trash2,
   ReceiptText,
+  Phone,
+  History,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -38,11 +40,12 @@ import {
   correctAmountPaid,
   deleteCustomer,
   updateDueDate,
+  logFollowUp,
 } from "@/app/actions/customers";
 import { FOLLOWUP_TEMPLATES } from "@/lib/followup-templates";
 import { pauseReminder, resumeReminder } from "@/app/actions/reminders";
 import { cn } from "@/lib/utils";
-import type { CustomerRecord, FollowUpTone } from "@/lib/types";
+import type { CustomerRecord, FollowUpTone, FollowUpMethod, FollowUpOutcome } from "@/lib/types";
 import { getRemainingBalance, getDaysOverdue } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
@@ -432,8 +435,89 @@ function PromiseTab({ customer }: { customer: CustomerRecord }) {
 }
 
 // ---------------------------------------------------------------------------
-// Follow-up drafting tab (template-based, no AI)
+// Follow-up drafting tab (template-based, no AI) + log follow-up form
 // ---------------------------------------------------------------------------
+
+const METHOD_OPTIONS: { value: FollowUpMethod; label: string }[] = [
+  { value: "email", label: "Email" },
+  { value: "call", label: "Call" },
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "other", label: "Other" },
+];
+
+const OUTCOME_OPTIONS: { value: FollowUpOutcome; label: string }[] = [
+  { value: "no_response", label: "No response" },
+  { value: "promise_made", label: "Promise made" },
+  { value: "partial_payment", label: "Partial payment" },
+  { value: "paid_in_full", label: "Paid in full" },
+];
+
+const METHOD_LABELS: Record<FollowUpMethod, string> = {
+  email: "Email",
+  call: "Call",
+  whatsapp: "WhatsApp",
+  other: "Other",
+};
+
+const OUTCOME_LABELS: Record<FollowUpOutcome, string> = {
+  no_response: "No response",
+  promise_made: "Promise made",
+  partial_payment: "Partial payment",
+  paid_in_full: "Paid in full",
+};
+
+const OUTCOME_COLORS: Record<FollowUpOutcome, string> = {
+  no_response: "text-zinc-400",
+  promise_made: "text-amber-300",
+  partial_payment: "text-blue-300",
+  paid_in_full: "text-emerald-300",
+};
+
+function FollowUpTimeline({ customer }: { customer: CustomerRecord }) {
+  const history = customer.followup_history ?? [];
+
+  return (
+    <Section title="Follow-up history">
+      {history.length > 0 ? (
+        <div className="space-y-2">
+          {history.map((entry) => (
+            <div
+              key={entry.id}
+              className="rounded-xl border border-white/10 bg-white/[0.025] px-3 py-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="default">{METHOD_LABELS[entry.method]}</Badge>
+                    <span className={cn("text-xs font-medium", OUTCOME_COLORS[entry.outcome])}>
+                      {OUTCOME_LABELS[entry.outcome]}
+                    </span>
+                  </div>
+                  {entry.note && (
+                    <p className="mt-1.5 text-sm text-zinc-300">{entry.note}</p>
+                  )}
+                  <p className="mt-1 text-xs text-zinc-600">
+                    {new Date(entry.followup_date).toLocaleDateString(undefined, {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+                <History className="mt-0.5 h-4 w-4 shrink-0 text-zinc-600" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-4 py-4 text-sm text-zinc-600">
+          Follow-ups you log will appear here as a timeline.
+        </div>
+      )}
+    </Section>
+  );
+}
+
 function FollowUpTab({ customer }: { customer: CustomerRecord }) {
   const daysOverdue = getDaysOverdue(customer);
   const remaining = getRemainingBalance(customer);
@@ -462,8 +546,87 @@ function FollowUpTab({ customer }: { customer: CustomerRecord }) {
     { value: "firm", label: "Firm", desc: "Direct & assertive" },
   ];
 
+  const today = new Date().toISOString().split("T")[0];
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
+      {/* Log follow-up form */}
+      <Section title="Log a follow-up">
+        <form action={logFollowUp} className="space-y-3">
+          <input type="hidden" name="customer_id" value={customer.id} />
+
+          <div>
+            <Label htmlFor={`followup_date_${customer.id}`}>Date</Label>
+            <Input
+              id={`followup_date_${customer.id}`}
+              name="followup_date"
+              type="date"
+              defaultValue={today}
+              required
+              className="mt-1.5"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor={`followup_method_${customer.id}`}>Method</Label>
+            <div className="mt-1.5 grid grid-cols-4 gap-2">
+              {METHOD_OPTIONS.map((m) => (
+                <label
+                  key={m.value}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-2 text-xs text-zinc-400 transition-colors has-[:checked]:border-primary/40 has-[:checked]:bg-primary/10 has-[:checked]:text-indigo-200 hover:border-white/20"
+                >
+                  <input
+                    type="radio"
+                    name="method"
+                    value={m.value}
+                    defaultChecked={m.value === "email"}
+                    className="sr-only"
+                  />
+                  {m.label}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor={`followup_note_${customer.id}`}>Short note (optional)</Label>
+            <Textarea
+              id={`followup_note_${customer.id}`}
+              name="note"
+              placeholder="e.g. Left a voicemail, will call back tomorrow"
+              maxLength={500}
+              rows={2}
+              className="mt-1.5"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor={`followup_outcome_${customer.id}`}>Outcome</Label>
+            <select
+              id={`followup_outcome_${customer.id}`}
+              name="outcome"
+              defaultValue="no_response"
+              className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-white/20 focus:border-primary/40 focus:outline-none"
+            >
+              {OUTCOME_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <Button type="submit" size="sm" className="w-full gap-1.5">
+            <Phone className="h-3.5 w-3.5" />
+            Log follow-up
+          </Button>
+        </form>
+      </Section>
+
+      {/* Follow-up timeline */}
+      <FollowUpTimeline customer={customer} />
+
+      {/* Draft message templates */}
       <Section title="Tone">
         <div className="grid grid-cols-3 gap-2">
           {tones.map((t) => (

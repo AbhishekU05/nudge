@@ -23,10 +23,10 @@ import { requireUser } from "@/lib/auth";
 import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/payments";
 import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { CustomerRecord, PaymentLog } from "@/lib/types";
+import type { CustomerRecord, PaymentLog, FollowUpLog } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-type CustomerRow = Omit<CustomerRecord, "payment_history">;
+type CustomerRow = Omit<CustomerRecord, "payment_history" | "followup_history">;
 
 // ──────────────────────────────────────────────────────────
 // Helpers
@@ -102,6 +102,7 @@ export default async function DashboardPage({
   const [
     { data: customers },
     { data: paymentLogs },
+    { data: followupLogs },
     { data: profile },
   ] = await Promise.all([
     supabase
@@ -115,6 +116,12 @@ export default async function DashboardPage({
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .returns<PaymentLog[]>(),
+    supabase
+      .from("followup_logs")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .returns<FollowUpLog[]>(),
     supabase
       .from("profiles")
       .select("razorpay_subscription_status, razorpay_renews_at, created_at")
@@ -133,9 +140,17 @@ export default async function DashboardPage({
     logsByCustomer.set(log.reminder_id, existing);
   }
 
+  const followupsByCustomer = new Map<string, FollowUpLog[]>();
+  for (const log of followupLogs ?? []) {
+    const existing = followupsByCustomer.get(log.reminder_id) ?? [];
+    existing.push(log);
+    followupsByCustomer.set(log.reminder_id, existing);
+  }
+
   const allCustomers = (customers ?? []).map((customer) => ({
     ...customer,
     payment_history: logsByCustomer.get(customer.id) ?? [],
+    followup_history: followupsByCustomer.get(customer.id) ?? [],
   }));
 
   const subscriptionStatus = profile?.razorpay_subscription_status ?? "none";

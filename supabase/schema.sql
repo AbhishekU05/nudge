@@ -305,3 +305,35 @@ alter table public.profiles
 
 alter table public.profiles
   add column if not exists google_refresh_token text;
+
+-- Follow-up activity logs for customer timeline
+create table if not exists public.followup_logs (
+  id uuid primary key default gen_random_uuid(),
+  reminder_id uuid not null references public.reminders(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  followup_date date not null,
+  method text not null check (method in ('email', 'call', 'whatsapp', 'other')),
+  note text,
+  outcome text not null check (outcome in ('no_response', 'promise_made', 'partial_payment', 'paid_in_full')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists followup_logs_reminder_created_idx
+  on public.followup_logs(reminder_id, created_at desc);
+
+create index if not exists followup_logs_user_created_idx
+  on public.followup_logs(user_id, created_at desc);
+
+alter table public.followup_logs enable row level security;
+
+drop policy if exists "followup_logs_select_own" on public.followup_logs;
+create policy "followup_logs_select_own"
+on public.followup_logs
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "followup_logs_insert_own" on public.followup_logs;
+create policy "followup_logs_insert_own"
+on public.followup_logs
+for insert
+with check (auth.uid() = user_id);

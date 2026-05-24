@@ -13,6 +13,25 @@ export type RelationshipTag = "new_client" | "returning" | "at_risk" | "vip";
 // Tone options for follow-up message drafting
 export type FollowUpTone = "friendly" | "professional" | "firm";
 
+export type FollowUpMethod = "email" | "call" | "whatsapp" | "other";
+
+export type FollowUpOutcome =
+  | "no_response"
+  | "promise_made"
+  | "partial_payment"
+  | "paid_in_full";
+
+export type FollowUpLog = {
+  id: string;
+  reminder_id: string;
+  user_id: string;
+  followup_date: string;
+  method: FollowUpMethod;
+  note: string | null;
+  outcome: FollowUpOutcome;
+  created_at: string;
+};
+
 export type PaymentLogSource = "user" | "customer" | "adjustment";
 
 export type PaymentLog = {
@@ -70,6 +89,7 @@ export type ReminderRow = {
   updated_at: string;
 
   payment_history: PaymentLog[];
+  followup_history: FollowUpLog[];
 };
 
 // Semantic alias — the UI uses this name when thinking customer-first
