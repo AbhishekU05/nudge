@@ -60,21 +60,45 @@ export default function PrivacyPage() {
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">4. Data Retention</h2>
+              <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">4. Gmail Integration</h2>
+              <p className="mb-2">We request permission to send emails on your behalf using your Gmail account. Here is how we handle this integration:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Duely requests permission to send emails on your behalf via your Gmail account.</li>
+                <li>This permission is only used to send payment reminder emails to your own clients.</li>
+                <li>Emails are sent only when you set up automated reminders or manually trigger a follow-up.</li>
+                <li>Duely stores Google OAuth tokens securely to enable this feature.</li>
+                <li>You can revoke this access at any time from your Google account settings at <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer" className="text-zinc-50 hover:underline">myaccount.google.com/permissions</a>.</li>
+                <li>Duely does not read, access, or store any emails from your Gmail inbox.</li>
+                <li>Duely does not share Gmail access tokens with any third parties.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">5. Data Storage</h2>
+              <p className="mb-2">We clarify how we store and manage your security data:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>OAuth tokens are stored encrypted in our database.</li>
+                <li>Tokens are only used to send emails on the user's behalf.</li>
+                <li>Tokens are deleted when a user deletes their account.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">6. Data Retention</h2>
               <p>
                 We retain your data for as long as your account is active. If you delete your account, we will delete your personal data from our active systems within a reasonable period, except where retention is required for legal or operational reasons.
               </p>
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">5. Your Rights</h2>
+              <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">7. Your Rights</h2>
               <p>
                 You have the right to access, update, or delete your personal information. You can manage your data within your dashboard or contact us directly to request data deletion.
               </p>
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">6. Contact Us</h2>
+              <h2 className="text-xl font-semibold text-zinc-50 mt-8 mb-4">8. Contact Us</h2>
               <p>
                 If you have any questions about this Privacy Policy, please contact us at <a href="mailto:support@duely.in" className="text-zinc-50 hover:underline">support@duely.in</a>.
               </p>
