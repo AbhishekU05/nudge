@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { getRequiredEnv } from "@/lib/env";
@@ -9,10 +10,16 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("Authorization");
+  const authHeader = request.headers.get("Authorization") || "";
   const expectedAuth = `Bearer ${getRequiredEnv("CRON_SECRET")}`;
 
-  if (authHeader !== expectedAuth) {
+  const authHeaderBuf = Buffer.from(authHeader);
+  const expectedAuthBuf = Buffer.from(expectedAuth);
+
+  if (
+    authHeaderBuf.length !== expectedAuthBuf.length ||
+    !crypto.timingSafeEqual(authHeaderBuf, expectedAuthBuf)
+  ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

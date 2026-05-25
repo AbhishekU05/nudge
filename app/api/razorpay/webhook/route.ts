@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
+import { z } from "zod";
 
 import { getRequiredEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -18,35 +19,37 @@ function verifySignature(body: string, signature: string | null) {
     .update(body)
     .digest("hex");
 
-  return expected === signature;
+  const expectedBuf = Buffer.from(expected);
+  const signatureBuf = Buffer.from(signature);
+
+  if (expectedBuf.length !== signatureBuf.length) return false;
+  return crypto.timingSafeEqual(expectedBuf, signatureBuf);
 }
 
-type RazorpaySubscriptionEntity = {
-  id: string;
-  status?: string;
-  current_end?: number;
-  notes?: {
-    user_id?: string;
-  };
-};
+const RazorpayEventSchema = z.object({
+  event: z.string(),
+  payload: z.object({
+    subscription: z.object({
+      entity: z.object({
+        id: z.string(),
+        status: z.string().optional(),
+        current_end: z.number().optional(),
+        notes: z.object({
+          user_id: z.string().optional(),
+        }).optional(),
+      }).optional(),
+    }).optional(),
+    payment: z.object({
+      entity: z.object({
+        notes: z.object({
+          user_id: z.string().optional(),
+        }).optional(),
+      }).optional(),
+    }).optional(),
+  }),
+});
 
-type RazorpayPaymentEntity = {
-  notes?: {
-    user_id?: string;
-  };
-};
-
-type RazorpayEvent = {
-  event: string;
-  payload: {
-    subscription?: {
-      entity?: RazorpaySubscriptionEntity;
-    };
-    payment?: {
-      entity?: RazorpayPaymentEntity;
-    };
-  };
-};
+type RazorpayEvent = z.infer<typeof RazorpayEventSchema>;
 
 export async function POST(req: Request) {
   const requestId = crypto.randomUUID();
@@ -68,7 +71,8 @@ export async function POST(req: Request) {
   let event: RazorpayEvent;
 
   try {
-    event = JSON.parse(body) as RazorpayEvent;
+    const rawData = JSON.parse(body);
+    event = RazorpayEventSchema.parse(rawData);
   } catch {
     logger.error({
       message: "Invalid JSON in webhook body",

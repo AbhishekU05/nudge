@@ -99,46 +99,56 @@ export default async function DashboardPage({
 
   const supabase = await createSupabaseServerClient();
 
-  const [
-    { data: customers },
-    { data: customerEvents },
-    { data: profile },
-    { data: xeroIntegration },
-    { data: quickbooksIntegration },
-  ] = await Promise.all([
-    supabase
-      .from("customers")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .returns<CustomerRow[]>(),
-    supabase
-      .from("customer_events")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .returns<CustomerEvent[]>(),
-    supabase
-      .from("profiles")
-      .select("razorpay_subscription_status, razorpay_renews_at, created_at")
-      .eq("user_id", user.id)
-      .maybeSingle<{
-        razorpay_subscription_status: string | null;
-        razorpay_renews_at: string | null;
-        created_at: string;
-      }>(),
-    supabase
-      .from("integrations")
-      .select("provider")
-      .eq("user_id", user.id)
-      .eq("provider", "xero")
-      .maybeSingle<{ provider: string }>(),
-    supabase
-      .from("integrations")
-      .select("provider")
-      .eq("user_id", user.id)
-      .eq("provider", "quickbooks")
-      .maybeSingle<{ provider: string }>(),
-  ]);
+  let customers = null;
+  let customerEvents = null;
+  let profile = null;
+  let xeroIntegration = null;
+  let quickbooksIntegration = null;
+
+  try {
+    const [customersRes, eventsRes, profileRes, xeroRes, qbRes] = await Promise.all([
+      supabase
+        .from("customers")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .returns<CustomerRow[]>(),
+      supabase
+        .from("customer_events")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .returns<CustomerEvent[]>(),
+      supabase
+        .from("profiles")
+        .select("razorpay_subscription_status, razorpay_renews_at, created_at")
+        .eq("user_id", user.id)
+        .maybeSingle<{
+          razorpay_subscription_status: string | null;
+          razorpay_renews_at: string | null;
+          created_at: string;
+        }>(),
+      supabase
+        .from("integrations")
+        .select("provider")
+        .eq("user_id", user.id)
+        .eq("provider", "xero")
+        .maybeSingle<{ provider: string }>(),
+      supabase
+        .from("integrations")
+        .select("provider")
+        .eq("user_id", user.id)
+        .eq("provider", "quickbooks")
+        .maybeSingle<{ provider: string }>(),
+    ]);
+    
+    customers = customersRes.data;
+    customerEvents = eventsRes.data;
+    profile = profileRes.data;
+    xeroIntegration = xeroRes.data;
+    quickbooksIntegration = qbRes.data;
+  } catch (err) {
+    // Graceful fallback
+  }
 
   const logsByCustomer = new Map<string, PaymentLog[]>();
   const followupsByCustomer = new Map<string, FollowUpLog[]>();

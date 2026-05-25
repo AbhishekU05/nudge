@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { NextResponse } from "next/server";
 
 import { getRequiredEnv } from "@/lib/env";
@@ -14,11 +15,24 @@ type IntegrationUser = {
 
 function isAuthorized(request: Request) {
   const expected = getRequiredEnv("CRON_SECRET");
-  const header = request.headers.get("authorization");
-  if (header === `Bearer ${expected}`) return true;
+  const header = request.headers.get("authorization") || "";
+  const key = new URL(request.url).searchParams.get("key") || "";
 
-  const url = new URL(request.url);
-  return url.searchParams.get("key") === expected;
+  const expectedHeaderBuf = Buffer.from(`Bearer ${expected}`);
+  const headerBuf = Buffer.from(header);
+
+  if (headerBuf.length === expectedHeaderBuf.length && crypto.timingSafeEqual(headerBuf, expectedHeaderBuf)) {
+    return true;
+  }
+
+  const expectedKeyBuf = Buffer.from(expected);
+  const keyBuf = Buffer.from(key);
+
+  if (keyBuf.length === expectedKeyBuf.length && crypto.timingSafeEqual(keyBuf, expectedKeyBuf)) {
+    return true;
+  }
+
+  return false;
 }
 
 export async function POST(request: Request) {

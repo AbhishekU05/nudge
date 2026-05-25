@@ -2,6 +2,7 @@
  * This manages the cron requests from cron-job.org
  */
 
+import crypto from "crypto";
 import { NextResponse } from "next/server";
 
 import { sendReminderEmail } from "@/lib/email/send-reminder";
@@ -48,14 +49,24 @@ function isAuthorized(request: Request) {
   const expected = getRequiredEnv("CRON_SECRET");
 
   // Header auth (future)
-  const header = request.headers.get("authorization");
-  if (header === `Bearer ${expected}`) return true;
+  const header = request.headers.get("authorization") || "";
+  const expectedHeaderBuf = Buffer.from(`Bearer ${expected}`);
+  const headerBuf = Buffer.from(header);
+
+  if (headerBuf.length === expectedHeaderBuf.length && crypto.timingSafeEqual(headerBuf, expectedHeaderBuf)) {
+    return true;
+  }
 
   // Query param auth (cron-job)
-  const url = new URL(request.url);
-  const key = url.searchParams.get("key");
+  const key = new URL(request.url).searchParams.get("key") || "";
+  const expectedKeyBuf = Buffer.from(expected);
+  const keyBuf = Buffer.from(key);
 
-  return key === expected;
+  if (keyBuf.length === expectedKeyBuf.length && crypto.timingSafeEqual(keyBuf, expectedKeyBuf)) {
+    return true;
+  }
+
+  return false;
 }
 
 // Sets a kind of mutex on the database and tries to change the row

@@ -50,22 +50,33 @@ export default async function BillingPage({
   const { canceled, error, success } = await searchParams;
   const monthlyPrice = await getLocalizedMonthlyPrice();
   const supabase = await createSupabaseServerClient();
-  const [{ data: profile }, { data: stripeConnection }] = await Promise.all([
-    supabase
-    .from("profiles")
-    .select("razorpay_subscription_status,razorpay_renews_at,created_at")
-    .eq("user_id", user.id)
-    .maybeSingle<{
-      razorpay_subscription_status: string | null;
-      razorpay_renews_at: string | null;
-      created_at: string;
-    }>(),
-    supabase
-      .from("stripe_connections")
-      .select("stripe_account_id, webhook_secret")
+  let profile = null;
+  let stripeConnection = null;
+
+  try {
+    const [profileRes, stripeRes] = await Promise.all([
+      supabase
+      .from("profiles")
+      .select("razorpay_subscription_status,razorpay_renews_at,created_at")
       .eq("user_id", user.id)
-      .maybeSingle<{ stripe_account_id: string | null; webhook_secret: string | null }>(),
-  ]);
+      .maybeSingle<{
+        razorpay_subscription_status: string | null;
+        razorpay_renews_at: string | null;
+        created_at: string;
+      }>(),
+      supabase
+        .from("stripe_connections")
+        .select("stripe_account_id, webhook_secret")
+        .eq("user_id", user.id)
+        .maybeSingle<{ stripe_account_id: string | null; webhook_secret: string | null }>(),
+    ]);
+    profile = profileRes.data;
+    stripeConnection = stripeRes.data;
+  } catch (err) {
+    // Graceful fallback on error
+    profile = null;
+    stripeConnection = null;
+  }
 
   const status = profile?.razorpay_subscription_status ?? "none";
   const renewsAt = profile?.razorpay_renews_at
@@ -249,8 +260,8 @@ export default async function BillingPage({
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Webhook URL</label>
-                        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs text-zinc-300">
-                          https://duely.in/api/stripe/webhook
+                        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs text-zinc-300 overflow-x-auto whitespace-nowrap">
+                          https://duely.in/api/stripe/webhook?user_id={user.id}
                         </div>
                       </div>
 

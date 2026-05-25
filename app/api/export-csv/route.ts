@@ -10,19 +10,29 @@ export async function GET() {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: customers }, { data: events }] = await Promise.all([
-    supabase
-      .from("customers")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("customer_events")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("event_type", "followup")
-      .order("event_date", { ascending: false }),
-  ]);
+  let customers = null;
+  let events = null;
+
+  try {
+    const [customersRes, eventsRes] = await Promise.all([
+      supabase
+        .from("customers")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("customer_events")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("event_type", "followup")
+        .order("event_date", { ascending: false }),
+    ]);
+    
+    customers = customersRes.data;
+    events = eventsRes.data;
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to export data" }, { status: 500 });
+  }
 
   const followupsByCustomer = new Map<string, CustomerEvent>();
   for (const event of events || []) {

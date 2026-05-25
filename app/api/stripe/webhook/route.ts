@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
+import { z } from "zod";
 
 import { logger } from "@/lib/logger";
 import { computeFirstReminderSendAt } from "@/lib/reminder-schedule";
@@ -26,7 +27,20 @@ function getWorkflowStatus(dueDate: string | null) {
 
 
 
-async function handleInvoiceCreated(invoice: Stripe.Invoice, userId: string) {
+const StripeInvoiceSchema = z.object({
+  id: z.string(),
+  customer_email: z.string().nullable().optional(),
+  customer_name: z.string().nullable().optional(),
+  due_date: z.number().nullable().optional(),
+  amount_due: z.number().nullable().optional(),
+  amount_paid: z.number().nullable().optional(),
+  currency: z.string(),
+  hosted_invoice_url: z.string().nullable().optional(),
+});
+
+type ParsedInvoice = z.infer<typeof StripeInvoiceSchema>;
+
+async function handleInvoiceCreated(invoice: ParsedInvoice, userId: string) {
   const supabase = createSupabaseAdminClient();
 
   const email = normalizeStripeEmail(invoice.customer_email);
@@ -96,7 +110,7 @@ async function handleInvoiceCreated(invoice: Stripe.Invoice, userId: string) {
   }
 }
 
-async function handleInvoicePaid(invoice: Stripe.Invoice) {
+async function handleInvoicePaid(invoice: ParsedInvoice, matchedUserId: string) {
   const supabase = createSupabaseAdminClient();
 
   const { error } = await supabase
@@ -107,7 +121,8 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
       client_paid_at: new Date().toISOString(),
       active: false,
     })
-    .eq("stripe_invoice_id", invoice.id);
+    .eq("stripe_invoice_id", invoice.id)
+    .eq("user_id", matchedUserId);
 
   if (error) {
     throw new Error(error.message);
@@ -119,53 +134,52 @@ export async function POST(request: Request) {
   const body = await request.text();
   const stripe = createStripeClient();
 
+  const url = new URL(request.url);
+  const userId = url.searchParams.get("user_id");
+
+  if (!userId) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
   const supabase = createSupabaseAdminClient();
-  const { data: connections } = await supabase
+  const { data: connection } = await supabase
     .from("stripe_connections")
-    .select("user_id, webhook_secret")
-    .not("webhook_secret", "is", null);
+    .select("webhook_secret")
+    .eq("user_id", userId)
+    .maybeSingle();
 
-  if (!connections || connections.length === 0) {
-    return NextResponse.json({ error: "No configured webhooks found" }, { status: 400 });
+  if (!connection || !connection.webhook_secret) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  let event: Stripe.Event | null = null;
-  let matchedUserId: string | null = null;
+  let event: Stripe.Event;
 
-  for (const conn of connections) {
-    try {
-      if (conn.webhook_secret) {
-        event = stripe.webhooks.constructEvent(
-          body,
-          signature ?? "",
-          conn.webhook_secret
-        );
-        matchedUserId = conn.user_id;
-        break; // found the matching secret!
-      }
-    } catch {
-      // signature mismatch, try next
-    }
-  }
-
-  if (!event || !matchedUserId) {
+  try {
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature ?? "",
+      connection.webhook_secret
+    );
+  } catch (err) {
     logger.error({
-      message: "Invalid Stripe webhook signature for all user secrets",
+      message: "Invalid Stripe webhook signature",
       context: "stripe:webhook",
+      user_id: userId,
     });
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
+  const matchedUserId = userId;
+
   try {
     if (event.type === "invoice.created") {
-      await handleInvoiceCreated(
-        event.data.object as Stripe.Invoice,
-        matchedUserId
-      );
+      const invoice = StripeInvoiceSchema.parse(event.data.object);
+      await handleInvoiceCreated(invoice, matchedUserId);
     }
 
     if (event.type === "invoice.paid") {
-      await handleInvoicePaid(event.data.object as Stripe.Invoice);
+      const invoice = StripeInvoiceSchema.parse(event.data.object);
+      await handleInvoicePaid(invoice, matchedUserId);
     }
   } catch (error) {
     logger.error({
