@@ -106,7 +106,7 @@ export default async function SetupAutomationPage({
               </h1>
               <p className="mt-3 max-w-xl text-base leading-7 text-zinc-500">
                 Configure recurring email reminders for this customer. Pick a
-                tone, customise the note, and set how often to send.
+                tone, customise the email body, and set how often to send.
               </p>
             </div>
 

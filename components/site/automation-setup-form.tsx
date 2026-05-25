@@ -38,13 +38,13 @@ export type AutomationSetupFormProps = {
 // Tone template notes (pre-fill for the custom_message field)
 // ---------------------------------------------------------------------------
 
-const TONE_TEMPLATES: Record<Tone, string> = {
+const getToneTemplates = (amount: string): Record<Tone, string> => ({
   polite:
-    "Just a friendly follow-up about your outstanding balance. I completely understand if things are busy — whenever is convenient for you is perfectly fine. Feel free to reach out if you have any questions at all.",
+    `Just a friendly follow-up about your outstanding balance of ${amount}. I completely understand if things are busy — whenever is convenient for you is perfectly fine. Feel free to reach out if you have any questions at all.`,
   neutral:
-    "This is a reminder about your outstanding balance. Please let me know if you have any questions or need any clarification. Happy to help.",
-  firm: "This is a formal notice that your balance remains outstanding and requires your prompt attention. Please arrange payment at your earliest convenience and confirm via reply.",
-};
+    `This is a reminder about your outstanding balance of ${amount}. Please let me know if you have any questions or need any clarification. Happy to help.`,
+  firm: `This is a formal notice that your balance of ${amount} remains outstanding and requires your prompt attention. Please arrange payment at your earliest convenience and confirm via reply.`,
+});
 
 const TONE_CONFIG: Record<
   Tone,
@@ -109,56 +109,19 @@ function EmailPreview({
       </div>
 
       {/* Body */}
-      <div className="px-5 py-5 text-sm leading-6">
-        <p className="text-zinc-400">
-          Hi {recipientName || "there"},
-        </p>
-        <p className="mt-3 text-zinc-300">
-          This is a reminder that your balance to{" "}
-          <span className="font-semibold text-zinc-100">{senderName}</span> is
-          currently outstanding.
-        </p>
-
-        {/* Amount box */}
-        <div className="my-4 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
-            Pending balance
-          </p>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-zinc-50">
-            {amount}
-          </p>
-        </div>
-
-        {/* Note */}
-        {note && (
-          <div className="my-4 border-l-2 border-indigo-500/60 pl-3">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
-              Note from {senderName}
-            </p>
-            <p className="mt-1 text-sm text-zinc-400">{note}</p>
-          </div>
+      <div className="px-5 py-5 text-sm leading-6 font-mono text-zinc-300 whitespace-pre-wrap">
+        Hi {recipientName || "there"},
+        <br /><br />
+        {note}
+        {paymentLink && (
+          <>
+            <br /><br />
+            Here&apos;s the payment link: {paymentLink}
+          </>
         )}
-
-        <p className="text-xs text-zinc-600">
-          If you&apos;ve already paid, please ignore this message.
-        </p>
-
-        {/* CTA buttons */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {paymentLink && (
-            <div className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white">
-              <Link2 className="h-3 w-3" />
-              Pay now
-            </div>
-          )}
-          <div className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-zinc-300">
-            I&apos;ve paid
-          </div>
-        </div>
-
-        <p className="mt-5 text-[11px] text-zinc-700">
-          This reminder was sent by Duely on behalf of {senderName}.
-        </p>
+        <br /><br />
+        Best,<br />
+        {senderName}
       </div>
     </div>
   );
@@ -173,19 +136,20 @@ export function AutomationSetupForm({
   senderName,
   error,
 }: AutomationSetupFormProps) {
-  const [tone, setTone] = useState<Tone>("neutral");
-  const [note, setNote] = useState(TONE_TEMPLATES.neutral);
-  const [paymentLink, setPaymentLink] = useState("");
-
-  function handleToneSelect(t: Tone) {
-    setTone(t);
-    setNote(TONE_TEMPLATES[t]);
-  }
-
   const amount = new Intl.NumberFormat(undefined, {
     currency: customer.currency,
     style: "currency",
   }).format(Number(customer.amount_owed));
+
+  const [tone, setTone] = useState<Tone>("neutral");
+  const [note, setNote] = useState(getToneTemplates(amount).neutral);
+  const [paymentLink, setPaymentLink] = useState("");
+
+  function handleToneSelect(t: Tone) {
+    setTone(t);
+    setNote(getToneTemplates(amount)[t]);
+  }
+
 
   return (
     <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_22rem]">
@@ -241,25 +205,24 @@ export function AutomationSetupForm({
           </div>
         </div>
 
-        {/* Note (editable, pre-filled from tone) */}
+        {/* Email body (editable, pre-filled from tone) */}
         <div className="space-y-2">
           <Label htmlFor="custom_message" className="flex items-center gap-1.5">
             <Pencil className="h-3.5 w-3.5 text-indigo-300" />
-            Note in email{" "}
-            <span className="text-zinc-600">(optional — edit freely)</span>
+            Email body{" "}
+            <span className="text-zinc-600">(edit freely)</span>
           </Label>
           <Textarea
             id="custom_message"
             name="custom_message"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            maxLength={500}
-            rows={4}
-            placeholder="A short note shown inside the reminder email."
+            maxLength={1000}
+            rows={6}
+            placeholder="The main body of the reminder email."
           />
           <p className="text-xs text-zinc-600">
-            Shown as a &ldquo;Note from you&rdquo; block inside the email.{" "}
-            {500 - note.length} chars remaining.
+            This will be sent as a plain text email. {1000 - note.length} chars remaining.
           </p>
         </div>
 
