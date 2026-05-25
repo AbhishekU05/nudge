@@ -319,7 +319,7 @@ export default async function DashboardPage({
 
             <div className="flex shrink-0 flex-col gap-3 sm:items-end">
               <a href="/api/export-csv" download>
-                <Button variant="outline" size="sm">
+                <Button variant="secondary" size="sm">
                   Export CSV
                 </Button>
               </a>
