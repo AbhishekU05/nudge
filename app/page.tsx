@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { AuthErrorRedirect } from "@/components/site/auth-error-redirect";
 import { Container } from "@/components/site/container";
 import { FadeIn, Reveal, SlideUp, SlideIn } from "@/components/site/scroll-animation";
+import { HeroDashboard } from "@/components/site/hero-dashboard";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -110,7 +111,7 @@ export default async function Home({
                   Duely is the missing layer between your invoice and your bank account.
                 </p>
                 <p className="mt-4 max-w-xl text-pretty text-base font-medium text-zinc-300">
-                   Connects with QuickBooks and Xero. Works without them too. Add your first client in 30 seconds.
+                   Connect QuickBooks or Xero, or add a client manually. Up and running in 30 seconds.
                 </p>
                 <div className="mt-10">
                   <Link href="/signup">
@@ -122,21 +123,8 @@ export default async function Home({
                 </div>
               </FadeIn>
 
-              <Reveal delay={0.2} className="relative z-10 lg:ml-auto w-full max-w-[800px] lg:max-w-none">
-                <Card className="relative z-20 overflow-hidden border-white/10 bg-zinc-900/50 p-2 shadow-2xl shadow-black/60 backdrop-blur-sm max-w-full">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 to-purple-500/5 opacity-50" />
-                  <CardContent className="relative p-0 rounded-xl overflow-hidden border border-white/5 bg-zinc-950">
-                    <Image
-                      src="/dashboard-preview.png"
-                      width={1200}
-                      height={720}
-                      alt="Duely collections dashboard overview"
-                      sizes="(max-width: 1024px) 100vw, 800px"
-                      className="h-auto w-full max-w-full object-cover opacity-90 transition-transform duration-700 hover:scale-[1.02]"
-                      priority
-                    />
-                  </CardContent>
-                </Card>
+              <Reveal delay={0.2} className="relative z-10 lg:ml-auto w-full max-w-[640px] lg:max-w-none">
+                <HeroDashboard />
               </Reveal>
             </div>
           </Container>
@@ -564,7 +552,7 @@ export default async function Home({
                   Stripe sends the invoice. Duely handles everything after.
                 </h2>
                 <p className="mt-6 text-lg leading-relaxed text-zinc-400">
-                  Connect your Stripe account and new invoices sync automatically. When a client pays in Stripe, Duely marks them paid and stops reminders.
+                  Stripe sends the invoice. The moment it&apos;s created, Duely starts watching. Late? It follows up. Paid? It stops.
                 </p>
               </FadeIn>
               <SlideIn right delay={0.2} className="flex justify-center">
@@ -573,17 +561,30 @@ export default async function Home({
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
                     <CardContent className="p-0 space-y-3">
                       <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Stripe Integration <span className="ml-2 rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-300 normal-case tracking-normal">Beta</span></p>
-                      <div className="space-y-2">
-                        <label className="block text-xs text-zinc-400">Webhook URL</label>
-                        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs text-zinc-300 overflow-x-auto whitespace-nowrap">https://duely.in/api/stripe/webhook?user_id=abc123</div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="block text-xs text-zinc-400">Signing Secret</label>
-                        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs text-zinc-600">whsec_••••••••••••••••</div>
-                      </div>
-                      <div className="rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 space-y-1 text-sm">
-                        <div className="flex items-center justify-between"><span className="text-zinc-400">invoice.created</span><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /></div>
-                        <div className="flex items-center justify-between"><span className="text-zinc-400">invoice.paid</span><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /></div>
+                      
+                      <div className="space-y-3 pt-2">
+                        <div className="flex items-center gap-3 rounded-xl border border-violet-500/20 bg-violet-500/5 px-4 py-3">
+                          <Sparkles className="h-4 w-4 text-violet-400 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-violet-200">Listening to Stripe</p>
+                            <p className="text-xs text-violet-300/60 truncate">Watching for new invoices &amp; payments</p>
+                          </div>
+                        </div>
+
+                        <div className="rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 space-y-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                            <span className="text-zinc-200 text-sm">Invoice generated</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                            <span className="text-zinc-200 text-sm">Follow-up sent (2 days late)</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="h-4 w-4 rounded-full border-2 border-emerald-400/30 border-t-emerald-400 animate-spin" />
+                            <span className="text-emerald-300 font-medium text-sm">Waiting for payment</span>
+                          </div>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -734,7 +735,7 @@ export default async function Home({
                   <CardHeader>
                     <CardTitle className="text-2xl font-semibold text-zinc-100">Pro</CardTitle>
                     <div className="mt-4 flex items-baseline text-4xl font-semibold text-zinc-50">
-                      $10
+                      $29
                       <span className="ml-1 text-base font-normal text-zinc-500">/month</span>
                     </div>
                   </CardHeader>
@@ -826,6 +827,10 @@ export default async function Home({
                   {
                     q: "Can I export my data?",
                     a: "Yes — CSV export available anytime."
+                  },
+                  {
+                    q: "What if a client replies to the reminder email instead of clicking the payment button?",
+                    a: "Just hit \"Pause reminders\" on that client in your Duely dashboard. One click stops the sequence while you handle the conversation manually."
                   },
                   {
                     q: "Does this work without Stripe?",

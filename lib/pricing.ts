@@ -9,8 +9,8 @@ type LocalizedMonthlyPrice = {
 
 type BillingRegion = "india" | "international";
 
-const INDIA_MONTHLY_PRICE = 1000;
-const INTERNATIONAL_MONTHLY_PRICE = 10;
+const INDIA_MONTHLY_PRICE = 2999;
+const INTERNATIONAL_MONTHLY_PRICE = 29;
 
 function getCountryFromAcceptLanguage(value: string | null) {
   if (!value) {
