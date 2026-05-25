@@ -9,36 +9,36 @@ type SendReminderEmailParams = {
   senderEmail: string;
   recipientEmail: string;
   recipientName: string;
+  emailSubject: string | null;
   customMessage: string | null;
+  paymentLink: string | null;
 };
 
 /**
  * Send a plain-text payment reminder from the user's own Gmail.
- *
- * Format:
- *   Hey [client name],
- *
- *   [follow-up message]
- *
- *   [user's name]
  */
 export async function sendReminderEmail(params: SendReminderEmailParams) {
   const safeRecipientName = params.recipientName.trim() || "there";
   const safeSenderName = params.senderName.trim() || "Someone";
 
-  // Build the plain-text body
+  // Build the plain-text body exactly as shown in the preview
   const bodyLines: string[] = [
-    `Hey ${safeRecipientName},`,
+    `Hi ${safeRecipientName},`,
+    "",
   ];
 
   if (params.customMessage?.trim()) {
-    bodyLines.push("", params.customMessage.trim());
+    bodyLines.push(params.customMessage.trim());
   }
 
-  bodyLines.push("", safeSenderName);
+  if (params.paymentLink?.trim()) {
+    bodyLines.push("", `Here's the payment link: ${params.paymentLink.trim()}`);
+  }
+
+  bodyLines.push("", "Best,", safeSenderName);
 
   const body = bodyLines.join("\n");
-  const subject = "Following up";
+  const subject = params.emailSubject?.trim() || "Payment reminder";
 
   try {
     await sendGmail({

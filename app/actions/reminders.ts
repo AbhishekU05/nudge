@@ -429,7 +429,7 @@ export async function sendTestReminderEmail(reminderId: string) {
   const { data: reminder, error } = await supabase
     .from("customers")
     .select(
-      "id,recipient_name,recipient_email,amount_owed,currency,custom_message,payment_link,unsubscribe_token,unsubscribed",
+      "id,recipient_name,recipient_email,amount_owed,currency,email_subject,custom_message,payment_link,unsubscribe_token,unsubscribed",
     )
     .eq("id", reminderId)
     .eq("user_id", user.id)
@@ -439,6 +439,7 @@ export async function sendTestReminderEmail(reminderId: string) {
       recipient_email: string;
       amount_owed: number;
       currency: string;
+      email_subject: string | null;
       custom_message: string | null;
       payment_link: string | null;
       unsubscribe_token: string;
@@ -466,7 +467,9 @@ export async function sendTestReminderEmail(reminderId: string) {
       senderEmail: user.email ?? "",
       recipientEmail: reminder.recipient_email,
       recipientName: reminder.recipient_name,
+      emailSubject: reminder.email_subject,
       customMessage: reminder.custom_message,
+      paymentLink: reminder.payment_link,
     });
     logger.action({
       action_name: "send_test_reminder",

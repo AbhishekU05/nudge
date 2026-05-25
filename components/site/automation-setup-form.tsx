@@ -87,12 +87,14 @@ function EmailPreview({
   recipientName,
   senderName,
   amount,
+  subject,
   note,
   paymentLink,
 }: {
   recipientName: string;
   senderName: string;
   amount: string;
+  subject: string;
   note: string;
   paymentLink: string;
 }) {
@@ -104,7 +106,7 @@ function EmailPreview({
           Subject
         </p>
         <p className="mt-0.5 text-sm font-semibold text-zinc-200">
-          Payment reminder
+          {subject || "Payment reminder"}
         </p>
       </div>
 
@@ -142,6 +144,7 @@ export function AutomationSetupForm({
   }).format(Number(customer.amount_owed));
 
   const [tone, setTone] = useState<Tone>("neutral");
+  const [subject, setSubject] = useState(`Following up on your balance with ${senderName}`);
   const [note, setNote] = useState(getToneTemplates(amount).neutral);
   const [paymentLink, setPaymentLink] = useState("");
 
@@ -203,6 +206,24 @@ export function AutomationSetupForm({
               );
             })}
           </div>
+        </div>
+
+        {/* Subject (editable) */}
+        <div className="space-y-2">
+          <Label htmlFor="email_subject" className="flex items-center gap-1.5">
+            <FileText className="h-3.5 w-3.5 text-zinc-500" />
+            Subject line{" "}
+            <span className="text-zinc-600">(editable)</span>
+          </Label>
+          <Input
+            id="email_subject"
+            name="email_subject"
+            type="text"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            maxLength={100}
+            placeholder="Payment reminder"
+          />
         </div>
 
         {/* Email body (editable, pre-filled from tone) */}
@@ -304,6 +325,7 @@ export function AutomationSetupForm({
           recipientName={customer.recipient_name}
           senderName={senderName}
           amount={amount}
+          subject={subject}
           note={note}
           paymentLink={paymentLink}
         />

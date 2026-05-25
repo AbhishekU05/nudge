@@ -793,9 +793,16 @@ export async function enableAutomation(formData: FormData) {
     ? computeRecurringReminderSendAt(frequency as number)
     : computeFirstReminderSendAt());
 
+  const emailSubjectRaw = getString(formData, "email_subject");
+  const emailSubject = 
+    typeof emailSubjectRaw === "string" && emailSubjectRaw.length > 0
+      ? emailSubjectRaw.slice(0, 100)
+      : null;
+
   const { error } = await supabase
     .from("customers")
     .update({
+      email_subject: emailSubject,
       custom_message: messageValue,
       payment_link: paymentLink,
       reminder_frequency_days: frequency as number,
