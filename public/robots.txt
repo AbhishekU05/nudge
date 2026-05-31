@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://duely.in
+
+# Sitemaps
+Sitemap: https://duely.in/sitemap.xml
