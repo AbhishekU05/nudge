@@ -20,12 +20,13 @@ const PUBLIC_ROUTES = [
   "/about",
   "/leonard",
   "/faq",
+  "/payment-leak-calculator",
   "/sitemap.xml",
   "/sitemap-0.xml",
   "/robots.txt",
 ];
 
-const PASS_THROUGH_ROUTES = ["/", "/auth/callback", "/unsubscribe", "/terms", "/privacy", "/article", "/articles", "/about", "/leonard", "/faq", "/sitemap.xml", "/sitemap-0.xml", "/robots.txt"];
+const PASS_THROUGH_ROUTES = ["/", "/auth/callback", "/unsubscribe", "/terms", "/privacy", "/article", "/articles", "/about", "/leonard", "/faq", "/payment-leak-calculator", "/sitemap.xml", "/sitemap-0.xml", "/robots.txt"];
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
