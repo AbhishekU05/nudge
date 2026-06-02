@@ -6,6 +6,7 @@ import {
   ArrowRight,
   BarChart3,
   CheckCircle2,
+  Clock,
   Copy,
   DollarSign,
   Gauge,
@@ -13,8 +14,9 @@ import {
   RefreshCw,
   ShieldAlert,
   TrendingUp,
+  Zap,
 } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +39,12 @@ const initialInputs: PaymentLeakInputs = {
   paymentDelayDays: 21,
 };
 
+function trackEvent(eventName: string, params?: Record<string, string | number>) {
+  if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
+    (window as any).gtag("event", eventName, params);
+  }
+}
+
 export function PaymentLeakCalculator() {
   const [inputs, setInputs] = useState<PaymentLeakInputs>(initialInputs);
   const [name, setName] = useState("");
@@ -46,16 +54,37 @@ export function PaymentLeakCalculator() {
   );
   const [error, setError] = useState("");
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
+  const [leadSource, setLeadSource] = useState<{
+    source?: string;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+  }>({});
+  const hasTrackedStart = useRef(false);
+  const hasTrackedComplete = useRef(false);
   const results = useMemo(() => calculatePaymentLeak(inputs), [inputs]);
   const meaning = getMeaning(inputs, results);
   const biggestLeak = getBiggestLeak(results);
-  const benchmarkInterpretation = getBenchmarkInterpretation(results.riskScore);
+  const benchmarkInterpretation = getBenchmarkInterpretation(
+    results.riskScore,
+    results.annualImpact,
+    results.cashTiedUp,
+  );
   const riskExplanation = getRiskExplanation(results.riskLevel);
   const dynamicCta = getDynamicCta(results.riskLevel, results.annualImpact);
   const shareUrl = useMemo(() => buildShareUrl(inputs), [inputs]);
-  const shareText = `My agency has approximately ${formatCurrency(
+  const recoveryOpportunity = useMemo(() => {
+    const improvedDelay = Math.round(inputs.paymentDelayDays / 2);
+    const improvedResults = calculatePaymentLeak({ ...inputs, paymentDelayDays: improvedDelay });
+    return {
+      currentDelay: inputs.paymentDelayDays,
+      improvedDelay,
+      potentialRecovery: results.annualImpact - improvedResults.annualImpact,
+    };
+  }, [inputs, results.annualImpact]);
+  const shareText = `I just calculated that delayed payments could cost my agency ${formatCurrency(
     results.annualImpact,
-  )} tied up in delayed payments annually.\n\nCalculated using Duely's Agency Payment Leak Calculator.`;
+  )} over the next 12 months.\n\nCalculated using Duely's Payment Leak Calculator.`;
   const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
     shareText,
   )}&url=${encodeURIComponent(shareUrl)}`;
@@ -85,10 +114,34 @@ export function PaymentLeakCalculator() {
       }
     });
 
+    setLeadSource({
+      source: params.get("source") || undefined,
+      utm_source: params.get("utm_source") || undefined,
+      utm_medium: params.get("utm_medium") || undefined,
+      utm_campaign: params.get("utm_campaign") || undefined,
+    });
+
     window.setTimeout(() => setInputs(nextInputs), 0);
   }, []);
 
+  useEffect(() => {
+    if (!hasTrackedStart.current || hasTrackedComplete.current) return;
+    const timeout = window.setTimeout(() => {
+      hasTrackedComplete.current = true;
+      trackEvent("calculator_completed", {
+        risk_level: results.riskLevel,
+        risk_score: results.riskScore,
+        annual_impact: results.annualImpact,
+      });
+    }, 2000);
+    return () => window.clearTimeout(timeout);
+  }, [inputs, results.riskLevel, results.riskScore, results.annualImpact]);
+
   function updateInput(key: keyof PaymentLeakInputs, value: string) {
+    if (!hasTrackedStart.current) {
+      hasTrackedStart.current = true;
+      trackEvent("calculator_started");
+    }
     setInputs((current) => ({
       ...current,
       [key]: value === "" ? null : Number(value),
@@ -100,29 +153,37 @@ export function PaymentLeakCalculator() {
     event.preventDefault();
     setStatus("sending");
     setError("");
+    trackEvent("report_requested", { risk_level: results.riskLevel });
 
-    const response = await fetch("/api/payment-leak-calculator/report", {
-      body: JSON.stringify({ email, inputs, name }),
-      headers: { "Content-Type": "application/json" },
-      method: "POST",
-    });
+    try {
+      const response = await fetch("/api/payment-leak-calculator/report", {
+        body: JSON.stringify({ email, inputs, name, ...leadSource }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
 
-    const payload = (await response.json().catch(() => ({}))) as {
-      error?: string;
-    };
+      const payload = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
 
-    if (!response.ok) {
+      if (!response.ok) {
+        setStatus("error");
+        setError(payload.error ?? "Could not send the report. Please try again.");
+        return;
+      }
+
+      setStatus("sent");
+      trackEvent("report_sent", { risk_level: results.riskLevel });
+    } catch {
       setStatus("error");
-      setError(payload.error ?? "Could not send the report. Please try again.");
-      return;
+      setError("A network error occurred. Please check your connection and try again.");
     }
-
-    setStatus("sent");
   }
 
   async function copyShareLink() {
     await navigator.clipboard.writeText(shareUrl);
     setCopyStatus("copied");
+    trackEvent("copy_link_clicked");
     window.setTimeout(() => setCopyStatus("idle"), 1800);
   }
 
@@ -226,16 +287,25 @@ export function PaymentLeakCalculator() {
         <section className="py-8 sm:py-10">
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <Card className="border-emerald-300/20 bg-emerald-300/[0.06] md:col-span-2 xl:col-span-1">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-sm text-zinc-300">
+                    <span className="text-emerald-300"><TrendingUp className="h-5 w-5" /></span>
+                    Annual Revenue Impact
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">
+                    {formatCurrency(results.annualImpact)}
+                  </p>
+                  <p className="mt-2 text-sm text-emerald-200">Over the next 12 months</p>
+                </CardContent>
+              </Card>
               <MetricCard
                 icon={<DollarSign className="h-5 w-5" />}
-                label="Cash Currently Tied Up"
+                label="Cash Currently Outstanding"
                 value={formatCurrency(results.cashTiedUp)}
                 note="Sitting outside your business today"
-              />
-              <MetricCard
-                icon={<TrendingUp className="h-5 w-5" />}
-                label="Estimated Annual Impact"
-                value={formatCurrency(results.annualImpact)}
               />
               <MetricCard
                 icon={<Gauge className="h-5 w-5" />}
@@ -265,6 +335,49 @@ export function PaymentLeakCalculator() {
                 </CardContent>
               </Card>
             </div>
+
+            <Card className="mt-6 border-sky-300/20 bg-sky-300/[0.06]">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-sky-300" />
+                  Recovery Opportunity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-6 sm:grid-cols-3">
+                  <div>
+                    <p className="flex items-center gap-2 text-sm text-zinc-400">
+                      <Clock className="h-4 w-4" />
+                      Current delay
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-zinc-50">
+                      {recoveryOpportunity.currentDelay} days
+                    </p>
+                  </div>
+                  <div>
+                    <p className="flex items-center gap-2 text-sm text-zinc-400">
+                      <Clock className="h-4 w-4" />
+                      Improved delay
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-emerald-300">
+                      {recoveryOpportunity.improvedDelay} days
+                    </p>
+                  </div>
+                  <div>
+                    <p className="flex items-center gap-2 text-sm text-zinc-400">
+                      <TrendingUp className="h-4 w-4" />
+                      Potential recovery
+                    </p>
+                    <p className="mt-1 text-2xl font-bold text-sky-300">
+                      {formatCurrency(recoveryOpportunity.potentialRecovery)}/year
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-5 rounded-lg border border-sky-300/10 bg-sky-300/[0.04] p-3 text-sm leading-6 text-zinc-300">
+                  If your agency cut payment delays in half, this much working capital could return to the business.
+                </p>
+              </CardContent>
+            </Card>
 
             <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.9fr]">
               <Card className="border-emerald-300/20 bg-emerald-300/[0.06]">
@@ -416,13 +529,13 @@ export function PaymentLeakCalculator() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="rounded-lg border border-white/10 bg-white/[0.04] p-4 text-sm leading-6 text-zinc-200">
-                  My agency has approximately {formatCurrency(results.annualImpact)} tied up in delayed payments annually.
+                  I just calculated that delayed payments could cost my agency {formatCurrency(results.annualImpact)} over the next 12 months.
                   <br />
                   <br />
-                  Calculated using Duely&apos;s Agency Payment Leak Calculator.
+                  Calculated using Duely&apos;s Payment Leak Calculator.
                 </p>
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <Link href={xShareUrl} target="_blank" rel="noreferrer">
+                  <Link href={xShareUrl} target="_blank" rel="noreferrer" onClick={() => trackEvent("share_clicked", { platform: "x" })}>
                     <Button variant="secondary" className="w-full sm:w-auto">
                       Share on X
                     </Button>
@@ -472,12 +585,12 @@ export function PaymentLeakCalculator() {
             </div>
 
             {status === "sent" ? (
-              <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/[0.08] p-5">
-                <CheckCircle2 className="h-6 w-6 text-emerald-300" />
+              <div className="flex flex-col items-center justify-center rounded-lg border border-emerald-300/20 bg-emerald-300/[0.08] p-8 text-center">
+                <CheckCircle2 className="h-8 w-8 text-emerald-300" />
                 <p className="mt-4 text-lg font-semibold text-zinc-50">
-                  Your report has been emailed.
+                  Your personalized collections report has been emailed.
                 </p>
-                <p className="mt-2 text-sm leading-6 text-zinc-300">
+                <p className="mt-2 max-w-md text-sm leading-6 text-zinc-300">
                   Check your inbox for the PDF report and save it for your next collections review.
                 </p>
               </div>
@@ -548,7 +661,7 @@ export function PaymentLeakCalculator() {
                   {dynamicCta.body}
                 </p>
               </div>
-              <Link href="/signup">
+              <Link href="/signup" onClick={() => trackEvent("trial_clicked", { risk_level: results.riskLevel })}>
                 <Button size="lg" className="w-full sm:w-auto">
                   Start Free Trial
                   <ArrowRight className="h-4 w-4" />
@@ -792,20 +905,16 @@ function getBiggestLeak(results: ReturnType<typeof calculatePaymentLeak>) {
   };
 }
 
-function getBenchmarkInterpretation(score: number) {
+function getBenchmarkInterpretation(score: number, annualImpact: number, cashTiedUp: number) {
   if (score < BENCHMARKS.averageAgency) {
-    return "You are performing better than the average agency, but delayed payments can still quietly absorb working capital as you grow.";
+    return `Your collections process is healthier than the average agency. However, delayed payments could still keep ${formatCurrency(annualImpact)} outside your business over the next year.`;
   }
 
   if (score >= BENCHMARKS.highRiskAgency) {
-    return "Your collections process is riskier than most agencies in this benchmark set. Cash is likely staying outside the business longer than it should.";
+    return `Delayed payments are creating meaningful cash-flow risk. Agencies at this level often struggle with forecasting and follow-up consistency. You currently have ${formatCurrency(cashTiedUp)} sitting outside your business.`;
   }
 
-  if (score >= 70) {
-    return "You are moving toward the high-risk range. The raw score suggests follow-up consistency and escalation timing need attention.";
-  }
-
-  return "You are close to the average agency. A few process improvements could move you toward healthier, more predictable collections.";
+  return `Your collections process is around the industry average. Small improvements in follow-up consistency could unlock significant cash flow — currently ${formatCurrency(cashTiedUp)} is outstanding.`;
 }
 
 function getRiskExplanation(level: string) {
@@ -823,24 +932,24 @@ function getRiskExplanation(level: string) {
 function getDynamicCta(level: string, annualImpact: number) {
   if (level === "High") {
     return {
-      body: "Duely helps recover that cash faster with automated follow-ups, commitment tracking, and escalation reminders.",
-      eyebrow: "Stop Chasing Payments Manually",
-      headline: `Your agency has approximately ${formatCurrency(annualImpact)} tied up in delayed payments annually.`,
+      body: "Duely helps recover cash faster through automated collections workflows.",
+      eyebrow: "Stop Losing Working Capital",
+      headline: `Your agency could be losing ${formatCurrency(annualImpact)} in working capital to delayed payments.`,
     };
   }
 
   if (level === "Medium") {
     return {
-      body: "Duely ensures no payment promise gets forgotten and every follow-up happens on time.",
+      body: "Duely automatically tracks promises, reminders, and follow-ups so invoices don\u2019t fall through the cracks.",
       eyebrow: "Tighten Follow-Up Before It Slips",
-      headline: "Your biggest risk is inconsistent follow-up tracking.",
+      headline: "Your biggest risk is inconsistent payment collection.",
     };
   }
 
   return {
-    body: "Duely helps maintain that performance as you grow by tracking promises, reminders, and follow-ups automatically.",
+    body: "As your client count grows, keeping track of payment promises manually becomes harder. Duely helps maintain this performance automatically.",
     eyebrow: "Maintain Collections Discipline",
-    headline: "You're already doing well.",
+    headline: "Your collections process is healthier than average.",
   };
 }
 
