@@ -15,6 +15,7 @@ type PdfParams = {
 };
 
 export function buildPaymentLeakReportPdf(params: PdfParams) {
+  const biggestLeak = getBiggestLeak(params.results);
   const lines = [
     "Duely Collections Report",
     "",
@@ -40,6 +41,11 @@ export function buildPaymentLeakReportPdf(params: PdfParams) {
     params.results.operatingExpenseCoverage
       ? `Cash tied up equals ${(params.results.operatingExpenseCoverage * 100).toFixed(0)}% of monthly operating expenses`
       : "Operating expense coverage: Not calculated",
+    `If nothing changes, delayed payments could impact ${formatCurrency(params.results.annualImpact)} over the next 12 months.`,
+    "",
+    "Biggest Leak Analysis",
+    `${biggestLeak.label} contributes ${biggestLeak.percent}% of your risk score.`,
+    biggestLeak.explanation,
     "",
     "Risk Score Breakdown",
     `Late payment percentage contribution: ${params.results.latePaymentScore.toFixed(1)}/50`,
@@ -103,4 +109,36 @@ function createSimplePdf(lines: string[]) {
 
 function escapePdfText(value: string) {
   return value.replace(/[\\()]/g, (character) => `\\${character}`);
+}
+
+
+function getBiggestLeak(results: PaymentLeakResults) {
+  const contributors = [
+    {
+      explanation:
+        "Too many invoices are entering collections instead of arriving on time. Reducing late payment frequency lowers risk before reminders are needed.",
+      label: "Late payment percentage",
+      value: results.latePaymentScore,
+    },
+    {
+      explanation:
+        "Payment delays are stretching cash conversion after invoices are already late. This is the largest collections bottleneck.",
+      label: "Average payment delay",
+      value: results.delayDaysScore,
+    },
+    {
+      explanation:
+        "A smaller client base makes each delayed payment matter more. One slow payer can create an outsized cash-flow gap.",
+      label: "Client concentration",
+      value: results.clientConcentrationScore,
+    },
+  ];
+  const biggest = contributors.reduce((current, next) =>
+    next.value > current.value ? next : current,
+  );
+
+  return {
+    ...biggest,
+    percent: Math.round((biggest.value / Math.max(results.riskScore, 1)) * 100),
+  };
 }

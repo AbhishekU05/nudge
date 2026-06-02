@@ -79,6 +79,12 @@ export default async function Home({
               Articles
             </Link>
             <Link
+              href="/tools"
+              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100 sm:inline-flex"
+            >
+              Tools
+            </Link>
+            <Link
               href="/faq"
               className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100 sm:inline-flex"
             >
@@ -113,11 +119,16 @@ export default async function Home({
                 <p className="mt-4 max-w-xl text-pretty text-base font-medium text-zinc-300">
                    Connect QuickBooks or Xero, or add a client manually. Up and running in 30 seconds.
                 </p>
-                <div className="mt-10">
+                <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                   <Link href="/signup">
                     <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
                       Start free trial — no card required
                       <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link href="/tools">
+                    <Button variant="secondary" size="lg" className="h-12 px-8 text-base w-full sm:w-auto">
+                      Explore free tools
                     </Button>
                   </Link>
                 </div>
@@ -866,11 +877,16 @@ export default async function Home({
                   Stop chasing clients out of your inbox and start collecting payments professionally.
                 </p>
 
-                <div className="mt-10">
+                <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                   <Link href="/signup">
                     <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
                       Start free trial — no card required
                       <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link href="/tools">
+                    <Button variant="secondary" size="lg" className="h-12 px-8 text-base w-full sm:w-auto">
+                      Explore free tools
                     </Button>
                   </Link>
                 </div>
