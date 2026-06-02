@@ -73,7 +73,7 @@ function createSimplePdf(lines: string[]) {
     "BT",
     "/F1 18 Tf",
     "72 760 Td",
-    "(Agency Payment Leak Calculator) Tj",
+    "(Agency Payment Leak Estimator) Tj",
     "/F1 10 Tf",
     "0 -26 Td",
     ...escapedLines.flatMap((line) => [`(${line}) Tj`, "0 -15 Td"]),

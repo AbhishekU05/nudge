@@ -7,44 +7,41 @@ import {
   EmailMutedText,
   EmailText,
 } from "@/emails/components/Typography";
-import {
-  formatCurrency,
-  type PaymentLeakResults,
-} from "@/lib/payment-leak-calculator/calculations";
+import type { MaturityResults } from "@/lib/collections-maturity/calculations";
 
-export type PaymentLeakReportEmailProps = {
+export type CollectionsMaturityReportEmailProps = {
   appUrl: string;
   name: string;
-  results: PaymentLeakResults;
+  results: MaturityResults;
 };
 
-export function PaymentLeakReportEmail({
+export function CollectionsMaturityReportEmail({
   appUrl,
   name,
   results,
-}: PaymentLeakReportEmailProps) {
+}: CollectionsMaturityReportEmailProps) {
   return (
     <EmailLayout
       appUrl={appUrl}
-      eyebrow="Collections report"
-      preview={`Your Duely payment leak report is ready`}
+      eyebrow="Maturity assessment"
+      preview={`Your Duely collections maturity report is ready`}
     >
       <EmailCard>
-        <EmailHeading>Your collections report is ready</EmailHeading>
+        <EmailHeading>Your maturity report is ready</EmailHeading>
         <EmailText>
-          Hi {name}, your personalized Agency Payment Leak Estimator report is
+          Hi {name}, your personalized Collections Maturity Assessment report is
           attached.
         </EmailText>
 
         <Section style={summaryGrid}>
           <EmailText>
-            Cash tied up: <strong>{formatCurrency(results.cashTiedUp)}</strong>
+            Overall score: <strong>{results.overallScore}/100</strong>
           </EmailText>
           <EmailText>
-            Annual impact: <strong>{formatCurrency(results.annualImpact)}</strong>
+            Maturity level: <strong>{results.level}</strong>
           </EmailText>
           <EmailText>
-            Risk score: <strong>{results.riskScore}/100</strong>
+            Weakest area: <strong>{results.weakest.label}</strong>
           </EmailText>
         </Section>
 

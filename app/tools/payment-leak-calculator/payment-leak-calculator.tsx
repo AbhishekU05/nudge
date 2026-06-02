@@ -84,7 +84,7 @@ export function PaymentLeakCalculator() {
   }, [inputs, results.annualImpact]);
   const shareText = `I just calculated that delayed payments could cost my agency ${formatCurrency(
     results.annualImpact,
-  )} over the next 12 months.\n\nCalculated using Duely's Payment Leak Calculator.`;
+  )} over the next 12 months.\n\nCalculated using Duely's Payment Leak Estimator.`;
   const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
     shareText,
   )}&url=${encodeURIComponent(shareUrl)}`;
@@ -215,7 +215,7 @@ export function PaymentLeakCalculator() {
           <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
             <div className="flex flex-col justify-center">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300">
-                Agency Payment Leak Calculator
+                Agency Payment Leak Estimator
               </p>
               <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-zinc-50 sm:text-5xl lg:text-6xl">
                 Find the cash flow stuck inside delayed client payments.
@@ -229,7 +229,7 @@ export function PaymentLeakCalculator() {
 
             <Card className="border-white/10 bg-white/[0.03]">
               <CardHeader>
-                <CardTitle>Calculator Inputs</CardTitle>
+                <CardTitle>Estimator Inputs</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -532,7 +532,7 @@ export function PaymentLeakCalculator() {
                   I just calculated that delayed payments could cost my agency {formatCurrency(results.annualImpact)} over the next 12 months.
                   <br />
                   <br />
-                  Calculated using Duely&apos;s Payment Leak Calculator.
+                  Calculated using Duely&apos;s Payment Leak Estimator.
                 </p>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Link href={xShareUrl} target="_blank" rel="noreferrer" onClick={() => trackEvent("share_clicked", { platform: "x" })}>
@@ -668,6 +668,23 @@ export function PaymentLeakCalculator() {
                 </Button>
               </Link>
             </div>
+          </div>
+        </section>
+
+        <section className="border-t border-white/10 bg-white/[0.015] py-12">
+          <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-4 px-4 text-center sm:px-6 lg:px-8">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky-300">
+              Related Tool
+            </p>
+            <p className="max-w-xl text-base leading-7 text-zinc-400">
+              Want to evaluate the systems behind your collections process?
+            </p>
+            <Link href="/tools/collections-maturity-assessment">
+              <Button variant="secondary" size="lg">
+                Take the Collections Maturity Assessment
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </section>
       </main>
@@ -954,7 +971,7 @@ function getDynamicCta(level: string, annualImpact: number) {
 }
 
 function buildShareUrl(inputs: PaymentLeakInputs) {
-  const url = new URL("https://duely.in/payment-leak-calculator");
+  const url = new URL("https://duely.in/tools/payment-leak-calculator");
   url.search = "";
   url.searchParams.set("clients", String(inputs.activeClients));
   url.searchParams.set("invoice", String(inputs.averageInvoiceValue));

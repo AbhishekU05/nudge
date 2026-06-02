@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Calculator, Clock, ShieldCheck } from "lucide-react";
+import { ArrowRight, Calculator, ClipboardList, Clock, FileText, DollarSign, Receipt, ShieldCheck } from "lucide-react";
 
 import { Container } from "@/components/site/container";
 import { Button } from "@/components/ui/button";
@@ -16,15 +16,38 @@ export const metadata: Metadata = {
   title: "Free Agency Tools | Duely",
 };
 
-const tools = [
+type Tool = {
+  description: string;
+  href: string;
+  icon: typeof Calculator;
+  label: string;
+  status: "available" | "coming-soon";
+};
+
+const tools: Tool[] = [
   {
     description:
-      "Estimate how much cash is tied up in delayed client payments and get a personalized collections report.",
-    href: "/payment-leak-calculator",
+      "Estimate how much working capital is trapped in delayed client payments.",
+    href: "/tools/payment-leak-calculator",
     icon: Calculator,
-    label: "Agency Payment Leak Calculator",
-    status: "Available now",
+    label: "Agency Payment Leak Estimator",
+    status: "available",
   },
+  {
+    description:
+      "Evaluate the maturity of your collections process and identify operational weaknesses.",
+    href: "/tools/collections-maturity-assessment",
+    icon: ClipboardList,
+    label: "Collections Maturity Assessment",
+    status: "available",
+  },
+];
+
+const comingSoon: Array<{ label: string; icon: typeof Calculator }> = [
+  { label: "Invoice Follow-Up Generator", icon: FileText },
+  { label: "Revenue At Risk Estimator", icon: DollarSign },
+  { label: "Collections ROI Calculator", icon: Receipt },
+  { label: "Payment Terms Generator", icon: FileText },
 ];
 
 export default function ToolsPage() {
@@ -61,7 +84,7 @@ export default function ToolsPage() {
               Free tools for agency cash-flow diagnostics.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-400 sm:text-lg">
-              Use these calculators to spot delayed-payment risk before it turns into a collections problem.
+              Use these tools to diagnose delayed-payment risk and evaluate your collections process before problems escalate.
             </p>
           </Container>
         </section>
@@ -86,10 +109,10 @@ export default function ToolsPage() {
                         <div className="mt-6 flex items-center justify-between gap-3">
                           <span className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-zinc-300">
                             <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
-                            {tool.status}
+                            Available now
                           </span>
                           <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-300">
-                            Open tool
+                            Open Tool
                             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                           </span>
                         </div>
@@ -99,19 +122,26 @@ export default function ToolsPage() {
                 );
               })}
 
-              <Card className="border-dashed border-white/10 bg-white/[0.015]">
-                <CardHeader>
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-400">
-                    <Clock className="h-5 w-5" />
-                  </div>
-                  <CardTitle>More tools coming soon</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm leading-6 text-zinc-500">
-                    We will add more agency-focused diagnostics for receivables, follow-up timing, and payment promise tracking.
-                  </p>
-                </CardContent>
-              </Card>
+              {comingSoon.map((tool) => {
+                const Icon = tool.icon;
+
+                return (
+                  <Card key={tool.label} className="border-dashed border-white/10 bg-white/[0.015]">
+                    <CardHeader>
+                      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-400">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <CardTitle className="text-zinc-500">{tool.label}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <span className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-zinc-500">
+                        <Clock className="h-3.5 w-3.5" />
+                        Coming soon
+                      </span>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </Container>
         </section>
