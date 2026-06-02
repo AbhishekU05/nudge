@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, PlugZap, RefreshCw, Unplug } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Mail, PlugZap, RefreshCw, Unplug } from "lucide-react";
 
-import { disconnectXero, syncXeroNow, disconnectQuickBooks, syncQuickBooksNow } from "@/app/actions/integrations";
+import { disconnectXero, syncXeroNow, disconnectQuickBooks, syncQuickBooksNow, disconnectGmail } from "@/app/actions/integrations";
 import { Container } from "@/components/site/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type IntegrationRow = {
@@ -20,6 +21,12 @@ type IntegrationRow = {
   last_synced_at: string | null;
   tenant_id?: string | null;
   realm_id?: string | null;
+};
+
+type GmailProfileRow = {
+  google_access_token: string | null;
+  google_refresh_token: string | null;
+  gmail_connected_email: string | null;
 };
 
 function Notice({
@@ -63,6 +70,19 @@ export default async function IntegrationsPage({
   const { error, success } = await searchParams;
   const supabase = await createSupabaseServerClient();
 
+  // Fetch Gmail connection status from profiles table
+  const adminSupabase = createSupabaseAdminClient();
+  const { data: gmailProfile } = await adminSupabase
+    .from("profiles")
+    .select("google_access_token, google_refresh_token, gmail_connected_email")
+    .eq("user_id", user.id)
+    .maybeSingle<GmailProfileRow>();
+
+  const isGmailConnected = Boolean(
+    gmailProfile?.google_access_token || gmailProfile?.google_refresh_token,
+  );
+  const gmailEmail = gmailProfile?.gmail_connected_email ?? null;
+
   const { data: xero } = await supabase
     .from("integrations")
     .select("tenant_id,last_synced_at,expires_at")
@@ -103,15 +123,15 @@ export default async function IntegrationsPage({
         <Container className="py-8 sm:py-10">
           <div className="mx-auto max-w-4xl space-y-6">
             <div>
-              <Badge variant={isConnectedXero || isConnectedQuickBooks ? "success" : "default"}>
-                {isConnectedXero || isConnectedQuickBooks ? "Connected" : "Optional"}
+              <Badge variant={isGmailConnected || isConnectedXero || isConnectedQuickBooks ? "success" : "default"}>
+                {isGmailConnected || isConnectedXero || isConnectedQuickBooks ? "Connected" : "Optional"}
               </Badge>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
                 Integrations
               </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
-                Connect external tools for data sync. These integrations do not
-                change how users sign in to Duely.
+                Connect external tools for data sync and email delivery. These
+                integrations do not change how users sign in to Duely.
               </p>
             </div>
 
@@ -122,6 +142,101 @@ export default async function IntegrationsPage({
               </div>
             )}
 
+            {/* ── Gmail Integration Card ──────────────────────────── */}
+            <Card className="overflow-hidden border-white/10 bg-white/[0.035]">
+              <CardHeader className="border-b border-white/10">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-2xl">
+                      <Mail className="h-5 w-5 text-primary" />
+                      Gmail
+                    </CardTitle>
+                    <CardDescription className="mt-2 max-w-xl">
+                      Send reminder emails from your own Gmail address. If not
+                      connected, reminders send from reminders@duely.in.
+                    </CardDescription>
+                  </div>
+                  {isGmailConnected ? (
+                    <Badge variant="success" className="gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Connected
+                    </Badge>
+                  ) : (
+                    <Badge variant="muted">Not connected</Badge>
+                  )}
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-6 p-6">
+                {isGmailConnected ? (
+                  <>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                        <p className="text-xs text-zinc-600">Status</p>
+                        <p className="mt-2 text-sm font-semibold text-emerald-400">
+                          Sending from your Gmail
+                        </p>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                        <p className="text-xs text-zinc-600">Connected account</p>
+                        <p className="mt-2 truncate text-sm font-semibold text-zinc-100">
+                          {gmailEmail ?? "Gmail account"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                      <p className="text-sm text-zinc-400">
+                        <span className="font-medium text-zinc-200">Connected:</span>{" "}
+                        Reminders send from your Gmail address. Clients see emails
+                        directly from you.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <form action={disconnectGmail}>
+                        <Button
+                          type="submit"
+                          variant="secondary"
+                          className="w-full text-red-400 hover:text-red-300 sm:w-auto"
+                        >
+                          <Unplug className="h-3.5 w-3.5" />
+                          Disconnect Gmail
+                        </Button>
+                      </form>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                      <p className="text-sm text-zinc-400">
+                        <span className="font-medium text-zinc-200">Not connected:</span>{" "}
+                        Reminders send from{" "}
+                        <span className="font-mono text-xs text-zinc-300">reminders@duely.in</span>{" "}
+                        with your name displayed as the sender.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col gap-4 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-5 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-zinc-200">
+                          Connect your Gmail account
+                        </p>
+                        <p className="mt-1 max-w-xl text-sm leading-6 text-zinc-500">
+                          Duely will only request permission to send emails on your
+                          behalf. We never read your inbox.
+                        </p>
+                      </div>
+                      <Link href="/api/integrations/gmail/connect">
+                        <Button className="w-full sm:w-auto">Connect Gmail</Button>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ── Xero Integration Card ──────────────────────────── */}
             <Card className="overflow-hidden border-white/10 bg-white/[0.035]">
               <CardHeader className="border-b border-white/10">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -203,6 +318,7 @@ export default async function IntegrationsPage({
               </CardContent>
             </Card>
 
+            {/* ── QuickBooks Integration Card ─────────────────────── */}
             <Card className="overflow-hidden border-white/10 bg-white/[0.035]">
               <CardHeader className="border-b border-white/10">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

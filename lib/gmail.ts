@@ -28,7 +28,7 @@ type SendGmailParams = {
 
 // ── Token management ──────────────────────────────────────────
 
-async function getGoogleTokens(userId: string): Promise<GoogleTokenRow | null> {
+export async function getGoogleTokens(userId: string): Promise<GoogleTokenRow | null> {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("profiles")
@@ -38,6 +38,15 @@ async function getGoogleTokens(userId: string): Promise<GoogleTokenRow | null> {
 
   if (error || !data) return null;
   return data;
+}
+
+/**
+ * Quick check whether a user has Gmail tokens stored.
+ * Used by the sending logic to decide Gmail vs Resend fallback.
+ */
+export async function hasGmailTokens(userId: string): Promise<boolean> {
+  const tokens = await getGoogleTokens(userId);
+  return Boolean(tokens?.google_access_token || tokens?.google_refresh_token);
 }
 
 async function refreshAccessToken(

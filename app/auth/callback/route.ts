@@ -66,25 +66,6 @@ export async function GET(request: Request) {
       .is("referral_source", null);
   }
 
-  // Store Google OAuth tokens for Gmail API access
-  if (data.session && data.user) {
-    const providerToken = data.session.provider_token;
-    const providerRefreshToken = data.session.provider_refresh_token;
-
-    if (providerToken) {
-      const adminSupabase = createSupabaseAdminClient();
-      const tokenUpdate: Record<string, string> = {
-        google_access_token: providerToken,
-      };
-      if (providerRefreshToken) {
-        tokenUpdate.google_refresh_token = providerRefreshToken;
-      }
-      await adminSupabase
-        .from("profiles")
-        .update(tokenUpdate)
-        .eq("user_id", data.user.id);
-    }
-  }
 
   return NextResponse.redirect(new URL(nextPath, url.origin));
 }

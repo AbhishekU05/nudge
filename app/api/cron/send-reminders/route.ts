@@ -307,8 +307,8 @@ export async function POST(request: Request) {
       claimed += 1;
 
       const sender = authUsersMap.get(reminder.user_id);
-      if (!sender?.email) {
-        // Can't send via Gmail without the user's email address
+      if (!sender) {
+        // No auth user found for this reminder — cannot determine sender
         failed += 1;
         continue;
       }
@@ -316,7 +316,7 @@ export async function POST(request: Request) {
       await sendReminderEmail({
         userId: reminder.user_id,
         senderName: sender.name,
-        senderEmail: sender.email,
+        senderEmail: sender.email ?? "",
         recipientEmail: reminder.recipient_email,
         recipientName: reminder.recipient_name,
         emailSubject: reminder.email_subject,

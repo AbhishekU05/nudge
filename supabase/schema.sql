@@ -29,7 +29,9 @@ create table if not exists public.profiles (
 
   referral_source text,
   google_access_token text,
-  google_refresh_token text
+  google_refresh_token text,
+  gmail_connected_email text,
+  gmail_oauth_state text
 );
 
 drop trigger if exists profiles_set_updated_at on public.profiles;

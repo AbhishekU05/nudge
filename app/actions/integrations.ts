@@ -92,3 +92,25 @@ export async function disconnectQuickBooks() {
   revalidatePath("/settings/integrations");
   redirectToIntegrations({ success: "QuickBooks disconnected." });
 }
+
+export async function disconnectGmail() {
+  const user = await requireUser();
+
+  const adminSupabase = (await import("@/lib/supabase/admin")).createSupabaseAdminClient();
+  const { error } = await adminSupabase
+    .from("profiles")
+    .update({
+      google_access_token: null,
+      google_refresh_token: null,
+      gmail_connected_email: null,
+    })
+    .eq("user_id", user.id);
+
+  if (error) {
+    redirectToIntegrations({ error: "Unable to disconnect Gmail." });
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/settings/integrations");
+  redirectToIntegrations({ success: "Gmail disconnected. Reminders will now send from reminders@duely.in." });
+}

@@ -8,14 +8,14 @@ migrations for existing databases.
 
 ### `profiles`
 
-One row per `auth.users` user. Stores billing state, signup attribution, and
-Google OAuth tokens used for Gmail sending.
+One row per `auth.users` user. Stores billing state, signup attribution,
+Google OAuth tokens used for Gmail sending, and Gmail integration state.
 
 Primary key: `user_id`
 
 Important columns: `razorpay_subscription_id`, `razorpay_subscription_status`,
 `razorpay_renews_at`, `referral_source`, `google_access_token`,
-`google_refresh_token`
+`google_refresh_token`, `gmail_connected_email`, `gmail_oauth_state`
 
 ### `customers`
 

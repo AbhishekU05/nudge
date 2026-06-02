@@ -261,11 +261,6 @@ export async function signInWithGoogle(formData: FormData) {
     provider: "google",
     options: {
       redirectTo: getAuthCallbackUrl(nextPath),
-      scopes: "https://www.googleapis.com/auth/gmail.send",
-      queryParams: {
-        access_type: "offline",
-        prompt: "consent",
-      },
     },
   });
 
