@@ -291,14 +291,14 @@ export function PaymentLeakCalculator() {
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2 text-sm text-zinc-300">
                     <span className="text-emerald-300"><TrendingUp className="h-5 w-5" /></span>
-                    Annual Revenue Impact
+                    Annualized Cash Flow Impact
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">
                     {formatCurrency(results.annualImpact)}
                   </p>
-                  <p className="mt-2 text-sm text-emerald-200">Over the next 12 months</p>
+                  <p className="mt-2 text-sm text-emerald-200">If current delays persist for 12 months</p>
                 </CardContent>
               </Card>
               <MetricCard
