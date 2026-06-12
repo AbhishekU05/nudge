@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -21,6 +22,30 @@ import {
   CreditCard,
   User
 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Duely — Collect what you're owed, keep the relationship",
+  description: "Track outstanding invoices, payment promises, partial payments, and follow-ups. Collections management built for freelancers and agencies.",
+  openGraph: {
+    title: "Duely — Collect what you're owed, keep the relationship",
+    description: "Track outstanding invoices, payment promises, partial payments, and follow-ups. Collections management built for freelancers and agencies.",
+    url: "https://duely.in/",
+    type: "website",
+    images: [
+      {
+        url: "https://duely.in/og-image.png",
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Duely — Collect what you're owed, keep the relationship",
+    description: "Track outstanding invoices, payment promises, partial payments, and follow-ups.",
+    images: ["https://duely.in/og-image.png"],
+  },
+};
 
 export default async function Home({
   searchParams,
