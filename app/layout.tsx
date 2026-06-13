@@ -3,12 +3,17 @@ import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Duely — Invoice Management and Automation for Small Agencies",
-  description: "Automated follow-ups, payment tracking, and reminders from your own Gmail. Built for small agencies.",
+  metadataBase: new URL("https://duely.in"),
+  title: {
+    default: "Duely — Collect what you're owed, keep the relationship",
+    template: "%s | Duely",
+  },
+  description:
+    "Track outstanding invoices, payment promises, partial payments, and follow-ups. Collections management built for freelancers and agencies.",
   openGraph: {
-    title: "Duely — Invoice Management and Automation for Small Agencies",
-    description: "Automated follow-ups, payment tracking, and reminders from your own Gmail. Built for small agencies.",
     siteName: "Duely",
+    locale: "en_US",
+    type: "website",
   },
   icons: {
     icon: "/logo.svg",

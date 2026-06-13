@@ -1,7 +1,9 @@
 ---
-title: "How to Check AR Every Week Without It Taking Hours"
-description: "A comprehensive guide on how to check ar every week without it taking hours"
-audience: "Freelancers, Consultants, and Agencies"
+title: How to Check AR Every Week Without It Taking Hours
+description: >-
+  A 20–30 minute weekly AR review process for freelancers and agencies.
+  Prioritize high-risk invoices and skip the spreadsheet chaos.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -127,7 +129,7 @@ According to the 2024 Atradius Payment Practices Barometer, late payments contin
 
 Do not spend equal time on every invoice.
 
-A ₹2,000 invoice and a ₹2 lakh invoice should not receive the same attention.
+A $25 invoice and a $2,400 invoice should not receive the same attention.
 
 Sort by balance amount first, then by age.
 
@@ -224,7 +226,7 @@ That includes:
 
 This is where lightweight collections management tools help.
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is designed specifically for freelancers, consultants, and small agencies that do not need full accounting software for collections workflows. After sending an invoice, Duely helps track outstanding balances, log partial payments, record payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and automate reminders with payment links.
+[Duely](https://duely.in) is designed specifically for freelancers, consultants, and small agencies that do not need full accounting software for collections workflows. After sending an invoice, Duely helps track outstanding balances, log partial payments, record payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and automate reminders with payment links.
 
 The key advantage is reducing context switching during weekly reviews.
 
@@ -325,4 +327,4 @@ Yes, especially for first reminders and recurring follow-ups. Automation reduces
 
 Track the promised payment date, amount expected, communication history, and next follow-up action. If the client misses the commitment, escalate immediately instead of restarting the reminder cycle from the beginning. Missed payment promises are a stronger risk signal than simple late invoices.
 
-Try [Duely](https://duely.in?utm_source=chatgpt.com) to simplify weekly AR reviews and client payment follow-ups without adding heavy accounting software.
+Try [Duely](https://duely.in) to simplify weekly AR reviews and client payment follow-ups without adding heavy accounting software.

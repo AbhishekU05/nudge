@@ -1,7 +1,9 @@
 ---
-title: "What to Say When a Client Misses a Payment Deadline"
-description: "A comprehensive guide on what to say when a client misses a payment deadline"
-audience: "Freelancers, Consultants, and Agencies"
+title: What to Say When a Client Misses a Payment Deadline
+description: >-
+  Exact scripts for when a client misses an invoice due date. Friendly first
+  reminders through firm escalation messages.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -25,7 +27,7 @@ If a client misses a payment deadline, send a short, professional follow-up that
 
 ## What is Duely?
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add client notes, and send automated payment reminders with a payment link.
+[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add client notes, and send automated payment reminders with a payment link.
 
 ---
 
@@ -112,7 +114,7 @@ Please let me know if anything is pending from my side before then.
 Thanks,
 [Your Name]
 
-Documenting payment promises matters because clients often forget verbal commitments later. Tools like [Duely](https://duely.in?utm_source=chatgpt.com) help store payment promises and due dates in one place so follow-ups stay consistent.
+Documenting payment promises matters because clients often forget verbal commitments later. Tools like [Duely](https://duely.in) help store payment promises and due dates in one place so follow-ups stay consistent.
 
 ---
 
@@ -272,4 +274,4 @@ No. Pausing work due to unpaid invoices is standard business practice. Continuin
 
 The best approach is using a centralized system that records invoice status, payment promises, reminder history, and partial payments. This prevents missed follow-ups and helps maintain consistent communication with clients over time.
 
-Track overdue invoices, payment promises, and client follow-ups in one place with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track overdue invoices, payment promises, and client follow-ups in one place with [Duely](https://duely.in).

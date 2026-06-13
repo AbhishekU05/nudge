@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft, CheckCircle2, HelpCircle, Mail, ShieldCheck } from "lucide-react";
 
 import { Container } from "@/components/site/container";
@@ -48,6 +49,13 @@ const faqs = [
       "Yes. You can use Duely purely as a collections tracker for balances, notes, promises, and payment history. Automation is a backup workflow.",
   },
 ];
+
+export const metadata: Metadata = {
+  title: "FAQ",
+  description:
+    "Answers to common questions about Duely payment tracking, reminders, customer confirmations, and billing.",
+  alternates: { canonical: "/faq" },
+};
 
 export default function FAQPage() {
   return (

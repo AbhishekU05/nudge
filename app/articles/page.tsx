@@ -9,8 +9,9 @@ import { Container } from "@/components/site/container";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Articles & Guides | Duely",
+  title: "Articles & Guides",
   description: "Learn how to manage accounts receivable, collect payments professionally, and follow up on overdue invoices without burning relationships.",
+  alternates: { canonical: "/articles" },
 };
 
 export default function ArticlesPage() {

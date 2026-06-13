@@ -1,7 +1,9 @@
 ---
-title: "How to Follow Up on an Unpaid Invoice Without Being Awkward"
-description: "A comprehensive guide on how to follow up on an unpaid invoice without being awkward"
-audience: "Freelancers, Consultants, and Agencies"
+title: Follow Up on Unpaid Invoices Without Awkwardness
+description: >-
+  Practical scripts to chase unpaid invoices without feeling awkward. Tone
+  guidance from first reminder to firm follow-up.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -21,7 +23,7 @@ Following up on an unpaid invoice without sounding awkward comes down to timing,
 
 ## What is Duely?
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
+[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
 
 ## When should you follow up on an unpaid invoice?
 
@@ -71,7 +73,7 @@ A good first follow-up sounds like this:
 
 Hi [Client Name],
 
-Just a quick reminder that Invoice #1042 for ₹45,000 was due on May 12.
+Just a quick reminder that Invoice #1042 for $540 was due on May 12.
 
 Sharing the invoice again here in case it got buried. Please let me know if payment has already been processed or if you need anything from my side.
 
@@ -99,7 +101,7 @@ Example:
 
 Hi [Client Name],
 
-Following up on Invoice #1042 for ₹45,000, originally due on May 12.
+Following up on Invoice #1042 for $540, originally due on May 12.
 
 You mentioned last week that payment was expected by Friday, so I wanted to check whether there’s an updated timeline.
 
@@ -181,7 +183,7 @@ If your invoice says “Net 14,” your follow-up schedule should reflect that c
 
 If a client says “I’ll pay next Tuesday,” record it and follow up specifically against that commitment.
 
-This is one area where lightweight collections tracking tools can help. For example, [Duely](https://duely.in?utm_source=chatgpt.com) lets freelancers log payment promises, track partial payments, and send reminders without rebuilding the context every time.
+This is one area where lightweight collections tracking tools can help. For example, [Duely](https://duely.in) lets freelancers log payment promises, track partial payments, and send reminders without rebuilding the context every time.
 
 ## What should you do if the client keeps delaying payment?
 
@@ -197,7 +199,7 @@ A firm follow-up can still remain professional:
 
 Hi [Client Name],
 
-Invoice #1042 for ₹45,000 is now 28 days overdue.
+Invoice #1042 for $540 is now 28 days overdue.
 
 Please confirm whether payment will be completed by May 22. If there are any issues preventing payment, let me know directly so we can resolve them.
 
@@ -279,4 +281,4 @@ Yes, especially for ongoing freelance or consulting work. Pausing work after rep
 
 Late fees can work if they are clearly included in your contract and invoices beforehand. However, many freelancers find that structured reminders, payment deadlines, and paused work are more effective than immediately adding penalties, especially for long-term client relationships.
 
-Track unpaid invoices, automate reminders, and follow up professionally with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track unpaid invoices, automate reminders, and follow up professionally with [Duely](https://duely.in).

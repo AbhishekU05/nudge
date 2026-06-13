@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { Container } from "@/components/site/container";
 import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "Privacy policy for Duely. Learn how we handle your data, reminders, and payment information.",
+  alternates: { canonical: "/privacy" },
+};
 
 export default function PrivacyPage() {
   return (

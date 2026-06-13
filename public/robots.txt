@@ -2,6 +2,30 @@
 User-agent: *
 Allow: /
 
+# GPTBot
+User-agent: GPTBot
+Allow: /
+
+# ChatGPT-User
+User-agent: ChatGPT-User
+Allow: /
+
+# ClaudeBot
+User-agent: ClaudeBot
+Allow: /
+
+# anthropic-ai
+User-agent: anthropic-ai
+Allow: /
+
+# PerplexityBot
+User-agent: PerplexityBot
+Allow: /
+
+# Googlebot
+User-agent: Googlebot
+Allow: /
+
 # Host
 Host: https://duely.in
 

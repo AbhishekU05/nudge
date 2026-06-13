@@ -1,7 +1,9 @@
 ---
-title: "Best Post Invoice Management Tools for Small Agencies in 2026"
-description: "A comprehensive comparison of the best post invoice management tools for small agencies in 2026, covering features, pricing, and use cases"
-audience: "Small Agency Owners,, and Consultants"
+title: Best Post-Invoice Tools for Small Agencies (2026)
+description: >-
+  Compare the best post-invoice management tools for small agencies. Collections
+  tracking, reminders, and payment promise features.
+audience: 'Small Agency Owners, Freelancers, and Consultants'
 ---
 
 ## Quick Answer

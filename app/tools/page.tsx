@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   },
   description:
     "Free Duely tools for agency owners to understand payment delays, collections risk, and cash-flow leakage.",
-  title: "Free Agency Tools | Duely",
+  title: "Free Agency Tools",
 };
 
 type Tool = {

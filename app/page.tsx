@@ -22,12 +22,16 @@ import {
   CreditCard,
   User
 } from "lucide-react";
+import { organizationSchema, websiteSchema } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
-  title: "Duely — Collect what you're owed, keep the relationship",
+  title: "Collect what you're owed, keep the relationship",
   description: "Track outstanding invoices, payment promises, partial payments, and follow-ups. Collections management built for freelancers and agencies.",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "Duely — Collect what you're owed, keep the relationship",
+    title: "Collect what you're owed, keep the relationship",
     description: "Track outstanding invoices, payment promises, partial payments, and follow-ups. Collections management built for freelancers and agencies.",
     url: "https://duely.in/",
     type: "website",
@@ -41,7 +45,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Duely — Collect what you're owed, keep the relationship",
+    title: "Collect what you're owed, keep the relationship",
     description: "Track outstanding invoices, payment promises, partial payments, and follow-ups.",
     images: ["https://duely.in/og-image.png"],
   },
@@ -75,8 +79,19 @@ export default async function Home({
     redirect("/dashboard");
   }
 
+  const homeSchema = {
+    "@context": "https://schema.org",
+    "@graph": [organizationSchema, websiteSchema],
+  };
+
   return (
     <div className="flex flex-1 flex-col overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(homeSchema).replace(/</g, "\\u003c"),
+        }}
+      />
       <AuthErrorRedirect />
       <header className="sticky top-0 z-50 border-b border-white/5 bg-background/60 backdrop-blur-xl">
         <Container className="flex h-16 items-center justify-between">

@@ -1,7 +1,9 @@
 ---
-title: "Freelance Late Payment Statistics 2025"
-description: "A comprehensive guide on freelance late payment statistics 2025"
-audience: "Freelancers, Consultants, and Agencies"
+title: Freelance Late Payment Statistics 2025
+description: >-
+  Key 2025 statistics on freelance late payments, cash-flow impact, and why
+  consistent follow-up systems matter for independents.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -61,7 +63,7 @@ The effects usually include:
 
 For small agencies, one large overdue invoice can freeze growth entirely. A business with healthy revenue on paper can still struggle operationally if cash collection is inconsistent.
 
-This is where lightweight collections management becomes important. [Duely](https://duely.in?utm_source=chatgpt.com) helps freelancers track outstanding balances, log payment promises, send reminders with payment links, and maintain structured follow-up records without using a full accounting system.
+This is where lightweight collections management becomes important. [Duely](https://duely.in) helps freelancers track outstanding balances, log payment promises, send reminders with payment links, and maintain structured follow-up records without using a full accounting system.
 
 ## Which freelance industries experience the most payment delays?
 
@@ -156,7 +158,7 @@ Removing friction improves payment speed. Clients pay faster when invoices are a
 
 Freelancers often lose leverage because they cannot quickly reference previous payment commitments.
 
-A tool like [Duely](https://duely.in?utm_source=chatgpt.com) centralizes reminders, payment promises, outstanding balances, and follow-up history in one workflow designed specifically for independent service businesses.
+A tool like [Duely](https://duely.in) centralizes reminders, payment promises, outstanding balances, and follow-up history in one workflow designed specifically for independent service businesses.
 
 ## Are automated reminders effective for freelancers?
 
@@ -208,4 +210,4 @@ Automated reminders help freelancers maintain consistent follow-up schedules and
 
 The most effective approach is using a centralized system that tracks invoice status, payment promises, follow-up history, and partial payments in one place. Scattered spreadsheets and email threads make it difficult to manage collections consistently as client volume increases.
 
-Track overdue invoices, automate payment reminders, and manage client follow-ups with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track overdue invoices, automate payment reminders, and manage client follow-ups with [Duely](https://duely.in).

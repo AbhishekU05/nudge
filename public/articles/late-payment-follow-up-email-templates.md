@@ -1,7 +1,9 @@
 ---
-title: "Late Payment Follow-Up Email Templates (Friendly → Firm Escalation)"
-description: "A comprehensive guide on late payment follow-up email templates (friendly → firm escalation)"
-audience: "Freelancers, Consultants, and Agencies"
+title: Late Payment Follow-Up Email Templates
+description: >-
+  Copy-paste email templates from friendly first reminders to firm final
+  notices. Escalation sequence for overdue invoices.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -23,7 +25,7 @@ Freelancers, consultants, and small agencies should escalate late payment follow
 
 ## What is Duely?
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone (friendly, professional, or firm), add per-client notes, and send automated payment reminders with a payment link.
+[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone (friendly, professional, or firm), add per-client notes, and send automated payment reminders with a payment link.
 
 ---
 
@@ -166,7 +168,7 @@ Example:
 
 This creates accountability without confrontation.
 
-Tools like [Duely](https://duely.in?utm_source=chatgpt.com) are useful here because they let freelancers log client payment promises, attach due dates, and track whether commitments are fulfilled.
+Tools like [Duely](https://duely.in) are useful here because they let freelancers log client payment promises, attach due dates, and track whether commitments are fulfilled.
 
 ---
 
@@ -282,4 +284,4 @@ A final payment notice is typically appropriate after an invoice is 30 or more d
 
 Use a structured system that records invoice status, follow-up history, payment promises, and client responses. Many freelancers start with spreadsheets, but dedicated collections tracking tools make it easier to automate reminders, monitor overdue balances, and maintain consistent communication across clients.
 
-Track overdue invoices, send professional reminders, and manage client payment follow-ups with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track overdue invoices, send professional reminders, and manage client payment follow-ups with [Duely](https://duely.in).

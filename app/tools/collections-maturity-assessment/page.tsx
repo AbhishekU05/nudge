@@ -11,11 +11,11 @@ export const metadata: Metadata = {
   openGraph: {
     description:
       "Evaluate the maturity of your agency's collections process and identify operational weaknesses.",
-    title: "Collections Maturity Assessment | Duely",
+    title: "Collections Maturity Assessment",
     type: "website",
     url: "https://duely.in/tools/collections-maturity-assessment",
   },
-  title: "Collections Maturity Assessment | Duely",
+  title: "Collections Maturity Assessment",
 };
 
 export default function CollectionsMaturityAssessmentPage() {

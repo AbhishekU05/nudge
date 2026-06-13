@@ -1,7 +1,9 @@
 ---
-title: "10 Tools for Tracking Outstanding Invoices in 2026"
-description: "A comprehensive guide to the best tools for tracking outstanding invoices in 2026, covering features, pricing, and which tool fits different agency sizes"
-audience: "Small Agency Owners, Freelancers, and Consultants"
+title: 10 Tools for Tracking Outstanding Invoices in 2026
+description: >-
+  Compare 10 invoice tracking tools for agencies in 2026. Features, pricing, and
+  which fits solo freelancers vs. small teams.
+audience: 'Small Agency Owners, Freelancers, and Consultants'
 ---
 
 ## Quick Answer

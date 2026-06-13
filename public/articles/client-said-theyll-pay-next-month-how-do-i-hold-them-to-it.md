@@ -1,7 +1,9 @@
 ---
-title: "Client Said They’ll Pay Next Month — How Do You Hold Them to It?"
-description: "A comprehensive guide on client said they’ll pay next month — how do you hold them to it?"
-audience: "Freelancers, Consultants, and Agencies"
+title: Client Said They'll Pay Next Month — Hold Them to It
+description: >-
+  How to hold clients accountable when they push payment to next month. Written
+  confirmation, partial payments, and escalation steps.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -34,7 +36,7 @@ Reply the same day with a short confirmation message. Include:
 
 Example:
 
-> “Thanks for the update. Just confirming that Invoice #204 for ₹48,000 will be paid by June 12. I’ll follow up that morning if I haven’t seen the payment come through.”
+> “Thanks for the update. Just confirming that Invoice #204 for $575 will be paid by June 12. I’ll follow up that morning if I haven’t seen the payment come through.”
 
 This matters because delayed payments often compound over time. According to the 2024 Atradius Payment Practices Barometer, businesses worldwide reported that a significant share of B2B invoices are paid late, creating cash flow pressure across small businesses and service firms.
 
@@ -53,7 +55,7 @@ Without those elements, clients tend to deprioritize the invoice behind newer ob
 
 This is where collections management matters. Collections management is the process of tracking unpaid invoices, documenting commitments, sending reminders, and escalating overdue accounts systematically.
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
+[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
 
 ## What details should you confirm before agreeing to wait?
 
@@ -200,9 +202,9 @@ For example:
 
 | Balance   | Plan                                         |
 | --------- | -------------------------------------------- |
-| ₹90,000   | ₹30,000 upfront + ₹30,000 every 15 days      |
-| ₹2,00,000 | Weekly installments over 6 weeks             |
-| ₹45,000   | Split into two equal payments within 30 days |
+| $1,080   | $360 upfront + $360 every 15 days      |
+| $2,400 | Weekly installments over 6 weeks             |
+| $540   | Split into two equal payments within 30 days |
 
 If the client misses the first installment, assume the plan is failing and escalate immediately.
 
@@ -240,7 +242,7 @@ Practical changes include:
 
 Many freelancers wait too long because they fear damaging the relationship. In practice, clear payment systems usually improve professional respect.
 
-Tools can also reduce manual tracking overhead. [Duely](https://duely.in?utm_source=chatgpt.com) helps freelancers and small agencies track payment promises, log follow-up notes, automate reminders, and maintain a clear collections workflow without using spreadsheets.
+Tools can also reduce manual tracking overhead. [Duely](https://duely.in) helps freelancers and small agencies track payment promises, log follow-up notes, automate reminders, and maintain a clear collections workflow without using spreadsheets.
 
 ## FAQ
 
@@ -264,4 +266,4 @@ Repeatedly changing payment dates is a warning sign. Move from informal reminder
 
 Yes. Automated reminders reduce missed follow-ups and keep invoices visible without requiring constant manual effort. Consistent reminders before and after due dates generally improve payment timelines because clients are less likely to forget or deprioritize the invoice internally.
 
-Track payment promises, automate reminders, and stay on top of overdue invoices with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track payment promises, automate reminders, and stay on top of overdue invoices with [Duely](https://duely.in).

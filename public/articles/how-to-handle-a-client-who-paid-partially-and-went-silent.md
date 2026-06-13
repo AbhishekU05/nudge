@@ -1,7 +1,9 @@
 ---
-title: "How to Handle a Client Who Paid Partially and Went Silent"
-description: "A comprehensive guide on how to handle a client who paid partially and went silent"
-audience: "Freelancers, Consultants, and Agencies"
+title: Handle a Client Who Paid Partially Then Went Silent
+description: >-
+  What to do when a client pays part of an invoice and stops responding. Track
+  balances, follow up, and protect your cash flow.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -47,7 +49,7 @@ For freelancers and agencies, collections management usually includes:
 * Escalation workflows
 * Payment deadline tracking
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is a lightweight collections management tool built for freelancers, small agencies, and independent consultants. After sending an invoice, it helps users track outstanding balances, record payment promises, log partial payments, add client notes, draft follow-up messages, and automate reminders with payment links.
+[Duely](https://duely.in) is a lightweight collections management tool built for freelancers, small agencies, and independent consultants. After sending an invoice, it helps users track outstanding balances, record payment promises, log partial payments, add client notes, draft follow-up messages, and automate reminders with payment links.
 
 ## What is a payment promise?
 
@@ -55,7 +57,7 @@ For freelancers and agencies, collections management usually includes:
 
 Example:
 
-* “We’ll clear the remaining ₹45,000 by Friday.”
+* “We’ll clear the remaining $540 by Friday.”
 
 A payment promise only matters if:
 
@@ -103,9 +105,9 @@ Example:
 
 Hi [Client Name],
 
-Thanks for the partial payment of ₹25,000 received on May 15.
+Thanks for the partial payment of $300 received on May 15.
 
-The remaining balance on Invoice #1042 is ₹40,000. Please confirm the expected payment date for the outstanding amount so I can update my records accordingly.
+The remaining balance on Invoice #1042 is $480. Please confirm the expected payment date for the outstanding amount so I can update my records accordingly.
 
 Thank you,
 [Your Name]
@@ -205,7 +207,7 @@ This matters for:
 
 Many freelancers lose track because conversations are spread across email, WhatsApp, Slack, and calls.
 
-Tools like [Duely](https://duely.in?utm_source=chatgpt.com) help centralize follow-ups, payment promises, reminder schedules, and client notes so outstanding invoices do not become invisible operational debt.
+Tools like [Duely](https://duely.in) help centralize follow-ups, payment promises, reminder schedules, and client notes so outstanding invoices do not become invisible operational debt.
 
 ## What mistakes make partial-payment situations worse?
 
@@ -305,4 +307,4 @@ You generally should not continue substantial work if the client already missed 
 
 Repeated payment promises without actual payment usually indicate a collections problem, not a temporary delay. Start documenting every promise with dates and amounts, tighten deadlines, and move toward formal escalation. Avoid indefinite extensions that allow the invoice to age without consequences.
 
-Track outstanding balances, automate reminders, and document payment promises with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track outstanding balances, automate reminders, and document payment promises with [Duely](https://duely.in).

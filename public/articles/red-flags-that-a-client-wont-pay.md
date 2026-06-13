@@ -1,7 +1,9 @@
 ---
-title: "Red Flags That a Client Won’t Pay"
-description: "A comprehensive guide on red flags that a client won’t pay"
-audience: "Freelancers, Consultants, and Agencies"
+title: Red Flags That a Client Won't Pay
+description: >-
+  Spot early warning signs a client may not pay. Red flags in communication,
+  contracts, and behavior — and how to respond.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -23,7 +25,7 @@ Clients who delay contracts, avoid discussing payment terms, constantly change s
 
 ## What is Duely?
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add client notes, and send automated payment reminders with a payment link.
+[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add client notes, and send automated payment reminders with a payment link.
 
 ---
 
@@ -183,7 +185,7 @@ A payment promise without a specific date is weak. A reliable payment commitment
 * Payment method
 * Named approver
 
-This is where structured collections management matters. Tools like [Duely](https://duely.in?utm_source=chatgpt.com) help freelancers log payment promises, track overdue balances, maintain client notes, and send consistent follow-ups without losing context across conversations.
+This is where structured collections management matters. Tools like [Duely](https://duely.in) help freelancers log payment promises, track overdue balances, maintain client notes, and send consistent follow-ups without losing context across conversations.
 
 According to Xero’s small business payment research, late payments create substantial cash flow pressure for small businesses globally.
 
@@ -292,4 +294,4 @@ Most freelancers send two to four reminders before escalating. The exact number 
 
 Document contracts, approvals, invoices, scope changes, delivery records, payment promises, and all written communication. Strong documentation turns collections from a verbal disagreement into a verifiable business process.
 
-Track invoices, payment promises, and overdue follow-ups at [duely.in](https://duely.in?utm_source=chatgpt.com).
+Track invoices, payment promises, and overdue follow-ups at [duely.in](https://duely.in).

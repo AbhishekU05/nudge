@@ -1,7 +1,9 @@
 ---
-title: "What to Say When a Client Misses Their Own Payment Deadline"
-description: "A comprehensive guide on what to say when a client misses their own payment deadline"
-audience: "Freelancers, Consultants, and Agencies"
+title: What to Say When a Client Misses Their Own Deadline
+description: >-
+  Follow up when a client breaks a payment promise they made. Direct scripts
+  that re-establish accountability professionally.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -136,7 +138,7 @@ Thanks,
 
 For independent consultants and agencies, documented communication becomes important if disputes escalate later.
 
-This is also where lightweight collections tracking tools help. [Duely](https://duely.in?utm_source=chatgpt.com) lets freelancers and consultants log payment promises, track overdue balances, and maintain a timeline of client communication without managing everything manually in email threads.
+This is also where lightweight collections tracking tools help. [Duely](https://duely.in) lets freelancers and consultants log payment promises, track overdue balances, and maintain a timeline of client communication without managing everything manually in email threads.
 
 ---
 
@@ -202,7 +204,7 @@ A payment covering only part of the total invoice amount, usually used when the 
 **Payment reminder**
 A follow-up message sent before or after an invoice due date requesting payment confirmation or action.
 
-Freelancers often handle collections informally at first. Problems usually begin when payment promises are scattered across email, WhatsApp, Slack, and calls. Tools like [Duely](https://duely.in?utm_source=chatgpt.com) centralize those follow-ups and payment commitments so nothing gets lost.
+Freelancers often handle collections informally at first. Problems usually begin when payment promises are scattered across email, WhatsApp, Slack, and calls. Tools like [Duely](https://duely.in) centralize those follow-ups and payment commitments so nothing gets lost.
 
 ---
 
@@ -266,4 +268,4 @@ Yes, especially if the client is communicative and experiencing temporary cash f
 
 A friendly reminder assumes the missed payment may be accidental and focuses on confirmation. A firm payment notice emphasizes deadlines, consequences, and required action. The right tone depends on invoice age, client history, and whether previous payment promises were already missed.
 
-Track overdue invoices, payment promises, and follow-ups more systematically with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track overdue invoices, payment promises, and follow-ups more systematically with [Duely](https://duely.in).

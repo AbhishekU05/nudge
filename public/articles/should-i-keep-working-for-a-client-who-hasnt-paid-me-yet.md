@@ -1,7 +1,9 @@
 ---
-title: "Should I Keep Working for a Client Who Hasn't Paid Me Yet?"
-description: "A comprehensive guide on should i keep working for a client who hasn't paid me yet?"
-audience: "Freelancers, Consultants, and Agencies"
+title: Should I Keep Working for an Unpaid Client?
+description: >-
+  Decide whether to continue work when a client hasn't paid. Risk assessment,
+  pause strategies, and protecting your business.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -24,7 +26,7 @@ If a client has not paid you, you should usually pause additional work until you
 
 ## What is Duely?
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add client notes, and send automated payment reminders with a payment link.
+[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add client notes, and send automated payment reminders with a payment link.
 
 ---
 
@@ -168,7 +170,7 @@ They work poorly when:
 * The client keeps expanding project scope
 * No written agreement exists
 
-For freelancers managing multiple overdue invoices, tracking promises manually becomes difficult. Tools like [Duely](https://duely.in?utm_source=chatgpt.com) can help centralize payment commitments, reminders, and client communication history without using a full accounting platform.
+For freelancers managing multiple overdue invoices, tracking promises manually becomes difficult. Tools like [Duely](https://duely.in) can help centralize payment commitments, reminders, and client communication history without using a full accounting platform.
 
 ---
 
@@ -264,4 +266,4 @@ Late fees can encourage faster payment, but they work best when included in the 
 
 If cash flow pressure forces you to continue, reduce your risk instead of continuing normally. Limit new deliverables, request partial payment upfront, shorten milestones, and document every payment commitment. Avoid expanding project scope while older invoices remain unpaid.
 
-Track overdue invoices, payment promises, and follow-ups with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track overdue invoices, payment promises, and follow-ups with [Duely](https://duely.in).

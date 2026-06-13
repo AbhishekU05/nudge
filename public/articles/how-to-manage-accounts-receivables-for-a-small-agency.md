@@ -1,7 +1,9 @@
 ---
-title: "How to Manage Accounts Receivable for a Small Agency"
-description: "A comprehensive guide on how to manage accounts receivable for a small agency"
-audience: "Freelancers, Consultants, and Agencies"
+title: How to Manage Accounts Receivable for a Small Agency
+description: >-
+  Build a repeatable AR process for small agencies. Invoice terms, weekly
+  reviews, payment promises, and escalation workflows.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -66,7 +68,7 @@ A **payment promise** is a client commitment to pay a specific amount by a speci
 
 Example:
 
-> “We’ll clear ₹45,000 by Friday.”
+> “We’ll clear $540 by Friday.”
 
 Recording payment promises matters because verbal commitments are easy to forget. Agencies that document promises can follow up with context instead of restarting the conversation each time.
 
@@ -156,7 +158,7 @@ Example:
 
 | Invoice Total | Amount Paid | Remaining Balance |
 | ------------- | ----------- | ----------------- |
-| ₹1,20,000     | ₹40,000     | ₹80,000           |
+| $1,440     | $480     | $960           |
 
 This becomes especially important for retainer projects, milestone billing, and enterprise clients with staggered approvals.
 
@@ -202,7 +204,7 @@ Most small agencies start with spreadsheets, but spreadsheets break down when:
 * Reminder history matters
 * Multiple team members handle communication
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is designed for this operational layer of collections management. It helps freelancers and agencies track outstanding balances, log payment promises, draft follow-up messages, maintain client notes, and automate reminders with payment links without turning collections into a full accounting workflow.
+[Duely](https://duely.in) is designed for this operational layer of collections management. It helps freelancers and agencies track outstanding balances, log payment promises, draft follow-up messages, maintain client notes, and automate reminders with payment links without turning collections into a full accounting workflow.
 
 ---
 
@@ -298,4 +300,4 @@ An agency should consider pausing work after repeated missed payment commitments
 
 Freelancers and agencies commonly use invoicing software, accounting platforms, or collections management tools to track outstanding balances and automate reminders. The best tools reduce manual follow-up work while keeping payment communication organized and professional.
 
-Manage overdue invoices, payment promises, and client follow-ups with [Duely](https://duely.in?utm_source=chatgpt.com).
+Manage overdue invoices, payment promises, and client follow-ups with [Duely](https://duely.in).

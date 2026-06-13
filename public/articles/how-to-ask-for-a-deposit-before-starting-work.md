@@ -1,7 +1,9 @@
 ---
-title: "How to Ask for a Deposit Before Starting Work"
-description: "A comprehensive guide on how to ask for a deposit before starting work"
-audience: "Freelancers, Consultants, and Agencies"
+title: How to Ask for a Deposit Before Starting Work
+description: >-
+  Scripts and strategies to request upfront deposits from clients without
+  damaging the relationship or losing the project.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -33,7 +35,7 @@ For freelancers and consultants, deposits are usually non-refundable once work b
 
 Collections management is the process of tracking invoices, following up on unpaid balances, recording payment commitments, and managing client payment communication until payment is completed.
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages, add client notes, and automate reminders with payment links.
+[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages, add client notes, and automate reminders with payment links.
 
 ---
 
@@ -252,7 +254,7 @@ For agencies, deposits also improve forecasting accuracy.
 
 Tracking deposits manually becomes messy once you manage multiple clients and milestone invoices.
 
-This is where collections management matters. Tools like [Duely](https://duely.in?utm_source=chatgpt.com) help freelancers and consultants track outstanding balances, record partial payments, note payment promises, and automate reminder workflows without maintaining complex spreadsheets.
+This is where collections management matters. Tools like [Duely](https://duely.in) help freelancers and consultants track outstanding balances, record partial payments, note payment promises, and automate reminder workflows without maintaining complex spreadsheets.
 
 This becomes especially useful when projects involve multiple installments instead of a single final invoice.
 
@@ -298,4 +300,4 @@ Usually not for new engagements. Clients who refuse reasonable upfront payments 
 
 Deposits are generally enforceable when documented clearly in a signed agreement or accepted invoice. Your contract should define the amount, refund terms, project scope, and payment schedule. Laws vary by jurisdiction, so clear written terms matter more than verbal agreements.
 
-Start tracking deposits, payment promises, and invoice follow-ups more cleanly with [Duely](https://duely.in?utm_source=chatgpt.com).
+Start tracking deposits, payment promises, and invoice follow-ups more cleanly with [Duely](https://duely.in).

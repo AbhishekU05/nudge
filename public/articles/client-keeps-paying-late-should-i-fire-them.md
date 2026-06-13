@@ -1,7 +1,9 @@
 ---
-title: "Client Keeps Paying Late — Should You Fire Them?"
-description: "A comprehensive guide on client keeps paying late — should you fire them?"
-audience: "Freelancers, Consultants, and Agencies"
+title: Client Keeps Paying Late — Should You Fire Them?
+description: >-
+  Decide whether to keep a chronically late-paying client. Weigh cash-flow risk,
+  relationship value, and when to walk away.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -26,7 +28,7 @@ If a client pays late once or twice but communicates clearly and follows through
 
 ## What is Duely?
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
+[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
 
 ---
 
@@ -75,7 +77,7 @@ A client who says, “We’re delayed until Friday, sorry,” and pays Friday is
 
 Sometimes yes. Revenue size alone should not determine whether a client stays.
 
-Many freelancers and agencies keep difficult clients because the invoice amounts are large. But large invoices often come with larger financial exposure. If a client owes ₹5 lakh instead of ₹50,000, the risk is higher, not lower.
+Many freelancers and agencies keep difficult clients because the invoice amounts are large. But large invoices often come with larger financial exposure. If a client owes $6,000 instead of $600, the risk is higher, not lower.
 
 Ask these questions:
 
@@ -117,7 +119,7 @@ Try these steps in order:
 6. Centralize follow-ups
    Avoid scattered email threads and verbal promises.
 
-This is where a lightweight collections workflow matters. Tools like [Duely](https://duely.in?utm_source=chatgpt.com) help freelancers and small agencies keep records of payment promises, overdue balances, and follow-up history so collection conversations stay structured instead of emotional.
+This is where a lightweight collections workflow matters. Tools like [Duely](https://duely.in) help freelancers and small agencies keep records of payment promises, overdue balances, and follow-up history so collection conversations stay structured instead of emotional.
 
 ---
 
@@ -270,4 +272,4 @@ Late fees can help reinforce payment expectations if they are included in your c
 
 The best approach is a centralized system that records invoice status, payment promises, follow-up history, and client communication in one place. Spreadsheets work initially, but structured collections tracking becomes more important as client volume increases.
 
-Track overdue invoices, payment promises, and follow-ups in one place with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track overdue invoices, payment promises, and follow-ups in one place with [Duely](https://duely.in).

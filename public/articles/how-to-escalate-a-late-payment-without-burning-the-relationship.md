@@ -1,7 +1,9 @@
 ---
-title: "How to Escalate a Late Payment Without Burning the Relationship"
-description: "A comprehensive guide on how to escalate a late payment without burning the relationship"
-audience: "Freelancers, Consultants, and Agencies"
+title: Escalate Late Payments Without Burning Relationships
+description: >-
+  Escalate overdue invoices professionally. Tone progression, documentation, and
+  scripts that protect cash flow and client trust.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -39,7 +41,7 @@ A **payment promise** is a documented commitment from a client stating how much 
 
 Example:
 
-> “We’ll clear ₹45,000 by Friday and the remaining balance next week.”
+> “We’ll clear $540 by Friday and the remaining balance next week.”
 
 Documenting payment promises matters because it creates accountability and gives you a clear next step if the client misses the deadline again.
 
@@ -197,7 +199,7 @@ This includes:
 
 Documentation matters because clients often forget verbal commitments.
 
-A lightweight collections management system helps centralize this information instead of scattering it across email threads and chat apps. [Duely](https://duely.in?utm_source=chatgpt.com) lets freelancers and consultants track outstanding balances, log payment promises, record partial payments, and send structured follow-ups without turning the process into a confrontation.
+A lightweight collections management system helps centralize this information instead of scattering it across email threads and chat apps. [Duely](https://duely.in) lets freelancers and consultants track outstanding balances, log payment promises, record partial payments, and send structured follow-ups without turning the process into a confrontation.
 
 ## What mistakes make late payment escalation worse?
 
@@ -276,7 +278,7 @@ Automated reminders help by:
 * Keeping records centralized
 * Reducing awkward manual chasing
 
-For freelancers and small agencies, the ideal setup is usually lightweight rather than enterprise-level. [Duely](https://duely.in?utm_source=chatgpt.com) focuses specifically on post-invoice collections workflows like payment reminders, payment promise tracking, and follow-up drafting without requiring complex accounting software.
+For freelancers and small agencies, the ideal setup is usually lightweight rather than enterprise-level. [Duely](https://duely.in) focuses specifically on post-invoice collections workflows like payment reminders, payment promise tracking, and follow-up drafting without requiring complex accounting software.
 
 ## FAQ
 
@@ -300,4 +302,4 @@ Calls can help resolve tension quickly, but always summarize the discussion afte
 
 Send a final notice after multiple ignored reminders or broken payment commitments, typically after 30-45 days overdue. A final notice should clearly state the balance owed, previous communication attempts, the payment deadline, and the consequence if payment is not received. Keep the tone professional and factual.
 
-Track overdue invoices, payment promises, and client follow-ups more systematically with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track overdue invoices, payment promises, and client follow-ups more systematically with [Duely](https://duely.in).

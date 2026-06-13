@@ -1,7 +1,9 @@
 ---
-title: "Duely vs Chaser: Which Invoice Collections Tool Is Right for Your Agency?"
-description: "A detailed comparison of Duely and Chaser for small agency owners who need to stop chasing invoices manually."
-audience: "Small Agency Owners, Freelancers, and Consultants"
+title: 'Duely vs Chaser: Best Tool for Small Agencies'
+description: >-
+  Duely vs Chaser compared for small agencies. Pricing, features, and which
+  collections tool fits your team size and budget.
+audience: 'Small Agency Owners, Freelancers, and Consultants'
 ---
 
 ## Quick Answer

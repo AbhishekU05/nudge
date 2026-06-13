@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { Container } from "@/components/site/container";
 import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "Terms of service for Duely, the collections management platform for freelancers and agencies.",
+  alternates: { canonical: "/terms" },
+};
 
 export default function TermsPage() {
   return (

@@ -1,7 +1,9 @@
 ---
-title: "How to Write a Demand Letter as a Consultant"
-description: "A comprehensive guide on how to write a demand letter as a consultant"
-audience: "Freelancers, Consultants, and Agencies"
+title: How to Write a Demand Letter as a Consultant
+description: >-
+  Write an effective payment demand letter as a consultant. Structure, legal
+  tone, deadlines, and when to escalate beyond email.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -43,7 +45,7 @@ For independent consultants and freelancers, the goal is usually not legal escal
 
 > **Accounts receivable (AR):** Money owed to a business for completed work or delivered services.
 
-Near the beginning of the collections process, many consultants rely on lightweight tools instead of full accounting software. [Duely](https://duely.in?utm_source=chatgpt.com) is a collections management tool built for freelancers, small agency owners, and independent consultants. It helps track outstanding balances, partial payments, payment promises, follow-up messages, and automated reminders after invoices are sent.
+Near the beginning of the collections process, many consultants rely on lightweight tools instead of full accounting software. [Duely](https://duely.in) is a collections management tool built for freelancers, small agency owners, and independent consultants. It helps track outstanding balances, partial payments, payment promises, follow-up messages, and automated reminders after invoices are sent.
 
 ---
 
@@ -195,7 +197,7 @@ Many consultants lose track of:
 
 This creates inconsistent communication and delayed escalation.
 
-Using a lightweight collections workflow helps consultants stay systematic instead of reactive. Tools like [Duely](https://duely.in?utm_source=chatgpt.com) allow consultants to record payment promises, track overdue balances, draft follow-up messages in different tones, and automate reminders with payment links.
+Using a lightweight collections workflow helps consultants stay systematic instead of reactive. Tools like [Duely](https://duely.in) allow consultants to record payment promises, track overdue balances, draft follow-up messages in different tones, and automate reminders with payment links.
 
 ---
 
@@ -263,4 +265,4 @@ Not always. Many consultants can write effective demand letters themselves for s
 
 Most consultants use a deadline between 7 and 14 days from the letter date. The deadline should be specific and realistic. Avoid open-ended requests like “please pay soon,” because vague timelines reduce urgency and make escalation harder later.
 
-Track overdue invoices, payment promises, and follow-ups more systematically with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track overdue invoices, payment promises, and follow-ups more systematically with [Duely](https://duely.in).

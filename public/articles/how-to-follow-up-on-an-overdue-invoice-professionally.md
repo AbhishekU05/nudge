@@ -1,7 +1,9 @@
 ---
-title: "How to Follow Up on a 60-Day Overdue Invoice Professionally"
-description: "A comprehensive guide on how to follow up on a 60-day overdue invoice professionally"
-audience: "Freelancers, Consultants, and Agencies"
+title: Follow Up on a 60-Day Overdue Invoice Professionally
+description: >-
+  Professional follow-up templates and escalation steps for invoices 60+ days
+  overdue. Stay firm without damaging the relationship.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -160,7 +162,7 @@ Document every agreement in writing, including:
 * Partial payment schedule
 * Consequences for missed payments
 
-This is also where lightweight collections tracking becomes useful. [Duely](https://duely.in?utm_source=chatgpt.com) helps freelancers and small agencies log payment promises, track partial payments, and keep a timeline of follow-up activity without building complicated spreadsheets.
+This is also where lightweight collections tracking becomes useful. [Duely](https://duely.in) helps freelancers and small agencies log payment promises, track partial payments, and keep a timeline of follow-up activity without building complicated spreadsheets.
 
 ---
 
@@ -267,7 +269,7 @@ A simple collections workflow should help you:
 * Monitor partial payments
 * Send reminders consistently
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is designed specifically for freelancers, consultants, and small agencies handling client receivables after invoices are sent.
+[Duely](https://duely.in) is designed specifically for freelancers, consultants, and small agencies handling client receivables after invoices are sent.
 
 ---
 
@@ -293,4 +295,4 @@ Yes. Partial payments are often better than no payment, especially when the clie
 
 Freelancers should continue structured follow-ups until the invoice is resolved, formally disputed, written off, or escalated. Consistent communication every few business days after the 60-day mark is common. Stopping follow-up entirely usually lowers the likelihood of eventual payment recovery.
 
-Track overdue invoices, payment promises, and follow-ups more systematically with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track overdue invoices, payment promises, and follow-ups more systematically with [Duely](https://duely.in).

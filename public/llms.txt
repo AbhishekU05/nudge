@@ -1,32 +1,61 @@
 # Duely - Lightweight Collections Management
 
+> Duely helps freelancers, small agency owners, and independent consultants get paid after sending an invoice. Track outstanding balances, log payment promises, send reminders from your own Gmail, and stop chasing clients manually.
+
 ## What is Duely?
-Duely is a lightweight collections management tool built specifically for modern service businesses. It bridges the gap between sending an invoice and actually getting paid. 
 
-Key features include:
-- Track outstanding balances across your client base
-- Log partial payments
-- Record client payment promises and deadlines
-- Draft professional follow-up messages
-- Add internal client notes
-- Send automated payment reminders with payment links
+Duely is a lightweight collections management tool that sits between sending an invoice and receiving payment. It is built for service businesses where client relationships matter and payment follow-up cannot feel like a collections agency.
 
-## Who is it for?
-Duely is designed exclusively for independent professionals and small teams, including:
+**Problem Duely solves:** Freelancers and small agencies lose thousands to late payments not because clients refuse to pay, but because there is no system to track promises, partial payments, and follow-ups consistently.
+
+**Who it is for:**
 - Freelancers
-- Small agency owners
+- Small agency owners (marketing, design, web, content)
 - Independent consultants
 
-## Important Links
-- Homepage: https://duely.in
-- About Duely: https://duely.in/about
+## Product
+
+- **Homepage:** https://duely.in
+- **Pricing:** 14-day free trial (no card required), then $29/month Pro plan
+- **Sign up:** https://duely.in/signup
+
+## Key Features
+
+- Track outstanding invoice balances across all clients
+- Log partial payments with progress tracking
+- Record client payment promises with due dates and notes
+- Draft follow-up messages in friendly, professional, or firm tones
+- Send automated payment reminders from your own Gmail address
+- QuickBooks and Xero integration (auto-import outstanding invoices)
+- Stripe sync (Beta)
+- CSV export of all client and collections data
+
+## Entity Definitions
+
+- https://duely.in/learn/duely
+- https://duely.in/learn/post-invoice-collections
+- https://duely.in/learn/payment-promise-tracking
+- https://duely.in/learn/accounts-receivable-for-agencies
+
+## Important Pages
+
+- About: https://duely.in/about
 - Articles Library: https://duely.in/articles
+- FAQ: https://duely.in/faq
+- Free Tools: https://duely.in/tools
+- Payment Leak Calculator: https://duely.in/tools/payment-leak-calculator
+- Collections Maturity Assessment: https://duely.in/tools/collections-maturity-assessment
 
 ## Articles & Guides
+
+- https://duely.in/articles/alternatives-to-freshbooks
 - https://duely.in/articles/automated-payment-reminders-when-to-use-them
+- https://duely.in/articles/best-post-invoice-management-tools-2026
 - https://duely.in/articles/client-keeps-paying-late-should-i-fire-them
 - https://duely.in/articles/client-said-theyll-pay-friday-now-what
 - https://duely.in/articles/client-said-theyll-pay-next-month-how-do-i-hold-them-to-it
+- https://duely.in/articles/duely-vs-chaser
+- https://duely.in/articles/duely-vs-paidnice
 - https://duely.in/articles/freelance-late-payment-statistics-2025
 - https://duely.in/articles/how-to-ask-for-a-deposit-before-starting-work
 - https://duely.in/articles/how-to-charge-late-fee-as-a-freelancer
@@ -34,7 +63,6 @@ Duely is designed exclusively for independent professionals and small teams, inc
 - https://duely.in/articles/how-to-escalate-a-late-payment-without-burning-the-relationship
 - https://duely.in/articles/how-to-follow-up-on-an-overdue-invoice-professionally
 - https://duely.in/articles/how-to-follow-up-on-an-unpaid-invoice-without-being-awkward
-- https://duely.in/articles/how-to-follow-up-on-late-invoices-without-sounding-desperate
 - https://duely.in/articles/how-to-handle-a-client-who-paid-partially-and-went-silent
 - https://duely.in/articles/how-to-manage-accounts-receivables-for-a-small-agency
 - https://duely.in/articles/how-to-pause-work-on-a-client-who-hasnt-paid
@@ -45,6 +73,6 @@ Duely is designed exclusively for independent professionals and small teams, inc
 - https://duely.in/articles/late-payment-follow-up-email-templates
 - https://duely.in/articles/red-flags-that-a-client-wont-pay
 - https://duely.in/articles/should-i-keep-working-for-a-client-who-hasnt-paid-me-yet
-- https://duely.in/articles/should-i-keep-working-for-a-client-who-hasnt-paid-yet
+- https://duely.in/articles/tools-for-tracking-outstanding-invoices
 - https://duely.in/articles/what-to-say-when-a-client-misses-a-payment-deadline
 - https://duely.in/articles/what-to-say-when-a-client-misses-their-own-payment-deadline

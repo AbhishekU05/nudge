@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, MessageSquare, Clock, FileText, Link as LinkIcon, Users } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "About | Duely",
+  title: "About",
   description: "Learn more about Duely, the lightweight collections management tool for freelancers, small agencies, and independent consultants.",
+  alternates: { canonical: "/about" },
 };
 
 const features = [

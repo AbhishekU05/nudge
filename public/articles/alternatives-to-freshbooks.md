@@ -1,7 +1,9 @@
 ---
-title: "Top Alternatives to FreshBooks in 2026"
-description: "A comprehensive comparison of the best FreshBooks alternatives for small agencies in 2026, covering features, pricing, and use cases"
-audience: "Small Agency Owners, Freelancers, and Consultants"
+title: Top Alternatives to FreshBooks in 2026
+description: >-
+  Best FreshBooks alternatives for agencies that need stronger post-invoice
+  collections, not just invoicing and accounting.
+audience: 'Small Agency Owners, Freelancers, and Consultants'
 ---
 
 ## Quick Answer

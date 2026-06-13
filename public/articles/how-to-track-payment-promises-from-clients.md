@@ -1,7 +1,9 @@
 ---
-title: "How to Track Payment Promises From Clients"
-description: "A comprehensive guide on how to track payment promises from clients"
-audience: "Freelancers, Consultants, and Agencies"
+title: How to Track Payment Promises From Clients
+description: >-
+  Stop losing track of "I'll pay Friday" commitments. Systems and tools to
+  record, monitor, and follow up on payment promises.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -99,7 +101,7 @@ A basic workflow looks like this:
 
 Many freelancers start with spreadsheets, but spreadsheets become difficult once there are multiple overdue invoices and repeated client interactions.
 
-This is the exact operational gap tools like [Duely](https://duely.in?utm_source=chatgpt.com) are designed to handle. Instead of manually searching through messages, you can track outstanding balances, record payment promises with dates, store follow-up notes, and send reminders from one place.
+This is the exact operational gap tools like [Duely](https://duely.in) are designed to handle. Instead of manually searching through messages, you can track outstanding balances, record payment promises with dates, store follow-up notes, and send reminders from one place.
 
 ## When should you follow up on a payment promise?
 
@@ -167,7 +169,7 @@ For example:
 
 | Invoice | Total   | Paid    | Remaining | Next Promise |
 | ------- | ------- | ------- | --------- | ------------ |
-| INV-204 | ₹80,000 | ₹30,000 | ₹50,000   | May 28       |
+| INV-204 | $960 | $360 | $600   | May 28       |
 
 Without separate tracking, freelancers often assume progress means resolution and stop following up consistently.
 
@@ -192,7 +194,7 @@ When payment information lives across WhatsApp, email, Slack, and handwritten no
 
 After a phone call, send a short written confirmation:
 
-> “Confirming our conversation today: payment of ₹25,000 is expected by May 21.”
+> “Confirming our conversation today: payment of $300 is expected by May 21.”
 
 This creates accountability and reduces misunderstandings.
 
@@ -253,4 +255,4 @@ Most freelancers should follow up 2-3 days before the promised payment date, on 
 
 The best method is to log every conversation immediately after it happens, including the promised amount, promised date, communication channel, and any explanation the client provided. Written confirmation messages after calls are especially important because they reduce disputes and create a documented payment history.
 
-Track client payment promises, reminders, and overdue invoices in one place with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track client payment promises, reminders, and overdue invoices in one place with [Duely](https://duely.in).

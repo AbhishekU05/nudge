@@ -1,7 +1,9 @@
 ---
-title: "How to Track Which Clients Owe You Money"
-description: "A comprehensive guide on how to track which clients owe you money"
-audience: "Freelancers, Consultants, and Agencies"
+title: How to Track Which Clients Owe You Money
+description: >-
+  Simple systems to see all outstanding balances at a glance. Spreadsheets vs.
+  collections tools for freelancers and agencies.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -42,7 +44,7 @@ Most payment tracking failures happen because information lives in multiple plac
 
 A lightweight collections workflow solves this by organizing everything around outstanding balances instead of around individual invoices alone.
 
-This is where tools built specifically for collections management can help. [Duely](https://duely.in?utm_source=chatgpt.com) is designed for freelancers, small agencies, and independent consultants who need to track overdue payments, log payment promises, and automate reminders without using enterprise accounting software.
+This is where tools built specifically for collections management can help. [Duely](https://duely.in) is designed for freelancers, small agencies, and independent consultants who need to track overdue payments, log payment promises, and automate reminders without using enterprise accounting software.
 
 ---
 
@@ -148,7 +150,7 @@ Bad tracking:
 
 Good tracking:
 
-> “Client confirmed ₹48,000 payment by May 24 after internal approval.”
+> “Client confirmed $575 payment by May 24 after internal approval.”
 
 This matters because many overdue invoices involve repeated vague commitments rather than outright refusal.
 
@@ -253,7 +255,7 @@ Good automation helps you:
 
 The goal is visibility, not spam.
 
-For freelancers and small agencies, lightweight systems are usually more effective than complex accounting suites because collections work depends heavily on communication tracking and follow-up discipline. [Duely](https://duely.in?utm_source=chatgpt.com) focuses specifically on this stage after invoices are sent.
+For freelancers and small agencies, lightweight systems are usually more effective than complex accounting suites because collections work depends heavily on communication tracking and follow-up discipline. [Duely](https://duely.in) focuses specifically on this stage after invoices are sent.
 
 ---
 
@@ -279,4 +281,4 @@ Repeated missed payment promises are a stronger warning sign than a single late 
 
 Accounting software handles invoicing and bookkeeping well, but many freelancers and agencies still struggle with collections tracking. The missing layer is usually communication management: reminders, payment promises, follow-up timing, and overdue prioritization.
 
-Track overdue payments, payment promises, and client follow-ups more systematically with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track overdue payments, payment promises, and client follow-ups more systematically with [Duely](https://duely.in).

@@ -1,7 +1,9 @@
 ---
-title: "How to Pause Work on a Client Who Hasn’t Paid"
-description: "A comprehensive guide on how to pause work on a client who hasn’t paid"
-audience: "Freelancers, Consultants, and Agencies"
+title: How to Pause Work on a Client Who Hasn't Paid
+description: >-
+  Pause deliverables professionally when a client hasn't paid. Sample messages,
+  documentation tips, and when to resume work.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -131,7 +133,7 @@ For example:
 * 20% payment on a large overdue invoice usually does not justify resuming full production
 * 80–90% payment with a confirmed remaining date may justify restarting limited work
 
-This is where structured tracking matters. Tools like [Duely](https://duely.in?utm_source=chatgpt.com) help freelancers and agencies log partial payments, store payment promises, and maintain a clean history of client communication.
+This is where structured tracking matters. Tools like [Duely](https://duely.in) help freelancers and agencies log partial payments, store payment promises, and maintain a clean history of client communication.
 
 ---
 
@@ -263,4 +265,4 @@ Late fees can help reinforce payment terms if they are included in your contract
 
 Keep communication factual and operational. Reference the invoice number, overdue amount, and agreed dates. Avoid emotional language or accusations. A concise message explaining that work is paused pending payment usually sounds more professional than a long frustrated explanation.
 
-Track overdue invoices, payment promises, and follow-ups with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track overdue invoices, payment promises, and follow-ups with [Duely](https://duely.in).

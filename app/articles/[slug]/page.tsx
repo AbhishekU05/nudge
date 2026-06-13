@@ -11,6 +11,12 @@ import { Container } from "@/components/site/container";
 import { HeroEmailCapture } from "@/components/site/hero-email-capture";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  extractFaqItems,
+  extractQuickAnswer,
+  splitArticleContent,
+} from "@/lib/seo/article-content";
+import { organizationSchema, SITE_URL } from "@/lib/seo/site";
 
 export async function generateStaticParams() {
   const articlesDir = path.join(process.cwd(), "public", "articles");
@@ -37,16 +43,115 @@ export async function generateMetadata({
 
   const fileContent = fs.readFileSync(filePath, "utf8");
   const { data } = matter(fileContent);
+  const title = data.title || "Article";
 
   return {
-    title: `${data.title || "Article"} | Duely`,
+    title,
     description: data.description || "",
+    alternates: {
+      canonical: `/articles/${slug}`,
+    },
     openGraph: {
-      title: `${data.title || "Article"} | Duely`,
+      title,
       description: data.description || "",
       type: "article",
+      url: `${SITE_URL}/articles/${slug}`,
     },
   };
+}
+
+function buildArticleSchemas({
+  title,
+  description,
+  slug,
+  datePublished,
+  dateModified,
+  quickAnswer,
+  faqItems,
+}: {
+  title: string;
+  description: string;
+  slug: string;
+  datePublished: string;
+  dateModified: string;
+  quickAnswer: string | null;
+  faqItems: ReturnType<typeof extractFaqItems>;
+}) {
+  const pageUrl = `${SITE_URL}/articles/${slug}`;
+
+  const schemas: Record<string, unknown>[] = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: title,
+      description,
+      author: organizationSchema,
+      datePublished,
+      dateModified,
+      url: pageUrl,
+      mainEntityOfPage: pageUrl,
+      publisher: {
+        ...organizationSchema,
+        logo: {
+          "@type": "ImageObject",
+          url: `${SITE_URL}/logo.svg`,
+        },
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: SITE_URL,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Articles",
+          item: `${SITE_URL}/articles`,
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: title,
+          item: pageUrl,
+        },
+      ],
+    },
+  ];
+
+  if (quickAnswer) {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      url: pageUrl,
+      speakable: {
+        "@type": "SpeakableSpecification",
+        cssSelector: ["#quick-answer"],
+      },
+    });
+  }
+
+  if (faqItems.length > 0) {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqItems.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })),
+    });
+  }
+
+  return schemas;
 }
 
 export default async function ArticlePage({
@@ -68,33 +173,43 @@ export default async function ArticlePage({
 
   const fileContent = fs.readFileSync(filePath, "utf8");
   const { data, content } = matter(fileContent);
+  const fileStat = fs.statSync(filePath);
 
   const title = data.title || "Article";
   const description = data.description || "";
   const audience = data.audience || "Guides";
-  const datePublished = data.date || new Date().toISOString().split("T")[0];
+  const datePublished =
+    data.date || fileStat.birthtime.toISOString().split("T")[0];
+  const dateModified =
+    data.modified ||
+    fileStat.mtime.toISOString().split("T")[0];
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: title,
-    description: description,
-    author: {
-      "@type": "Organization",
-      name: "Duely",
-      url: "https://duely.in",
-    },
-    datePublished: datePublished,
-    url: `https://duely.in/articles/${slug}`,
-  };
+  const quickAnswer = extractQuickAnswer(content);
+  const faqItems = extractFaqItems(content);
+  const { body } = splitArticleContent(content);
+
+  const jsonLd = buildArticleSchemas({
+    title,
+    description,
+    slug,
+    datePublished,
+    dateModified,
+    quickAnswer,
+    faqItems,
+  });
 
   return (
     <div className="flex flex-1 flex-col">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      {/* ── Navbar ── */}
+      {jsonLd.map((schema, index) => (
+        <script
+          key={index}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
+          }}
+        />
+      ))}
+
       <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
         <Container className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
@@ -123,7 +238,6 @@ export default async function ArticlePage({
       </header>
 
       <main className="flex-1">
-        {/* ── 1. Hero ── */}
         <section className="border-b border-white/5 bg-gradient-to-b from-indigo-950/20 to-transparent">
           <Container className="py-20 sm:py-28 text-center">
             <Badge
@@ -143,16 +257,32 @@ export default async function ArticlePage({
           </Container>
         </section>
 
-        {/* ── 2. Markdown Content ── */}
+        {quickAnswer && (
+          <section className="border-b border-white/5 bg-indigo-950/10">
+            <Container className="py-10 sm:py-12">
+              <div className="mx-auto max-w-3xl">
+                <h2 className="text-sm font-semibold uppercase tracking-widest text-indigo-300">
+                  Quick Answer
+                </h2>
+                <p
+                  id="quick-answer"
+                  className="mt-4 text-base leading-8 text-zinc-200"
+                >
+                  {quickAnswer}
+                </p>
+              </div>
+            </Container>
+          </section>
+        )}
+
         <section className="border-b border-white/5 bg-white/[0.01]">
           <Container className="py-20 sm:py-28">
             <div className="mx-auto max-w-3xl prose prose-invert prose-indigo prose-img:rounded-xl prose-a:text-indigo-400 hover:prose-a:text-indigo-300">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
             </div>
           </Container>
         </section>
 
-        {/* ── 3. Final CTA ── */}
         <section>
           <Container className="py-20 sm:py-28">
             <div className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-gradient-to-b from-indigo-950/30 to-transparent px-8 py-16 text-center sm:px-14 sm:py-20">
@@ -172,7 +302,6 @@ export default async function ArticlePage({
         </section>
       </main>
 
-      {/* ── Footer ── */}
       <footer className="mt-auto border-t border-border">
         <Container className="flex flex-col items-center justify-between gap-4 py-8 text-sm text-zinc-600 sm:flex-row">
           <div>© {new Date().getFullYear()} Duely. All rights reserved.</div>

@@ -1,7 +1,9 @@
 ---
-title: "How to Charge a Late Fee as a Freelancer"
-description: "A comprehensive guide on how to charge a late fee as a freelancer"
-audience: "Freelancers, Consultants, and Agencies"
+title: How to Charge a Late Fee as a Freelancer
+description: >-
+  Set and enforce late payment fees fairly. Contract language, fee structures,
+  and how to communicate penalties professionally.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -28,7 +30,7 @@ A late fee is an additional charge applied when a client does not pay an invoice
 
 Late fees are typically structured in one of three ways:
 
-* Flat fee (example: ₹2,000 after 15 days overdue)
+* Flat fee (example: $25 after 15 days overdue)
 * Percentage penalty (example: 2% of the invoice balance)
 * Recurring monthly interest (example: 1.5% per month)
 
@@ -49,7 +51,7 @@ For freelancers and small agencies, collections management usually includes:
 * Escalating overdue accounts
 * Applying late fees when necessary
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add client notes, and automate payment reminders with payment links.
+[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add client notes, and automate payment reminders with payment links.
 
 ---
 
@@ -73,7 +75,7 @@ Charging fees immediately after the due date often creates unnecessary friction,
 
 ## How much should freelancers charge as a late fee?
 
-Most freelancers charge either 1–3% monthly interest or a flat fee between ₹1,000 and ₹10,000 depending on invoice size and project scope.
+Most freelancers charge either 1–3% monthly interest or a flat fee between $12 and $120 depending on invoice size and project scope.
 
 A reasonable late fee should:
 
@@ -86,9 +88,9 @@ Here is a practical framework:
 
 | Invoice Amount  | Typical Late Fee                 |
 | --------------- | -------------------------------- |
-| Under ₹25,000   | Flat fee                         |
-| ₹25,000–₹1 lakh | 1–2% monthly                     |
-| Above ₹1 lakh   | 1–3% monthly or staged penalties |
+| Under $300   | Flat fee                         |
+| $300–$1,200 | 1–2% monthly                     |
+| Above $1,200   | 1–3% monthly or staged penalties |
 
 Avoid excessive penalties. Extremely high fees are difficult to enforce and can damage long-term client relationships.
 
@@ -107,8 +109,8 @@ Flat fees work better for small invoices. Percentage-based penalties work better
 
 For example:
 
-* A ₹1,500 late fee on a ₹12,000 invoice is meaningful.
-* The same ₹1,500 fee on a ₹4 lakh invoice is negligible.
+* A $18 late fee on a $145 invoice is meaningful.
+* The same $18 fee on a $4,800 invoice is negligible.
 
 ---
 
@@ -204,7 +206,7 @@ Instead of improvising reminders every time:
 * Record partial payments
 * Escalate gradually
 
-This is where structured collections management helps. Instead of manually tracking overdue invoices in spreadsheets and email threads, tools like [Duely](https://duely.in?utm_source=chatgpt.com) centralize payment tracking, reminders, client notes, and follow-up workflows.
+This is where structured collections management helps. Instead of manually tracking overdue invoices in spreadsheets and email threads, tools like [Duely](https://duely.in) centralize payment tracking, reminders, client notes, and follow-up workflows.
 
 ---
 
@@ -244,4 +246,4 @@ Yes. Every invoice should repeat the payment deadline and late fee policy even i
 
 If reminders and late fee notices fail, freelancers should escalate gradually by pausing work, requiring upfront deposits for future work, or using formal collections processes. Keep all communication professional and documented rather than emotional or confrontational.
 
-Track overdue invoices, automate reminders, and manage payment follow-ups with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track overdue invoices, automate reminders, and manage payment follow-ups with [Duely](https://duely.in).

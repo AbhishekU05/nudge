@@ -1,7 +1,9 @@
 ---
-title: "Automated Payment Reminders — When to Use Them"
-description: "A comprehensive guide on automated payment reminders — when to use them"
-audience: "Freelancers, Consultants, and Agencies"
+title: Automated Payment Reminders — When to Use Them
+description: >-
+  Learn when to automate payment reminders vs. follow up manually. Timing, tone,
+  and escalation rules for freelancers and agencies.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -21,7 +23,7 @@ Automated payment reminders work best for predictable follow-up tasks: reminding
 
 ## What is Duely?
 
-[Duely](https://duely.in?utm_source=chatgpt.com) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
+[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
 
 ## What are automated payment reminders?
 
@@ -156,7 +158,7 @@ This is why collections management should combine automation with tracking and c
 
 For example, if a client promises payment next Tuesday, your reminder schedule should adapt to that commitment instead of continuing generic overdue notices.
 
-Tools like [Duely](https://duely.in?utm_source=chatgpt.com) help freelancers log payment promises, partial payments, and client notes so reminders stay aligned with actual conversations.
+Tools like [Duely](https://duely.in) help freelancers log payment promises, partial payments, and client notes so reminders stay aligned with actual conversations.
 
 ## How should freelancers combine automation with manual follow-up?
 
@@ -244,4 +246,4 @@ A reminder should include the invoice number, outstanding amount, due date, paym
 
 Yes. Small agencies benefit because multiple invoices across multiple clients become difficult to track manually. Automation reduces missed follow-ups, improves payment consistency, and frees account managers or founders from repetitive administrative work while maintaining a structured collections process.
 
-Track invoices, payment promises, and automated reminders with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track invoices, payment promises, and automated reminders with [Duely](https://duely.in).

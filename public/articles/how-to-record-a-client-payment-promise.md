@@ -1,7 +1,9 @@
 ---
-title: "How to Record a Client Payment Promise"
-description: "A comprehensive guide on how to record a client payment promise"
-audience: "Freelancers, Consultants, and Agencies"
+title: How to Record a Client Payment Promise
+description: >-
+  Log client payment commitments with dates and notes. Templates for written
+  confirmation and follow-up on the due date.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -86,7 +88,7 @@ At minimum, record:
 
 Example entry:
 
-> Invoice INV-2048 — Client promised ₹35,000 payment by May 28 after receiving approval from finance team. Discussed via email on May 18. Agreed to follow up on May 27 if payment is not received.
+> Invoice INV-2048 — Client promised $420 payment by May 28 after receiving approval from finance team. Discussed via email on May 18. Agreed to follow up on May 27 if payment is not received.
 
 Short, factual notes work better than emotional summaries.
 
@@ -106,7 +108,7 @@ A strong confirmation message should include:
 
 Example:
 
-> Thanks for the update today. Confirming that payment of ₹35,000 for Invoice INV-2048 is expected by May 28. Please let me know if anything changes before then.
+> Thanks for the update today. Confirming that payment of $420 for Invoice INV-2048 is expected by May 28. Please let me know if anything changes before then.
 
 This approach stays professional without sounding aggressive.
 
@@ -186,7 +188,7 @@ You need one place to see:
 
 Many freelancers start with spreadsheets, but manual tracking becomes difficult once invoice volume increases.
 
-A lightweight system like [Duely](https://duely.in?utm_source=chatgpt.com) can simplify this process by keeping payment promises, reminders, invoice notes, and follow-up communication connected to the same client record.
+A lightweight system like [Duely](https://duely.in) can simplify this process by keeping payment promises, reminders, invoice notes, and follow-up communication connected to the same client record.
 
 ## What should you do if a client breaks multiple payment promises?
 
@@ -247,4 +249,4 @@ Most freelancers should follow up every 5–7 business days unless a specific pa
 
 A payment reminder is a message requesting payment or prompting action on an unpaid invoice. A payment promise is the client’s response confirming when or how they intend to pay. Recording the promise creates accountability and helps structure future follow-ups.
 
-Track payment promises, overdue invoices, and client follow-ups in one place with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track payment promises, overdue invoices, and client follow-ups in one place with [Duely](https://duely.in).

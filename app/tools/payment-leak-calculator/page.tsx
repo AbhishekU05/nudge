@@ -11,11 +11,11 @@ export const metadata: Metadata = {
   openGraph: {
     description:
       "Estimate how much cash your agency has tied up in delayed client payments and get a personalized collections report.",
-    title: "Agency Payment Leak Estimator | Duely",
+    title: "Agency Payment Leak Estimator",
     type: "website",
     url: "https://duely.in/tools/payment-leak-calculator",
   },
-  title: "Agency Payment Leak Estimator | Duely",
+  title: "Agency Payment Leak Estimator",
 };
 
 export default function PaymentLeakCalculatorPage() {

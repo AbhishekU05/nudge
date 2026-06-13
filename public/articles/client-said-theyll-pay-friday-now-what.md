@@ -1,7 +1,9 @@
 ---
-title: "Client Said They’ll Pay Friday — Now What?"
-description: "A comprehensive guide on client said they’ll pay friday — now what?"
-audience: "Freelancers, Consultants, and Agencies"
+title: Client Said They'll Pay Friday — Now What?
+description: >-
+  Steps to take when a client promises payment by Friday. Confirm in writing,
+  set reminders, and follow up if they miss the date.
+audience: 'Freelancers, Consultants, and Agencies'
 ---
 
 ## Quick Answer
@@ -30,7 +32,7 @@ If a client says they’ll pay Friday, treat it as a payment promise, not a comp
 
 In collections management, this is called a **payment promise**. The important thing is not the promise itself — it is whether the client consistently keeps those promises. A client who communicates clearly and pays slightly late is different from a client who repeatedly resets deadlines.
 
-This is where tracking matters. If you handle multiple invoices or clients, it becomes difficult to remember who promised what and when. Tools like [Duely](https://duely.in?utm_source=chatgpt.com) help freelancers and consultants log payment promises, track follow-up dates, and keep invoice conversations organized without using spreadsheets.
+This is where tracking matters. If you handle multiple invoices or clients, it becomes difficult to remember who promised what and when. Tools like [Duely](https://duely.in) help freelancers and consultants log payment promises, track follow-up dates, and keep invoice conversations organized without using spreadsheets.
 
 ---
 
@@ -166,7 +168,7 @@ You should record:
 
 Without documentation, overdue invoices become difficult to manage because details spread across email, WhatsApp, Slack, and calls.
 
-This is the core problem collections management tools solve. [Duely](https://duely.in?utm_source=chatgpt.com) is designed specifically for freelancers, independent consultants, and small agencies who need lightweight tracking after invoices are sent — including payment promises, reminder scheduling, and follow-up drafting.
+This is the core problem collections management tools solve. [Duely](https://duely.in) is designed specifically for freelancers, independent consultants, and small agencies who need lightweight tracking after invoices are sent — including payment promises, reminder scheduling, and follow-up drafting.
 
 ---
 
@@ -260,4 +262,4 @@ Late fees can help reinforce payment expectations if they are included in the or
 
 There is no universal limit, but repeated broken promises should change your approach. After two or three missed payment dates, stop relying on informal extensions and introduce stricter terms such as upfront deposits, paused work, or shorter billing cycles.
 
-Track payment promises, overdue invoices, and follow-ups more cleanly with [Duely](https://duely.in?utm_source=chatgpt.com).
+Track payment promises, overdue invoices, and follow-ups more cleanly with [Duely](https://duely.in).
