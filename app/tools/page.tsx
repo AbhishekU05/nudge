@@ -1,3 +1,5 @@
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
