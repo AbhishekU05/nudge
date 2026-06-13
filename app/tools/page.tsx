@@ -53,26 +53,7 @@ const comingSoon: Array<{ label: string; icon: typeof Calculator }> = [
 export default function ToolsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-white/10 bg-background/80 backdrop-blur-xl">
-        <Container className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
-            <Image
-              src="/logo.svg"
-              width={36}
-              height={36}
-              alt="Duely Logo"
-              className="h-9 w-9 rounded-lg shadow-sm"
-            />
-            <span className="text-lg font-semibold text-zinc-50">Duely</span>
-          </Link>
-          <Link href="/signup">
-            <Button size="sm" className="hidden sm:inline-flex">
-              Start Free Trial
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </Container>
-      </header>
+      <SiteHeader />
 
       <main>
         <section className="border-b border-white/10 py-12 sm:py-16">
@@ -146,6 +127,7 @@ export default function ToolsPage() {
           </Container>
         </section>
       </main>
+      <SiteFooter />
     </div>
   );
 }

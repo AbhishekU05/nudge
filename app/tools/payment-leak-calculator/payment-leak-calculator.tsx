@@ -29,6 +29,7 @@ import {
   formatNumber,
   type PaymentLeakInputs,
 } from "@/lib/payment-leak-calculator/calculations";
+import { MinimalSiteHeader } from "@/components/site/minimal-site-header";
 import { cn } from "@/lib/utils";
 
 const initialInputs: PaymentLeakInputs = {
@@ -189,26 +190,7 @@ export function PaymentLeakCalculator() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
-      <header className="border-b border-white/10 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
-            <Image
-              src="/logo.svg"
-              width={36}
-              height={36}
-              alt="Duely Logo"
-              className="h-9 w-9 rounded-lg shadow-sm"
-            />
-            <span className="text-lg font-semibold text-zinc-50">Duely</span>
-          </Link>
-          <Link href="/signup">
-            <Button size="sm" className="hidden sm:inline-flex">
-              Start Free Trial
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-      </header>
+      <MinimalSiteHeader />
 
       <main>
         <section className="border-b border-white/10 py-10 sm:py-14 lg:py-16">
@@ -679,8 +661,8 @@ export function PaymentLeakCalculator() {
             <p className="max-w-xl text-base leading-7 text-zinc-400">
               Want to evaluate the systems behind your collections process?
             </p>
-            <Link href="/tools/collections-maturity-assessment">
-              <Button variant="secondary" size="lg">
+            <Link href="/tools/collections-maturity-assessment" className="w-full sm:w-auto">
+              <Button variant="secondary" size="lg" className="w-full sm:w-auto">
                 Take the Collections Maturity Assessment
                 <ArrowRight className="h-4 w-4" />
               </Button>

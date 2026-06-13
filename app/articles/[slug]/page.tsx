@@ -9,7 +9,8 @@ import type { Metadata } from "next";
 
 import { Container } from "@/components/site/container";
 import { HeroEmailCapture } from "@/components/site/hero-email-capture";
-import { Button } from "@/components/ui/button";
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
 import { Badge } from "@/components/ui/badge";
 import {
   extractFaqItems,
@@ -210,32 +211,7 @@ export default async function ArticlePage({
         />
       ))}
 
-      <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
-        <Container className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/logo.svg"
-              width={32}
-              height={32}
-              alt="Duely Logo"
-              className="h-8 w-8 rounded-md"
-            />
-            <span className="text-2xl font-semibold tracking-tight text-zinc-50">
-              Duely
-            </span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Link href="/login">
-              <Button variant="ghost" size="sm">
-                Log in
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="sm">Get started</Button>
-            </Link>
-          </div>
-        </Container>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1">
         <section className="border-b border-white/5 bg-gradient-to-b from-indigo-950/20 to-transparent">
@@ -278,7 +254,18 @@ export default async function ArticlePage({
         <section className="border-b border-white/5 bg-white/[0.01]">
           <Container className="py-20 sm:py-28">
             <div className="mx-auto max-w-3xl prose prose-invert prose-indigo prose-img:rounded-xl prose-a:text-indigo-400 hover:prose-a:text-indigo-300">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  table: ({ node, ...props }) => (
+                    <div className="overflow-x-auto w-full mb-8">
+                      <table className="w-full text-left border-collapse" {...props} />
+                    </div>
+                  )
+                }}
+              >
+                {body}
+              </ReactMarkdown>
             </div>
           </Container>
         </section>
@@ -302,33 +289,7 @@ export default async function ArticlePage({
         </section>
       </main>
 
-      <footer className="mt-auto border-t border-border">
-        <Container className="flex flex-col items-center justify-between gap-4 py-8 text-sm text-zinc-600 sm:flex-row">
-          <div>© {new Date().getFullYear()} Duely. All rights reserved.</div>
-          <div className="flex items-center gap-4">
-            <Link href="/terms" className="hover:text-zinc-300 transition-colors">
-              Terms
-            </Link>
-            <span>·</span>
-            <Link
-              href="/privacy"
-              className="hover:text-zinc-300 transition-colors"
-            >
-              Privacy
-            </Link>
-            <span>·</span>
-            <div className="flex items-center gap-1.5">
-              <span>Contact us:</span>
-              <a
-                href="mailto:support@duely.in"
-                className="font-medium text-zinc-400 transition-colors hover:text-zinc-100"
-              >
-                support@duely.in
-              </a>
-            </div>
-          </div>
-        </Container>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

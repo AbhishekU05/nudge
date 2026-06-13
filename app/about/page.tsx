@@ -48,48 +48,7 @@ const features = [
 export default function AboutPage() {
   return (
     <div className="flex flex-1 flex-col overflow-x-hidden">
-      <header className="sticky top-0 z-50 border-b border-white/5 bg-background/60 backdrop-blur-xl">
-        <Container className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
-            <Image
-              src="/logo.svg"
-              width={32}
-              height={32}
-              alt="Duely Logo"
-              className="h-8 w-8 rounded-md shadow-sm"
-            />
-            <span className="text-xl font-semibold tracking-tight text-zinc-50">Duely</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/about"
-              className="hidden rounded-lg bg-white/[0.04] px-3 py-2 text-sm font-medium text-zinc-100 transition-colors sm:inline-flex"
-            >
-              About
-            </Link>
-            <Link
-              href="/articles"
-              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100 sm:inline-flex"
-            >
-              Articles
-            </Link>
-            <Link
-              href="/faq"
-              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100 sm:inline-flex"
-            >
-              FAQ
-            </Link>
-            <Link href="/login">
-              <Button variant="ghost" size="sm" className="text-zinc-300 hover:text-zinc-50">
-                Sign in
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="sm" className="shadow-lg shadow-indigo-500/20">Get started</Button>
-            </Link>
-          </div>
-        </Container>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1">
         {/* ── Hero ── */}
@@ -188,33 +147,7 @@ export default function AboutPage() {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="mt-auto border-t border-border">
-        <Container className="flex flex-col items-center justify-between gap-4 py-8 text-sm text-zinc-600 sm:flex-row">
-          <div>© {new Date().getFullYear()} Duely. All rights reserved.</div>
-          <div className="flex items-center gap-4">
-            <Link href="/terms" className="hover:text-zinc-300 transition-colors">
-              Terms
-            </Link>
-            <span>·</span>
-            <Link
-              href="/privacy"
-              className="hover:text-zinc-300 transition-colors"
-            >
-              Privacy
-            </Link>
-            <span>·</span>
-            <div className="flex items-center gap-1.5">
-              <span>Contact us:</span>
-              <a
-                href="mailto:support@duely.in"
-                className="font-medium text-zinc-400 transition-colors hover:text-zinc-100"
-              >
-                support@duely.in
-              </a>
-            </div>
-          </div>
-        </Container>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

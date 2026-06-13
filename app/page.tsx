@@ -7,6 +7,8 @@ import { AuthErrorRedirect } from "@/components/site/auth-error-redirect";
 import { Container } from "@/components/site/container";
 import { FadeIn, Reveal, SlideUp, SlideIn } from "@/components/site/scroll-animation";
 import { HeroDashboard } from "@/components/site/hero-dashboard";
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -93,54 +95,7 @@ export default async function Home({
         }}
       />
       <AuthErrorRedirect />
-      <header className="sticky top-0 z-50 border-b border-white/5 bg-background/60 backdrop-blur-xl">
-        <Container className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
-            <Image
-              src="/logo.svg"
-              width={32}
-              height={32}
-              alt="Duely Logo"
-              className="h-8 w-8 rounded-md shadow-sm"
-            />
-            <span className="text-xl font-semibold tracking-tight text-zinc-50">Duely</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/about"
-              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100 sm:inline-flex"
-            >
-              About
-            </Link>
-            <Link
-              href="/articles"
-              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100 sm:inline-flex"
-            >
-              Articles
-            </Link>
-            <Link
-              href="/tools"
-              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100 sm:inline-flex"
-            >
-              Tools
-            </Link>
-            <Link
-              href="/faq"
-              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100 sm:inline-flex"
-            >
-              FAQ
-            </Link>
-            <Link href="/login">
-              <Button variant="ghost" size="sm" className="text-zinc-300 hover:text-zinc-50">
-                Sign in
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="sm" className="shadow-lg shadow-indigo-500/20">Get started</Button>
-            </Link>
-          </div>
-        </Container>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1">
         {/* HERO SECTION */}
@@ -160,13 +115,13 @@ export default async function Home({
                    Connect QuickBooks or Xero, or add a client manually. Up and running in 30 seconds.
                 </p>
                 <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/signup">
+                  <Link href="/signup" className="w-full sm:w-auto">
                     <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
                       Start free trial — no card required
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
-                  <Link href="/tools">
+                  <Link href="/tools" className="w-full sm:w-auto">
                     <Button variant="secondary" size="lg" className="h-12 px-8 text-base w-full sm:w-auto">
                       Explore free tools
                     </Button>
@@ -301,7 +256,7 @@ export default async function Home({
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20 space-y-3">
                     <CardContent className="p-0 space-y-3">
                       <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Tone</p>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         {[{label:"Friendly",desc:"Warm & casual"},{label:"Professional",desc:"Neutral & clear",active:true},{label:"Firm",desc:"Direct & assertive"}].map((t) => (
                           <div key={t.label} className={`rounded-xl border px-3 py-2.5 text-left ${t.active ? "border-indigo-500/40 bg-indigo-500/10" : "border-white/10 bg-white/[0.03]"}`}>
                             <p className={`text-xs font-semibold ${t.active ? "text-indigo-200" : "text-zinc-400"}`}>{t.label}</p>
@@ -470,7 +425,7 @@ export default async function Home({
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
                     <CardContent className="p-0 space-y-3">
                       <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Log a follow-up</p>
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {["Email","Call","WhatsApp","Other"].map((m, i) => (
                           <div key={m} className={`rounded-xl border px-2.5 py-2 text-center text-xs ${i===0 ? "border-indigo-500/40 bg-indigo-500/10 text-indigo-200" : "border-white/10 bg-white/[0.03] text-zinc-400"}`}>{m}</div>
                         ))}
@@ -918,13 +873,13 @@ export default async function Home({
                 </p>
 
                 <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/signup">
+                  <Link href="/signup" className="w-full sm:w-auto">
                     <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
                       Start free trial — no card required
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
-                  <Link href="/tools">
+                  <Link href="/tools" className="w-full sm:w-auto">
                     <Button variant="secondary" size="lg" className="h-12 px-8 text-base w-full sm:w-auto">
                       Explore free tools
                     </Button>
@@ -936,33 +891,7 @@ export default async function Home({
         </section>
       </main>
 
-      <footer className="border-t border-white/5 bg-zinc-950">
-        <Container className="flex flex-col sm:flex-row items-center justify-between gap-6 py-10 text-sm text-zinc-500">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/logo.svg"
-              width={20}
-              height={20}
-              alt="Duely Logo"
-              className="h-5 w-5 rounded-sm opacity-50 grayscale"
-            />
-            <span>© {new Date().getFullYear()} Duely. All rights reserved.</span>
-          </div>
-          <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-3">
-            <Link href="/about" className="hover:text-zinc-300 transition-colors">About</Link>
-            <Link href="/articles" className="hover:text-zinc-300 transition-colors">Articles</Link>
-            <Link href="/faq" className="hover:text-zinc-300 transition-colors">FAQ</Link>
-            <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>
-            <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link>
-            <div className="flex items-center gap-1.5 ml-2">
-              <span className="hidden sm:inline">Contact us:</span>
-              <a href="mailto:abhishek@duely.in" className="font-medium text-zinc-400 hover:text-zinc-200 transition-colors">
-                abhishek@duely.in
-              </a>
-            </div>
-          </div>
-        </Container>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

@@ -31,6 +31,7 @@ import {
   type MaturityInputs,
   type MaturityResults,
 } from "@/lib/collections-maturity/calculations";
+import { MinimalSiteHeader } from "@/components/site/minimal-site-header";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
@@ -134,25 +135,7 @@ export function CollectionsMaturityAssessment() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
-      <header className="border-b border-white/10 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
-            <Image src="/logo.svg" width={36} height={36} alt="Duely Logo" className="h-9 w-9 rounded-lg shadow-sm" />
-            <span className="text-lg font-semibold text-zinc-50">Duely</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link href="/tools" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100 sm:inline-flex">
-              Tools
-            </Link>
-            <Link href="/signup">
-              <Button size="sm" className="hidden sm:inline-flex">
-                Start Free Trial
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <MinimalSiteHeader />
 
       <main>
         {!showResults ? (
@@ -560,8 +543,8 @@ function ResultsDashboard({
           <p className="max-w-xl text-base leading-7 text-zinc-400">
             Want to estimate the financial impact of delayed payments?
           </p>
-          <Link href="/tools/payment-leak-calculator">
-            <Button variant="secondary" size="lg">
+          <Link href="/tools/payment-leak-calculator" className="w-full sm:w-auto">
+            <Button variant="secondary" size="lg" className="w-full sm:w-auto">
               Use the Payment Leak Estimator
               <ArrowRight className="h-4 w-4" />
             </Button>

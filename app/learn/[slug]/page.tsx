@@ -105,32 +105,7 @@ export default async function EntityPage({
         />
       ))}
 
-      <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
-        <Container className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/logo.svg"
-              width={32}
-              height={32}
-              alt="Duely Logo"
-              className="h-8 w-8 rounded-md"
-            />
-            <span className="text-2xl font-semibold tracking-tight text-zinc-50">
-              Duely
-            </span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Link href="/articles">
-              <Button variant="ghost" size="sm">
-                Articles
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="sm">Get started</Button>
-            </Link>
-          </div>
-        </Container>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1">
         <section className="border-b border-white/5 bg-gradient-to-b from-indigo-950/20 to-transparent">
@@ -193,23 +168,7 @@ export default async function EntityPage({
         </section>
       </main>
 
-      <footer className="mt-auto border-t border-border">
-        <Container className="flex flex-col items-center justify-between gap-4 py-8 text-sm text-zinc-600 sm:flex-row">
-          <div>© {new Date().getFullYear()} Duely. All rights reserved.</div>
-          <div className="flex items-center gap-4">
-            <Link href="/terms" className="hover:text-zinc-300 transition-colors">
-              Terms
-            </Link>
-            <span>·</span>
-            <Link
-              href="/privacy"
-              className="hover:text-zinc-300 transition-colors"
-            >
-              Privacy
-            </Link>
-          </div>
-        </Container>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

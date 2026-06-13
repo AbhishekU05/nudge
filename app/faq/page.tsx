@@ -60,29 +60,7 @@ export const metadata: Metadata = {
 export default function FAQPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
-        <Container className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/logo.svg"
-              width={32}
-              height={32}
-              alt="Duely Logo"
-              className="h-8 w-8 rounded-md"
-            />
-            <span className="text-2xl font-semibold tracking-tight text-zinc-50">
-              Duely
-            </span>
-          </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 transition-colors hover:text-zinc-100"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Home
-          </Link>
-        </Container>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1">
         <Container className="py-14 sm:py-20">

@@ -28,18 +28,7 @@ export default async function FeedbackPage({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
-        <Container className="flex h-16 items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-zinc-100"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </Link>
-          <div className="text-sm text-zinc-500">Feedback</div>
-        </Container>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1">
         <Container className="py-8 sm:py-10">

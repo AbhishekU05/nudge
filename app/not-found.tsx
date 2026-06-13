@@ -7,29 +7,7 @@ import { Button } from "@/components/ui/button";
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
-        <Container className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/logo.svg"
-              width={32}
-              height={32}
-              alt="Duely Logo"
-              className="h-8 w-8 rounded-md"
-            />
-            <span className="text-2xl font-semibold tracking-tight text-zinc-50">
-              Duely
-            </span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                Dashboard
-              </Button>
-            </Link>
-          </div>
-        </Container>
-      </header>
+      <SiteHeader />
 
       <main className="flex flex-1 items-center justify-center">
         <Container className="py-16 text-center sm:py-24">
@@ -58,11 +36,7 @@ export default function NotFound() {
         </Container>
       </main>
 
-      <footer className="border-t border-border">
-        <Container className="py-8 text-center text-sm text-zinc-600">
-          © {new Date().getFullYear()} Duely
-        </Container>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
