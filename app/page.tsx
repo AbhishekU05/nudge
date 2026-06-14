@@ -9,6 +9,8 @@ import { FadeIn, Reveal, SlideUp, SlideIn } from "@/components/site/scroll-anima
 import { HeroDashboard } from "@/components/site/hero-dashboard";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
+import { LifetimeDealSection } from "@/components/site/lifetime-deal-section";
+import { getRemainingLifetimeSpots } from "@/app/actions/leads";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,6 +78,8 @@ export default async function Home({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const spotsLeft = await getRemainingLifetimeSpots();
 
   if (user) {
     redirect("/dashboard");
@@ -774,6 +778,9 @@ export default async function Home({
             </div>
           </Container>
         </section>
+
+        {/* LIFETIME DEAL */}
+        <LifetimeDealSection spotsLeft={spotsLeft} />
 
         {/* FOUNDER NOTE */}
         <section className="py-24 sm:py-32 border-t border-white/5 bg-zinc-950/50">
