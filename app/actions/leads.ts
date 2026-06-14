@@ -18,15 +18,12 @@ export async function captureLifetimeDealLead(email: string) {
   const supabase = await createSupabaseServerClient();
   
   try {
-    const { error } = await supabase.from("leads").insert([{ 
+    const { error } = await supabase.from("leads").upsert([{ 
       email: email.toLowerCase(),
       referral_source: 'lifetime_deal'
-    }]);
+    }], { onConflict: 'email' });
 
     if (error) {
-      if (error.code === '23505') { // Unique violation
-        return { success: false, error: 'duplicate' };
-      }
       console.error("Error capturing lifetime lead:", error);
       return { success: false, error: 'unknown' };
     }
