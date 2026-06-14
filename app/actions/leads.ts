@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function captureLead(email: string) {
   const supabase = await createSupabaseServerClient();
@@ -15,7 +16,7 @@ export async function captureLead(email: string) {
 }
 
 export async function captureLifetimeDealLead(email: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
   
   try {
     const { error } = await supabase.from("leads").upsert([{ 
