@@ -40,7 +40,7 @@ export async function captureLifetimeDealLead(email: string) {
 }
 
 export async function getRemainingLifetimeSpots() {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
   const maxSpots = 10;
   
   try {
