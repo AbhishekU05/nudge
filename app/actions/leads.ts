@@ -3,6 +3,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
+import { revalidatePath } from "next/cache";
+
 export async function captureLead(email: string) {
   const supabase = await createSupabaseServerClient();
   
@@ -29,6 +31,7 @@ export async function captureLifetimeDealLead(email: string) {
       return { success: false, error: 'unknown' };
     }
     
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (err) {
     console.error("Error capturing lifetime lead:", err);
