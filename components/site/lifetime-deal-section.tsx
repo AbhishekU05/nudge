@@ -50,6 +50,10 @@ export function LifetimeDealSection({ spotsLeft }: { spotsLeft: number }) {
                 <h3 className="mt-6 text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
                   Lock In Lifetime Access
                 </h3>
+                <div className="mt-4 flex items-baseline text-4xl font-semibold text-zinc-50">
+                  $199
+                  <span className="ml-2 text-lg font-normal text-zinc-400">one-time</span>
+                </div>
                 <p className="mt-4 text-lg text-zinc-300">
                   Pay once. Get paid faster. Forever.
                 </p>
