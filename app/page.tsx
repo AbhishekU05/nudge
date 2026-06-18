@@ -844,6 +844,57 @@ export default async function Home({
           </Container>
         </section>
 
+        {/* FROM THE BLOG */}
+        <section className="py-24 sm:py-32 border-t border-white/5 bg-zinc-950">
+          <Container>
+            <div className="mx-auto max-w-2xl text-center mb-16">
+              <h2 className="text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                From the blog
+              </h2>
+              <p className="mt-4 text-lg text-zinc-400">
+                Actionable advice on managing receivables and getting paid faster.
+              </p>
+            </div>
+            <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-3">
+              {[
+                {
+                  title: "How to Write a Demand Letter as a Consultant",
+                  desc: "When a client ignores your invoices, a demand letter is your next step. Here's how to write one professionally.",
+                  readTime: "6 min read",
+                  link: "/articles/how-to-write-a-demand-letter-as-a-consultant",
+                },
+                {
+                  title: "How to Track Payment Promises from Clients",
+                  desc: "If a client promises to pay on Friday, how do you hold them to it without sounding like a debt collector? Here's the framework.",
+                  readTime: "5 min read",
+                  link: "/articles/how-to-track-payment-promises-from-clients",
+                },
+                {
+                  title: "What to Say When a Client Misses a Deadline",
+                  desc: "Email templates and scripts for following up on late payments without ruining the client relationship.",
+                  readTime: "7 min read",
+                  link: "/articles/what-to-say-when-a-client-misses-a-payment-deadline",
+                },
+              ].map((post, i) => (
+                <FadeIn key={i} delay={i * 0.1}>
+                  <Link href={post.link} className="group block h-full">
+                    <Card className="h-full border-white/10 bg-white/[0.02] transition-colors group-hover:bg-white/[0.04]">
+                      <CardContent className="p-6 flex flex-col h-full">
+                        <div className="text-xs text-indigo-300 font-medium mb-3">{post.readTime}</div>
+                        <h3 className="text-xl font-semibold text-zinc-100 mb-3 group-hover:text-indigo-400 transition-colors">{post.title}</h3>
+                        <p className="text-sm text-zinc-400 leading-relaxed flex-1">{post.desc}</p>
+                        <div className="mt-6 flex items-center text-sm font-medium text-indigo-400">
+                          Read article <ArrowRight className="ml-1 h-4 w-4" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </FadeIn>
+              ))}
+            </div>
+          </Container>
+        </section>
+
         {/* FAQ SECTION */}
         <section className="py-24 sm:py-32 border-t border-white/5 bg-zinc-950">
           <Container>

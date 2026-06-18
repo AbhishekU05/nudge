@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Top Alternatives to FreshBooks in 2026](/articles/alternatives-to-freshbooks) and [Duely vs Paidnice: Best Tool for Small Agencies](/articles/duely-vs-paidnice).
+> 
+> 👉 **Free tool:** Check out our [Payment Leak Calculator](/tools/payment-leak-calculator) to optimize your workflow.
+
 ## Quick Answer
 
 If a client misses a payment deadline they personally committed to, follow up within 24 hours using calm, direct language. Reference the agreed date, restate the outstanding amount, and ask for a revised payment timeline or immediate confirmation. Avoid emotional language or accusations. The goal is to re-establish accountability while preserving the working relationship and keeping the conversation focused on resolution.
@@ -269,3 +274,10 @@ Yes, especially if the client is communicative and experiencing temporary cash f
 A friendly reminder assumes the missed payment may be accidental and focuses on confirmation. A firm payment notice emphasizes deadlines, consequences, and required action. The right tone depends on invoice age, client history, and whether previous payment promises were already missed.
 
 Track overdue invoices, payment promises, and follow-ups more systematically with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Late Payment Follow-Up Email Templates](/articles/late-payment-follow-up-email-templates)
+- [How to Pause Work on a Client Who Hasn't Paid](/articles/how-to-pause-work-on-a-client-who-hasnt-paid)
+- [Follow Up on a 60-Day Overdue Invoice Professionally](/articles/how-to-follow-up-on-an-overdue-invoice-professionally)

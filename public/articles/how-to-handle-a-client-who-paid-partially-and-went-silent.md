@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Best Alternatives to QuickBooks for freelancers in 2026](/articles/alternatives-to-quickbooks-for-freelancers) and [How to Charge a Late Fee as a Freelancer](/articles/how-to-charge-late-fee-as-a-freelancer).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 If a client made a partial payment and then stopped responding, treat it as an active collections issue immediately. Confirm the payment received, restate the remaining balance, set a clear deadline for response, and escalate your tone gradually over 2–3 follow-ups. Pause additional work if needed, document every interaction, and avoid vague “just checking in” messages. Structured follow-ups recover more invoices than passive waiting.
@@ -308,3 +313,10 @@ You generally should not continue substantial work if the client already missed 
 Repeated payment promises without actual payment usually indicate a collections problem, not a temporary delay. Start documenting every promise with dates and amounts, tighten deadlines, and move toward formal escalation. Avoid indefinite extensions that allow the invoice to age without consequences.
 
 Track outstanding balances, automate reminders, and document payment promises with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [10 Tools for Tracking Outstanding Invoices in 2026](/articles/tools-for-tracking-outstanding-invoices)
+- [How to Pause Work on a Client Who Hasn't Paid](/articles/how-to-pause-work-on-a-client-who-hasnt-paid)
+- [Client Said They'll Pay Next Month — Hold Them to It](/articles/client-said-theyll-pay-next-month-how-do-i-hold-them-to-it)

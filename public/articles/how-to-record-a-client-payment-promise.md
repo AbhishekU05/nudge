@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Duely vs Chaser: Best Tool for Small Agencies](/articles/duely-vs-chaser) and [What to Say When a Client Misses Their Own Deadline](/articles/what-to-say-when-a-client-misses-their-own-payment-deadline).
+> 
+> 👉 **Free tool:** Check out our [Payment Leak Calculator](/tools/payment-leak-calculator) to optimize your workflow.
+
 ## Quick Answer
 
 A client payment promise is a documented commitment from a client to pay an outstanding invoice by a specific date or in agreed installments. To record it properly, log the promised amount, payment date, communication channel, and any conditions discussed. Keep all follow-up notes in one place, confirm the agreement in writing, and set reminders before the promised payment date to reduce missed payments and disputes.
@@ -250,3 +255,10 @@ Most freelancers should follow up every 5–7 business days unless a specific pa
 A payment reminder is a message requesting payment or prompting action on an unpaid invoice. A payment promise is the client’s response confirming when or how they intend to pay. Recording the promise creates accountability and helps structure future follow-ups.
 
 Track payment promises, overdue invoices, and client follow-ups in one place with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [How to Track Which Clients Owe You Money](/articles/how-to-track-which-clients-owe-you-money)
+- [How to Track Payment Promises From Clients](/articles/how-to-track-payment-promises-from-clients)
+- [Red Flags That a Client Won't Pay](/articles/red-flags-that-a-client-wont-pay)

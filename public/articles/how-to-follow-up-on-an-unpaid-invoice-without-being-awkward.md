@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [What to Say When a Client Misses a Payment Deadline](/articles/what-to-say-when-a-client-misses-a-payment-deadline) and [How to Track Payment Promises From Clients](/articles/how-to-track-payment-promises-from-clients).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 Following up on an unpaid invoice without sounding awkward comes down to timing, clarity, and tone. Send a short, professional reminder 3–5 days after the due date, assume good intent initially, and focus on resolving the payment rather than expressing frustration. Include the invoice number, amount due, payment method, and a clear next step in every follow-up.
@@ -282,3 +287,10 @@ Yes, especially for ongoing freelance or consulting work. Pausing work after rep
 Late fees can work if they are clearly included in your contract and invoices beforehand. However, many freelancers find that structured reminders, payment deadlines, and paused work are more effective than immediately adding penalties, especially for long-term client relationships.
 
 Track unpaid invoices, automate reminders, and follow up professionally with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Escalate Late Payments Without Burning Relationships](/articles/how-to-escalate-a-late-payment-without-burning-the-relationship)
+- [How to Manage Accounts Receivable for a Small Agency](/articles/how-to-manage-accounts-receivables-for-a-small-agency)
+- [Handle a Client Who Paid Partially Then Went Silent](/articles/how-to-handle-a-client-who-paid-partially-and-went-silent)

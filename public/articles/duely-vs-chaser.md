@@ -6,6 +6,11 @@ description: >-
 audience: 'Small Agency Owners, Freelancers, and Consultants'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Should I Keep Working for an Unpaid Client?](/articles/should-i-keep-working-for-a-client-who-hasnt-paid-me-yet) and [Handle a Client Who Paid Partially Then Went Silent](/articles/how-to-handle-a-client-who-paid-partially-and-went-silent).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 If you run a small marketing, design, web, or content agency and you're personally chasing invoices, Duely is built for you. If you have a finance team managing hundreds of accounts across multiple entities and need enterprise-grade AR automation with credit scoring and outsourced collections, Chaser is the better fit.
@@ -179,3 +184,10 @@ Duely is $29/month. No revenue caps. No finance team required. Built specificall
 Try Duely free for 14 days. No credit card required.
 
 [Start your free trial at duely.in](https://duely.in)
+
+
+## Related articles
+
+- [How to Track Which Clients Owe You Money](/articles/how-to-track-which-clients-owe-you-money)
+- [What to Say When a Client Misses Their Own Deadline](/articles/what-to-say-when-a-client-misses-their-own-payment-deadline)
+- [How to Check AR Every Week Without It Taking Hours](/articles/how-to-check-ar-every-week-without-it-taking-hours)

@@ -50,6 +50,35 @@ export default function ArticlesPage() {
 
         <section className="py-16 sm:py-24">
           <Container>
+            <div className="mb-16">
+              <h2 className="text-2xl font-semibold tracking-[-0.03em] text-zinc-50 mb-8">
+                Start here: Most read articles
+              </h2>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {articles
+                  .filter((a) => [
+                    "how-to-write-a-demand-letter-as-a-consultant",
+                    "how-to-track-payment-promises-from-clients",
+                    "what-to-say-when-a-client-misses-a-payment-deadline",
+                    "tools-for-tracking-outstanding-invoices"
+                  ].includes(a.slug))
+                  .map((article) => (
+                    <Link key={article.slug} href={`/articles/${article.slug}`}>
+                      <div className="group flex h-full flex-col justify-between rounded-2xl border border-indigo-500/20 bg-indigo-500/[0.02] p-6 transition-colors hover:bg-indigo-500/[0.05]">
+                        <div>
+                          <h3 className="mb-2 font-semibold text-zinc-100 transition-colors group-hover:text-indigo-300">
+                            {article.title}
+                          </h3>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-semibold tracking-[-0.03em] text-zinc-50 mb-8">
+              All articles
+            </h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {articles.map((article) => (
                 <Link key={article.slug} href={`/articles/${article.slug}`}>

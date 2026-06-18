@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [How to Check AR Every Week Without It Taking Hours](/articles/how-to-check-ar-every-week-without-it-taking-hours) and [How to Manage Accounts Receivable for a Small Agency](/articles/how-to-manage-accounts-receivables-for-a-small-agency).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 Clients who delay contracts, avoid discussing payment terms, constantly change scope, respond inconsistently, dispute small details before work is complete, or pressure you to “start now, invoice later” are more likely to pay late or not pay at all. The strongest warning signs usually appear before the invoice is sent: poor communication, unclear approval processes, unrealistic urgency, and resistance to deposits or written agreements.
@@ -295,3 +300,10 @@ Most freelancers send two to four reminders before escalating. The exact number 
 Document contracts, approvals, invoices, scope changes, delivery records, payment promises, and all written communication. Strong documentation turns collections from a verbal disagreement into a verifiable business process.
 
 Track invoices, payment promises, and overdue follow-ups at [duely.in](https://duely.in).
+
+
+## Related articles
+
+- [Escalate Late Payments Without Burning Relationships](/articles/how-to-escalate-a-late-payment-without-burning-the-relationship)
+- [Best Alternatives to HoneyBook in 2026](/articles/alternatives-to-honeybook)
+- [Duely vs Paidnice: Best Tool for Small Agencies](/articles/duely-vs-paidnice)

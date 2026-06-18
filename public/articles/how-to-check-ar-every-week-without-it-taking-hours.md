@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Escalate Late Payments Without Burning Relationships](/articles/how-to-escalate-a-late-payment-without-burning-the-relationship) and [Best Post-Invoice Tools for Small Agencies (2026)](/articles/best-post-invoice-management-tools-2026).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 The fastest way to check accounts receivable (AR) every week is to use a fixed 20–30 minute review process: sort invoices by overdue status, identify high-risk clients first, send only the follow-ups that matter, and log promised payment dates immediately. Most freelancers and small agencies waste time hunting through email threads and spreadsheets instead of using a consistent weekly workflow with centralized records and reminders.
@@ -328,3 +333,10 @@ Yes, especially for first reminders and recurring follow-ups. Automation reduces
 Track the promised payment date, amount expected, communication history, and next follow-up action. If the client misses the commitment, escalate immediately instead of restarting the reminder cycle from the beginning. Missed payment promises are a stronger risk signal than simple late invoices.
 
 Try [Duely](https://duely.in) to simplify weekly AR reviews and client payment follow-ups without adding heavy accounting software.
+
+
+## Related articles
+
+- [Handle a Client Who Paid Partially Then Went Silent](/articles/how-to-handle-a-client-who-paid-partially-and-went-silent)
+- [What to Say When a Client Misses Their Own Deadline](/articles/what-to-say-when-a-client-misses-their-own-payment-deadline)
+- [How to Ask for a Deposit Before Starting Work](/articles/how-to-ask-for-a-deposit-before-starting-work)

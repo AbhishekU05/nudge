@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [How to Charge a Late Fee as a Freelancer](/articles/how-to-charge-late-fee-as-a-freelancer) and [What to Say When a Client Misses Their Own Deadline](/articles/what-to-say-when-a-client-misses-their-own-payment-deadline).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 If a client says they’ll pay Friday, treat it as a payment promise, not a completed payment. Confirm the amount and date in writing, avoid repeated follow-ups before Friday, and schedule a reminder for the next business day if payment does not arrive. If Friday passes without payment, follow up promptly, reference the prior promise directly, and ask for a specific updated payment timeline.
@@ -263,3 +268,10 @@ Late fees can help reinforce payment expectations if they are included in the or
 There is no universal limit, but repeated broken promises should change your approach. After two or three missed payment dates, stop relying on informal extensions and introduce stricter terms such as upfront deposits, paused work, or shorter billing cycles.
 
 Track payment promises, overdue invoices, and follow-ups more cleanly with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Top Alternatives to FreshBooks in 2026](/articles/alternatives-to-freshbooks)
+- [Duely vs Chaser: Best Tool for Small Agencies](/articles/duely-vs-chaser)
+- [Freelance Late Payment Statistics 2025](/articles/freelance-late-payment-statistics-2025)

@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Duely vs Chaser: Best Tool for Small Agencies](/articles/duely-vs-chaser) and [Best Post-Invoice Tools for Small Agencies (2026)](/articles/best-post-invoice-management-tools-2026).
+> 
+> 👉 **Free tool:** Check out our [Payment Leak Calculator](/tools/payment-leak-calculator) to optimize your workflow.
+
 ## Quick Answer
 
 Freelancers can charge a late fee by adding clear payment terms to their contract and invoice before work begins. The most common approach is a flat late fee, monthly interest charge, or percentage penalty after a defined grace period, usually 7–15 days. Always notify the client professionally before applying the fee, document all communication, and ensure your terms comply with local laws and contract requirements.
@@ -247,3 +252,10 @@ Yes. Every invoice should repeat the payment deadline and late fee policy even i
 If reminders and late fee notices fail, freelancers should escalate gradually by pausing work, requiring upfront deposits for future work, or using formal collections processes. Keep all communication professional and documented rather than emotional or confrontational.
 
 Track overdue invoices, automate reminders, and manage payment follow-ups with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Follow Up on a 60-Day Overdue Invoice Professionally](/articles/how-to-follow-up-on-an-overdue-invoice-professionally)
+- [How to Write a Demand Letter as a Consultant](/articles/how-to-write-a-demand-letter-as-a-consultant)
+- [Duely vs Paidnice: Best Tool for Small Agencies](/articles/duely-vs-paidnice)

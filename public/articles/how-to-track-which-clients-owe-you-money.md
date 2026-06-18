@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Follow Up on Unpaid Invoices Without Awkwardness](/articles/how-to-follow-up-on-an-unpaid-invoice-without-being-awkward) and [Red Flags That a Client Won't Pay](/articles/red-flags-that-a-client-wont-pay).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 Tracking which clients owe you money requires one central system that shows every unpaid invoice, due date, payment status, follow-up history, and promised payment date. Most freelancers and small agencies lose track when they rely on scattered spreadsheets, email threads, or memory. A simple collections workflow — invoice sent, reminder sent, payment promised, payment received — makes overdue payments visible early and reduces cash flow surprises.
@@ -282,3 +287,10 @@ Repeated missed payment promises are a stronger warning sign than a single late 
 Accounting software handles invoicing and bookkeeping well, but many freelancers and agencies still struggle with collections tracking. The missing layer is usually communication management: reminders, payment promises, follow-up timing, and overdue prioritization.
 
 Track overdue payments, payment promises, and client follow-ups more systematically with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [How to Charge a Late Fee as a Freelancer](/articles/how-to-charge-late-fee-as-a-freelancer)
+- [Best Alternatives to Wave in 2026](/articles/wave-invoicing-alternatives)
+- [Best Post-Invoice Tools for Small Agencies (2026)](/articles/best-post-invoice-management-tools-2026)

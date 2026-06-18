@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Best Alternatives to Wave in 2026](/articles/wave-invoicing-alternatives) and [Best Alternatives to QuickBooks for freelancers in 2026](/articles/alternatives-to-quickbooks-for-freelancers).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 If a client pays late once or twice but communicates clearly and follows through, they are usually worth keeping. If late payments become a pattern, force you to chase invoices constantly, damage your cash flow, or come with excuses instead of accountability, you should consider ending the relationship. A profitable client is not actually profitable if they consume your time, create financial stress, and make revenue unpredictable.
@@ -273,3 +278,10 @@ Late fees can help reinforce payment expectations if they are included in your c
 The best approach is a centralized system that records invoice status, payment promises, follow-up history, and client communication in one place. Spreadsheets work initially, but structured collections tracking becomes more important as client volume increases.
 
 Track overdue invoices, payment promises, and follow-ups in one place with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Red Flags That a Client Won't Pay](/articles/red-flags-that-a-client-wont-pay)
+- [Should I Keep Working for an Unpaid Client?](/articles/should-i-keep-working-for-a-client-who-hasnt-paid-me-yet)
+- [Duely vs Chaser: Best Tool for Small Agencies](/articles/duely-vs-chaser)

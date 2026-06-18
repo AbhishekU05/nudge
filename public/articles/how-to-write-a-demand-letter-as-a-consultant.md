@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Client Keeps Paying Late — Should You Fire Them?](/articles/client-keeps-paying-late-should-i-fire-them) and [How to Track Payment Promises From Clients](/articles/how-to-track-payment-promises-from-clients).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 A demand letter as a consultant should clearly state the unpaid amount, the original agreement, prior payment reminders, a firm payment deadline, and the consequences of non-payment. Keep the tone professional, factual, and concise. Include invoice numbers, due dates, accepted payment methods, and supporting documentation. A strong demand letter increases the likelihood of payment without escalating to legal action.
@@ -266,3 +271,10 @@ Not always. Many consultants can write effective demand letters themselves for s
 Most consultants use a deadline between 7 and 14 days from the letter date. The deadline should be specific and realistic. Avoid open-ended requests like “please pay soon,” because vague timelines reduce urgency and make escalation harder later.
 
 Track overdue invoices, payment promises, and follow-ups more systematically with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Escalate Late Payments Without Burning Relationships](/articles/how-to-escalate-a-late-payment-without-burning-the-relationship)
+- [How to Ask for a Deposit Before Starting Work](/articles/how-to-ask-for-a-deposit-before-starting-work)
+- [How to Manage Accounts Receivable for a Small Agency](/articles/how-to-manage-accounts-receivables-for-a-small-agency)

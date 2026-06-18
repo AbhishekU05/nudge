@@ -213,6 +213,13 @@ export default async function ArticlePage({
       <main className="flex-1">
         <section className="border-b border-white/5 bg-gradient-to-b from-indigo-950/20 to-transparent">
           <Container className="py-20 sm:py-28 text-center">
+            <nav className="mb-8 text-sm text-zinc-500 font-medium mx-auto max-w-4xl flex items-center justify-center space-x-2">
+              <Link href="/" className="hover:text-zinc-300 transition-colors">Home</Link>
+              <span>&gt;</span>
+              <Link href="/articles" className="hover:text-zinc-300 transition-colors">Articles</Link>
+              <span>&gt;</span>
+              <span className="text-zinc-300">{title}</span>
+            </nav>
             <Badge
               variant="default"
               className="mb-6 bg-white/[0.03] text-zinc-400 border-white/10"

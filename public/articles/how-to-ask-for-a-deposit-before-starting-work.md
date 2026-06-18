@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Best Alternatives to Bonsai in 2026](/articles/alternatives-to-bonsai) and [Duely vs Chaser: Best Tool for Small Agencies](/articles/duely-vs-chaser).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 Asking for a deposit before starting work is standard practice for freelancers, consultants, and agencies. State the deposit requirement clearly in your proposal, contract, and invoice before work begins. Most service providers ask for 30%–50% upfront to secure project time, reduce non-payment risk, and cover initial costs. Frame the deposit as part of your process, not as a sign of distrust.
@@ -301,3 +306,10 @@ Usually not for new engagements. Clients who refuse reasonable upfront payments 
 Deposits are generally enforceable when documented clearly in a signed agreement or accepted invoice. Your contract should define the amount, refund terms, project scope, and payment schedule. Laws vary by jurisdiction, so clear written terms matter more than verbal agreements.
 
 Start tracking deposits, payment promises, and invoice follow-ups more cleanly with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Follow Up on a 60-Day Overdue Invoice Professionally](/articles/how-to-follow-up-on-an-overdue-invoice-professionally)
+- [Best Alternatives to HoneyBook in 2026](/articles/alternatives-to-honeybook)
+- [How to Track Which Clients Owe You Money](/articles/how-to-track-which-clients-owe-you-money)

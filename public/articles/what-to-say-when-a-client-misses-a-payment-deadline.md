@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Best Alternatives to QuickBooks for freelancers in 2026](/articles/alternatives-to-quickbooks-for-freelancers) and [Client Keeps Paying Late — Should You Fire Them?](/articles/client-keeps-paying-late-should-i-fire-them).
+> 
+> 👉 **Free tool:** Check out our [Payment Leak Calculator](/tools/payment-leak-calculator) to optimize your workflow.
+
 ## Quick Answer
 
 If a client misses a payment deadline, send a short, professional follow-up that assumes good intent while clearly restating the invoice amount, due date, and payment link. Start friendly for the first reminder, then become firmer if payment continues to stall. Avoid emotional language, keep records of every interaction, and set a specific next step or timeline in each message.
@@ -275,3 +280,10 @@ No. Pausing work due to unpaid invoices is standard business practice. Continuin
 The best approach is using a centralized system that records invoice status, payment promises, reminder history, and partial payments. This prevents missed follow-ups and helps maintain consistent communication with clients over time.
 
 Track overdue invoices, payment promises, and client follow-ups in one place with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Red Flags That a Client Won't Pay](/articles/red-flags-that-a-client-wont-pay)
+- [Late Payment Follow-Up Email Templates](/articles/late-payment-follow-up-email-templates)
+- [Should I Keep Working for an Unpaid Client?](/articles/should-i-keep-working-for-a-client-who-hasnt-paid-me-yet)

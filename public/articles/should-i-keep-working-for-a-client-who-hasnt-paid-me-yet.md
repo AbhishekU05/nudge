@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [How to Check AR Every Week Without It Taking Hours](/articles/how-to-check-ar-every-week-without-it-taking-hours) and [How to Track Which Clients Owe You Money](/articles/how-to-track-which-clients-owe-you-money).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 If a client has not paid you, you should usually pause additional work until you receive payment or a clear written payment commitment. Continuing without boundaries often increases your financial risk and weakens your negotiating position. Exceptions exist for long-term clients with strong payment history or delayed payments caused by temporary administrative issues, but you should still document timelines, next steps, and conditions before continuing.
@@ -267,3 +272,10 @@ Late fees can encourage faster payment, but they work best when included in the 
 If cash flow pressure forces you to continue, reduce your risk instead of continuing normally. Limit new deliverables, request partial payment upfront, shorten milestones, and document every payment commitment. Avoid expanding project scope while older invoices remain unpaid.
 
 Track overdue invoices, payment promises, and follow-ups with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Duely vs Paidnice: Best Tool for Small Agencies](/articles/duely-vs-paidnice)
+- [How to Manage Accounts Receivable for a Small Agency](/articles/how-to-manage-accounts-receivables-for-a-small-agency)
+- [Red Flags That a Client Won't Pay](/articles/red-flags-that-a-client-wont-pay)

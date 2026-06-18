@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [How to Check AR Every Week Without It Taking Hours](/articles/how-to-check-ar-every-week-without-it-taking-hours) and [Client Said They'll Pay Next Month — Hold Them to It](/articles/client-said-theyll-pay-next-month-how-do-i-hold-them-to-it).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 If a client has missed payment terms and stopped responding or failed to honor payment promises, pause work formally and in writing. Reference the unpaid invoice, explain that work is temporarily suspended until payment is received, set a clear deadline, and avoid continuing deliverables “as a favor.” Keep communication professional, document everything, and resume work only after payment clears.
@@ -266,3 +271,10 @@ Late fees can help reinforce payment terms if they are included in your contract
 Keep communication factual and operational. Reference the invoice number, overdue amount, and agreed dates. Avoid emotional language or accusations. A concise message explaining that work is paused pending payment usually sounds more professional than a long frustrated explanation.
 
 Track overdue invoices, payment promises, and follow-ups with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [10 Tools for Tracking Outstanding Invoices in 2026](/articles/tools-for-tracking-outstanding-invoices)
+- [Should I Keep Working for an Unpaid Client?](/articles/should-i-keep-working-for-a-client-who-hasnt-paid-me-yet)
+- [Escalate Late Payments Without Burning Relationships](/articles/how-to-escalate-a-late-payment-without-burning-the-relationship)

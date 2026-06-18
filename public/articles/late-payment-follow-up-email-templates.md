@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Follow Up on Unpaid Invoices Without Awkwardness](/articles/how-to-follow-up-on-an-unpaid-invoice-without-being-awkward) and [Duely vs Paidnice: Best Tool for Small Agencies](/articles/duely-vs-paidnice).
+> 
+> 👉 **Free tool:** Check out our [Payment Leak Calculator](/tools/payment-leak-calculator) to optimize your workflow.
+
 ## Quick Answer
 
 Freelancers, consultants, and small agencies should escalate late payment follow-ups gradually: start with a polite reminder 1–3 days after the due date, move to a firmer follow-up after 1–2 weeks, and send a final notice if payment remains overdue. Effective late payment emails stay short, reference the invoice clearly, include a payment link, and set a specific next step or deadline.
@@ -285,3 +290,10 @@ A final payment notice is typically appropriate after an invoice is 30 or more d
 Use a structured system that records invoice status, follow-up history, payment promises, and client responses. Many freelancers start with spreadsheets, but dedicated collections tracking tools make it easier to automate reminders, monitor overdue balances, and maintain consistent communication across clients.
 
 Track overdue invoices, send professional reminders, and manage client payment follow-ups with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Best Alternatives to Wave in 2026](/articles/wave-invoicing-alternatives)
+- [What to Say When a Client Misses Their Own Deadline](/articles/what-to-say-when-a-client-misses-their-own-payment-deadline)
+- [Duely vs Chaser: Best Tool for Small Agencies](/articles/duely-vs-chaser)

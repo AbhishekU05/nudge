@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Follow Up on Unpaid Invoices Without Awkwardness](/articles/how-to-follow-up-on-an-unpaid-invoice-without-being-awkward) and [Best Alternatives to QuickBooks for freelancers in 2026](/articles/alternatives-to-quickbooks-for-freelancers).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 A professional follow-up for a 60-day overdue invoice should be clear, firm, and solution-oriented. Restate the invoice amount, original due date, and payment methods, then request a specific payment date. Keep the tone professional rather than emotional. If the client is facing delays, ask for a concrete payment commitment or partial payment plan, and document every interaction.
@@ -296,3 +301,10 @@ Yes. Partial payments are often better than no payment, especially when the clie
 Freelancers should continue structured follow-ups until the invoice is resolved, formally disputed, written off, or escalated. Consistent communication every few business days after the 60-day mark is common. Stopping follow-up entirely usually lowers the likelihood of eventual payment recovery.
 
 Track overdue invoices, payment promises, and follow-ups more systematically with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Duely vs Paidnice: Best Tool for Small Agencies](/articles/duely-vs-paidnice)
+- [Red Flags That a Client Won't Pay](/articles/red-flags-that-a-client-wont-pay)
+- [Top Alternatives to FreshBooks in 2026](/articles/alternatives-to-freshbooks)

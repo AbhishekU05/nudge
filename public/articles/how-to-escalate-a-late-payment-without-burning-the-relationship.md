@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [How to Pause Work on a Client Who Hasn't Paid](/articles/how-to-pause-work-on-a-client-who-hasnt-paid) and [10 Tools for Tracking Outstanding Invoices in 2026](/articles/tools-for-tracking-outstanding-invoices).
+> 
+> 👉 **Free tool:** Check out our [Payment Leak Calculator](/tools/payment-leak-calculator) to optimize your workflow.
+
 ## Quick Answer
 
 Escalating a late payment without damaging the client relationship requires a gradual shift in tone, not an emotional reaction. Start with friendly reminders, move to clear deadlines and documented payment promises, and escalate only when communication stalls or commitments are broken. Keep every message factual, specific, and tied to business process rather than personal frustration.
@@ -303,3 +308,10 @@ Calls can help resolve tension quickly, but always summarize the discussion afte
 Send a final notice after multiple ignored reminders or broken payment commitments, typically after 30-45 days overdue. A final notice should clearly state the balance owed, previous communication attempts, the payment deadline, and the consequence if payment is not received. Keep the tone professional and factual.
 
 Track overdue invoices, payment promises, and client follow-ups more systematically with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Best Alternatives to Bonsai in 2026](/articles/alternatives-to-bonsai)
+- [Duely vs Chaser: Best Tool for Small Agencies](/articles/duely-vs-chaser)
+- [Duely vs Paidnice: Best Tool for Small Agencies](/articles/duely-vs-paidnice)

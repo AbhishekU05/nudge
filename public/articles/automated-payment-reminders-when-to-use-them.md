@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [How to Pause Work on a Client Who Hasn't Paid](/articles/how-to-pause-work-on-a-client-who-hasnt-paid) and [How to Record a Client Payment Promise](/articles/how-to-record-a-client-payment-promise).
+> 
+> 👉 **Free tool:** Check out our [Payment Leak Calculator](/tools/payment-leak-calculator) to optimize your workflow.
+
 ## Quick Answer
 
 Automated payment reminders work best for predictable follow-up tasks: reminding clients before due dates, nudging overdue invoices, and following up after partial payments or missed payment promises. Freelancers, consultants, and small agencies should automate low-friction reminders first, then switch to manual outreach when invoices become significantly overdue, disputed, or strategically sensitive. The goal is consistency without damaging client relationships.
@@ -247,3 +252,10 @@ A reminder should include the invoice number, outstanding amount, due date, paym
 Yes. Small agencies benefit because multiple invoices across multiple clients become difficult to track manually. Automation reduces missed follow-ups, improves payment consistency, and frees account managers or founders from repetitive administrative work while maintaining a structured collections process.
 
 Track invoices, payment promises, and automated reminders with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Best Alternatives to QuickBooks for freelancers in 2026](/articles/alternatives-to-quickbooks-for-freelancers)
+- [Handle a Client Who Paid Partially Then Went Silent](/articles/how-to-handle-a-client-who-paid-partially-and-went-silent)
+- [How to Track Which Clients Owe You Money](/articles/how-to-track-which-clients-owe-you-money)

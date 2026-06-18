@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [10 Tools for Tracking Outstanding Invoices in 2026](/articles/tools-for-tracking-outstanding-invoices) and [Duely vs Chaser: Best Tool for Small Agencies](/articles/duely-vs-chaser).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 Small agencies manage accounts receivable effectively by using clear invoice terms, sending invoices immediately, tracking unpaid balances weekly, following up consistently before and after due dates, documenting payment promises, and escalating communication gradually when invoices become overdue. The goal is to reduce payment delays without damaging client relationships by using a repeatable collections process instead of ad-hoc reminders.
@@ -301,3 +306,10 @@ An agency should consider pausing work after repeated missed payment commitments
 Freelancers and agencies commonly use invoicing software, accounting platforms, or collections management tools to track outstanding balances and automate reminders. The best tools reduce manual follow-up work while keeping payment communication organized and professional.
 
 Manage overdue invoices, payment promises, and client follow-ups with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [What to Say When a Client Misses a Payment Deadline](/articles/what-to-say-when-a-client-misses-a-payment-deadline)
+- [Handle a Client Who Paid Partially Then Went Silent](/articles/how-to-handle-a-client-who-paid-partially-and-went-silent)
+- [Best Alternatives to Wave in 2026](/articles/wave-invoicing-alternatives)

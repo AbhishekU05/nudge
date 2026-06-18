@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Best Alternatives to Bonsai in 2026](/articles/alternatives-to-bonsai) and [Best Post-Invoice Tools for Small Agencies (2026)](/articles/best-post-invoice-management-tools-2026).
+> 
+> 👉 **Free tool:** Check out our [Collections Maturity Assessment](/tools/collections-maturity-assessment) to optimize your workflow.
+
 ## Quick Answer
 
 If a client says they’ll pay next month, treat it as a documented payment commitment, not a casual promise. Confirm the exact amount and payment date in writing, send a recap immediately, set a follow-up schedule before the due date, and continue reminders until payment arrives. If they miss the promised date, escalate quickly with firmer communication, paused work, or late fees if your contract allows it.
@@ -267,3 +272,10 @@ Repeatedly changing payment dates is a warning sign. Move from informal reminder
 Yes. Automated reminders reduce missed follow-ups and keep invoices visible without requiring constant manual effort. Consistent reminders before and after due dates generally improve payment timelines because clients are less likely to forget or deprioritize the invoice internally.
 
 Track payment promises, automate reminders, and stay on top of overdue invoices with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [What to Say When a Client Misses a Payment Deadline](/articles/what-to-say-when-a-client-misses-a-payment-deadline)
+- [Duely vs Chaser: Best Tool for Small Agencies](/articles/duely-vs-chaser)
+- [How to Check AR Every Week Without It Taking Hours](/articles/how-to-check-ar-every-week-without-it-taking-hours)

@@ -6,6 +6,11 @@ description: >-
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
+## 
+> **Tip:** If you are struggling with this, you might also want to read about [Top Alternatives to FreshBooks in 2026](/articles/alternatives-to-freshbooks) and [Client Said They'll Pay Friday — Now What?](/articles/client-said-theyll-pay-friday-now-what).
+> 
+> 👉 **Free tool:** Check out our [Payment Leak Calculator](/tools/payment-leak-calculator) to optimize your workflow.
+
 ## Quick Answer
 
 Tracking payment promises from clients means recording exactly what the client committed to pay, the amount, the promised payment date, and every follow-up interaction in one place. The most reliable process is to log each promise immediately, set reminder dates before and after the promised deadline, confirm commitments in writing, and escalate communication if the client misses the agreed payment date more than once.
@@ -256,3 +261,10 @@ Most freelancers should follow up 2-3 days before the promised payment date, on 
 The best method is to log every conversation immediately after it happens, including the promised amount, promised date, communication channel, and any explanation the client provided. Written confirmation messages after calls are especially important because they reduce disputes and create a documented payment history.
 
 Track client payment promises, reminders, and overdue invoices in one place with [Duely](https://duely.in).
+
+
+## Related articles
+
+- [Best Alternatives to Bonsai in 2026](/articles/alternatives-to-bonsai)
+- [10 Tools for Tracking Outstanding Invoices in 2026](/articles/tools-for-tracking-outstanding-invoices)
+- [Client Said They'll Pay Next Month — Hold Them to It](/articles/client-said-theyll-pay-next-month-how-do-i-hold-them-to-it)
