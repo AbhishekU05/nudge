@@ -173,17 +173,28 @@ export async function signup(formData: FormData) {
   );
 }
 
-// logs a user in
 export async function login(formData: FormData) {
   const nextPath = getNextPath(formData);
   const email = getString(formData, "email").toLowerCase();
   const password = getString(formData, "password");
 
-  // TODO: fix redirect 
   if (!validateEmail(email)) {
     redirect(
       buildPathWithQuery("/login", {
         error: "Enter a valid email address.",
+        next: nextPath !== "/dashboard" ? nextPath : null,
+      }),
+    );
+  }
+
+  const cookieStore = await cookies();
+  const attemptsCookie = cookieStore.get("failed_login_attempts")?.value;
+  let attempts = attemptsCookie ? parseInt(attemptsCookie, 10) : 0;
+
+  if (attempts >= 3) {
+    redirect(
+      buildPathWithQuery("/login", {
+        error: "Too many failed attempts. Please wait before trying again.",
         next: nextPath !== "/dashboard" ? nextPath : null,
       }),
     );
@@ -196,11 +207,16 @@ export async function login(formData: FormData) {
   });
 
   if (error) {
+    attempts += 1;
+    cookieStore.set("failed_login_attempts", attempts.toString(), { maxAge: 900, path: '/' });
+
     let errorMessage = error.message;
-    if (errorMessage.toLowerCase().includes("invalid login credentials")) {
+    if (attempts >= 3) {
+      errorMessage = "Too many failed attempts. Please wait before trying again.";
+    } else if (errorMessage.toLowerCase().includes("invalid login credentials")) {
       errorMessage = "Invalid email or password. If you don't have an account, please sign up.";
     }
-    // TODO: fix redirects
+
     redirect(
       buildPathWithQuery("/login", {
         error: errorMessage,
@@ -209,6 +225,7 @@ export async function login(formData: FormData) {
     );
   }
 
+  cookieStore.delete("failed_login_attempts");
   redirect(nextPath);
 }
 
@@ -301,16 +318,24 @@ export async function requestPasswordReset(formData: FormData) {
     redirect("/forgot-password?error=Enter+a+valid+email+address.");
   }
 
+  const cookieStore = await cookies();
+  const attemptsCookie = cookieStore.get("forgot_password_attempts")?.value;
+  let attempts = attemptsCookie ? parseInt(attemptsCookie, 10) : 0;
+
+  if (attempts >= 3) {
+    redirect("/forgot-password?error=Too+many+requests.+Please+try+again+later.");
+  }
+
+  attempts += 1;
+  cookieStore.set("forgot_password_attempts", attempts.toString(), { maxAge: 3600, path: '/' });
+
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+  await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: getAuthCallbackUrl("/reset-password"),
   });
 
-  if (error) {
-    redirect(`/forgot-password?error=${encodeURIComponent(error.message)}`);
-  }
-
-  redirect("/forgot-password?success=Check+your+email+for+a+password+reset+link.");
+  const successMessage = "If an account with that email exists, we've sent a reset link.";
+  redirect(`/forgot-password?success=${encodeURIComponent(successMessage)}`);
 }
 
 export async function resetPassword(formData: FormData) {

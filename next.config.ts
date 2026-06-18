@@ -16,6 +16,7 @@ const ContentSecurityPolicy = `
 `;
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   async headers() {
     return [
       {
