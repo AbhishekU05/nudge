@@ -43,14 +43,37 @@ const tools: Tool[] = [
     label: "Collections Maturity Assessment",
     status: "available",
   },
+  {
+    description: "Generate a professional invoice follow-up email in seconds. Choose your tone and get a message ready to send.",
+    href: "/tools/invoice-followup-generator",
+    icon: FileText,
+    label: "Invoice Follow-Up Generator",
+    status: "available",
+  },
+  {
+    description: "Calculate how much of your annual revenue is delayed and the hidden costs to your business's working capital.",
+    href: "/tools/revenue-at-risk-estimator",
+    icon: DollarSign,
+    label: "Revenue At Risk Estimator",
+    status: "available",
+  },
+  {
+    description: "Calculate the exact ROI of automating your collections and see the cost of manual follow-ups.",
+    href: "/tools/collections-roi-calculator",
+    icon: Receipt,
+    label: "Collections ROI Calculator",
+    status: "available",
+  },
+  {
+    description: "Generate professional payment terms for your contracts or invoices based on project type.",
+    href: "/tools/payment-terms-generator",
+    icon: FileText,
+    label: "Payment Terms Generator",
+    status: "available",
+  }
 ];
 
-const comingSoon: Array<{ label: string; icon: typeof Calculator }> = [
-  { label: "Invoice Follow-Up Generator", icon: FileText },
-  { label: "Revenue At Risk Estimator", icon: DollarSign },
-  { label: "Collections ROI Calculator", icon: Receipt },
-  { label: "Payment Terms Generator", icon: FileText },
-];
+const comingSoon: Array<{ label: string; icon: typeof Calculator }> = [];
 
 export default function ToolsPage() {
   return (
