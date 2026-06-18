@@ -16,7 +16,7 @@ export default function PrivacyPage() {
     <div className="flex flex-1 flex-col">
       <SiteHeader />
 
-      <main className="flex-1 py-16">
+      <main id="main-content" className="flex-1 py-16">
         <Container className="max-w-3xl">
           <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl mb-8">
             Privacy Policy

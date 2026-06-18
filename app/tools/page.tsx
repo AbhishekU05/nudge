@@ -80,7 +80,7 @@ export default function ToolsPage() {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
 
-      <main>
+      <main id="main-content">
         <section className="border-b border-white/10 py-12 sm:py-16">
           <Container>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300">

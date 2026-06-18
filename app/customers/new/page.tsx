@@ -68,7 +68,7 @@ export default async function NewCustomerPage({
         </Container>
       </header>
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <Container className="py-8 sm:py-10">
           <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
             {/* Main form */}

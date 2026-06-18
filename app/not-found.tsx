@@ -11,7 +11,7 @@ export default function NotFound() {
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
 
-      <main className="flex flex-1 items-center justify-center">
+      <main id="main-content" className="flex flex-1 items-center justify-center">
         <Container className="py-16 text-center sm:py-24">
           <div className="space-y-6">
             <h1 className="text-7xl font-semibold tracking-[-0.045em] text-zinc-50 sm:text-8xl">

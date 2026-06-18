@@ -23,7 +23,7 @@ export default function DashboardLoading() {
         </Container>
       </div>
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <Container className="py-8 sm:py-10">
           <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-4">

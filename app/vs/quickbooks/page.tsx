@@ -19,7 +19,7 @@ export default function VsQuickBooksPage() {
   return (
     <div className="flex flex-1 flex-col overflow-x-hidden">
       <SiteHeader />
-      <main className="flex-1 pb-24 pt-16 sm:pb-32 sm:pt-24 lg:pb-40 bg-background">
+      <main id="main-content" className="flex-1 pb-24 pt-16 sm:pb-32 sm:pt-24 lg:pb-40 bg-background">
         <Container>
           <div className="mx-auto max-w-4xl text-center">
             <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">

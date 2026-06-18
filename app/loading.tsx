@@ -17,7 +17,7 @@ export default function Loading() {
           <Skeleton className="h-8 w-40" />
         </Container>
       </div>
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <Container className="py-8 sm:py-10">
           <div className="mb-8 space-y-4">
             <Skeleton className="h-7 w-32" />

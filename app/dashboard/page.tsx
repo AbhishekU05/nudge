@@ -303,7 +303,7 @@ export default async function DashboardPage({
       </header>
 
       {/* ── Main ─────────────────────────────────────────── */}
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <Container className="py-8 sm:py-10">
           {/* Page heading */}
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

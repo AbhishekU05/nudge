@@ -36,7 +36,7 @@ export default function ArticlesPage() {
     <div className="flex flex-1 flex-col overflow-x-hidden">
       <SiteHeader />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <section className="border-b border-white/5 bg-gradient-to-b from-indigo-950/20 to-transparent">
           <Container className="py-20 sm:py-28 text-center">
             <h1 className="mx-auto max-w-4xl text-pretty text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl lg:text-6xl">

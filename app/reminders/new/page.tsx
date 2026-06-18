@@ -96,7 +96,7 @@ export default async function SetupAutomationPage({
         </Container>
       </header>
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <Container className="py-8 sm:py-10">
           <div className="mx-auto max-w-5xl space-y-8">
             {/* Page heading */}

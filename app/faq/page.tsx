@@ -64,7 +64,7 @@ export default function FAQPage() {
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <Container className="py-14 sm:py-20">
           <div className="mx-auto max-w-3xl text-center">
             <Badge variant="default" className="gap-1.5">

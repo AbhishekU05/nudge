@@ -52,8 +52,8 @@ export default function RootLayout({
           Skip to main content
         </a>
         {children}
-        <Script src="https://www.googletagmanager.com/gtag/js?id=G-QMCVL1RL2L" strategy="afterInteractive" />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-QMCVL1RL2L" strategy="afterInteractive" />
+        <Script async id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -61,7 +61,7 @@ export default function RootLayout({
             gtag('config', 'G-QMCVL1RL2L');
           `}
         </Script>
-        <Script id="microsoft-clarity" strategy="afterInteractive">
+        <Script async id="microsoft-clarity" strategy="afterInteractive">
           {`
             (function(c,l,a,r,i,t,y){
                 c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};

@@ -52,7 +52,7 @@ export default function AboutPage() {
     <div className="flex flex-1 flex-col overflow-x-hidden">
       <SiteHeader />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         {/* ── Hero ── */}
         <section className="border-b border-white/5 bg-gradient-to-b from-indigo-950/20 to-transparent">
           <Container className="py-20 sm:py-28 text-center">

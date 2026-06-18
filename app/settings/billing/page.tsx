@@ -108,7 +108,7 @@ export default async function BillingPage({
         </Container>
       </header>
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <Container className="py-8 sm:py-10">
           <div className="mx-auto max-w-6xl space-y-6">
             <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] p-6 shadow-2xl shadow-black/30 sm:p-8 lg:p-10">

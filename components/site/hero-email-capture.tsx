@@ -33,15 +33,13 @@ export function HeroEmailCapture({ className }: { className?: string }) {
 
   return (
     <form onSubmit={handleSubmit} className={className || "mt-9 max-w-md"}>
-      <label htmlFor="email-input" className="sr-only">
-        Email address
-      </label>
       <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.045] p-2 shadow-2xl shadow-indigo-950/20 backdrop-blur sm:flex-row">
         <div className="min-w-0 flex-1">
           <Input
             id="email-input"
             type="email"
             placeholder="you@example.com"
+            aria-label="Email address"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);

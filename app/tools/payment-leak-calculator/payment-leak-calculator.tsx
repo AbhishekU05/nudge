@@ -192,7 +192,7 @@ export function PaymentLeakCalculator() {
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <MinimalSiteHeader />
 
-      <main>
+      <main id="main-content">
         <section className="border-b border-white/10 py-10 sm:py-14 lg:py-16">
           <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
             <div className="flex flex-col justify-center">

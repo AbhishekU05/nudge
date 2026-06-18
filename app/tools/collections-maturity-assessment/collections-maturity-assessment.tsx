@@ -137,7 +137,7 @@ export function CollectionsMaturityAssessment() {
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <MinimalSiteHeader />
 
-      <main>
+      <main id="main-content">
         {!showResults ? (
           <>
             <section className="border-b border-white/10 py-10 sm:py-14 lg:py-16">
