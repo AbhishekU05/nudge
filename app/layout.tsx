@@ -25,9 +25,32 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const eeatSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    author: { "@type": "Organization", name: "Duely" },
+    datePublished: "2024-01-01",
+    dateModified: "2026-06-18",
+  };
+
   return (
     <html lang="en" className="h-full antialiased">
+      <head>
+        <link rel="preload" as="image" href="/logo.svg" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(eeatSchema).replace(/</g, "\\u003c"),
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-black"
+        >
+          Skip to main content
+        </a>
         {children}
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-QMCVL1RL2L" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">

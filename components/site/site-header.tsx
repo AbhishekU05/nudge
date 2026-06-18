@@ -46,6 +46,7 @@ export function SiteHeader() {
             width={32}
             height={32}
             alt="Duely Logo"
+            priority
             className="h-8 w-8 rounded-md shadow-sm"
           />
           <span className="text-xl font-semibold tracking-tight text-zinc-50">Duely</span>
