@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function PaymentTermsGenerator() {
   const [projectType, setProjectType] = useState('fixed');
@@ -15,25 +14,27 @@ export function PaymentTermsGenerator() {
         <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-1">Project Type</label>
-              <Select value={projectType} onValueChange={setProjectType}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fixed">Fixed Price</SelectItem>
-                  <SelectItem value="hourly">Hourly / Retainer</SelectItem>
-                  <SelectItem value="milestone">Milestone Based</SelectItem>
-                </SelectContent>
-              </Select>
+              <select 
+                value={projectType} 
+                onChange={e => setProjectType(e.target.value)}
+                className="flex h-10 w-full items-center justify-between rounded-md border border-white/10 bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-zinc-100"
+              >
+                <option value="fixed" className="bg-zinc-950 text-zinc-100">Fixed Price</option>
+                <option value="hourly" className="bg-zinc-950 text-zinc-100">Hourly / Retainer</option>
+                <option value="milestone" className="bg-zinc-950 text-zinc-100">Milestone Based</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-1">Project Size</label>
-              <Select value={projectSize} onValueChange={setProjectSize}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="small">Small (&lt;$2k)</SelectItem>
-                  <SelectItem value="medium">Medium ($2k-$10k)</SelectItem>
-                  <SelectItem value="large">Large (&gt;$10k)</SelectItem>
-                </SelectContent>
-              </Select>
+              <select 
+                value={projectSize} 
+                onChange={e => setProjectSize(e.target.value)}
+                className="flex h-10 w-full items-center justify-between rounded-md border border-white/10 bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-zinc-100"
+              >
+                <option value="small" className="bg-zinc-950 text-zinc-100">Small (&lt;$2k)</option>
+                <option value="medium" className="bg-zinc-950 text-zinc-100">Medium ($2k-$10k)</option>
+                <option value="large" className="bg-zinc-950 text-zinc-100">Large (&gt;$10k)</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-1">Industry (Optional)</label>

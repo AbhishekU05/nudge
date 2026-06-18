@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function InvoiceFollowupGenerator() {
   const [clientName, setClientName] = useState('');
@@ -33,14 +32,15 @@ export function InvoiceFollowupGenerator() {
             </div>
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-zinc-300 mb-1">Tone</label>
-              <Select value={tone} onValueChange={setTone}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="friendly">Friendly Reminder</SelectItem>
-                  <SelectItem value="firm">Firm Follow-up</SelectItem>
-                  <SelectItem value="final">Final Notice</SelectItem>
-                </SelectContent>
-              </Select>
+              <select 
+                value={tone} 
+                onChange={e => setTone(e.target.value)}
+                className="flex h-10 w-full items-center justify-between rounded-md border border-white/10 bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-zinc-100"
+              >
+                <option value="friendly" className="bg-zinc-950 text-zinc-100">Friendly Reminder</option>
+                <option value="firm" className="bg-zinc-950 text-zinc-100">Firm Follow-up</option>
+                <option value="final" className="bg-zinc-950 text-zinc-100">Final Notice</option>
+              </select>
             </div>
         </div>
         
