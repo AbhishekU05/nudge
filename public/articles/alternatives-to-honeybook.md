@@ -87,3 +87,6 @@ In this scenario, pairing your existing, comfortable invoicing tool with a dedic
 
 Stop letting overdue invoices dictate your cash flow, stall your business growth, and increase your stress levels. If you are tired of relying on manual follow-ups, messy spreadsheets, and lost payment promises, it is time to upgrade your collections process to a professional standard. Take control of your accounts receivable and ensure you get paid for the hard work you've already delivered. [Start your free trial of Duely today](https://duely.in/signup) and bring much-needed operational clarity to your post-invoice workflow.
 
+
+
+Want a more detailed breakdown? Read our full [Duely vs HoneyBook comparison](/vs/honeybook).

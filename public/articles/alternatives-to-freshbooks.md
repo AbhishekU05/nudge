@@ -286,3 +286,6 @@ Yes. Duely integrates with QuickBooks, Xero, and Stripe. If you use FreshBooks f
 Xero has particularly strong adoption in the UK and Australia and offers multi-currency support. Duely is designed for agencies in the US, UK, Canada, and Australia and handles follow-ups regardless of geography.
 
 Track overdue invoices, payment promises, and follow-ups more systematically with [Duely](https://duely.in).
+
+
+Want a more detailed breakdown? Read our full [Duely vs FreshBooks comparison](/vs/freshbooks).

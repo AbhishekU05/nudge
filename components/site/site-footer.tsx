@@ -23,6 +23,10 @@ export function SiteFooter() {
           <Link href="/for-freelancers" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Freelancers</Link>
           <Link href="/for-agencies" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Agencies</Link>
           <Link href="/for-consultants" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Consultants</Link>
+          <Link href="/vs/freshbooks" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Vs FreshBooks</Link>
+          <Link href="/vs/honeybook" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Vs HoneyBook</Link>
+          <Link href="/vs/bonsai" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Vs Bonsai</Link>
+          <Link href="/vs/quickbooks" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Vs QuickBooks</Link>
           <Link href="/terms" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Terms</Link>
           <Link href="/privacy" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Privacy</Link>
           <div className="flex items-center gap-1.5 sm:ml-2">
