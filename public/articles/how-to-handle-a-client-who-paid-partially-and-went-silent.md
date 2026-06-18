@@ -1,8 +1,8 @@
 ---
 title: Handle a Client Who Paid Partially Then Went Silent
 description: >-
-  What to do when a client pays part of an invoice and stops responding. Track
-  balances, follow up, and protect your cash flow.
+  Handle partial payments by confirming the balance, setting a reply deadline, escalating
+  over 2–3 follow-ups, and tracking next steps in Duely.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

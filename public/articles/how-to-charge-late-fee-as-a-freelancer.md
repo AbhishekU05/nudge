@@ -1,8 +1,8 @@
 ---
 title: How to Charge a Late Fee as a Freelancer
 description: >-
-  Set and enforce late payment fees fairly. Contract language, fee structures,
-  and how to communicate penalties professionally.
+  Learn when freelancers can charge late fees, how to write fair contract terms, and how
+  to notify clients before applying penalties. Track it in Duely.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

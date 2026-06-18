@@ -1,8 +1,8 @@
 ---
 title: Follow Up on a 60-Day Overdue Invoice Professionally
 description: >-
-  Professional follow-up templates and escalation steps for invoices 60+ days
-  overdue. Stay firm without damaging the relationship.
+  Follow up on 60-day overdue invoices with firm scripts, payment-plan options,
+  documentation steps, and escalation timing. Use Duely to stay organized.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

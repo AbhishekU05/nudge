@@ -1,8 +1,8 @@
 ---
 title: How to Ask for a Deposit Before Starting Work
 description: >-
-  Scripts and strategies to request upfront deposits from clients without
-  damaging the relationship or losing the project.
+  Learn how to ask for a 30%–50% deposit before work starts, explain it professionally,
+  and reduce non-payment risk. Track the project in Duely.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

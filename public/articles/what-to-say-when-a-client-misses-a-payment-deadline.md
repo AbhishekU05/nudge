@@ -1,8 +1,8 @@
 ---
 title: What to Say When a Client Misses a Payment Deadline
 description: >-
-  Exact scripts for when a client misses an invoice due date. Friendly first
-  reminders through firm escalation messages.
+  Use exact scripts after a client misses a payment deadline, from friendly reminder to
+  firmer notice, with clear next steps. Track replies in Duely.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

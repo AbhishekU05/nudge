@@ -1,8 +1,8 @@
 ---
 title: How to Pause Work on a Client Who Hasn't Paid
 description: >-
-  Pause deliverables professionally when a client hasn't paid. Sample messages,
-  documentation tips, and when to resume work.
+  Learn when to pause work for unpaid invoices, what to say in writing, how to handle
+  partial payment, and when Duely should clearly flag resumption.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

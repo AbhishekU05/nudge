@@ -1,8 +1,8 @@
 ---
 title: Late Payment Follow-Up Email Templates
 description: >-
-  Copy-paste email templates from friendly first reminders to firm final
-  notices. Escalation sequence for overdue invoices.
+  Copy-paste email templates for every stage of late payment follow-up — from first
+  reminder to final notice. Tone-matched for freelancers and agencies.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

@@ -1,8 +1,8 @@
 ---
 title: 'Duely vs Chaser: Best Tool for Small Agencies'
 description: >-
-  Duely vs Chaser compared for small agencies. Pricing, features, and which
-  collections tool fits your team size and budget.
+  Compare Duely and Chaser on pricing, features, audience, and reminder style so small
+  agencies can choose the right collections workflow in 2026.
 audience: 'Small Agency Owners, Freelancers, and Consultants'
 ---
 

@@ -1,8 +1,8 @@
 ---
 title: How to Write a Demand Letter as a Consultant
 description: >-
-  Write an effective payment demand letter as a consultant. Structure, legal
-  tone, deadlines, and when to escalate beyond email.
+  Write a consultant demand letter with invoice details, prior reminders, a firm deadline,
+  and next-step language before legal escalation. Use Duely first.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

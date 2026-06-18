@@ -1,8 +1,8 @@
 ---
 title: Should I Keep Working for an Unpaid Client?
 description: >-
-  Decide whether to continue work when a client hasn't paid. Risk assessment,
-  pause strategies, and protecting your business.
+  Decide whether to keep working for an unpaid client using payment history, risk signals,
+  written commitments, and pause rules. Log it in Duely.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

@@ -1,8 +1,8 @@
 ---
 title: How to Check AR Every Week Without It Taking Hours
 description: >-
-  A 20–30 minute weekly AR review process for freelancers and agencies.
-  Prioritize high-risk invoices and skip the spreadsheet chaos.
+  Run a weekly AR check in 20–30 minutes: sort overdue invoices, prioritize risk, send key
+  follow-ups, and log payment promises each week in Duely.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

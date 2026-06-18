@@ -1,8 +1,8 @@
 ---
 title: Follow Up on Unpaid Invoices Without Awkwardness
 description: >-
-  Practical scripts to chase unpaid invoices without feeling awkward. Tone
-  guidance from first reminder to firm follow-up.
+  Exact scripts and timing for following up on unpaid invoices without damaging client
+  relationships. Templates from friendly nudge to firm escalation.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

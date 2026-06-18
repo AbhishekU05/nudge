@@ -1,8 +1,8 @@
 ---
 title: Best Post-Invoice Tools for Small Agencies (2026)
 description: >-
-  Compare the best post-invoice management tools for small agencies. Collections
-  tracking, reminders, and payment promise features.
+  The best tools for managing invoices after you send them — tracking, follow-ups,
+  promises, partial payments. Compared for small agencies in 2026.
 audience: 'Small Agency Owners, Freelancers, and Consultants'
 ---
 

@@ -1,8 +1,8 @@
 ---
 title: 10 Tools for Tracking Outstanding Invoices in 2026
 description: >-
-  Compare 10 invoice tracking tools for agencies in 2026. Features, pricing, and
-  which fits solo freelancers vs. small teams.
+  10 tools for tracking unpaid invoices in 2026 — compared by features, price, and fit for
+  solo freelancers vs small agencies. See where Duely fits.
 audience: 'Small Agency Owners, Freelancers, and Consultants'
 ---
 

@@ -1,8 +1,8 @@
 ---
 title: How to Record a Client Payment Promise
 description: >-
-  Log client payment commitments with dates and notes. Templates for written
-  confirmation and follow-up on the due date.
+  How to log client payment promises so nothing slips through the cracks. Includes what
+  details to capture and how to follow up against a specific commitment.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

@@ -1,8 +1,8 @@
 ---
 title: What to Say When a Client Misses Their Own Deadline
 description: >-
-  Follow up when a client breaks a payment promise they made. Direct scripts
-  that re-establish accountability professionally.
+  Respond when a client misses their own promised payment date with direct language,
+  revised timelines, and escalation steps. Duely tracks the promise.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

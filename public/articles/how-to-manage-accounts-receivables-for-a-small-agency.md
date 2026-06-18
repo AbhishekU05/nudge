@@ -1,8 +1,8 @@
 ---
 title: How to Manage Accounts Receivable for a Small Agency
 description: >-
-  Build a repeatable AR process for small agencies. Invoice terms, weekly
-  reviews, payment promises, and escalation workflows.
+  A practical AR system for agencies with 2–10 people. How to track outstanding balances,
+  log follow-ups, and stop losing money to payment awkwardness.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

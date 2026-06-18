@@ -1,8 +1,8 @@
 ---
 title: Red Flags That a Client Won't Pay
 description: >-
-  Spot early warning signs a client may not pay. Red flags in communication,
-  contracts, and behavior — and how to respond.
+  8 warning signs a client is heading toward non-payment — and what to do before the
+  invoice goes overdue. Based on real agency collections patterns.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

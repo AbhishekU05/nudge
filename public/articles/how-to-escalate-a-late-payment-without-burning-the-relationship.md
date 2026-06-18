@@ -1,8 +1,8 @@
 ---
 title: Escalate Late Payments Without Burning Relationships
 description: >-
-  Escalate overdue invoices professionally. Tone progression, documentation, and
-  scripts that protect cash flow and client trust.
+  Step-by-step escalation framework for overdue invoices — from friendly reminder to
+  pausing work — without destroying a client relationship you want to keep.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

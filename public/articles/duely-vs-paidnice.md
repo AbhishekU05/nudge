@@ -1,6 +1,8 @@
 ---
 title: "Duely vs Paidnice: Best Tool for Small Agencies"
-description: "Duely vs Paidnice compared for small agencies. Enforcement automation vs. relationship-preserving collections workflows."
+description: >-
+  Compare Duely and Paidnice on pricing, automation, late fees, and reminder philosophy so
+  small agencies can choose the right collections tool.
 audience: "Small Agency Owners, Freelancers, and Consultants"
 ---
 

@@ -1,8 +1,8 @@
 ---
 title: Freelance Late Payment Statistics 2025
 description: >-
-  Key 2025 statistics on freelance late payments, cash-flow impact, and why
-  consistent follow-up systems matter for independents.
+  Key 2025 data on freelance late payments: how common they are, how much money is lost,
+  and what the research says about getting paid faster.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

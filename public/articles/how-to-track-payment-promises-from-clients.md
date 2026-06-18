@@ -1,8 +1,8 @@
 ---
 title: How to Track Payment Promises From Clients
 description: >-
-  Stop losing track of "I'll pay Friday" commitments. Systems and tools to
-  record, monitor, and follow up on payment promises.
+  Track client payment promises by amount, date, notes, reminders, and missed commitments
+  so follow-ups happen on time before cash slips. See how Duely helps.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

@@ -1,8 +1,8 @@
 ---
 title: Client Keeps Paying Late — Should You Fire Them?
 description: >-
-  Decide whether to keep a chronically late-paying client. Weigh cash-flow risk,
-  relationship value, and when to walk away.
+  Decide whether to keep or fire a chronically late-paying client using cash-flow risk,
+  communication patterns, and payment boundaries. Duely helps track it.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

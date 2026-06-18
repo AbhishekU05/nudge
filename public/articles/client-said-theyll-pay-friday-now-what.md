@@ -1,8 +1,8 @@
 ---
 title: Client Said They'll Pay Friday — Now What?
 description: >-
-  Steps to take when a client promises payment by Friday. Confirm in writing,
-  set reminders, and follow up if they miss the date.
+  A client promised to pay Friday and didn't. Here's exactly what to say next, how to log
+  the promise, and when to escalate — without losing the relationship.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

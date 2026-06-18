@@ -1,8 +1,8 @@
 ---
 title: Client Said They'll Pay Next Month — Hold Them to It
 description: >-
-  How to hold clients accountable when they push payment to next month. Written
-  confirmation, partial payments, and escalation steps.
+  Turn a vague next-month payment promise into a specific commitment. Learn what to
+  confirm, how often to follow up, and how Duely keeps it visible.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

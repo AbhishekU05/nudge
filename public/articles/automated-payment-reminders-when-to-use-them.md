@@ -1,8 +1,8 @@
 ---
 title: Automated Payment Reminders — When to Use Them
 description: >-
-  Learn when to automate payment reminders vs. follow up manually. Timing, tone,
-  and escalation rules for freelancers and agencies.
+  Learn when to automate payment reminders, when manual follow-up works better, and how to
+  set timing, tone, and escalation rules clearly with Duely.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 

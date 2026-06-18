@@ -1,8 +1,8 @@
 ---
 title: How to Track Which Clients Owe You Money
 description: >-
-  Simple systems to see all outstanding balances at a glance. Spreadsheets vs.
-  collections tools for freelancers and agencies.
+  Build one view of every client who owes you money, including balances, due dates,
+  follow-up history, and payment promises. Duely keeps it visible.
 audience: 'Freelancers, Consultants, and Agencies'
 ---
 
