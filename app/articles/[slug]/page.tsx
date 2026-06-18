@@ -3,6 +3,7 @@ import path from "path";
 import matter from "gray-matter";
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Metadata } from "next";
@@ -17,7 +18,7 @@ import {
   extractQuickAnswer,
   splitArticleContent,
 } from "@/lib/seo/article-content";
-import { organizationSchema, SITE_URL } from "@/lib/seo/site";
+import { SITE_URL } from "@/lib/seo/site";
 
 export async function generateStaticParams() {
   const articlesDir = path.join(process.cwd(), "public", "articles");
@@ -65,20 +66,21 @@ function buildArticleSchemas({
   title,
   description,
   slug,
-  datePublished,
-  dateModified,
   quickAnswer,
   faqItems,
 }: {
   title: string;
   description: string;
   slug: string;
-  datePublished: string;
-  dateModified: string;
   quickAnswer: string | null;
   faqItems: ReturnType<typeof extractFaqItems>;
 }) {
   const pageUrl = `${SITE_URL}/articles/${slug}`;
+  const duelyOrganization = {
+    "@type": "Organization",
+    name: "Duely",
+    url: SITE_URL,
+  };
 
   const schemas: Record<string, unknown>[] = [
     {
@@ -86,17 +88,19 @@ function buildArticleSchemas({
       "@type": "Article",
       headline: title,
       description,
-      author: organizationSchema,
-      datePublished,
-      dateModified,
-      url: pageUrl,
-      mainEntityOfPage: pageUrl,
+      author: duelyOrganization,
       publisher: {
-        ...organizationSchema,
+        ...duelyOrganization,
         logo: {
           "@type": "ImageObject",
           url: `${SITE_URL}/logo.svg`,
         },
+      },
+      datePublished: "2025-01-01",
+      dateModified: "2026-06-18",
+      mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": pageUrl,
       },
     },
     {
@@ -174,16 +178,10 @@ export default async function ArticlePage({
 
   const fileContent = fs.readFileSync(filePath, "utf8");
   const { data, content } = matter(fileContent);
-  const fileStat = fs.statSync(filePath);
 
   const title = data.title || "Article";
   const description = data.description || "";
   const audience = data.audience || "Guides";
-  const datePublished =
-    data.date || fileStat.birthtime.toISOString().split("T")[0];
-  const dateModified =
-    data.modified ||
-    fileStat.mtime.toISOString().split("T")[0];
 
   const quickAnswer = extractQuickAnswer(content);
   const faqItems = extractFaqItems(content);
@@ -193,8 +191,6 @@ export default async function ArticlePage({
     title,
     description,
     slug,
-    datePublished,
-    dateModified,
     quickAnswer,
     faqItems,
   });
@@ -202,8 +198,9 @@ export default async function ArticlePage({
   return (
     <div className="flex flex-1 flex-col">
       {jsonLd.map((schema, index) => (
-        <script
+        <Script
           key={index}
+          id={`schema-${index}`}
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(schema).replace(/</g, "\\u003c"),

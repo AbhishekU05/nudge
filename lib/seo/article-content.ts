@@ -12,7 +12,9 @@ export function extractQuickAnswer(content: string): string | null {
 }
 
 export function extractFaqItems(content: string): FaqItem[] {
-  const faqSection = content.match(/^## FAQ\s*\n+([\s\S]*?)$/m);
+  const faqSection = content.match(
+    /(?:^|\n)## (?:FAQ|Frequently asked questions)\s*\n+([\s\S]*?)(?=\n## |\s*$)/i,
+  );
   if (!faqSection) return [];
 
   const items: FaqItem[] = [];

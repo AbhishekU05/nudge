@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import { redirect } from "next/navigation";
 
 import { AuthErrorRedirect } from "@/components/site/auth-error-redirect";
@@ -26,7 +27,7 @@ import {
   CreditCard,
   User
 } from "lucide-react";
-import { organizationSchema, websiteSchema } from "@/lib/seo/site";
+import { websiteSchema } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
   title: "Collect what you're owed, keep the relationship",
@@ -85,19 +86,62 @@ export default async function Home({
     redirect("/dashboard");
   }
 
-  const homeSchema = {
+  const organizationJsonLd = {
     "@context": "https://schema.org",
-    "@graph": [organizationSchema, websiteSchema],
+    "@type": "Organization",
+    name: "Duely",
+    url: "https://duely.in",
+    logo: "https://duely.in/logo.svg",
+    description:
+      "Lightweight collections management tool for freelancers and small agencies. Track outstanding invoices, payment promises, partial payments, and automate follow-ups.",
+    sameAs: ["https://x.com/AbhishekU008"],
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: "abhishek@duely.in",
+      contactType: "customer support",
+    },
   };
+
+  const softwareApplicationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Duely",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "29",
+      priceCurrency: "USD",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        billingDuration: "P1M",
+      },
+    },
+    description:
+      "Collections management tool for freelancers and small agencies. Invoice follow-up tracking, payment promise logging, partial payment management.",
+  };
+
+  const homeSchemas = [
+    organizationJsonLd,
+    {
+      "@context": "https://schema.org",
+      ...websiteSchema,
+    },
+    softwareApplicationJsonLd,
+  ];
 
   return (
     <div className="flex flex-1 flex-col overflow-x-hidden">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(homeSchema).replace(/</g, "\\u003c"),
-        }}
-      />
+      {homeSchemas.map((schema, index) => (
+        <Script
+          key={index}
+          id={`schema-${index}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
+          }}
+        />
+      ))}
       <AuthErrorRedirect />
       <SiteHeader />
 
