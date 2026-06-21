@@ -29,7 +29,7 @@ export default async function PipelinePage() {
               Collections Pipeline
             </h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
-              Drag and drop clients across stages to track your recovery process.
+              View your clients across stages to track your recovery process.
             </p>
           </div>
 
