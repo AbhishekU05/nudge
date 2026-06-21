@@ -76,7 +76,7 @@ export default async function AutomationsPage() {
                         </div>
                         <div className="flex items-center gap-1.5 text-zinc-400">
                           <Clock className="h-3 w-3 text-sky-500/70" />
-                          <span>Next: {client.next_send_at ? new Date(client.next_send_at).toLocaleDateString() : 'N/A'}</span>
+                          <span>Next: {client.next_send_at ? new Date(client.next_send_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
                         </div>
                       </div>
                     </Link>
@@ -121,7 +121,7 @@ export default async function AutomationsPage() {
                         </div>
                         <div className="flex items-center gap-1.5 text-zinc-400">
                           <Clock className="h-3 w-3 text-sky-500/70" />
-                          <span>Next: {invoice.next_send_at ? new Date(invoice.next_send_at).toLocaleDateString() : 'N/A'}</span>
+                          <span>Next: {invoice.next_send_at ? new Date(invoice.next_send_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
                         </div>
                       </div>
                     </Link>
