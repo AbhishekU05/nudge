@@ -101,7 +101,7 @@ export function ActivityFeed({ events }: { events: any[] }) {
                           </Badge>
                         )}
                         {event.followup_outcome && (
-                          <Badge variant={event.followup_outcome === "promised_to_pay" ? "success" : "muted"} className="text-xs font-normal capitalize">
+                          <Badge variant={event.followup_outcome === "promise_made" ? "success" : "muted"} className="text-xs font-normal capitalize">
                             {event.followup_outcome.replace(/_/g, " ")}
                           </Badge>
                         )}

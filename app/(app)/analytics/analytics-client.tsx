@@ -61,6 +61,26 @@ export function AnalyticsClient({
     // Monthly Follow-ups
     const followupsByMonth: Record<string, number> = {};
 
+    // New Metrics variables
+    let totalDaysToPayment = 0;
+    let paidCustomersWithDates = 0;
+
+    let customersWithPromises = new Set<string>();
+    let customersWithPromisesKept = new Set<string>();
+
+    let followupsBeforePaymentCount = 0;
+    let customersWithFollowupsAndPaid = 0;
+
+    let revenueThisMonth = 0;
+    let revenueLastMonth = 0;
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
+    const lastMonth = lastMonthDate.getMonth();
+    const lastMonthYear = lastMonthDate.getFullYear();
+
     customers.forEach((c) => {
       const paid = Number(c.amount_paid) || 0;
       const owed = Number(c.amount_owed) || 0;
@@ -71,6 +91,16 @@ export function AnalyticsClient({
 
       const isPaid = remaining <= 0 || c.client_paid_at;
       const daysOverdue = getDaysOverdue(c);
+
+      // Best/Worst Tracking & Days to Payment
+      if (isPaid && c.client_paid_at && c.due_date) {
+        paidCustomersWithDates++;
+        const invDate = new Date(c.due_date);
+        const paidDate = new Date(c.client_paid_at);
+        const diffTime = Math.abs(paidDate.getTime() - invDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        totalDaysToPayment += diffDays;
+      }
 
       if (isPaid) {
         paidCount++;
@@ -96,22 +126,63 @@ export function AnalyticsClient({
     });
 
     const avgDaysOverdue = overdueCount > 0 ? Math.round(totalDaysOverdue / overdueCount) : 0;
+    const avgDaysToPayment = paidCustomersWithDates > 0 ? Math.round(totalDaysToPayment / paidCustomersWithDates) : 0;
+    const collectionRate = (totalCollected + totalOutstanding) > 0 ? (totalCollected / (totalCollected + totalOutstanding)) * 100 : 0;
     
     // Sort offenders by amount
     const topOffenders = offenders.sort((a, b) => b.amount - a.amount).slice(0, 5);
+    const worstClients = [...offenders].sort((a, b) => b.days - a.days).slice(0, 3); // Highest days overdue
 
-    // Monthly collections & Followups
+    // Event Loop for Advanced Metrics
     const collectionsByMonth: Record<string, number> = {};
+    
+    // Map of customer_id to number of followups
+    const followupsPerCustomer: Record<string, number> = {};
+
     events.forEach(e => {
       const date = new Date(e.created_at);
       const monthKey = format(date, "MMM yyyy");
+      
+      const eMonth = date.getMonth();
+      const eYear = date.getFullYear();
 
       if (e.event_type === "payment" && e.amount) {
         collectionsByMonth[monthKey] = (collectionsByMonth[monthKey] || 0) + Number(e.amount);
+        
+        if (eMonth === currentMonth && eYear === currentYear) {
+          revenueThisMonth += Number(e.amount);
+        } else if (eMonth === lastMonth && eYear === lastMonthYear) {
+          revenueLastMonth += Number(e.amount);
+        }
+
+        // If they paid, record how many followups it took
+        if (followupsPerCustomer[e.customer_id] > 0) {
+          customersWithFollowupsAndPaid++;
+          followupsBeforePaymentCount += followupsPerCustomer[e.customer_id];
+        }
+        
+        // Promise kept?
+        if (customersWithPromises.has(e.customer_id)) {
+          customersWithPromisesKept.add(e.customer_id);
+        }
+
       } else if (e.event_type === "followup") {
         followupsByMonth[monthKey] = (followupsByMonth[monthKey] || 0) + 1;
+        followupsPerCustomer[e.customer_id] = (followupsPerCustomer[e.customer_id] || 0) + 1;
+        
+        if (e.followup_outcome === "promise_made") {
+          customersWithPromises.add(e.customer_id);
+        }
       }
     });
+
+    const promiseKeptRate = customersWithPromises.size > 0 
+      ? (customersWithPromisesKept.size / customersWithPromises.size) * 100 
+      : 0;
+
+    const avgFollowupsBeforePayment = customersWithFollowupsAndPaid > 0 
+      ? (followupsBeforePaymentCount / customersWithFollowupsAndPaid).toFixed(1) 
+      : 0;
 
     const monthlyData = Object.entries(collectionsByMonth)
       .map(([month, amount]) => ({ month, amount }))
@@ -139,11 +210,18 @@ export function AnalyticsClient({
       totalOutstanding,
       totalOverdue,
       avgDaysOverdue,
+      avgDaysToPayment,
+      collectionRate,
+      revenueThisMonth,
+      revenueLastMonth,
+      promiseKeptRate,
+      avgFollowupsBeforePayment,
       statusData,
       monthlyData,
       followupData,
       agingData,
       topOffenders,
+      worstClients,
       totalCustomers: customers.length,
     };
   }, [customers, events]);
@@ -164,7 +242,7 @@ export function AnalyticsClient({
 
   return (
     <div className="space-y-6">
-      {/* Top Stats */}
+      {/* Top Stats Row 1 */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -203,6 +281,49 @@ export function AnalyticsClient({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-zinc-50">{stats.avgDaysOverdue} <span className="text-sm font-normal text-zinc-500">days</span></div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Top Stats Row 2 */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="bg-white/[0.02] border-white/10">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-zinc-400">Avg Time to Pay</CardTitle>
+            <Clock className="h-4 w-4 text-zinc-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-zinc-50">{stats.avgDaysToPayment} <span className="text-sm font-normal text-zinc-500">days</span></div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white/[0.02] border-white/10">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-zinc-400">Collection Rate</CardTitle>
+            <DollarSign className="h-4 w-4 text-emerald-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-zinc-50">{stats.collectionRate.toFixed(1)}%</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/[0.02] border-white/10">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-zinc-400">Promise Kept Rate</CardTitle>
+            <AlertCircle className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-zinc-50">{stats.promiseKeptRate.toFixed(1)}%</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/[0.02] border-white/10">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-zinc-400">Avg Follow-ups to Pay</CardTitle>
+            <Users className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-zinc-50">{stats.avgFollowupsBeforePayment}</div>
           </CardContent>
         </Card>
       </div>
@@ -385,21 +506,31 @@ export function AnalyticsClient({
 
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader>
-            <CardTitle className="text-zinc-100">Quick Facts</CardTitle>
-            <CardDescription>Actionable insights based on your data.</CardDescription>
+            <CardTitle className="text-zinc-100">Agency Insights</CardTitle>
+            <CardDescription>Deep dive into your portfolio health.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
-                <h4 className="text-sm font-medium text-zinc-300 mb-1">Total Risk</h4>
+                <h4 className="text-sm font-medium text-zinc-300 mb-1">Revenue Momentum</h4>
                 <p className="text-sm text-zinc-500">
-                  You have <strong className="text-red-400">{formatCurrency(stats.totalOverdue)}</strong> in overdue invoices across your entire customer base.
+                  You collected <strong className="text-emerald-400">{formatCurrency(stats.revenueThisMonth)}</strong> this month, compared to {formatCurrency(stats.revenueLastMonth)} last month.
                 </p>
               </div>
               <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
-                <h4 className="text-sm font-medium text-zinc-300 mb-1">Collection Rate</h4>
+                <h4 className="text-sm font-medium text-zinc-300 mb-1">Portfolio Risk</h4>
                 <p className="text-sm text-zinc-500">
-                  Compared to your total outstanding balance of {formatCurrency(stats.totalOutstanding)}, you've collected {formatCurrency(stats.totalCollected)} so far.
+                  {stats.worstClients.length > 0 ? (
+                    <>Your highest risk clients are currently averaging <strong className="text-red-400">{stats.worstClients[0]?.days || 0} days</strong> overdue.</>
+                  ) : (
+                    <>You have no severely overdue clients right now.</>
+                  )}
+                </p>
+              </div>
+              <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                <h4 className="text-sm font-medium text-zinc-300 mb-1">Efficiency</h4>
+                <p className="text-sm text-zinc-500">
+                  On average, it takes <strong className="text-blue-400">{stats.avgFollowupsBeforePayment} follow-ups</strong> to secure a payment after the due date.
                 </p>
               </div>
             </div>
