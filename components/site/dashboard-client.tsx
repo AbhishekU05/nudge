@@ -7,6 +7,7 @@
  */
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -22,7 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CustomerDrawer } from "@/components/site/customer-drawer";
+
 import { LocalTime } from "@/components/site/local-time";
 import { cn } from "@/lib/utils";
 import type { CustomerRecord } from "@/lib/types";
@@ -434,12 +435,10 @@ export function DashboardClient({
   hasSubscription: boolean;
   isDevelopment: boolean;
 }) {
-  const [activeCustomer, setActiveCustomer] = useState<CustomerRecord | null>(null);
-  const [initialTab, setInitialTab] = useState<Tab>("payment");
+  const router = useRouter();
 
   function handleOpen(customer: CustomerRecord, tab: Tab = "payment") {
-    setInitialTab(tab);
-    setActiveCustomer(customer);
+    router.push(`/customers/${customer.id}?tab=${tab}`);
   }
 
   // Pipeline groupings — simplified: overdue / outstanding / paid / opted out
@@ -548,15 +547,6 @@ export function DashboardClient({
         </aside>
       </div>
 
-      {/* Drawer */}
-      {activeCustomer && (
-        <CustomerDrawer
-          customer={activeCustomer}
-          initialTab={initialTab}
-          isDevelopment={isDevelopment}
-          onClose={() => setActiveCustomer(null)}
-        />
-      )}
     </>
   );
 }
