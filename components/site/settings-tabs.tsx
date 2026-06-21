@@ -9,6 +9,7 @@ export function SettingsTabs() {
 
   const tabs = [
     { name: "General", href: "/settings/general" },
+    { name: "Templates", href: "/settings/templates" },
     { name: "Integrations", href: "/settings/integrations" },
     { name: "Billing", href: "/settings/billing" },
   ];

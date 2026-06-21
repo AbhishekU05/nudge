@@ -58,6 +58,13 @@ export function AnalyticsClient({
       "90+": 0,
     };
 
+    // Forecast Buckets
+    const forecastBuckets = {
+      "0-30 Days": 0,
+      "31-60 Days": 0,
+      "61-90 Days": 0,
+    };
+
     // Monthly Follow-ups
     const followupsByMonth: Record<string, number> = {};
 
@@ -122,6 +129,27 @@ export function AnalyticsClient({
 
       } else {
         outstandingCount++;
+      }
+
+      // Cash flow forecast based on expected payment date (promised_date or due_date)
+      if (!isPaid && remaining > 0) {
+        let expectedDate: Date | null = null;
+        if (c.promised_date) {
+          expectedDate = new Date(c.promised_date);
+        } else if (c.due_date) {
+          expectedDate = new Date(c.due_date);
+        }
+        
+        if (expectedDate && expectedDate.getTime() > now.getTime()) {
+          const diffDays = Math.ceil((expectedDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          if (diffDays <= 30) {
+            forecastBuckets["0-30 Days"] += remaining;
+          } else if (diffDays <= 60) {
+            forecastBuckets["31-60 Days"] += remaining;
+          } else if (diffDays <= 90) {
+            forecastBuckets["61-90 Days"] += remaining;
+          }
+        }
       }
     });
 
@@ -199,6 +227,14 @@ export function AnalyticsClient({
       { name: "90+ Days", amount: agingBuckets["90+"] },
     ].filter(d => d.amount > 0);
 
+    const forecastData = [
+      { name: "Next 30 Days", amount: forecastBuckets["0-30 Days"] },
+      { name: "31-60 Days", amount: forecastBuckets["31-60 Days"] },
+      { name: "61-90 Days", amount: forecastBuckets["61-90 Days"] },
+    ];
+
+    const expected30Days = forecastBuckets["0-30 Days"];
+
     const statusData = [
       { name: "Paid", value: paidCount, color: "#10b981" },
       { name: "Outstanding", value: outstandingCount, color: "#3b82f6" },
@@ -220,6 +256,8 @@ export function AnalyticsClient({
       monthlyData,
       followupData,
       agingData,
+      forecastData,
+      expected30Days,
       topOffenders,
       worstClients,
       totalCustomers: customers.length,
@@ -534,6 +572,52 @@ export function AnalyticsClient({
                 </p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Cash Flow Row */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2 bg-white/[0.02] border-white/10">
+          <CardHeader>
+            <CardTitle className="text-zinc-100">Cash Flow Forecast</CardTitle>
+            <CardDescription>Expected inflows based on promise dates and upcoming due dates.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[250px] w-full">
+              {stats.forecastData.some(d => d.amount > 0) ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats.forecastData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                    <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                    <Tooltip 
+                      cursor={{ fill: '#ffffff05' }}
+                      content={<CustomTooltip />}
+                    />
+                    <Bar dataKey="amount" fill="#10b981" radius={[4, 4, 0, 0]} barSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-zinc-600">
+                  No expected cash flow recorded.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-emerald-500/10 border-emerald-500/20">
+          <CardHeader>
+            <CardTitle className="text-emerald-400">Next 30 Days</CardTitle>
+            <CardDescription className="text-emerald-500/70">Expected cash collection.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col justify-center items-center py-8">
+            <DollarSign className="h-10 w-10 text-emerald-500 mb-4" />
+            <div className="text-4xl font-bold text-emerald-400">{formatCurrency(stats.expected30Days)}</div>
+            <p className="text-sm text-emerald-500/80 mt-4 text-center px-4">
+              If all clients with upcoming due dates and promise dates pay on time.
+            </p>
           </CardContent>
         </Card>
       </div>

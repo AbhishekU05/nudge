@@ -14,7 +14,8 @@ import {
   CreditCard,
   ChevronRight,
   LogOut,
-  UserRound
+  UserRound,
+  KanbanSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +35,7 @@ export function AppSidebar({ user, subscriptionStatus }: AppSidebarProps) {
   const navItems = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { name: "Activity", href: "/activity", icon: Activity },
+    { name: "Pipeline", href: "/pipeline", icon: KanbanSquare },
     { name: "Analytics", href: "/analytics", icon: BarChart3 },
     { name: "Customers", href: "/customers", icon: Users },
   ];
