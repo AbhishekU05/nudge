@@ -39,25 +39,31 @@ export async function captureLifetimeDealLead(email: string) {
   }
 }
 
-export async function getRemainingLifetimeSpots() {
-  const supabase = createSupabaseAdminClient();
-  const maxSpots = 10;
-  
-  try {
-    const { count, error } = await supabase
-      .from('leads')
-      .select('*', { count: 'exact', head: true })
-      .eq('referral_source', 'lifetime_deal');
+import { unstable_cache } from "next/cache";
+
+export const getRemainingLifetimeSpots = unstable_cache(
+  async () => {
+    const supabase = createSupabaseAdminClient();
+    const maxSpots = 10;
+    
+    try {
+      const { count, error } = await supabase
+        .from('leads')
+        .select('*', { count: 'exact', head: true })
+        .eq('referral_source', 'lifetime_deal');
+        
+      if (error) {
+        console.error("Error fetching remaining spots:", error);
+        return maxSpots;
+      }
       
-    if (error) {
-      console.error("Error fetching remaining spots:", error);
+      const spotsLeft = Math.max(0, maxSpots - (count || 0));
+      return spotsLeft;
+    } catch (err) {
+      console.error("Error fetching remaining spots:", err);
       return maxSpots;
     }
-    
-    const spotsLeft = Math.max(0, maxSpots - (count || 0));
-    return spotsLeft;
-  } catch (err) {
-    console.error("Error fetching remaining spots:", err);
-    return maxSpots;
-  }
-}
+  },
+  ['lifetime-spots'],
+  { revalidate: 3600, tags: ['lifetime-spots'] } // Cache for 1 hour or until revalidated
+);

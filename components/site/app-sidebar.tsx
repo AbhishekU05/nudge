@@ -97,6 +97,7 @@ export function AppSidebar({ user, subscriptionStatus }: AppSidebarProps) {
             <Link
               key={item.name}
               href={item.href}
+              prefetch={true}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors",
                 isActive
@@ -123,6 +124,7 @@ export function AppSidebar({ user, subscriptionStatus }: AppSidebarProps) {
             <Link
               key={item.name}
               href={item.href}
+              prefetch={true}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors",
                 isActive
