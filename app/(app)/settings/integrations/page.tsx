@@ -22,6 +22,8 @@ type IntegrationRow = {
   last_synced_at: string | null;
   tenant_id?: string | null;
   realm_id?: string | null;
+  bank_account_id?: string | null;
+  bank_account_name?: string | null;
 };
 
 type GmailProfileRow = {

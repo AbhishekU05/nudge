@@ -159,7 +159,7 @@ function PaymentHistory({ customer }: { customer: CustomerRecord }) {
                 <form action={deletePaymentLog} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <input type="hidden" name="log_id" value={payment.id} />
                   <input type="hidden" name="customer_id" value={customer.id} />
-                  <Button type="submit" variant="destructive" size="icon" className="h-8 w-8">
+                  <Button type="submit" variant="danger" size="sm" className="h-8 w-8 p-0">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </form>

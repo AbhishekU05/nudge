@@ -43,7 +43,12 @@ export default async function XeroBankSelectionPage() {
     );
     bankAccounts = accountsResponse.body.accounts?.filter(a => String(a.status) === "ACTIVE") || [];
   } catch (e) {
-    logger.error({ message: "Failed to fetch Xero bank accounts", error: e });
+    logger.error({ 
+      message: "Failed to fetch Xero bank accounts", 
+      context: "xero:bank_accounts", 
+      user_id: user.id,
+      error: e 
+    });
   }
 
   async function selectAccount(formData: FormData) {
@@ -76,7 +81,7 @@ export default async function XeroBankSelectionPage() {
               No active bank accounts found in your Xero organization. Please add one in Xero first.
               <div className="mt-4">
                 <Link href="/settings/integrations">
-                  <Button variant="outline">Return to Integrations</Button>
+                  <Button variant="secondary">Return to Integrations</Button>
                 </Link>
               </div>
             </div>
@@ -87,7 +92,7 @@ export default async function XeroBankSelectionPage() {
                   <input type="hidden" name="account_id" value={account.accountID} />
                   <input type="hidden" name="account_name" value={account.name} />
                   <Button 
-                    variant="outline" 
+                    variant="secondary" 
                     className="w-full justify-between py-6 h-auto"
                     type="submit"
                   >
