@@ -38,7 +38,8 @@ export default async function DashboardPage(props: {
   const selectedCurrency = searchParams?.currency || (uniqueCurrencies.includes('USD') ? 'USD' : uniqueCurrencies[0] || 'USD');
   const customers = allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
 
-  const events = eventsRes.data || [];
+  const customerIds = new Set(customers.map(c => c.id));
+  const events = (eventsRes.data || []).filter((e: any) => e.customer_id && customerIds.has(e.customer_id));
   const recentEvents = events.slice(0, 5);
 
   let totalCollected = 0;
@@ -153,8 +154,8 @@ export default async function DashboardPage(props: {
           </div>
 
           <div className="grid gap-8 lg:grid-cols-[1fr_1fr] mb-8">
-            <DashboardPipelineWidget customers={customers} />
-            <CollectionTrendWidget events={events} />
+            <DashboardPipelineWidget customers={customers} currency={selectedCurrency} />
+            <CollectionTrendWidget events={events} currency={selectedCurrency} />
           </div>
 
           <div className="grid gap-8 lg:grid-cols-2">
@@ -240,7 +241,7 @@ export default async function DashboardPage(props: {
                           </div>
                           <p className="text-sm text-zinc-400 line-clamp-1">
                             {isPayment ? (
-                              <>Recorded <span className="text-zinc-300 font-medium">{formatCurrency(event.amount || 0)}</span> from {customerName}</>
+                              <>Recorded <span className="text-zinc-300 font-medium">{formatCurrency(event.amount || 0, selectedCurrency)}</span> from {customerName}</>
                             ) : (
                               <>Contacted {customerName} via {event.followup_method || "email"}</>
                             )}

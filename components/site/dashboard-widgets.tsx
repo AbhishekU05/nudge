@@ -5,13 +5,17 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomerEvent } from "@/lib/types";
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label, currency = "USD" }: any) {
   if (active && payload && payload.length) {
     return (
       <div className="rounded-lg border border-white/10 bg-zinc-900 p-3 shadow-xl">
         <p className="mb-1 text-sm font-medium text-zinc-300">{label}</p>
         <p className="text-sm font-bold text-emerald-400">
-          ${payload[0].value.toLocaleString()}
+          {new Intl.NumberFormat(undefined, {
+            currency,
+            style: "currency",
+            maximumFractionDigits: 0,
+          }).format(Number(payload[0].value))}
         </p>
       </div>
     );
@@ -19,7 +23,7 @@ function CustomTooltip({ active, payload, label }: any) {
   return null;
 }
 
-export function CollectionTrendWidget({ events }: { events: CustomerEvent[] }) {
+export function CollectionTrendWidget({ events, currency = "USD" }: { events: CustomerEvent[], currency?: string }) {
   const data = useMemo(() => {
     const monthlyTotals: Record<string, number> = {};
     const now = new Date();
@@ -66,8 +70,8 @@ export function CollectionTrendWidget({ events }: { events: CustomerEvent[] }) {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                 <XAxis dataKey="month" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
-                <Tooltip content={<CustomTooltip />} />
+                <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => new Intl.NumberFormat(undefined, { currency, style: "currency", maximumFractionDigits: 0 }).format(v)} />
+                <Tooltip content={<CustomTooltip currency={currency} />} />
                 <Area type="monotone" dataKey="amount" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorAmountDashboard)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -100,7 +104,7 @@ function formatCurrency(value: number, currency: string = "USD") {
   }).format(Number(value));
 }
 
-export function DashboardPipelineWidget({ customers }: { customers: CustomerRecord[] }) {
+export function DashboardPipelineWidget({ customers, currency = "USD" }: { customers: CustomerRecord[], currency?: string }) {
   const getCustomersByStatus = (status: WorkflowStatus) => {
     return customers
       .filter((c) => c.workflow_status === status && !c.unsubscribed)
@@ -140,7 +144,7 @@ export function DashboardPipelineWidget({ customers }: { customers: CustomerReco
                         {colCustomers.length}
                       </span>
                     </h3>
-                    <p className="text-xs text-zinc-500 mt-1">{formatCurrency(colTotal)}</p>
+                    <p className="text-xs text-zinc-500 mt-1">{formatCurrency(colTotal, currency)}</p>
                   </div>
                 </div>
                 
@@ -155,7 +159,7 @@ export function DashboardPipelineWidget({ customers }: { customers: CustomerReco
                         <Link href={`/customers/${customer.id}`} className="block">
                           <div className="flex justify-between items-start mb-1.5">
                             <h4 className="font-medium text-zinc-200 text-xs line-clamp-1">{customer.recipient_name}</h4>
-                            <span className="font-semibold text-zinc-100 text-xs">{formatCurrency(displayAmount, customer.currency)}</span>
+                            <span className="font-semibold text-zinc-100 text-xs">{formatCurrency(displayAmount, currency)}</span>
                           </div>
                           
                           <div className="flex items-center gap-3 text-[10px] text-zinc-500 mt-2">

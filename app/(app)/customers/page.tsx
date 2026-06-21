@@ -25,6 +25,7 @@ import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CustomerEvent, CustomerRecord, FollowUpLog, PaymentLog } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { CurrencySelector } from "@/components/site/currency-selector";
 
 type CustomerRow = Omit<CustomerRecord, "payment_history" | "followup_history">;
 
@@ -175,11 +176,17 @@ export default async function CustomersPage({
     }
   }
 
-  const allCustomers = (customers ?? []).map((customer) => ({
+  const _allCustomers = (customers ?? []).map((customer) => ({
     ...customer,
     payment_history: logsByCustomer.get(customer.id) ?? [],
     followup_history: followupsByCustomer.get(customer.id) ?? [],
   }));
+
+  const uniqueCurrencies = Array.from(new Set(_allCustomers.map(c => c.currency || 'USD'))).sort();
+  const searchParamsAwaited = await searchParams;
+  const urlCurrency = (searchParamsAwaited as any).currency as string | undefined;
+  const selectedCurrency = urlCurrency || (uniqueCurrencies.includes('USD') ? 'USD' : uniqueCurrencies[0] || 'USD');
+  const allCustomers = _allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
 
   const subscriptionStatus = profile?.razorpay_subscription_status ?? "none";
   const hasSubscription = hasActiveSubscription(subscriptionStatus, profile?.created_at);
@@ -219,7 +226,9 @@ export default async function CustomersPage({
             </div>
 
             <div className="flex shrink-0 flex-col gap-3 sm:items-end">
-
+              <div className="flex items-center justify-end w-full">
+                <CurrencySelector currencies={uniqueCurrencies} selected={selectedCurrency} />
+              </div>
 
               <Link href={hasSubscription ? "/customers/new" : "/settings/billing"} className="w-full sm:w-auto">
                 <Button className="w-full sm:w-auto gap-2">
@@ -243,6 +252,7 @@ export default async function CustomersPage({
             customers={allCustomers}
             hasSubscription={hasSubscription}
             isDevelopment={isDevelopment}
+            currency={selectedCurrency}
           />
         </Container>
       </main>

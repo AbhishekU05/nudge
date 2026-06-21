@@ -438,11 +438,15 @@ export function DashboardClient({
   customers,
   hasSubscription,
   isDevelopment,
+  currency = "USD",
 }: {
   customers: CustomerRecord[];
   hasSubscription: boolean;
-  isDevelopment: boolean;
+  isDevelopment?: boolean;
+  currency?: string;
 }) {
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerRecord | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>("payment");
   const router = useRouter();
 
   function handleOpen(customer: CustomerRecord, tab: Tab = "payment") {
@@ -463,8 +467,6 @@ export function DashboardClient({
   const totalOutstanding = customers
     .filter((c) => !isEffectivelyPaid(c) && c.workflow_status !== "written_off")
     .reduce((sum, c) => sum + getRemainingBalance(c), 0);
-
-  const currency = customers[0]?.currency ?? "USD";
 
   return (
     <>
