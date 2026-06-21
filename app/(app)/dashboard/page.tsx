@@ -209,17 +209,7 @@ export default async function DashboardPage({
           {/* Page heading */}
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant={hasSubscription ? "success" : "warning"}>
-                  {planLabel}
-                </Badge>
-                {xeroIntegration && (
-                  <Badge variant="success">Connected to Xero</Badge>
-                )}
-                {quickbooksIntegration && (
-                  <Badge variant="success">Connected to QuickBooks</Badge>
-                )}
-              </div>
+
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
                 Collections
               </h1>
@@ -229,11 +219,7 @@ export default async function DashboardPage({
             </div>
 
             <div className="flex shrink-0 flex-col gap-3 sm:items-end">
-              <a href="/api/export-csv" download>
-                <Button variant="secondary" size="sm">
-                  Export CSV
-                </Button>
-              </a>
+
               {(!hasSubscription || renewsAt || trialDaysLeft > 0) && (
                 <div className="w-full rounded-xl border border-border bg-white/[0.025] px-4 py-3 text-sm sm:w-auto">
                   <p className="font-medium text-zinc-200">

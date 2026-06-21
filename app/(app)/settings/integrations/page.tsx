@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
-import { ArrowLeft, CheckCircle2, Mail, PlugZap, RefreshCw, Unplug, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Mail, PlugZap, RefreshCw, Unplug, ShieldCheck, Download } from "lucide-react";
 
 import { disconnectXero, syncXeroNow, disconnectQuickBooks, syncQuickBooksNow, disconnectGmail } from "@/app/actions/integrations";
 import { Container } from "@/components/site/container";
@@ -133,6 +133,28 @@ export default async function IntegrationsPage({
                 {error && <Notice variant="error">{error}</Notice>}
               </div>
             )}
+
+            {/* ── Data Export Card ──────────────────────────── */}
+            <Card className="overflow-hidden border-white/10 bg-white/[0.035]">
+              <CardHeader className="border-b border-white/10">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-2xl">
+                      <Download className="h-5 w-5 text-primary" />
+                      Data Export
+                    </CardTitle>
+                    <CardDescription className="mt-2 max-w-xl">
+                      Download a full export of all your customers and their payment history in CSV format.
+                    </CardDescription>
+                  </div>
+                  <a href="/api/export-csv" download>
+                    <Button variant="secondary" size="sm">
+                      Export CSV
+                    </Button>
+                  </a>
+                </div>
+              </CardHeader>
+            </Card>
 
             {/* ── Gmail Integration Card ──────────────────────────── */}
             <Card className="overflow-hidden border-white/10 bg-white/[0.035]">

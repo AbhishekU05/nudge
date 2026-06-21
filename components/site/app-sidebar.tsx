@@ -32,9 +32,6 @@ export function AppSidebar({ user, subscriptionStatus }: AppSidebarProps) {
 
   const navItems = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Customers", href: "/customers", icon: Users },
-    { name: "History", href: "/history", icon: Activity },
-    { name: "Analytics", href: "/analytics", icon: BarChart3 },
   ];
 
   const bottomItems = [
