@@ -39,7 +39,7 @@ export default async function DashboardPage(props: {
   const customers = allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
 
   const customerIds = new Set(customers.map(c => c.id));
-  const events = (eventsRes.data || []).filter((e: unknown) => e.customer_id && customerIds.has(e.customer_id));
+  const events = (eventsRes.data || []).filter((e: any) => e.customer_id && customerIds.has(e.customer_id));
   const recentEvents = events.slice(0, 5);
 
   let totalCollected = 0;

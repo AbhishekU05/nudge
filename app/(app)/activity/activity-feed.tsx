@@ -14,7 +14,7 @@ function formatCurrency(value: number, currency: string = "USD") {
   }).format(Number(value));
 }
 
-export function ActivityFeed({ events }: { events: unknown[] }) {
+export function ActivityFeed({ events }: { events: any[] }) {
   if (!events || events.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 p-12 text-center bg-white/[0.01]">
