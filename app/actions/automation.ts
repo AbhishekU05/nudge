@@ -87,8 +87,37 @@ export async function saveAutomationSettings(formData: FormData) {
     throw new Error("An unexpected error occurred while saving.");
   }
 
-  revalidatePath(entityType === "client" ? `/customers/${entityId}` : `/invoices/${entityId}`);
-  revalidatePath(entityType === "client" ? "/customers" : "/invoices");
+  // If a new email was provided, synchronize it between client and invoices
+  if (newEmail) {
+    if (entityType === "client") {
+      // Update all invoices belonging to this client to use the new email
+      await supabase
+        .from("invoices")
+        .update({ recipient_email: newEmail })
+        .eq("customer_id", entityId)
+        .eq("user_id", user.id);
+    } else {
+      // Update the client associated with this invoice to use the new email
+      const { data: invoice } = await supabase
+        .from("invoices")
+        .select("customer_id")
+        .eq("id", entityId)
+        .single();
+        
+      if (invoice?.customer_id) {
+        await supabase
+          .from("clients")
+          .update({ email: newEmail })
+          .eq("id", invoice.customer_id)
+          .eq("user_id", user.id);
+      }
+    }
+  }
+
+  revalidatePath(`/customers/${entityId}`);
+  revalidatePath(`/invoices/${entityId}`);
+  revalidatePath("/customers");
+  revalidatePath("/invoices");
   return { success: true };
 }
 
