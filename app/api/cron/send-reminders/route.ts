@@ -313,6 +313,17 @@ export async function POST(request: Request) {
         continue;
       }
 
+      if (!reminder.recipient_email || reminder.recipient_email.trim() === "") {
+        // Pause the reminder if it has no email address
+        await supabase
+          .from("customers")
+          .update({ active: false })
+          .eq("id", reminder.id);
+        
+        failed += 1;
+        continue;
+      }
+
       await sendReminderEmail({
         userId: reminder.user_id,
         senderName: sender.name,

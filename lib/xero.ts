@@ -374,11 +374,11 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
     }
 
     const contactName = invoice.contact?.name?.trim() || "Xero customer";
-    const email = normalizeEmail(invoice.contact?.emailAddress) ?? existing?.recipient_email;
+    const email = normalizeEmail(invoice.contact?.emailAddress) ?? existing?.recipient_email ?? "";
     const amountOwed = getInvoiceTotal(invoice);
     const amountPaid = Math.min(amountOwed, Number(invoice.amountPaid ?? (isPaid ? amountOwed : 0)));
 
-    if (!email || amountOwed <= 0) {
+    if (amountOwed <= 0) {
       result.skipped += 1;
       continue;
     }

@@ -352,10 +352,10 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
 
     const qbCustomer = qbCustomers.get(invoice.CustomerRef?.value);
     const contactName = qbCustomer?.DisplayName || qbCustomer?.FullyQualifiedName || "QuickBooks Customer";
-    const email = normalizeEmail(qbCustomer?.PrimaryEmailAddr?.Address ?? invoice.BillEmail?.Address) ?? existing?.recipient_email;
+    const email = normalizeEmail(qbCustomer?.PrimaryEmailAddr?.Address ?? invoice.BillEmail?.Address) ?? existing?.recipient_email ?? "";
     const amountPaid = Math.min(totalAmount, totalAmount - amountDue);
 
-    if (!email || totalAmount <= 0) {
+    if (totalAmount <= 0) {
       result.skipped += 1;
       continue;
     }
