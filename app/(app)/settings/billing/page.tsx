@@ -82,21 +82,6 @@ export default async function BillingPage({
   // TODO: fix wording
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
-        <Container className="flex h-16 items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-zinc-100"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </Link>
-          <Badge variant={isActive ? "success" : "warning"}>
-            {isActive ? "Active plan" : "Action required"}
-          </Badge>
-        </Container>
-      </header>
-
       <main id="main-content" className="flex-1">
         <Container className="py-8 sm:py-10">
           <div className="mx-auto max-w-6xl space-y-6">
