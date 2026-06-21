@@ -50,6 +50,17 @@ export function AnalyticsClient({
 
     const offenders: { name: string; amount: number; days: number }[] = [];
 
+    // Aging Buckets
+    const agingBuckets = {
+      "1-30": 0,
+      "31-60": 0,
+      "61-90": 0,
+      "90+": 0,
+    };
+
+    // Monthly Follow-ups
+    const followupsByMonth: Record<string, number> = {};
+
     customers.forEach((c) => {
       const paid = Number(c.amount_paid) || 0;
       const owed = Number(c.amount_owed) || 0;
@@ -72,6 +83,13 @@ export function AnalyticsClient({
           amount: remaining,
           days: daysOverdue,
         });
+
+        // Add to aging bucket
+        if (daysOverdue <= 30) agingBuckets["1-30"] += remaining;
+        else if (daysOverdue <= 60) agingBuckets["31-60"] += remaining;
+        else if (daysOverdue <= 90) agingBuckets["61-90"] += remaining;
+        else agingBuckets["90+"] += remaining;
+
       } else {
         outstandingCount++;
       }
@@ -82,21 +100,33 @@ export function AnalyticsClient({
     // Sort offenders by amount
     const topOffenders = offenders.sort((a, b) => b.amount - a.amount).slice(0, 5);
 
-    // Monthly collections
+    // Monthly collections & Followups
     const collectionsByMonth: Record<string, number> = {};
     events.forEach(e => {
+      const date = new Date(e.created_at);
+      const monthKey = format(date, "MMM yyyy");
+
       if (e.event_type === "payment" && e.amount) {
-        const date = new Date(e.created_at);
-        const monthKey = format(date, "MMM yyyy");
         collectionsByMonth[monthKey] = (collectionsByMonth[monthKey] || 0) + Number(e.amount);
+      } else if (e.event_type === "followup") {
+        followupsByMonth[monthKey] = (followupsByMonth[monthKey] || 0) + 1;
       }
     });
 
-    // We want the last 6 months in chronological order
     const monthlyData = Object.entries(collectionsByMonth)
       .map(([month, amount]) => ({ month, amount }))
-      // In a real app we'd fill missing months, but this is a simplified version
       .reverse(); 
+
+    const followupData = Object.entries(followupsByMonth)
+      .map(([month, count]) => ({ month, count }))
+      .reverse();
+
+    const agingData = [
+      { name: "1-30 Days", amount: agingBuckets["1-30"] },
+      { name: "31-60 Days", amount: agingBuckets["31-60"] },
+      { name: "61-90 Days", amount: agingBuckets["61-90"] },
+      { name: "90+ Days", amount: agingBuckets["90+"] },
+    ].filter(d => d.amount > 0);
 
     const statusData = [
       { name: "Paid", value: paidCount, color: "#10b981" },
@@ -111,6 +141,8 @@ export function AnalyticsClient({
       avgDaysOverdue,
       statusData,
       monthlyData,
+      followupData,
+      agingData,
       topOffenders,
       totalCustomers: customers.length,
     };
@@ -258,7 +290,7 @@ export function AnalyticsClient({
         </Card>
       </div>
 
-      {/* Bottom Row */}
+      {/* Middle Row */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader>
@@ -283,6 +315,68 @@ export function AnalyticsClient({
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-zinc-600">
                   No overdue customers right now. Nice!
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/[0.02] border-white/10">
+          <CardHeader>
+            <CardTitle className="text-zinc-100">A/R Aging</CardTitle>
+            <CardDescription>Overdue balances bucketed by age.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[250px] w-full">
+              {stats.agingData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats.agingData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                    <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                    <Tooltip 
+                      cursor={{ fill: '#ffffff05' }}
+                      content={<CustomTooltip />}
+                    />
+                    <Bar dataKey="amount" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-zinc-600">
+                  No aging balances.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bottom Row */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2 bg-white/[0.02] border-white/10">
+          <CardHeader>
+            <CardTitle className="text-zinc-100">Follow-up Activity</CardTitle>
+            <CardDescription>Number of follow-up messages sent per month.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[250px] w-full">
+              {stats.followupData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats.followupData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                    <XAxis dataKey="month" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip 
+                      cursor={{ fill: '#ffffff05' }}
+                      contentStyle={{ backgroundColor: '#18181b', borderColor: '#ffffff10', borderRadius: '8px' }}
+                      itemStyle={{ color: '#f4f4f5' }}
+                    />
+                    <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} name="Follow-ups" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-zinc-600">
+                  No follow-up activity yet.
                 </div>
               )}
             </div>
