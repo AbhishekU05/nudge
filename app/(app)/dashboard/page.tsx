@@ -29,7 +29,7 @@ export default async function DashboardPage(props: {
   const [customersRes, eventsRes, draftsRes, activeClientsRes, activeInvoicesRes] = await Promise.all([
     supabase.from("invoices").select("*").eq("user_id", user.id),
     supabase.from("customer_events").select("*, clients(name), invoices(recipient_name)").eq("user_id", user.id).order("created_at", { ascending: false }),
-    supabase.from("email_drafts").select("*").eq("user_id", user.id).eq("status", "pending").order("created_at", { ascending: false }).limit(5),
+    supabase.from("email_drafts").select("*").eq("user_id", user.id).eq("status", "draft").order("created_at", { ascending: false }).limit(5),
     supabase.from("clients").select("id, name, next_send_at").eq("user_id", user.id).eq("active", true).order("next_send_at", { ascending: true }).limit(5),
     supabase.from("invoices").select("id, recipient_name, next_send_at").eq("user_id", user.id).eq("active", true).order("next_send_at", { ascending: true }).limit(5)
   ]);
@@ -41,8 +41,7 @@ export default async function DashboardPage(props: {
   const selectedCurrency = searchParams?.currency || (uniqueCurrencies.includes('USD') ? 'USD' : uniqueCurrencies[0] || 'USD');
   const customers = allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
 
-  const customerIds = new Set(customers.map(c => c.id));
-  const events = (eventsRes.data || []).filter((e: any) => e.customer_id && customerIds.has(e.customer_id));
+  const events = (eventsRes.data || []).filter((e: any) => !e.currency || e.currency === selectedCurrency);
   const recentEvents = events.slice(0, 5);
 
   const pendingDrafts = draftsRes.data || [];
