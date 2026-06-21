@@ -36,8 +36,8 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
       <main className="flex-1">
         <Container className="py-8 sm:py-10">
           <div className="mb-8">
-            <Button variant="ghost" size="sm" className="mb-4 -ml-3 text-zinc-400 hover:text-zinc-100" asChild>
-              <Link href="/customers">
+            <Button variant="ghost" size="sm" className="mb-4 -ml-3 text-zinc-400 hover:text-zinc-100">
+              <Link href="/customers" className="flex items-center">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to customers
               </Link>

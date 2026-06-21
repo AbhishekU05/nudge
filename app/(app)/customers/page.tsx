@@ -91,11 +91,11 @@ export default async function CustomersPage() {
                         <td className="px-4 py-4 text-right font-medium text-zinc-200">{formattedTotal}</td>
                         <td className="px-4 py-4 text-right">{clientInvoices.length}</td>
                         <td className="px-4 py-4 text-right">
-                          <Button variant="ghost" size="sm" className="h-8 gap-1 text-zinc-400 hover:text-zinc-100" asChild>
-                            <Link href={`/customers/${client.id}`}>
+                          <Link href={`/customers/${client.id}`}>
+                            <Button variant="ghost" size="sm" className="h-8 gap-1 text-zinc-400 hover:text-zinc-100">
                               View <ArrowRight className="h-3.5 w-3.5" />
-                            </Link>
-                          </Button>
+                            </Button>
+                          </Link>
                         </td>
                       </tr>
                     );
