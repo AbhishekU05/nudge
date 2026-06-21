@@ -27,14 +27,14 @@ export function CollectionTrendWidget({ events }: { events: CustomerEvent[] }) {
     // Initialize last 6 months
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthLabel = d.toLocaleString("default", { month: "short" });
+      const monthLabel = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
       monthlyTotals[monthLabel] = 0;
     }
 
     events.forEach((event) => {
       if (event.event_type === "payment" && event.amount) {
         const d = new Date(event.created_at);
-        const monthLabel = d.toLocaleString("default", { month: "short" });
+        const monthLabel = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
         if (monthlyTotals[monthLabel] !== undefined) {
           monthlyTotals[monthLabel] += Number(event.amount);
         }
@@ -42,7 +42,7 @@ export function CollectionTrendWidget({ events }: { events: CustomerEvent[] }) {
     });
 
     return Object.entries(monthlyTotals).map(([month, amount]) => ({
-      month,
+      month: month.split(" ")[0], // Only show "Jun" on the x-axis for cleanliness
       amount,
     }));
   }, [events]);

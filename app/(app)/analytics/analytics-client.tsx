@@ -66,7 +66,6 @@ export function AnalyticsClient({
     };
 
     // Monthly Follow-ups
-    const followupsByMonth: Record<string, number> = {};
 
     // New Metrics variables
     let totalDaysToPayment = 0;
@@ -163,6 +162,15 @@ export function AnalyticsClient({
 
     // Event Loop for Advanced Metrics
     const collectionsByMonth: Record<string, number> = {};
+    const followupsByMonth: Record<string, number> = {};
+    
+    // Pre-fill last 6 months to guarantee they appear in correct chronological order
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(currentYear, currentMonth - i, 1);
+      const mKey = format(d, "MMM yyyy");
+      collectionsByMonth[mKey] = 0;
+      followupsByMonth[mKey] = 0;
+    }
     
     // Map of customer_id to number of followups
     const followupsPerCustomer: Record<string, number> = {};
@@ -175,7 +183,9 @@ export function AnalyticsClient({
       const eYear = date.getFullYear();
 
       if (e.event_type === "payment" && e.amount) {
-        collectionsByMonth[monthKey] = (collectionsByMonth[monthKey] || 0) + Number(e.amount);
+        if (collectionsByMonth[monthKey] !== undefined) {
+          collectionsByMonth[monthKey] += Number(e.amount);
+        }
         
         if (eMonth === currentMonth && eYear === currentYear) {
           revenueThisMonth += Number(e.amount);
@@ -195,7 +205,9 @@ export function AnalyticsClient({
         }
 
       } else if (e.event_type === "followup") {
-        followupsByMonth[monthKey] = (followupsByMonth[monthKey] || 0) + 1;
+        if (followupsByMonth[monthKey] !== undefined) {
+          followupsByMonth[monthKey] += 1;
+        }
         followupsPerCustomer[e.customer_id] = (followupsPerCustomer[e.customer_id] || 0) + 1;
         
         if (e.followup_outcome === "promise_made") {
@@ -213,12 +225,10 @@ export function AnalyticsClient({
       : 0;
 
     const monthlyData = Object.entries(collectionsByMonth)
-      .map(([month, amount]) => ({ month, amount }))
-      .reverse(); 
+      .map(([month, amount]) => ({ month, amount }));
 
     const followupData = Object.entries(followupsByMonth)
-      .map(([month, count]) => ({ month, count }))
-      .reverse();
+      .map(([month, count]) => ({ month, count }));
 
     const agingData = [
       { name: "1-30 Days", amount: agingBuckets["1-30"] },
@@ -235,10 +245,34 @@ export function AnalyticsClient({
 
     const expected30Days = forecastBuckets["0-30 Days"];
 
+    // Recalculate status counts ONLY for customers created this month
+    let thisMonthPaidCount = 0;
+    let thisMonthOutstandingCount = 0;
+    let thisMonthOverdueCount = 0;
+
+    customers.forEach((c) => {
+      const cDate = new Date(c.created_at);
+      if (cDate.getMonth() === currentMonth && cDate.getFullYear() === currentYear) {
+        const paid = Number(c.amount_paid) || 0;
+        const owed = Number(c.amount_owed) || 0;
+        const remaining = Math.max(0, owed - paid);
+        const isPaid = remaining <= 0 || c.client_paid_at;
+        const daysOverdue = getDaysOverdue(c);
+
+        if (isPaid) {
+          thisMonthPaidCount++;
+        } else if (daysOverdue && daysOverdue > 0) {
+          thisMonthOverdueCount++;
+        } else {
+          thisMonthOutstandingCount++;
+        }
+      }
+    });
+
     const statusData = [
-      { name: "Paid", value: paidCount, color: "#10b981" },
-      { name: "Outstanding", value: outstandingCount, color: "#3b82f6" },
-      { name: "Overdue", value: overdueCount, color: "#ef4444" },
+      { name: "Paid", value: thisMonthPaidCount, color: "#10b981" },
+      { name: "Outstanding", value: thisMonthOutstandingCount, color: "#3b82f6" },
+      { name: "Overdue", value: thisMonthOverdueCount, color: "#ef4444" },
     ].filter(d => d.value > 0);
 
     return {
@@ -402,8 +436,8 @@ export function AnalyticsClient({
 
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader>
-            <CardTitle className="text-zinc-100">Customer Status</CardTitle>
-            <CardDescription>Breakdown of your pipeline.</CardDescription>
+            <CardTitle className="text-zinc-100">This Month's Pipeline</CardTitle>
+            <CardDescription>Status of customers added this month.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full flex flex-col items-center justify-center">
