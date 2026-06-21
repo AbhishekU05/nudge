@@ -88,6 +88,7 @@ export async function saveAutomationSettings(formData: FormData) {
   }
 
   revalidatePath(entityType === "client" ? `/customers/${entityId}` : `/invoices/${entityId}`);
+  revalidatePath(entityType === "client" ? "/customers" : "/invoices");
   return { success: true };
 }
 

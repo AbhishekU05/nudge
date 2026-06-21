@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Zap, Clock, PauseCircle, PlayCircle, Settings2, ShieldCheck, Plus, Trash2 } from "lucide-react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
@@ -60,6 +60,18 @@ export function AutomationSettings({
   const [templates, setTemplates] = useState<Template[]>(cleanTemplates);
   const router = useRouter();
 
+  const [showEmailPrompt, setShowEmailPrompt] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const hasEmail = targetEmail?.trim() || emailInput.trim();
+    if (!hasEmail) {
+      e.preventDefault();
+      setShowEmailPrompt(true);
+    }
+  };
+
   const handleAddTemplate = () => {
     setTemplates([...templates, { subject: "", body_html: "", days_offset: 7 }]);
   };
@@ -75,15 +87,14 @@ export function AutomationSettings({
   };
 
   const handleSave = async (formData: FormData) => {
-    let emailToUse = targetEmail;
-    if (!emailToUse || emailToUse.trim() === "") {
-      const emailInput = window.prompt("This automation requires an email address. Please enter an email address for this recipient:");
-      if (!emailInput || emailInput.trim() === "") {
-        alert("Automation save cancelled. An email address is required.");
-        return;
-      }
+    let emailToUse = targetEmail?.trim() || emailInput.trim();
+    if (!emailToUse) {
+      alert("Automation save cancelled. An email address is required.");
+      return;
+    }
+    
+    if (emailInput.trim()) {
       formData.append("new_email", emailInput.trim());
-      emailToUse = emailInput.trim();
     }
 
     formData.append("entity_type", entityType);
@@ -167,7 +178,9 @@ export function AutomationSettings({
 
           {isEditing ? (
             <form 
+              ref={formRef}
               action={handleSave}
+              onSubmit={onFormSubmit}
               className="space-y-6 rounded-xl border border-white/10 bg-black/20 p-4"
             >
               <div className="space-y-4 border-b border-white/10 pb-6">
@@ -319,6 +332,54 @@ export function AutomationSettings({
               </Button>
             </div>
           )}
+        </div>
+      )}
+      {showEmailPrompt && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-xl border border-white/10 bg-zinc-900 shadow-2xl overflow-hidden">
+            <div className="p-6">
+              <h3 className="text-lg font-medium text-white mb-2">Email Address Required</h3>
+              <p className="text-sm text-zinc-400 mb-6">
+                This automation requires an email address. Please enter the recipient's email address below to continue.
+              </p>
+              <Input 
+                type="email" 
+                value={emailInput} 
+                onChange={(e) => setEmailInput(e.target.value)} 
+                placeholder="recipient@example.com"
+                className="mb-2"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (!emailInput.trim()) {
+                      alert("Please enter a valid email.");
+                      return;
+                    }
+                    setShowEmailPrompt(false);
+                    setTimeout(() => formRef.current?.requestSubmit(), 50);
+                  }
+                }}
+              />
+            </div>
+            <div className="flex justify-end gap-3 bg-zinc-950/50 p-4 border-t border-white/5">
+              <Button variant="ghost" onClick={() => setShowEmailPrompt(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  if (!emailInput.trim()) {
+                    alert("Please enter a valid email.");
+                    return;
+                  }
+                  setShowEmailPrompt(false);
+                  setTimeout(() => formRef.current?.requestSubmit(), 50);
+                }}
+              >
+                Save & Continue
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
