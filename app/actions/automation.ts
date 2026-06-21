@@ -20,6 +20,8 @@ export async function saveAutomationSettings(formData: FormData) {
   const entityId = formData.get("entity_id") as string;
   const autoApprove = formData.get("auto_approve") === "true";
   const reminderType = formData.get("reminder_type") as "recurring" | "sequence";
+  const newEmail = formData.get("new_email") as string | null;
+  const emailField = entityType === "client" ? "email" : "recipient_email";
   
   // Parse templates
   const templatesRaw = formData.get("reminder_templates") as string;
@@ -69,6 +71,7 @@ export async function saveAutomationSettings(formData: FormData) {
       reminder_templates: reminderTemplates,
       reminder_frequency_days: frequency,
       ...(nextSendAt !== undefined && { next_send_at: nextSendAt }),
+      ...(newEmail && { [emailField]: newEmail }),
       sequence_index: 0, // Reset sequence when settings change
     })
     .eq("id", entityId)

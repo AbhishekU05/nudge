@@ -30,6 +30,7 @@ interface AutomationSettingsProps {
   autoApprove: boolean;
   reminderType: "recurring" | "sequence";
   reminderTemplates: Template[];
+  targetEmail?: string | null;
 }
 
 export function AutomationSettings({
@@ -39,6 +40,7 @@ export function AutomationSettings({
   autoApprove,
   reminderType,
   reminderTemplates,
+  targetEmail,
 }: AutomationSettingsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [type, setType] = useState<"recurring" | "sequence">(reminderType || "recurring");
@@ -73,6 +75,17 @@ export function AutomationSettings({
   };
 
   const handleSave = async (formData: FormData) => {
+    let emailToUse = targetEmail;
+    if (!emailToUse || emailToUse.trim() === "") {
+      const emailInput = window.prompt("This automation requires an email address. Please enter an email address for this recipient:");
+      if (!emailInput || emailInput.trim() === "") {
+        alert("Automation save cancelled. An email address is required.");
+        return;
+      }
+      formData.append("new_email", emailInput.trim());
+      emailToUse = emailInput.trim();
+    }
+
     formData.append("entity_type", entityType);
     formData.append("entity_id", entityId);
     formData.append("reminder_type", type);

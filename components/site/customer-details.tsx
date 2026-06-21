@@ -720,6 +720,7 @@ function AutomationTab({
       autoApprove={customer.auto_approve}
       reminderType={customer.reminder_type}
       reminderTemplates={customer.reminder_templates || []}
+      targetEmail={customer.recipient_email}
     />
   );
 }

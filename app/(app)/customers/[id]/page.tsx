@@ -56,6 +56,7 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                 autoApprove={client.auto_approve}
                 reminderType={client.reminder_type}
                 reminderTemplates={client.reminder_templates || []}
+                targetEmail={client.email}
               />
             </div>
             
