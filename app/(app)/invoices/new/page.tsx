@@ -1,5 +1,5 @@
 /*
- * /customers/new — Add a customer to the pipeline.
+ * /invoices/new — Add an invoice to the pipeline.
  * Collects only the essentials: name, email, amount owed, currency, due date.
  * Automation is a separate, optional step (/reminders/new?customer_id=...).
  */
@@ -70,17 +70,16 @@ export default async function NewCustomerPage({
 
       <main id="main-content" className="flex-1">
         <Container className="py-8 sm:py-10">
-          <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <div className="mx-auto max-w-2xl gap-6">
             {/* Main form */}
             <section className="space-y-6">
               <div>
                 <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
-                  Add customer
+                  Add invoice
                 </h1>
                 <p className="mt-3 max-w-xl text-base leading-7 text-zinc-500">
-                  Track who owes you what. Log payments, set promises, and
-                  follow up — all from the dashboard. Add automated reminders
-                  later if you need to escalate.
+                  Track invoices and amounts due. Log payments, set promises, and
+                  follow up — all from the dashboard.
                 </p>
               </div>
 
@@ -93,7 +92,7 @@ export default async function NewCustomerPage({
                       </p>
                       <p className="mt-1 text-sm leading-6 text-amber-100/70">
                         Activate your plan for {monthlyPrice.inline} to start
-                        tracking customers.
+                        tracking invoices.
                       </p>
                     </div>
                     <Link href="/settings/billing">
@@ -105,10 +104,10 @@ export default async function NewCustomerPage({
 
               <Card className={cn("bg-white/[0.035]", !hasSubscription && "opacity-60")}>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <UserPlus className="h-5 w-5 text-primary" />
-                    Customer details
-                  </CardTitle>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <UserPlus className="h-5 w-5 text-primary" />
+                      Invoice details
+                    </CardTitle>
                   <CardDescription>
                     Basic info only — no email will be sent yet.
                   </CardDescription>
@@ -211,58 +210,13 @@ export default async function NewCustomerPage({
                         disabled={!hasSubscription}
                         className="w-full sm:w-auto"
                       >
-                        Add customer
+                        Add invoice
                       </Button>
                     </div>
                   </form>
                 </CardContent>
               </Card>
             </section>
-
-            {/* Sidebar info */}
-            <aside className="space-y-4">
-              <Card className="bg-white/[0.025]">
-                <CardContent className="p-5">
-                  <div className="flex gap-3">
-                    <div className="mt-0.5 rounded-lg border border-indigo-500/20 bg-indigo-500/10 p-2 text-indigo-400">
-                      <Zap className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-zinc-100">
-                        Automation is optional
-                      </p>
-                      <p className="mt-1.5 text-sm leading-6 text-zinc-500">
-                        Once a customer is added, you can enable automated
-                        email reminders from the dashboard — choose your tone
-                        and frequency at that point.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white/[0.02]">
-                <CardContent className="p-5 text-sm leading-6 text-zinc-500">
-                  <p className="font-medium text-zinc-300">What happens next?</p>
-                  <ul className="mt-3 space-y-2">
-                    <li className="flex items-start gap-2">
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-600" />
-                      Customer appears in your pipeline immediately.
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-600" />
-                      Log partial payments and record promises from the
-                      dashboard.
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-600" />
-                      Enable automated reminders anytime — pick the tone and
-                      frequency that fits the situation.
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </aside>
           </div>
         </Container>
       </main>
