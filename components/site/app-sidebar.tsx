@@ -38,6 +38,11 @@ export function AppSidebar({ user, subscriptionStatus }: AppSidebarProps) {
   ];
 
   const bottomItems = [
+    { 
+      name: subscriptionStatus === "active" ? "Plan: Active" : "Billing & Plan", 
+      href: "/settings/billing", 
+      icon: CreditCard 
+    },
     { name: "Settings", href: "/settings/general", icon: Settings },
   ];
 

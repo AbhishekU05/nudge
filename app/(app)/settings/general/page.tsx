@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { UserRound, LogOut } from "lucide-react";
+import { UserRound, LogOut, Download } from "lucide-react";
 import { getDisplayName } from "@/lib/utils";
 
 export default async function GeneralSettingsPage() {
@@ -63,11 +63,32 @@ export default async function GeneralSettingsPage() {
         </CardContent>
       </Card>
 
+      <Card className="border-white/10 bg-white/[0.035]">
+        <CardHeader className="border-b border-white/10">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Download className="h-5 w-5 text-primary" />
+                Data Export
+              </CardTitle>
+              <CardDescription className="mt-2 max-w-xl">
+                Download a full export of all your customers and their payment history in CSV format.
+              </CardDescription>
+            </div>
+            <a href="/api/export-csv" download>
+              <Button variant="secondary" size="sm">
+                Export CSV
+              </Button>
+            </a>
+          </div>
+        </CardHeader>
+      </Card>
+
       <Card className="border-red-500/10 bg-red-500/5">
         <CardHeader>
-          <CardTitle className="text-xl text-red-400">Danger Zone</CardTitle>
+          <CardTitle className="text-xl text-red-400">Account Session</CardTitle>
           <CardDescription className="text-red-400/70">
-            Sign out of your account or permanently delete your data.
+            Sign out of your account on this device.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
