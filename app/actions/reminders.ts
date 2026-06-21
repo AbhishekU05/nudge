@@ -260,7 +260,7 @@ export async function pauseReminder(reminderId: string) {
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase
-    .from("invoices")
+    .from("clients")
     .update({ active: false })
     .eq("id", reminderId)
     .eq("user_id", user.id);
@@ -329,11 +329,11 @@ export async function resumeReminder(reminderId: string) {
     }
 
   const { data: current, error: selectError } = await supabase
-    .from("invoices")
-    .select("reminder_frequency_days,last_sent_at")
+    .from("clients")
+    .select("last_sent_at, reminder_frequency_days")
     .eq("id", reminderId)
     .eq("user_id", user.id)
-    .maybeSingle<{
+    .single<{
       reminder_frequency_days: number;
       last_sent_at: string | null;
     }>();
@@ -350,18 +350,21 @@ export async function resumeReminder(reminderId: string) {
     ? computeRecurringReminderSendAt(current.reminder_frequency_days)
     : computeFirstReminderSendAt();
 
-  const { error } = await supabase
-    .from("invoices")
-    .update({ active: true, next_send_at: nextSendAt })
+  const { error: updateError } = await supabase
+    .from("clients")
+    .update({
+      active: true,
+      next_send_at: nextSendAt,
+    })
     .eq("id", reminderId)
     .eq("user_id", user.id);
 
-  if (error) {
+  if (updateError) {
     logger.error({
       message: "Database error resuming reminder",
       context: "resumeReminder",
       user_id: user.id,
-      error: error.message,
+      error: updateError.message,
     });
     redirectToDashboard({ error: "An unexpected database error occurred." });
   }

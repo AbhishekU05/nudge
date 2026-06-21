@@ -24,6 +24,7 @@ type SendGmailParams = {
   to: string;
   subject: string;
   body: string;
+  html?: boolean;
 };
 
 // ── Token management ──────────────────────────────────────────
@@ -89,13 +90,14 @@ function buildRfc2822Message(params: {
   to: string;
   subject: string;
   body: string;
+  html?: boolean;
 }): string {
   const lines = [
     `From: ${params.from}`,
     `To: ${params.to}`,
     `Subject: ${params.subject}`,
     `MIME-Version: 1.0`,
-    `Content-Type: text/plain; charset=UTF-8`,
+    `Content-Type: ${params.html ? "text/html" : "text/plain"}; charset=UTF-8`,
     ``,
     params.body,
   ];
@@ -158,6 +160,7 @@ export async function sendGmail(params: SendGmailParams): Promise<void> {
     to: params.to,
     subject: params.subject,
     body: params.body,
+    html: params.html,
   });
 
   // Try sending with the current access token

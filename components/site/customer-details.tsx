@@ -711,126 +711,7 @@ function AutomationTab({
   customer: CustomerRecord;
   isDevelopment: boolean;
 }) {
-  const isActive = customer.active && !customer.unsubscribed;
-  // "Never configured" = no sends yet and currently inactive
-  const neverConfigured = !customer.active && !customer.last_sent_at;
-
-  if (customer.unsubscribed) {
-    return (
-      <div className="rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm text-zinc-400">
-        This customer opted out of email reminders and cannot receive automated
-        emails.
-      </div>
-    );
-  }
-
-  if (neverConfigured) {
-    return (
-      <div className="space-y-5">
-        <div className="rounded-xl border border-white/10 bg-white/[0.025] p-4 text-sm leading-6 text-zinc-400">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
-            <p>
-              Automated reminders are a{" "}
-              <span className="font-medium text-zinc-300">
-                backup escalation
-              </span>{" "}
-              — use them when manual follow-ups haven&apos;t worked. They email
-              the customer on a schedule until you mark them as paid or stop the
-              sequence.
-            </p>
-          </div>
-        </div>
-        <a
-          href={`/reminders/new?customer_id=${customer.id}`}
-          className="block"
-        >
-          <Button className="w-full gap-2">
-            <Zap className="h-3.5 w-3.5" />
-            Set up automation
-          </Button>
-        </a>
-        <p className="text-xs text-zinc-600">
-          Choose your email tone, add a payment link, and set the send
-          frequency — all on the next page.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-5">
-      <div className="rounded-xl border border-white/10 bg-white/[0.025] p-4 text-sm leading-6 text-zinc-400">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
-          <p>
-            Automated reminders are a{" "}
-            <span className="font-medium text-zinc-300">backup escalation</span>{" "}
-            — use them when manual follow-ups haven&apos;t worked. They email
-            the customer on a schedule until you mark them as paid or stop the
-            sequence.
-          </p>
-        </div>
-      </div>
-
-      <Section title="Current status">
-        <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3">
-          <div>
-            <p className="text-sm font-medium text-zinc-200">
-              {isActive ? "Sending reminders" : "Reminders paused"}
-            </p>
-            <p className="mt-0.5 text-xs text-zinc-600">
-              Every {customer.reminder_frequency_days} day
-              {customer.reminder_frequency_days === 1 ? "" : "s"}
-            </p>
-          </div>
-
-          {isActive ? (
-            <form action={pauseReminder.bind(null, customer.id)}>
-              <Button variant="secondary" size="sm" type="submit">
-                Pause
-              </Button>
-            </form>
-          ) : (
-            <form action={resumeReminder.bind(null, customer.id)}>
-              <Button variant="primary" size="sm" type="submit">
-                Resume
-              </Button>
-            </form>
-          )}
-        </div>
-
-        <div className="mt-3 flex flex-col gap-2 rounded-xl border border-white/5 bg-black/20 p-3 text-xs text-zinc-400">
-          <div className="flex justify-between">
-            <span className="text-zinc-500">Next send:</span>
-            <span className="text-zinc-300">
-              {isActive ? new Date(customer.next_send_at).toLocaleString() : "Paused"}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-zinc-500">Last sent:</span>
-            <span className={customer.last_sent_at ? "text-zinc-300" : "text-zinc-500"}>
-              {customer.last_sent_at ? new Date(customer.last_sent_at).toLocaleString() : "Never"}
-            </span>
-          </div>
-        </div>
-      </Section>
-
-      <a
-        href={`/reminders/new?customer_id=${customer.id}`}
-        className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300"
-      >
-        <Zap className="h-3 w-3" />
-        Edit automation settings
-      </a>
-
-      {isDevelopment && (
-        <p className="text-xs text-zinc-600">
-          Dev: use the test button on the dashboard card.
-        </p>
-      )}
-    </div>
-  );
+  return null;
 }
 
 
@@ -880,16 +761,7 @@ function TimelineTab({ customer }: { customer: CustomerRecord }) {
     });
   }
 
-  // 3. Reminders sent
-  if (customer.last_sent_at) {
-    entries.push({
-      id: `${customer.id}-sent`,
-      label: "Automated reminder sent",
-      at: customer.last_sent_at,
-      tone: "muted",
-      icon: Zap,
-    });
-  }
+
 
   // 4. Payment History (manual partial payments)
   for (const payment of customer.payment_history ?? []) {
@@ -1078,12 +950,7 @@ export function CustomerDetails({
             icon={FileText}
             label="Notes"
           />
-          <TabButton
-            active={tab === "automation"}
-            onClick={() => setTab("automation")}
-            icon={Zap}
-            label="Automate"
-          />
+
         </div>
 
         {/* Tab content */}
@@ -1094,9 +961,7 @@ export function CustomerDetails({
             {tab === "promise" && <PromiseTab customer={customer} />}
             {tab === "followup" && <FollowUpTab customer={customer} />}
             {tab === "notes" && <NotesTab customer={customer} />}
-            {tab === "automation" && (
-              <AutomationTab customer={customer} isDevelopment={isDevelopment} />
-            )}
+
           </div>
 
           {/* Danger zone — Sidebar / Bottom */}

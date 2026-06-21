@@ -28,7 +28,7 @@ export function PipelineClient({
 }) {
   const getCustomersByStatus = (status: WorkflowStatus) => {
     return initialCustomers
-      .filter((c) => c.workflow_status === status && !c.unsubscribed)
+      .filter((c) => c.workflow_status === status)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   };
 

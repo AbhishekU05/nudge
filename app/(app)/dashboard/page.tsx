@@ -68,7 +68,7 @@ export default async function DashboardPage(props: {
   const actionNeeded = customers
     .filter((c) => {
       const remaining = Math.max(0, Number(c.amount_owed) - Number(c.amount_paid));
-      return remaining > 0 && !c.client_paid_at && !c.unsubscribed;
+      return remaining > 0 && !c.client_paid_at;
     })
     .sort((a, b) => {
       const aOverdue = getDaysOverdue(a) || 0;

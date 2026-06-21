@@ -858,10 +858,6 @@ export async function createCustomer(formData: FormData) {
       amount_owed: amountOwed,
       currency: currency as string,
       due_date: dueDateRaw ?? null,
-      reminder_frequency_days: 7, // default; will be overridden when automation is enabled
-      next_send_at: nextSendAt,
-      active: false, // no automation yet
-      unsubscribed: false,
       workflow_status: "outstanding",
     });
 
@@ -894,87 +890,57 @@ export async function enableAutomation(formData: FormData) {
     redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
   }
 
-  const customerId = getString(formData, "customer_id");
-  if (!customerId) redirectToDashboard({ error: "Invalid customer." });
+  const clientId = getString(formData, "client_id");
+  if (!clientId) redirectToDashboard({ error: "Invalid client." });
 
   const frequencyRaw = getString(formData, "reminder_frequency_days") ?? "7";
   const frequency = parseInt(frequencyRaw as string, 10);
   if (!Number.isFinite(frequency) || frequency < 1) {
-    redirectToNewReminder(customerId as string, "Frequency must be at least 1 day.");
-  }
-
-  const customMessage = getString(formData, "custom_message");
-  const messageValue =
-    typeof customMessage === "string" && customMessage.length > 0
-      ? customMessage.slice(0, 500)
-      : null;
-
-  const rawPaymentLink = getString(formData, "payment_link");
-  const paymentLink = rawPaymentLink ? normalizePaymentLink(rawPaymentLink) : null;
-  if (rawPaymentLink && !paymentLink) {
-    redirectToNewReminder(customerId as string, "Enter a valid payment link (must start with https://).");
+    redirectToDashboard({ error: "Frequency must be at least 1 day." });
   }
 
   const supabase = await createSupabaseServerClient();
 
-  const { data: customer, error: fetchError } = await supabase
-    .from("invoices")
-    .select("id, last_sent_at, workflow_status")
-    .eq("id", customerId)
+  const { data: client, error: fetchError } = await supabase
+    .from("clients")
+    .select("id, last_sent_at")
+    .eq("id", clientId)
     .eq("user_id", user.id)
-    .maybeSingle<{ id: string; last_sent_at: string | null; workflow_status: WorkflowStatus }>();
+    .maybeSingle<{ id: string; last_sent_at: string | null }>();
 
-  if (fetchError || !customer) redirectToDashboard({ error: "Customer not found." });
-
-  // Block automation on already-paid customers
-  if (customer!.workflow_status === "paid") {
-    redirectToNewReminder(
-      customerId as string,
-      "This customer is already marked as paid. Undo the payment first if you need to re-enable reminders.",
-    );
-  }
+  if (fetchError || !client) redirectToDashboard({ error: "Client not found." });
 
   // Cap active automated reminders at MAX_ACTIVE_REMINDERS
   const MAX_ACTIVE_REMINDERS = 20;
   const { count: activeCount } = await supabase
-    .from("invoices")
+    .from("clients")
     .select("*", { count: "exact", head: true })
     .eq("user_id", user.id)
     .eq("active", true);
 
   if ((activeCount ?? 0) >= MAX_ACTIVE_REMINDERS) {
-    redirectToNewReminder(
-      customerId as string,
-      `You have ${MAX_ACTIVE_REMINDERS} active automated reminders. Pause some before enabling more.`,
-    );
+    redirectToDashboard({
+      error: `You have ${MAX_ACTIVE_REMINDERS} active automated reminders. Pause some before enabling more.`
+    });
   }
 
-  const nextSendAt = (customer!.last_sent_at
-    ? computeRecurringReminderSendAt(frequency as number)
+  const nextSendAt = (client.last_sent_at
+    ? computeRecurringReminderSendAt(frequency)
     : computeFirstReminderSendAt());
 
-  const emailSubjectRaw = getString(formData, "email_subject");
-  const emailSubject = 
-    typeof emailSubjectRaw === "string" && emailSubjectRaw.length > 0
-      ? emailSubjectRaw.slice(0, 100)
-      : null;
-
   const { error } = await supabase
-    .from("invoices")
+    .from("clients")
     .update({
-      email_subject: emailSubject,
-      custom_message: messageValue,
-      payment_link: paymentLink,
-      reminder_frequency_days: frequency as number,
+      reminder_frequency_days: frequency,
       active: true,
       next_send_at: nextSendAt,
     })
-    .eq("id", customerId)
+    .eq("id", clientId)
     .eq("user_id", user.id);
 
   if (error) {
     logger.error({
-      message: "Database error enabling automation",
+      message: "Database error updating client automation settings",
       context: "enableAutomation",
       user_id: user.id,
       error: error.message,
@@ -984,13 +950,13 @@ export async function enableAutomation(formData: FormData) {
 
   logger.action({
     action_name: "enable_automation",
-    reminder_id: customerId as string,
+    reminder_id: clientId,
     user_id: user.id,
     success: true,
   });
 
   revalidatePath("/dashboard");
-  redirectToDashboard({ success: "Automation enabled. Reminders will start sending shortly." });
+  revalidatePath(`/customers/${clientId}`);
 }
 
 // ---------------------------------------------------------------------------

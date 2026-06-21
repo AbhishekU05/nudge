@@ -142,9 +142,7 @@ function CustomerCard({
                 <span className="truncate text-sm font-semibold text-zinc-100">
                   {customer.recipient_name}
                 </span>
-                {customer.unsubscribed && (
-                  <Badge variant="muted">Opted out</Badge>
-                )}
+
                 {paid && (
                   <Badge variant={customer.client_paid_at ? "success" : "default"}>
                     {customer.client_paid_at ? "Customer marked paid" : "You marked paid"}
@@ -373,15 +371,6 @@ function ActivityFeed({ customers }: { customers: CustomerRecord[] }) {
           tone: "primary",
         });
       }
-      if (c.last_sent_at) {
-        entries.push({
-          id: `${c.id}-sent`,
-          label: "Reminder sent",
-          sub: c.recipient_name,
-          at: c.last_sent_at,
-          tone: "muted",
-        });
-      }
       return entries;
     })
     .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
@@ -455,13 +444,13 @@ export function DashboardClient({
 
   // Pipeline groupings — simplified: overdue / outstanding / paid / opted out
   const overdue = customers.filter(
-    (c) => getDaysOverdue(c) !== null && !isEffectivelyPaid(c) && !c.unsubscribed,
+    (c) => getDaysOverdue(c) !== null && !isEffectivelyPaid(c),
   );
   const outstanding = customers.filter(
-    (c) => !isEffectivelyPaid(c) && getDaysOverdue(c) === null && !c.unsubscribed,
+    (c) => !isEffectivelyPaid(c) && getDaysOverdue(c) === null,
   );
-  const paid = customers.filter((c) => isEffectivelyPaid(c) && !c.unsubscribed);
-  const optedOut = customers.filter((c) => c.unsubscribed);
+  const paid = customers.filter((c) => isEffectivelyPaid(c));
+  const optedOut: CustomerRecord[] = [];
 
   // Stats
   const totalOutstanding = customers

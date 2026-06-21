@@ -17,6 +17,7 @@ import {
   UserRound,
   KanbanSquare,
   FileText,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +45,7 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks }:
     { name: "Analytics", href: "/analytics", icon: BarChart3, color: "text-blue-400", activeBg: "bg-blue-500/10" },
     { name: "Customers", href: "/customers", icon: Users, color: "text-rose-400", activeBg: "bg-rose-500/10" },
     { name: "Invoices", href: "/invoices", icon: FileText, color: "text-purple-400", activeBg: "bg-purple-500/10" },
+    { name: "Drafts", href: "/drafts", icon: Mail, color: "text-sky-400", activeBg: "bg-sky-500/10" },
   ];
 
   const bottomItems = [

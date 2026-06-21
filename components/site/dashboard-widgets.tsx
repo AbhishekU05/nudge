@@ -107,7 +107,7 @@ function formatCurrency(value: number, currency: string = "USD") {
 export function DashboardPipelineWidget({ customers, currency = "USD" }: { customers: CustomerRecord[], currency?: string }) {
   const getCustomersByStatus = (status: WorkflowStatus) => {
     return customers
-      .filter((c) => c.workflow_status === status && !c.unsubscribed)
+      .filter((c) => c.workflow_status === status)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   };
 

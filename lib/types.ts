@@ -92,14 +92,6 @@ export type ReminderRow = {
   quickbooks_invoice_id: string | null;
   invoice_number: string | null;
 
-  // Automation (supporting feature)
-  reminder_frequency_days: number;
-  next_send_at: string;
-  last_sent_at: string | null;
-  active: boolean;
-  unsubscribed: boolean;
-  unsubscribe_token: string;
-
   created_at: string;
   updated_at: string;
 
@@ -112,8 +104,30 @@ export type ClientRecord = {
   user_id: string;
   name: string;
   email: string | null;
+  
+  // Automation
+  reminder_frequency_days: number;
+  next_send_at: string | null;
+  last_sent_at: string | null;
+  active: boolean;
+  unsubscribed: boolean;
+  unsubscribe_token: string;
+  auto_approve: boolean;
+
   created_at: string;
   updated_at: string;
+};
+
+export type EmailDraftRecord = {
+  id: string;
+  user_id: string;
+  client_id: string;
+  subject: string;
+  body_html: string;
+  status: "draft" | "sent" | "discarded";
+  created_at: string;
+  updated_at: string;
+  sent_at: string | null;
 };
 
 // Semantic alias — the UI uses this name when thinking invoice-first
