@@ -23,10 +23,12 @@ export function SiteFooter() {
           <Link href="/for-freelancers" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Freelancers</Link>
           <Link href="/for-agencies" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Agencies</Link>
           <Link href="/for-consultants" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Consultants</Link>
-          <Link href="/vs/freshbooks" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Vs FreshBooks</Link>
-          <Link href="/vs/honeybook" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Vs HoneyBook</Link>
-          <Link href="/vs/bonsai" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Vs Bonsai</Link>
-          <Link href="/vs/quickbooks" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Vs QuickBooks</Link>
+          <Link href="/alternatives/duely-vs-paidnice" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Vs Paidnice</Link>
+          <Link href="/alternatives/duely-vs-chaser" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Vs Chaser</Link>
+          <Link href="/for/marketing-agencies" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">For Marketing Agencies</Link>
+          <Link href="/for/web-design-agencies" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">For Web Design Agencies</Link>
+          <Link href="/integrations/quickbooks" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">QuickBooks Sync</Link>
+          <Link href="/use-case/automate-invoice-reminders" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Automate Reminders</Link>
           <Link href="/terms" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Terms</Link>
           <Link href="/privacy" className="hover:text-zinc-300 transition-colors min-h-[44px] flex items-center">Privacy</Link>
           <div className="flex items-center gap-1.5 sm:ml-2">

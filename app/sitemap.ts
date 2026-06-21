@@ -92,5 +92,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   }
 
+  // SEO Programmatic pages
+  const seoModules = [
+    { prefix: "alternatives/duely-vs-", keys: Object.keys(require("@/lib/seo-data").competitors) },
+    { prefix: "for/", keys: Object.keys(require("@/lib/seo-data").industries) },
+    { prefix: "integrations/", keys: Object.keys(require("@/lib/seo-data").integrations) },
+    { prefix: "location/", keys: Object.keys(require("@/lib/seo-data").locations) },
+    { prefix: "use-case/", keys: Object.keys(require("@/lib/seo-data").useCases) },
+  ];
+
+  for (const module of seoModules) {
+    for (const key of module.keys) {
+      routes.push({
+        url: `${SITE_URL}/${module.prefix}${key}`,
+        lastModified: new Date(),
+        changeFrequency: "monthly",
+        priority: 0.8,
+      });
+    }
+  }
+
   return routes;
 }
