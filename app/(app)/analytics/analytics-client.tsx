@@ -35,9 +35,11 @@ function formatCurrency(value: number, currency: string = "USD") {
 export function AnalyticsClient({
   customers,
   events,
+  currency = "USD",
 }: {
   customers: CustomerRecord[];
   events: CustomerEvent[];
+  currency?: string;
 }) {
   const stats = useMemo(() => {
     let totalCollected = 0;
@@ -304,7 +306,7 @@ export function AnalyticsClient({
         <div className="bg-zinc-900 border border-white/10 p-3 rounded-lg shadow-xl">
           <p className="text-sm text-zinc-400 mb-1">{label}</p>
           <p className="text-sm font-bold text-zinc-100">
-            {formatCurrency(payload[0].value)}
+            {formatCurrency(payload[0].value, currency)}
           </p>
         </div>
       );
@@ -338,7 +340,7 @@ export function AnalyticsClient({
             <DollarSign className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-zinc-50">{formatCurrency(stats.totalCollected)}</div>
+            <div className="text-2xl font-bold text-zinc-50">{formatCurrency(stats.totalCollected, currency)}</div>
           </CardContent>
         </Card>
 
@@ -351,7 +353,7 @@ export function AnalyticsClient({
             <AlertCircle className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-zinc-50">{formatCurrency(stats.totalOutstanding)}</div>
+            <div className="text-2xl font-bold text-zinc-50">{formatCurrency(stats.totalOutstanding, currency)}</div>
           </CardContent>
         </Card>
 
@@ -444,7 +446,7 @@ export function AnalyticsClient({
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                     <XAxis dataKey="month" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                    <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v, currency)} />
                     <Tooltip content={<CustomTooltip />} />
                     <Area type="monotone" dataKey="amount" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorAmount)" />
                   </AreaChart>
@@ -520,7 +522,7 @@ export function AnalyticsClient({
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.topOffenders} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" horizontal={false} />
-                    <XAxis type="number" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                    <XAxis type="number" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v, currency)} />
                     <YAxis type="category" dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} width={80} />
                     <Tooltip 
                       cursor={{ fill: '#ffffff05' }}
@@ -550,7 +552,7 @@ export function AnalyticsClient({
                   <BarChart data={stats.agingData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                     <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                    <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v, currency)} />
                     <Tooltip 
                       cursor={{ fill: '#ffffff05' }}
                       content={<CustomTooltip />}
@@ -610,7 +612,7 @@ export function AnalyticsClient({
               <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
                 <h4 className="text-sm font-medium text-zinc-300 mb-1">Revenue Momentum</h4>
                 <p className="text-sm text-zinc-500">
-                  You collected <strong className="text-emerald-400">{formatCurrency(stats.revenueThisMonth)}</strong> this month, compared to {formatCurrency(stats.revenueLastMonth)} last month.
+                  You collected <strong className="text-emerald-400">{formatCurrency(stats.revenueThisMonth, currency)}</strong> this month, compared to {formatCurrency(stats.revenueLastMonth, currency)} last month.
                 </p>
               </div>
               <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
@@ -672,7 +674,7 @@ export function AnalyticsClient({
           </CardHeader>
           <CardContent className="flex flex-col justify-center items-center py-8">
             <DollarSign className="h-10 w-10 text-emerald-500 mb-4" />
-            <div className="text-4xl font-bold text-emerald-400">{formatCurrency(stats.expected30Days)}</div>
+            <div className="text-4xl font-bold text-emerald-400">{formatCurrency(stats.expected30Days, currency)}</div>
             <p className="text-sm text-emerald-500/80 mt-4 text-center px-4">
               If all clients with upcoming due dates and promise dates pay on time.
             </p>

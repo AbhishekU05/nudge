@@ -19,7 +19,13 @@ const COLUMNS: { id: WorkflowStatus; title: string; color: string }[] = [
   { id: "paid", title: "Paid In Full", color: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400" },
 ];
 
-export function PipelineClient({ initialCustomers }: { initialCustomers: CustomerRecord[] }) {
+export function PipelineClient({ 
+  initialCustomers,
+  currency = "USD"
+}: { 
+  initialCustomers: CustomerRecord[];
+  currency?: string;
+}) {
   const getCustomersByStatus = (status: WorkflowStatus) => {
     return initialCustomers
       .filter((c) => c.workflow_status === status && !c.unsubscribed)
@@ -45,7 +51,7 @@ export function PipelineClient({ initialCustomers }: { initialCustomers: Custome
                     {colCustomers.length}
                   </span>
                 </h3>
-                <p className="text-xs text-zinc-500 mt-1">{formatCurrency(colTotal)}</p>
+                <p className="text-xs text-zinc-500 mt-1">{formatCurrency(colTotal, currency)}</p>
               </div>
             </div>
             
@@ -58,10 +64,10 @@ export function PipelineClient({ initialCustomers }: { initialCustomers: Custome
                 return (
                   <div key={customer.id} className="mb-3 last:mb-0 transition-shadow shadow-sm hover:border-white/20">
                     <Card className="bg-[#1c1c1e] border-white/10 p-4 rounded-lg">
-                      <Link href={`/customers/${customer.id}`} className="block">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium text-zinc-200 text-sm line-clamp-1">{customer.recipient_name}</h4>
-                          <span className="font-semibold text-zinc-100 text-sm">{formatCurrency(displayAmount, customer.currency)}</span>
+                      <Link href={`/customers/${customer.id}`} className="block group">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-semibold text-zinc-200 group-hover:text-emerald-400 transition-colors line-clamp-1">{customer.recipient_name}</h4>
+                          <span className="font-medium text-zinc-100 whitespace-nowrap">{formatCurrency(displayAmount, currency)}</span>
                         </div>
                         
                         <div className="flex items-center gap-4 text-xs text-zinc-500 mt-3">

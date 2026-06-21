@@ -17,8 +17,12 @@ function formatCurrency(value: number, currency: string = "USD") {
 
 import { CollectionTrendWidget, DashboardPipelineWidget } from "@/components/site/dashboard-widgets";
 import { DashboardBackgroundSync } from "@/components/site/dashboard-background-sync";
+import { CurrencySelector } from "@/components/site/currency-selector";
 
-export default async function DashboardPage() {
+export default async function DashboardPage(props: {
+  searchParams?: Promise<{ currency?: string }>;
+}) {
+  const searchParams = await props.searchParams;
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
@@ -27,7 +31,13 @@ export default async function DashboardPage() {
     supabase.from("customer_events").select("*, customers(recipient_name)").eq("user_id", user.id).order("created_at", { ascending: false })
   ]);
 
-  const customers = (customersRes.data || []) as CustomerRecord[];
+  const allCustomers = (customersRes.data || []) as CustomerRecord[];
+  
+  // Handle currencies
+  const uniqueCurrencies = Array.from(new Set(allCustomers.map(c => c.currency || 'USD'))).sort();
+  const selectedCurrency = searchParams?.currency || (uniqueCurrencies.includes('USD') ? 'USD' : uniqueCurrencies[0] || 'USD');
+  const customers = allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
+
   const events = eventsRes.data || [];
   const recentEvents = events.slice(0, 5);
 
@@ -81,10 +91,13 @@ export default async function DashboardPage() {
                 A high-level summary of your business across all areas.
               </p>
             </div>
-            <Link href="/analytics" className="hidden sm:flex items-center gap-2 rounded-lg bg-white/[0.05] px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-white/[0.1] transition-colors border border-white/10">
-              <Activity className="h-4 w-4" />
-              Full Analytics
-            </Link>
+            <div className="flex items-center gap-4">
+              <CurrencySelector currencies={uniqueCurrencies} selected={selectedCurrency} />
+              <Link href="/analytics" className="hidden sm:flex items-center gap-2 rounded-lg bg-white/[0.05] px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-white/[0.1] transition-colors border border-white/10">
+                <Activity className="h-4 w-4" />
+                Full Analytics
+              </Link>
+            </div>
           </div>
 
           {/* Analytics Overview */}
@@ -98,7 +111,7 @@ export default async function DashboardPage() {
                 <DollarSign className="h-4 w-4 text-zinc-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-zinc-50">{formatCurrency(totalOutstanding)}</div>
+                <div className="text-2xl font-bold text-zinc-50">{formatCurrency(totalOutstanding, selectedCurrency)}</div>
               </CardContent>
             </Card>
             <Card className="bg-white/[0.025] border-white/10 group relative">
@@ -110,7 +123,7 @@ export default async function DashboardPage() {
                 <DollarSign className="h-4 w-4 text-emerald-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-zinc-50">{formatCurrency(totalCollected)}</div>
+                <div className="text-2xl font-bold text-zinc-50">{formatCurrency(totalCollected, selectedCurrency)}</div>
               </CardContent>
             </Card>
             <Card className="bg-white/[0.025] border-white/10 group relative">
@@ -134,7 +147,7 @@ export default async function DashboardPage() {
                 <AlertCircle className="h-4 w-4 text-red-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-zinc-50">{formatCurrency(totalOverdue)}</div>
+                <div className="text-2xl font-bold text-zinc-50">{formatCurrency(totalOverdue, selectedCurrency)}</div>
               </CardContent>
             </Card>
           </div>
