@@ -66,7 +66,7 @@ export function AutomationSettings({
     setTemplates(templates.filter((_, i) => i !== index));
   };
 
-  const handleUpdateTemplate = (index: number, field: keyof Template, value: any) => {
+  const handleUpdateTemplate = (index: number, field: keyof Template, value: string | number) => {
     const newTemplates = [...templates];
     newTemplates[index] = { ...newTemplates[index], [field]: value };
     setTemplates(newTemplates);

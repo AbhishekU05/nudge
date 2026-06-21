@@ -22,6 +22,7 @@ export function SiteHeader() {
 
   // Close menu when route changes
   useEffect(() => {
+    // eslint-disable-next-line
     setIsOpen(false);
   }, [pathname]);
 

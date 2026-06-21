@@ -18,6 +18,7 @@ import {
   KanbanSquare,
   FileText,
   Mail,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

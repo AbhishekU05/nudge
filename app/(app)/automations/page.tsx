@@ -39,7 +39,7 @@ export default async function AutomationsPage() {
         <Container className="py-8 sm:py-10">
           <div className="flex items-center gap-3 mb-8">
             <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Active Automations</h1>
-            <Badge variant="secondary" className="bg-white/5 hover:bg-white/10">{totalAutomations} running</Badge>
+            <Badge variant="muted" className="bg-white/5 hover:bg-white/10">{totalAutomations} running</Badge>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -65,7 +65,7 @@ export default async function AutomationsPage() {
                     >
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-medium text-zinc-200">{client.name}</span>
-                        <Badge variant={client.auto_approve ? "success" : "secondary"}>
+                        <Badge variant={client.auto_approve ? "success" : "muted"}>
                           {client.auto_approve ? "Auto" : "Queue"}
                         </Badge>
                       </div>
@@ -110,7 +110,7 @@ export default async function AutomationsPage() {
                           <span className="font-medium text-zinc-200">{invoice.recipient_name}</span>
                           <p className="text-xs text-zinc-500 mt-0.5">{invoice.invoice_number || 'Invoice'}</p>
                         </div>
-                        <Badge variant={invoice.auto_approve ? "success" : "secondary"}>
+                        <Badge variant={invoice.auto_approve ? "success" : "muted"}>
                           {invoice.auto_approve ? "Auto" : "Queue"}
                         </Badge>
                       </div>

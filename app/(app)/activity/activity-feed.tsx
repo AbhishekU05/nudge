@@ -14,7 +14,7 @@ function formatCurrency(value: number, currency: string = "USD") {
   }).format(Number(value));
 }
 
-export function ActivityFeed({ events }: { events: any[] }) {
+export function ActivityFeed({ events }: { events: unknown[] }) {
   if (!events || events.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 p-12 text-center bg-white/[0.01]">
@@ -107,7 +107,7 @@ export function ActivityFeed({ events }: { events: any[] }) {
                         )}
                         {event.note && (
                           <p className="text-sm italic text-zinc-500 w-full mt-1 border-l-2 border-white/10 pl-3">
-                            "{event.note}"
+                            &quot;{event.note}&quot;
                           </p>
                         )}
                       </div>

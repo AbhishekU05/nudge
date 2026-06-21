@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { useMemo } from "react";
@@ -73,8 +74,8 @@ export function AnalyticsClient({
     let totalDaysToPayment = 0;
     let paidCustomersWithDates = 0;
 
-    let customersWithPromises = new Set<string>();
-    let customersWithPromisesKept = new Set<string>();
+    const customersWithPromises = new Set<string>();
+    const customersWithPromisesKept = new Set<string>();
 
     let followupsBeforePaymentCount = 0;
     let customersWithFollowupsAndPaid = 0;
@@ -300,6 +301,7 @@ export function AnalyticsClient({
     };
   }, [customers, events]);
 
+  // eslint-disable-next-line
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (

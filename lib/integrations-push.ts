@@ -33,7 +33,7 @@ export async function pushPaymentToXero(
       await xero.refreshToken();
     }
 
-    let bankAccountId = integration.bank_account_id;
+    const bankAccountId = integration.bank_account_id;
 
     // If no bank account is configured, we must not push a payment
     if (!bankAccountId) {

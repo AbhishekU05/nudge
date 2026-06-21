@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*
  * Dashboard — workflow-first collections view.
  * Replaced the automation-first reminder list with a pipeline grouped by

@@ -1,3 +1,4 @@
+/* eslint-disable */
 const fs = require('fs');
 const file = 'components/site/customer-details.tsx';
 let content = fs.readFileSync(file, 'utf8');

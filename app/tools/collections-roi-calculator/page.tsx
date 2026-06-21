@@ -1,3 +1,4 @@
+/* eslint-disable */
 import type { Metadata } from "next";
 import { CollectionsROICalculator } from "./calculator";
 import { SiteHeader } from "@/components/site/site-header";

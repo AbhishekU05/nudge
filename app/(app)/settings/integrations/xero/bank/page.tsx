@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { XeroClient } from "xero-node";

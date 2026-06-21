@@ -1,5 +1,6 @@
 import { Container } from "@/components/site/container";
 import { DraftList } from "@/components/site/draft-list";
+import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -20,7 +21,7 @@ export default async function DraftsPage() {
         <Container className="py-8 sm:py-10">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Queue</h1>
-            <Badge variant="secondary" className="bg-white/5 hover:bg-white/10">{(drafts || []).length} waiting</Badge>
+            <Badge variant="muted" className="bg-white/5 hover:bg-white/10">{(drafts || []).length} waiting</Badge>
           </div>
           <p className="mt-2 text-zinc-400 max-w-xl">
             Review and approve automated emails before they are sent. 

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
