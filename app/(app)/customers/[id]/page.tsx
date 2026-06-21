@@ -49,6 +49,17 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
+              <AutomationSettings 
+                entityType="client"
+                entityId={client.id}
+                active={client.active}
+                autoApprove={client.auto_approve}
+                reminderType={client.reminder_type}
+                reminderTemplates={client.reminder_templates || []}
+              />
+            </div>
+            
+            <div className="lg:col-span-1">
               <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-6 h-full">
                 <h2 className="text-xl font-medium text-zinc-100 mb-4">Invoices</h2>
                 <div className="overflow-hidden rounded-xl border border-white/10">
@@ -56,14 +67,13 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                     <thead className="bg-white/[0.02] border-b border-white/10">
                       <tr>
                         <th className="px-4 py-3 font-medium text-zinc-300">Invoice #</th>
-                        <th className="px-4 py-3 font-medium text-zinc-300">Status</th>
                         <th className="px-4 py-3 font-medium text-zinc-300 text-right">Amount</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/10">
                       {invoicesList.length === 0 ? (
                         <tr>
-                          <td colSpan={3} className="p-4 text-center text-zinc-500">No invoices attached to this customer.</td>
+                          <td colSpan={2} className="p-4 text-center text-zinc-500">No invoices attached.</td>
                         </tr>
                       ) : (
                         invoicesList.map(inv => (
@@ -73,7 +83,6 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                                 {inv.invoice_number || inv.id.substring(0,8)}
                               </Link>
                             </td>
-                            <td className="px-4 py-3 capitalize">{inv.workflow_status.replace('_', ' ')}</td>
                             <td className="px-4 py-3 text-right text-zinc-200">
                               {new Intl.NumberFormat(undefined, { style: "currency", currency: inv.currency || "USD" }).format(inv.amount_owed)}
                             </td>
@@ -84,17 +93,6 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                   </table>
                 </div>
               </div>
-            </div>
-            
-            <div className="lg:col-span-1">
-              <AutomationSettings 
-                entityType="client"
-                entityId={client.id}
-                active={client.active}
-                autoApprove={client.auto_approve}
-                reminderType={client.reminder_type}
-                reminderTemplates={client.reminder_templates || []}
-              />
             </div>
           </div>
         </Container>

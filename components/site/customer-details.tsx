@@ -960,7 +960,12 @@ export function CustomerDetails({
             icon={FileText}
             label="Notes"
           />
-
+          <TabButton
+            active={tab === "automation"}
+            onClick={() => setTab("automation")}
+            icon={Zap}
+            label="Automation"
+          />
         </div>
 
         {/* Tab content */}
@@ -971,7 +976,7 @@ export function CustomerDetails({
             {tab === "promise" && <PromiseTab customer={customer} />}
             {tab === "followup" && <FollowUpTab customer={customer} />}
             {tab === "notes" && <NotesTab customer={customer} />}
-
+            {tab === "automation" && <AutomationTab customer={customer} isDevelopment={isDevelopment} />}
           </div>
 
           {/* Danger zone — Sidebar / Bottom */}

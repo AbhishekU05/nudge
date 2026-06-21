@@ -211,27 +211,7 @@ function CustomerCard({
         )}
       </button>
 
-      {/* Quick action buttons */}
-      {!paid && (
-        <div className="flex items-center gap-1 border-t border-white/[0.04] px-4 py-2">
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onOpen(customer, "followup"); }}
-            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-200"
-          >
-            <MessageSquare className="h-3 w-3" />
-            Follow up
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onOpen(customer, "automation"); }}
-            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-200"
-          >
-            <Zap className="h-3 w-3" />
-            Automate
-          </button>
-        </div>
-      )}
+
     </div>
   );
 }

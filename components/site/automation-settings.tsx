@@ -243,12 +243,13 @@ export function AutomationSettings({
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label>Email Body (HTML)</Label>
+                        <Label>Email Message</Label>
                         <Textarea 
                           value={tpl.body_html} 
                           onChange={(e) => handleUpdateTemplate(idx, "body_html", e.target.value)}
-                          rows={4}
-                          className="font-mono text-xs bg-black/40 resize-none"
+                          rows={6}
+                          className="text-xs bg-black/40 resize-none"
+                          placeholder="Type your plain text message here..."
                         />
                         <p className="text-[10px] text-zinc-500">
                           Available variables: {"{{first_name}}"}, {"{{company_name}}"}, {"{{amount_owed}}"}

@@ -236,7 +236,7 @@ export async function POST(request: Request) {
       const templates = entity.reminder_templates || [];
       const tpl = templates[entity.sequence_index] || templates[templates.length - 1] || { subject: "Reminder", body_html: "" };
 
-      let htmlBody = "";
+      let textBody = "";
       let subject = "";
 
       if (entity.type === "client") {
@@ -267,36 +267,15 @@ export async function POST(request: Request) {
         const processed = processTemplate(tpl, vars);
         subject = processed.subject;
 
-        // Append table
-        const tableHtml = `
-          <table style="width: 100%; border-collapse: collapse; margin-top: 24px; margin-bottom: 24px;">
-            <thead>
-              <tr style="border-bottom: 1px solid #eee; text-align: left;">
-                <th style="padding: 12px 8px; font-weight: 600; color: #555;">Invoice #</th>
-                <th style="padding: 12px 8px; font-weight: 600; color: #555;">Due Date</th>
-                <th style="padding: 12px 8px; font-weight: 600; color: #555; text-align: right;">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${invoices.map(inv => `
-                <tr style="border-bottom: 1px solid #f9f9f9;">
-                  <td style="padding: 12px 8px; color: #444;">${inv.invoice_number || "Invoice"}</td>
-                  <td style="padding: 12px 8px; color: #444;">${inv.due_date ? new Date(inv.due_date).toLocaleDateString() : 'Upon receipt'}</td>
-                  <td style="padding: 12px 8px; text-align: right; color: #111; font-weight: 500;">
-                    ${new Intl.NumberFormat("en-US", { style: "currency", currency: inv.currency || "USD" }).format(inv.amount_owed)}
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        `;
+        // Append text list
+        const textList = invoices.map(inv => {
+          const invName = inv.invoice_number || "Invoice";
+          const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString() : 'Upon receipt';
+          const amt = new Intl.NumberFormat("en-US", { style: "currency", currency: inv.currency || "USD" }).format(inv.amount_owed);
+          return `- ${invName} (Due: ${due}): ${amt}`;
+        }).join('\n');
 
-        htmlBody = `
-          <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto; line-height: 1.5;">
-            ${processed.body}
-            ${tableHtml}
-          </div>
-        `;
+        textBody = `${processed.body}\n\nOutstanding Invoices:\n${textList}`;
 
       } else {
         // Invoice logic
@@ -312,11 +291,7 @@ export async function POST(request: Request) {
 
         const processed = processTemplate(tpl, vars);
         subject = processed.subject;
-        htmlBody = `
-          <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto; line-height: 1.5;">
-            ${processed.body}
-          </div>
-        `;
+        textBody = processed.body;
       }
 
       const status = entity.auto_approve ? "sent" : "draft";
@@ -328,7 +303,7 @@ export async function POST(request: Request) {
           user_id: entity.user_id,
           client_id: entity.type === "client" ? entity.id : (entity.customer_id || entity.id),
           subject,
-          body_html: htmlBody,
+          body_html: textBody.replace(/\n/g, "<br>"), // Quick hack so it renders in the UI
           status,
           sent_at: status === "sent" ? new Date().toISOString() : null,
         })
@@ -350,8 +325,8 @@ export async function POST(request: Request) {
               senderEmail: sender.email || "",
               to: entity.email,
               subject,
-              body: htmlBody,
-              html: true,
+              body: textBody,
+              html: false,
             });
           } catch (e) {
             // Fallback
@@ -360,7 +335,7 @@ export async function POST(request: Request) {
               from: `${sender.name} via Duely <reminders@duely.in>`,
               to: entity.email,
               subject,
-              html: htmlBody,
+              text: textBody,
               replyTo: sender.email || undefined,
             });
           }
@@ -370,7 +345,7 @@ export async function POST(request: Request) {
             from: `${sender.name} via Duely <reminders@duely.in>`,
             to: entity.email,
             subject,
-            html: htmlBody,
+            text: textBody,
             replyTo: sender.email || undefined,
           });
         }
