@@ -156,7 +156,7 @@ export function DashboardPipelineWidget({ customers, currency = "USD" }: { custo
 
                     return (
                       <Card key={customer.id} className="bg-[#1c1c1e] border-white/10 p-3 rounded-lg shadow-sm">
-                        <Link href={`/customers/${customer.id}`} className="block">
+                        <Link href={`/invoices/${customer.id}`} className="block">
                           <div className="flex justify-between items-start mb-1.5">
                             <h4 className="font-medium text-zinc-200 text-xs line-clamp-1">{customer.recipient_name}</h4>
                             <span className="font-semibold text-zinc-100 text-xs">{formatCurrency(displayAmount, currency)}</span>

@@ -307,7 +307,7 @@ function QuickAddCard({ hasSubscription }: { hasSubscription: boolean }) {
               Enter their details, log payments, and set up automated reminders
               whenever you&apos;re ready.
             </p>
-            <Link href="/customers/new" className="block">
+            <Link href="/invoices/new" className="block">
               <Button className="w-full gap-2">
                 <Plus className="h-3.5 w-3.5" />
                 Add customer
@@ -439,7 +439,7 @@ export function DashboardClient({
   const router = useRouter();
 
   function handleOpen(customer: CustomerRecord, tab: Tab = "payment") {
-    router.push(`/customers/${customer.id}?tab=${tab}`);
+    router.push(`/invoices/${customer.id}?tab=${tab}`);
   }
 
   // Pipeline groupings — simplified: overdue / outstanding / paid / opted out
@@ -504,7 +504,7 @@ export function DashboardClient({
                 record promises, and draft follow-ups from one place.
               </p>
               <div className="mt-6">
-                <Link href={hasSubscription ? "/customers/new" : "/settings/billing"}>
+                <Link href={hasSubscription ? "/invoices/new" : "/settings/billing"}>
                   <Button>{hasSubscription ? "Add your first customer" : "Activate billing"}</Button>
                 </Link>
               </div>
