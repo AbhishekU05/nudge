@@ -81,10 +81,7 @@ export default async function BillingPage({
 
   // TODO: fix wording
   return (
-    <div className="flex min-h-screen flex-col">
-      <main id="main-content" className="flex-1">
-        <Container className="py-8 sm:py-10">
-          <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
             <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] p-6 shadow-2xl shadow-black/30 sm:p-8 lg:p-10">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(79,70,229,0.22),transparent_28rem),radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.12),transparent_20rem)]" />
               <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
@@ -246,9 +243,6 @@ export default async function BillingPage({
                 </Card>
               </aside>
             </div>
-          </div>
-        </Container>
-      </main>
     </div>
   );
 }

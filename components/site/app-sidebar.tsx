@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { logout } from "@/app/actions/auth";
 import {
   LayoutDashboard,
   Users,
@@ -36,13 +37,21 @@ export function AppSidebar({ user, subscriptionStatus }: AppSidebarProps) {
   ];
 
   const bottomItems = [
-    { 
-      name: subscriptionStatus === "active" ? "Plan: Active" : "Billing & Plan", 
-      href: "/settings/billing", 
-      icon: CreditCard 
-    },
-    { name: "Settings", href: "/settings/integrations", icon: Settings },
+    { name: "Settings", href: "/settings/general", icon: Settings },
   ];
+
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div 
@@ -124,8 +133,11 @@ export function AppSidebar({ user, subscriptionStatus }: AppSidebarProps) {
       </div>
 
       {/* Profile Section */}
-      <div className="p-2 border-t border-white/10">
-        <div className="group relative flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors hover:bg-white/[0.04] cursor-pointer">
+      <div className="p-2 border-t border-white/10 relative" ref={profileRef}>
+        <div 
+          onClick={() => setIsProfileOpen(!isProfileOpen)}
+          className="group relative flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors hover:bg-white/[0.04] cursor-pointer"
+        >
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.1] text-xs font-semibold text-zinc-100">
             {user.initials}
           </div>
@@ -137,6 +149,38 @@ export function AppSidebar({ user, subscriptionStatus }: AppSidebarProps) {
             </div>
           )}
         </div>
+
+        {/* Profile Dropdown */}
+        {isProfileOpen && (
+          <div className={cn(
+            "absolute bottom-full mb-2 bg-zinc-900 border border-white/10 shadow-xl rounded-lg py-1 flex flex-col z-50",
+            isExpanded ? "left-2 right-2" : "left-2 w-48"
+          )}>
+            <div className="px-3 py-2 border-b border-white/10 mb-1">
+              <p className="text-sm font-medium text-zinc-200 truncate">{user.displayName}</p>
+              <p className="text-xs text-zinc-500 truncate">{user.email}</p>
+            </div>
+            
+            <Link 
+              href="/settings/general" 
+              className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-white/[0.04] hover:text-zinc-100 transition-colors"
+              onClick={() => setIsProfileOpen(false)}
+            >
+              <UserRound className="h-4 w-4" />
+              Profile Settings
+            </Link>
+            
+            <form action={logout}>
+              <button 
+                type="submit"
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors text-left"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );

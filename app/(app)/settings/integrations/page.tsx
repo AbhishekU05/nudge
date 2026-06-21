@@ -110,22 +110,7 @@ export default async function IntegrationsPage({
   const hasAccountingIntegration = isConnectedXero || isConnectedQuickBooks || isConnectedStripe;
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <main id="main-content" className="flex-1">
-        <Container className="py-8 sm:py-10">
-          <div className="mx-auto max-w-4xl space-y-6">
-            <div>
-              <Badge variant={isGmailConnected || hasAccountingIntegration ? "success" : "default"}>
-                {isGmailConnected || hasAccountingIntegration ? "Connected" : "Optional"}
-              </Badge>
-              <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
-                Integrations
-              </h1>
-              <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
-                Connect external tools for data sync and email delivery. These
-                integrations do not change how users sign in to Duely.
-              </p>
-            </div>
+    <div className="mx-auto max-w-4xl space-y-6">
 
             {(success || error) && (
               <div className="space-y-3">
@@ -530,9 +515,6 @@ export default async function IntegrationsPage({
                 )}
               </CardContent>
             </Card>
-          </div>
-        </Container>
-      </main>
     </div>
   );
 }
