@@ -9,27 +9,29 @@ export function generateStaticParams() {
   }));
 }
 
-export function generateMetadata({ params }: { params: { usecase: string } }): Metadata {
-  const data = useCases[params.usecase];
+export async function generateMetadata({ params }: { params: Promise<{ usecase: string }> }): Promise<Metadata> {
+  const { usecase } = await params;
+  const data = useCases[usecase];
   if (!data) return {};
 
   return {
     title: data.title,
     description: data.metaDescription,
     alternates: {
-      canonical: `https://duely.in/use-case/${params.usecase}`,
+      canonical: `https://duely.in/use-case/${usecase}`,
     },
     openGraph: {
       title: data.title,
       description: data.metaDescription,
-      url: `https://duely.in/use-case/${params.usecase}`,
+      url: `https://duely.in/use-case/${usecase}`,
       type: "website",
     },
   };
 }
 
-export default function UseCasePage({ params }: { params: { usecase: string } }) {
-  const data = useCases[params.usecase];
+export default async function UseCasePage({ params }: { params: Promise<{ usecase: string }> }) {
+  const { usecase } = await params;
+  const data = useCases[usecase];
 
   if (!data) {
     notFound();

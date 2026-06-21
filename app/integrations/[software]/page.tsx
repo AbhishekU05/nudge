@@ -9,27 +9,29 @@ export function generateStaticParams() {
   }));
 }
 
-export function generateMetadata({ params }: { params: { software: string } }): Metadata {
-  const data = integrations[params.software];
+export async function generateMetadata({ params }: { params: Promise<{ software: string }> }): Promise<Metadata> {
+  const { software } = await params;
+  const data = integrations[software];
   if (!data) return {};
 
   return {
     title: data.title,
     description: data.metaDescription,
     alternates: {
-      canonical: `https://duely.in/integrations/${params.software}`,
+      canonical: `https://duely.in/integrations/${software}`,
     },
     openGraph: {
       title: data.title,
       description: data.metaDescription,
-      url: `https://duely.in/integrations/${params.software}`,
+      url: `https://duely.in/integrations/${software}`,
       type: "website",
     },
   };
 }
 
-export default function IntegrationPage({ params }: { params: { software: string } }) {
-  const data = integrations[params.software];
+export default async function SoftwarePage({ params }: { params: Promise<{ software: string }> }) {
+  const { software } = await params;
+  const data = integrations[software];
 
   if (!data) {
     notFound();
