@@ -37,11 +37,11 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks }:
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Activity", href: "/activity", icon: Activity },
-    { name: "Pipeline", href: "/pipeline", icon: KanbanSquare },
-    { name: "Analytics", href: "/analytics", icon: BarChart3 },
-    { name: "Customers", href: "/customers", icon: Users },
+    { name: "Overview", href: "/dashboard", icon: LayoutDashboard, color: "text-indigo-400", activeBg: "bg-indigo-500/10" },
+    { name: "Activity", href: "/activity", icon: Activity, color: "text-emerald-400", activeBg: "bg-emerald-500/10" },
+    { name: "Pipeline", href: "/pipeline", icon: KanbanSquare, color: "text-amber-400", activeBg: "bg-amber-500/10" },
+    { name: "Analytics", href: "/analytics", icon: BarChart3, color: "text-blue-400", activeBg: "bg-blue-500/10" },
+    { name: "Customers", href: "/customers", icon: Users, color: "text-rose-400", activeBg: "bg-rose-500/10" },
   ];
 
   const bottomItems = [
@@ -110,8 +110,8 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks }:
               className={cn(
                 "flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors",
                 isActive
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+                  ? `${item.activeBg} ${item.color} font-medium`
+                  : `text-zinc-400 hover:bg-white/[0.04] hover:${item.color}`
               )}
             >
               <item.icon className="h-5 w-5 shrink-0" />

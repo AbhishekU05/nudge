@@ -122,7 +122,10 @@ export function DashboardPipelineWidget({ customers }: { customers: CustomerReco
         <div className="flex gap-4 h-full min-w-[700px]">
           {COLUMNS.map((column) => {
             const colCustomers = getCustomersByStatus(column.id);
-            const colTotal = colCustomers.reduce((acc, c) => acc + Math.max(0, Number(c.amount_owed) - Number(c.amount_paid)), 0);
+            const colTotal = colCustomers.reduce((acc, c) => {
+              const remaining = Math.max(0, Number(c.amount_owed) - Number(c.amount_paid));
+              return acc + (column.id === 'paid' ? Number(c.amount_paid) || Number(c.amount_owed) : remaining);
+            }, 0);
             
             // Only show top 3 to keep it compact
             const displayCustomers = colCustomers.slice(0, 3);
@@ -144,6 +147,7 @@ export function DashboardPipelineWidget({ customers }: { customers: CustomerReco
                 <div className="p-2 space-y-2">
                   {displayCustomers.map((customer) => {
                     const remaining = Math.max(0, Number(customer.amount_owed) - Number(customer.amount_paid));
+                    const displayAmount = column.id === 'paid' ? Number(customer.amount_paid) || Number(customer.amount_owed) : remaining;
                     const daysOverdue = getDaysOverdue(customer);
 
                     return (
@@ -151,7 +155,7 @@ export function DashboardPipelineWidget({ customers }: { customers: CustomerReco
                         <Link href={`/customers/${customer.id}`} className="block">
                           <div className="flex justify-between items-start mb-1.5">
                             <h4 className="font-medium text-zinc-200 text-xs line-clamp-1">{customer.recipient_name}</h4>
-                            <span className="font-semibold text-zinc-100 text-xs">{formatCurrency(remaining, customer.currency)}</span>
+                            <span className="font-semibold text-zinc-100 text-xs">{formatCurrency(displayAmount, customer.currency)}</span>
                           </div>
                           
                           <div className="flex items-center gap-3 text-[10px] text-zinc-500 mt-2">

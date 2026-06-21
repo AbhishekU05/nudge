@@ -30,7 +30,10 @@ export function PipelineClient({ initialCustomers }: { initialCustomers: Custome
     <div className="flex h-full gap-6 overflow-x-auto pb-4">
       {COLUMNS.map((column) => {
         const colCustomers = getCustomersByStatus(column.id);
-        const colTotal = colCustomers.reduce((acc, c) => acc + Math.max(0, Number(c.amount_owed) - Number(c.amount_paid)), 0);
+        const colTotal = colCustomers.reduce((acc, c) => {
+          const remaining = Math.max(0, Number(c.amount_owed) - Number(c.amount_paid));
+          return acc + (column.id === 'paid' ? Number(c.amount_paid) || Number(c.amount_owed) : remaining);
+        }, 0);
 
         return (
           <div key={column.id} className="flex min-w-[320px] max-w-[320px] flex-col rounded-xl bg-white/[0.015] border border-white/5">
@@ -49,6 +52,7 @@ export function PipelineClient({ initialCustomers }: { initialCustomers: Custome
             <div className="flex-1 p-3 min-h-[500px]">
               {colCustomers.map((customer) => {
                 const remaining = Math.max(0, Number(customer.amount_owed) - Number(customer.amount_paid));
+                const displayAmount = column.id === 'paid' ? Number(customer.amount_paid) || Number(customer.amount_owed) : remaining;
                 const daysOverdue = getDaysOverdue(customer);
 
                 return (
@@ -57,7 +61,7 @@ export function PipelineClient({ initialCustomers }: { initialCustomers: Custome
                       <Link href={`/customers/${customer.id}`} className="block">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium text-zinc-200 text-sm line-clamp-1">{customer.recipient_name}</h4>
-                          <span className="font-semibold text-zinc-100 text-sm">{formatCurrency(remaining, customer.currency)}</span>
+                          <span className="font-semibold text-zinc-100 text-sm">{formatCurrency(displayAmount, customer.currency)}</span>
                         </div>
                         
                         <div className="flex items-center gap-4 text-xs text-zinc-500 mt-3">

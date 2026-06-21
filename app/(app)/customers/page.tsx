@@ -220,29 +220,7 @@ export default async function CustomersPage({
 
             <div className="flex shrink-0 flex-col gap-3 sm:items-end">
 
-              {(!hasSubscription || renewsAt || trialDaysLeft > 0) && (
-                <div className="w-full rounded-xl border border-border bg-white/[0.025] px-4 py-3 text-sm sm:w-auto">
-                  <p className="font-medium text-zinc-200">
-                    {hasSubscription ? "Plan active" : "Billing needed"}
-                  </p>
-                  <p className="mt-0.5 text-xs text-zinc-500">
-                    {renewsAt
-                      ? `Renews ${renewsAt}`
-                      : trialDaysLeft > 0
-                        ? `${trialDaysLeft} trial day${trialDaysLeft === 1 ? "" : "s"} left`
-                        : `Subscribe for ${monthlyPrice.inline}`}
-                  </p>
-                  {!hasSubscription && (
-                    <Link
-                      href="/settings/billing"
-                      className="mt-1.5 inline-flex text-xs font-medium text-indigo-400 hover:text-indigo-300"
-                    >
-                      Manage billing →
-                    </Link>
-                  )}
-                </div>
-              )}
-              
+
               <Link href={hasSubscription ? "/customers/new" : "/settings/billing"} className="w-full sm:w-auto">
                 <Button className="w-full sm:w-auto gap-2">
                   <UserRound className="h-4 w-4" />

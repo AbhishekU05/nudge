@@ -18,7 +18,7 @@ import {
   Area,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { DollarSign, Users, AlertCircle, Clock } from "lucide-react";
+import { DollarSign, Users, AlertCircle, Clock, Info } from "lucide-react";
 import { getDaysOverdue, type CustomerRecord, type CustomerEvent } from "@/lib/types";
 import { format } from "date-fns";
 
@@ -318,7 +318,10 @@ export function AnalyticsClient({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Total Customers</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-400 flex items-center gap-1.5 cursor-help" title="The total number of customers in your pipeline.">
+              Total Customers
+              <Info className="h-3.5 w-3.5 text-zinc-600" />
+            </CardTitle>
             <Users className="h-4 w-4 text-zinc-500" />
           </CardHeader>
           <CardContent>
@@ -328,7 +331,10 @@ export function AnalyticsClient({
         
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Total Collected</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-400 flex items-center gap-1.5 cursor-help" title="The total amount of money you have successfully collected.">
+              Total Collected
+              <Info className="h-3.5 w-3.5 text-zinc-600" />
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
@@ -338,7 +344,10 @@ export function AnalyticsClient({
 
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Outstanding Balance</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-400 flex items-center gap-1.5 cursor-help" title="The total amount of money currently owed by your customers.">
+              Outstanding Balance
+              <Info className="h-3.5 w-3.5 text-zinc-600" />
+            </CardTitle>
             <AlertCircle className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
@@ -348,7 +357,10 @@ export function AnalyticsClient({
 
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Avg Days Overdue</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-400 flex items-center gap-1.5 cursor-help" title="The average number of days past the due date for overdue invoices.">
+              Avg Days Overdue
+              <Info className="h-3.5 w-3.5 text-zinc-600" />
+            </CardTitle>
             <Clock className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
@@ -361,7 +373,10 @@ export function AnalyticsClient({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Avg Time to Pay</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-400 flex items-center gap-1.5 cursor-help" title="The average number of days it takes for customers to pay after the invoice date.">
+              Avg Time to Pay
+              <Info className="h-3.5 w-3.5 text-zinc-600" />
+            </CardTitle>
             <Clock className="h-4 w-4 text-zinc-500" />
           </CardHeader>
           <CardContent>
@@ -371,7 +386,10 @@ export function AnalyticsClient({
         
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Collection Rate</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-400 flex items-center gap-1.5 cursor-help" title="The percentage of total billed amount that has been collected.">
+              Collection Rate
+              <Info className="h-3.5 w-3.5 text-zinc-600" />
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
@@ -381,7 +399,10 @@ export function AnalyticsClient({
 
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Promise Kept Rate</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-400 flex items-center gap-1.5 cursor-help" title="The percentage of customers who paid on or before their promised date.">
+              Promise Kept Rate
+              <Info className="h-3.5 w-3.5 text-zinc-600" />
+            </CardTitle>
             <AlertCircle className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
@@ -391,7 +412,10 @@ export function AnalyticsClient({
 
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Avg Follow-ups to Pay</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-400 flex items-center gap-1.5 cursor-help" title="The average number of follow-up messages sent before a payment is received.">
+              Avg Follow-ups to Pay
+              <Info className="h-3.5 w-3.5 text-zinc-600" />
+            </CardTitle>
             <Users className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>

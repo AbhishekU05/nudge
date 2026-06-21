@@ -56,12 +56,14 @@ function StatCard({
   value,
   sub,
   accent,
+  tooltip,
 }: {
   icon: React.ElementType;
   label: string;
   value: string;
   sub?: string;
   accent?: "red" | "amber" | "emerald" | "indigo";
+  tooltip?: string;
 }) {
   const iconColors = {
     red: "text-red-400",
@@ -71,7 +73,7 @@ function StatCard({
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white/[0.025] p-4">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white/[0.025] p-4 relative group">
       <div
         className={cn(
           "flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04]",
@@ -82,7 +84,16 @@ function StatCard({
       </div>
       <div>
         <p className="text-2xl font-semibold tracking-tight text-zinc-50">{value}</p>
-        <p className="mt-0.5 text-xs text-zinc-600">{label}</p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <p className="text-xs text-zinc-600">{label}</p>
+          {tooltip && (
+            <div title={tooltip} className="cursor-help flex items-center justify-center">
+              <svg className="w-3 h-3 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          )}
+        </div>
         {sub && <p className="mt-1 text-xs text-zinc-500">{sub}</p>}
       </div>
     </div>
@@ -167,9 +178,9 @@ function CustomerCard({
           <div className="flex shrink-0 items-center gap-3">
             <div className="text-right">
               <p className="text-sm font-semibold text-zinc-100">
-                {formatCurrency(remaining, customer.currency)}
+                {formatCurrency(paid ? (Number(customer.amount_paid) || Number(customer.amount_owed)) : remaining, customer.currency)}
               </p>
-              {customer.amount_paid > 0 && (
+              {customer.amount_paid > 0 && !paid && (
                 <p className="mt-0.5 text-xs text-zinc-600">
                   {formatCurrency(Number(customer.amount_paid), customer.currency)} paid
                 </p>
