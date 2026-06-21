@@ -110,6 +110,13 @@ export async function saveAutomationSettings(formData: FormData) {
           .update({ email: newEmail })
           .eq("id", invoice.customer_id)
           .eq("user_id", user.id);
+          
+        // Also update all other invoices belonging to this client to ensure sync
+        await supabase
+          .from("invoices")
+          .update({ recipient_email: newEmail })
+          .eq("customer_id", invoice.customer_id)
+          .eq("user_id", user.id);
       }
     }
   }

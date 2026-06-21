@@ -749,25 +749,30 @@ export async function updateCustomerEmail(formData: FormData) {
 
   const supabase = await createSupabaseServerClient();
 
-  // If email is provided, check for duplicates
-  if (recipientEmail) {
-    const { data: existing } = await supabase
-      .from("invoices")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("recipient_email", recipientEmail)
-      .neq("id", customerId)
-      .maybeSingle<{ id: string }>();
+  // Fetch the invoice first to get the customer_id
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("customer_id")
+    .eq("id", customerId)
+    .eq("user_id", user.id)
+    .single();
 
-    if (existing) {
-      redirectToDashboard({ error: "Another customer with this email already exists." });
-    }
+  if (!invoice?.customer_id) {
+    redirectToDashboard({ error: "Could not locate customer record for this invoice." });
   }
 
+  // Update the clients table
+  await supabase
+    .from("clients")
+    .update({ email: recipientEmail })
+    .eq("id", invoice.customer_id)
+    .eq("user_id", user.id);
+
+  // Update ALL invoices for this client to keep them in sync
   const { error } = await supabase
     .from("invoices")
     .update({ recipient_email: recipientEmail })
-    .eq("id", customerId)
+    .eq("customer_id", invoice.customer_id)
     .eq("user_id", user.id);
 
   if (error) {
