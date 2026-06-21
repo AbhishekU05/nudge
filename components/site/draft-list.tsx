@@ -81,7 +81,7 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
       <div className="col-span-1 rounded-2xl border border-white/10 bg-zinc-900/50 overflow-hidden flex flex-col">
         <div className="p-4 border-b border-white/10 bg-white/[0.02]">
           <h2 className="font-medium text-zinc-200">Approval Queue</h2>
-          <p className="text-xs text-zinc-500 mt-1">{drafts.length} drafts pending</p>
+          <p className="text-xs text-zinc-500 mt-1">{drafts.length} emails in queue</p>
         </div>
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {drafts.map(draft => (

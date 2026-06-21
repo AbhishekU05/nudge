@@ -166,7 +166,7 @@ export function AutomationSettings({
                     defaultValue={autoApprove ? "true" : "false"} 
                     className="flex h-10 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   >
-                    <option value="false">Queue drafts for my review</option>
+                    <option value="false">Queue emails for my review</option>
                     <option value="true">Send emails automatically</option>
                   </select>
                 </div>

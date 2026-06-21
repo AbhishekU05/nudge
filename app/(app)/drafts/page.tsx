@@ -18,10 +18,13 @@ export default async function DraftsPage() {
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
         <Container className="py-8 sm:py-10">
-          <div className="mb-8">
-            <h1 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50">Approval Queue</h1>
-            <p className="mt-2 text-zinc-400">Review and approve statement-style reminder emails before they are sent.</p>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Queue</h1>
+            <Badge variant="secondary" className="bg-white/5 hover:bg-white/10">{(drafts || []).length} waiting</Badge>
           </div>
+          <p className="mt-2 text-zinc-400 max-w-xl">
+            Review and approve automated emails before they are sent. 
+          </p>
           
           <DraftList initialDrafts={drafts || []} />
         </Container>
