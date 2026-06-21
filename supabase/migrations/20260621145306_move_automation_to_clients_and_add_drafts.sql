@@ -71,4 +71,4 @@ CREATE POLICY "Users can manage their own email drafts"
 CREATE TRIGGER set_updated_at_email_drafts
   BEFORE UPDATE ON public.email_drafts
   FOR EACH ROW
-  EXECUTE FUNCTION public.handle_updated_at();
+  EXECUTE FUNCTION public.set_updated_at();

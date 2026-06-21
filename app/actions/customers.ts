@@ -924,6 +924,9 @@ export async function enableAutomation(formData: FormData) {
     });
   }
 
+  const autoApproveRaw = formData.get("auto_approve");
+  const autoApprove = autoApproveRaw === "true" || autoApproveRaw === "on";
+
   const nextSendAt = (client.last_sent_at
     ? computeRecurringReminderSendAt(frequency)
     : computeFirstReminderSendAt());
@@ -932,6 +935,7 @@ export async function enableAutomation(formData: FormData) {
     .from("clients")
     .update({
       reminder_frequency_days: frequency,
+      auto_approve: autoApprove,
       active: true,
       next_send_at: nextSendAt,
     })

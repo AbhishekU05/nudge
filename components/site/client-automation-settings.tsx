@@ -100,6 +100,19 @@ export function ClientAutomationSettings({ client }: { client: ClientRecord }) {
                   className="bg-black/40 border-white/10"
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="auto_approve">Auto Approve</Label>
+                <select 
+                  id="auto_approve" 
+                  name="auto_approve" 
+                  defaultValue={client.auto_approve ? "true" : "false"} 
+                  className="flex h-10 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                >
+                  <option value="false">No, I want to approve them (Queue)</option>
+                  <option value="true">Yes, send automatically</option>
+                </select>
+              </div>
               
               <div className="flex gap-2 justify-end pt-2">
                 <Button 

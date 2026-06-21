@@ -375,6 +375,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
       recipient_name: contactName,
       workflow_status: status,
       quickbooks_invoice_id: invoiceId,
+      invoice_number: invoice.DocNumber || `INV-${invoiceId.substring(0, 8)}`,
       internal_notes: existing?.internal_notes || qbNotes,
     };
 

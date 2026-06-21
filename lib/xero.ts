@@ -400,6 +400,7 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
       recipient_name: contactName,
       workflow_status: status,
       xero_invoice_id: invoiceId,
+      invoice_number: invoice.invoiceNumber || `INV-${invoiceId.substring(0, 8)}`,
       internal_notes: existing?.internal_notes || internalNotes,
     };
 
