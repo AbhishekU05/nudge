@@ -4,6 +4,7 @@ import { Container } from "@/components/site/container";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Zap, Clock, PauseCircle, Users, Receipt } from "lucide-react";
+import { LocalTime } from "@/components/site/local-time";
 
 export const metadata = {
   title: "Automations | Duely",
@@ -76,7 +77,7 @@ export default async function AutomationsPage() {
                         </div>
                         <div className="flex items-center gap-1.5 text-zinc-400">
                           <Clock className="h-3 w-3 text-sky-500/70" />
-                          <span>Next: {client.next_send_at ? new Date(client.next_send_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
+                          <span>Next: <LocalTime value={client.next_send_at} fallback="N/A" /></span>
                         </div>
                       </div>
                     </Link>
@@ -121,7 +122,7 @@ export default async function AutomationsPage() {
                         </div>
                         <div className="flex items-center gap-1.5 text-zinc-400">
                           <Clock className="h-3 w-3 text-sky-500/70" />
-                          <span>Next: {invoice.next_send_at ? new Date(invoice.next_send_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
+                          <span>Next: <LocalTime value={invoice.next_send_at} fallback="N/A" /></span>
                         </div>
                       </div>
                     </Link>
