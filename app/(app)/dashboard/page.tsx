@@ -3,13 +3,15 @@ import { Container } from "@/components/site/container";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Users, AlertCircle, ArrowRight } from "lucide-react";
+import { DollarSign, Users, AlertCircle, ArrowRight, Activity, Percent, Clock, Send } from "lucide-react";
 import { getDaysOverdue, type CustomerRecord } from "@/lib/types";
+import { formatDistanceToNow } from "date-fns";
 
 function formatCurrency(value: number, currency: string = "USD") {
   return new Intl.NumberFormat(undefined, {
     currency,
     style: "currency",
+    maximumFractionDigits: 0,
   }).format(Number(value));
 }
 
@@ -17,12 +19,13 @@ export default async function DashboardPage() {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const { data: customersData } = await supabase
-    .from("customers")
-    .select("*")
-    .eq("user_id", user.id);
+  const [customersRes, eventsRes] = await Promise.all([
+    supabase.from("customers").select("*").eq("user_id", user.id),
+    supabase.from("customer_events").select("*, customers(recipient_name)").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5)
+  ]);
 
-  const customers = (customersData || []) as CustomerRecord[];
+  const customers = (customersRes.data || []) as CustomerRecord[];
+  const events = eventsRes.data || [];
 
   let totalCollected = 0;
   let totalOutstanding = 0;
@@ -42,6 +45,10 @@ export default async function DashboardPage() {
     }
   }
 
+  const collectionRate = (totalCollected + totalOutstanding) > 0 
+    ? (totalCollected / (totalCollected + totalOutstanding)) * 100 
+    : 0;
+
   // Get top 5 overdue/outstanding customers
   const actionNeeded = customers
     .filter((c) => {
@@ -60,16 +67,23 @@ export default async function DashboardPage() {
     <div className="flex min-h-screen flex-col">
       <main id="main-content" className="flex-1">
         <Container className="py-8 sm:py-10">
-          <div className="mb-8">
-            <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
-              Overview
-            </h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
-              Your business at a glance.
-            </p>
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
+                Overview
+              </h1>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
+                A high-level summary of your business across all areas.
+              </p>
+            </div>
+            <Link href="/analytics" className="hidden sm:flex items-center gap-2 rounded-lg bg-white/[0.05] px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-white/[0.1] transition-colors border border-white/10">
+              <Activity className="h-4 w-4" />
+              Full Analytics
+            </Link>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3 mb-8">
+          {/* Analytics Overview */}
+          <div className="grid gap-4 md:grid-cols-4 mb-8">
             <Card className="bg-white/[0.025] border-white/10">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-zinc-400">Total Outstanding</CardTitle>
@@ -90,7 +104,16 @@ export default async function DashboardPage() {
             </Card>
             <Card className="bg-white/[0.025] border-white/10">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-zinc-400">Overdue</CardTitle>
+                <CardTitle className="text-sm font-medium text-zinc-400">Collection Rate</CardTitle>
+                <Percent className="h-4 w-4 text-blue-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-zinc-50">{collectionRate.toFixed(1)}%</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-white/[0.025] border-white/10">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-zinc-400">Overdue Risk</CardTitle>
                 <AlertCircle className="h-4 w-4 text-red-500" />
               </CardHeader>
               <CardContent>
@@ -99,45 +122,108 @@ export default async function DashboardPage() {
             </Card>
           </div>
 
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold tracking-tight text-zinc-50">Action Needed</h2>
-            <Link href="/customers" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 flex items-center gap-1 transition-colors">
-              View all <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+          <div className="grid gap-8 lg:grid-cols-2">
+            {/* Customers Overview */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold tracking-tight text-zinc-50 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-zinc-400" /> Customers Action Needed
+                </h2>
+                <Link href="/customers" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 flex items-center gap-1 transition-colors">
+                  View all <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
 
-          {actionNeeded.length > 0 ? (
-            <div className="space-y-3">
-              {actionNeeded.map((customer) => {
-                const remaining = Math.max(0, Number(customer.amount_owed) - Number(customer.amount_paid));
-                const daysOverdue = getDaysOverdue(customer);
-                return (
-                  <Link
-                    key={customer.id}
-                    href={`/customers/${customer.id}`}
-                    className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors"
-                  >
-                    <div>
-                      <h3 className="font-medium text-zinc-200">{customer.recipient_name}</h3>
-                      <p className="text-sm text-zinc-500 mt-0.5">
-                        {daysOverdue ? <span className="text-red-400">{daysOverdue} days overdue</span> : "Outstanding"}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium text-zinc-200">{formatCurrency(remaining, customer.currency)}</div>
-                      <div className="text-sm text-zinc-500 mt-0.5">Remaining</div>
-                    </div>
-                  </Link>
-                )
-              })}
+              {actionNeeded.length > 0 ? (
+                <div className="space-y-3">
+                  {actionNeeded.map((customer) => {
+                    const remaining = Math.max(0, Number(customer.amount_owed) - Number(customer.amount_paid));
+                    const daysOverdue = getDaysOverdue(customer);
+                    return (
+                      <Link
+                        key={customer.id}
+                        href={`/customers/${customer.id}`}
+                        className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors"
+                      >
+                        <div>
+                          <h3 className="font-medium text-zinc-200">{customer.recipient_name}</h3>
+                          <p className="text-sm text-zinc-500 mt-0.5">
+                            {daysOverdue ? <span className="text-red-400">{daysOverdue} days overdue</span> : "Outstanding"}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium text-zinc-200">{formatCurrency(remaining, customer.currency)}</div>
+                          <div className="text-sm text-zinc-500 mt-0.5">Remaining</div>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-8 text-center h-[300px] flex flex-col justify-center">
+                  <Users className="mx-auto h-8 w-8 text-zinc-500 mb-3" />
+                  <h3 className="text-sm font-medium text-zinc-200">You&apos;re all caught up</h3>
+                  <p className="text-sm text-zinc-500 mt-1">No customers currently need your attention.</p>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-8 text-center">
-              <Users className="mx-auto h-8 w-8 text-zinc-500 mb-3" />
-              <h3 className="text-sm font-medium text-zinc-200">You&apos;re all caught up</h3>
-              <p className="text-sm text-zinc-500 mt-1">No customers currently need your attention.</p>
+
+            {/* Activity Overview */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold tracking-tight text-zinc-50 flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-zinc-400" /> Recent Activity
+                </h2>
+                <Link href="/activity" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 flex items-center gap-1 transition-colors">
+                  View all <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+
+              {events.length > 0 ? (
+                <div className="space-y-3">
+                  {events.map((event) => {
+                    const isPayment = event.event_type === "payment";
+                    const customerName = event.customers?.recipient_name || "Unknown Customer";
+                    
+                    return (
+                      <Link
+                        key={event.id}
+                        href={`/customers/${event.customer_id}`}
+                        className="flex items-start gap-4 p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors"
+                      >
+                        <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${isPayment ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-500" : "border-blue-500/20 bg-blue-500/10 text-blue-500"}`}>
+                          {isPayment ? <DollarSign className="h-3.5 w-3.5" /> : <Send className="h-3.5 w-3.5" />}
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-zinc-200">
+                              {isPayment ? "Payment Logged" : "Follow-up Sent"}
+                            </p>
+                            <time className="text-xs text-zinc-500">
+                              {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
+                            </time>
+                          </div>
+                          <p className="text-sm text-zinc-400 line-clamp-1">
+                            {isPayment ? (
+                              <>Recorded <span className="text-zinc-300 font-medium">{formatCurrency(event.amount || 0)}</span> from {customerName}</>
+                            ) : (
+                              <>Contacted {customerName} via {event.followup_method || "email"}</>
+                            )}
+                          </p>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-8 text-center h-[300px] flex flex-col justify-center">
+                  <Clock className="mx-auto h-8 w-8 text-zinc-500 mb-3" />
+                  <h3 className="text-sm font-medium text-zinc-200">No activity yet</h3>
+                  <p className="text-sm text-zinc-500 mt-1 max-w-[200px] mx-auto">Your timeline will populate once you start logging payments and sending follow-ups.</p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </Container>
       </main>
     </div>
