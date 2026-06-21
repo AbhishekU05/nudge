@@ -14,7 +14,7 @@ export default async function PipelinePage(props: {
   const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });

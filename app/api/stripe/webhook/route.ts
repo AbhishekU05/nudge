@@ -70,7 +70,7 @@ async function handleInvoiceCreated(invoice: ParsedInvoice, userId: string) {
   };
 
   const { data: existingReminder } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("id")
     .eq("user_id", userId)
     .eq("recipient_email", email)
@@ -78,7 +78,7 @@ async function handleInvoiceCreated(invoice: ParsedInvoice, userId: string) {
 
   if (existingReminder) {
     const { error } = await supabase
-      .from("customers")
+      .from("invoices")
       .update(updatePayload)
       .eq("id", existingReminder.id);
     if (error) {
@@ -87,7 +87,7 @@ async function handleInvoiceCreated(invoice: ParsedInvoice, userId: string) {
     return;
   }
 
-  const { error } = await supabase.from("customers").insert({
+  const { error } = await supabase.from("invoices").insert({
     user_id: userId,
     recipient_name: name,
     recipient_email: email,
@@ -114,7 +114,7 @@ async function handleInvoicePaid(invoice: ParsedInvoice, matchedUserId: string) 
   const supabase = createSupabaseAdminClient();
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .update({
       amount_paid: invoice.amount_paid ? Number(invoice.amount_paid) / 100 : 0,
       workflow_status: "paid",

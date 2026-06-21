@@ -293,7 +293,7 @@ async function loadExistingQuickBooksCustomers(userId: string, invoiceIds: strin
 
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("id, recipient_email, recipient_name, quickbooks_invoice_id, amount_paid, internal_notes")
     .eq("user_id", userId)
     .in("quickbooks_invoice_id", invoiceIds)
@@ -380,7 +380,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
 
     if (existing) {
       const { error } = await supabase
-        .from("customers")
+        .from("invoices")
         .update(isPaid ? { ...payload, active: false } : payload)
         .eq("id", existing.id)
         .eq("user_id", userId);
@@ -410,7 +410,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
       continue;
     }
 
-    const { data: newCustomer, error } = await supabase.from("customers").insert({
+    const { data: newCustomer, error } = await supabase.from("invoices").insert({
       ...payload,
       active: false,
       custom_message: null,

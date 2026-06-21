@@ -43,7 +43,7 @@ export default async function PaymentReceivedPage({
 
   // Fetch the balance so we can set amount_paid and log the customer signal.
   const { data: reminder } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("amount_owed, amount_paid, currency, user_id")
     .eq("unsubscribe_token", token)
     .maybeSingle<{
@@ -57,7 +57,7 @@ export default async function PaymentReceivedPage({
   // Agent-marked payments (from the dashboard) never touch this field,
   // so it remains an unambiguous signal of who confirmed the payment.
   const { data, error } = await supabase
-    .from("customers")
+    .from("invoices")
     .update({
       client_paid_at: new Date().toISOString(),
       workflow_status: "paid",

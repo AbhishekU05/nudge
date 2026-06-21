@@ -16,7 +16,7 @@ export async function GET() {
   try {
     const [customersRes, eventsRes] = await Promise.all([
       supabase
-        .from("customers")
+        .from("invoices")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false }),

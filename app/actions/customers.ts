@@ -147,7 +147,7 @@ export async function recordPartialPayment(formData: FormData) {
 
   // Fetch the current record to compute new totals
   const { data: customer, error: fetchError } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("amount_owed, amount_paid, currency, xero_invoice_id, quickbooks_invoice_id")
     .eq("id", customerId)
     .eq("user_id", user.id)
@@ -183,7 +183,7 @@ export async function recordPartialPayment(formData: FormData) {
   }
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .update(updatePayload)
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -268,7 +268,7 @@ export async function deletePaymentLog(formData: FormData) {
 
   // Get customer to calculate new totals
   const { data: customer, error: fetchError } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("amount_owed, amount_paid")
     .eq("id", customerId)
     .eq("user_id", user.id)
@@ -284,7 +284,7 @@ export async function deletePaymentLog(formData: FormData) {
 
   // Update customer
   const { error: updateError } = await supabase
-    .from("customers")
+    .from("invoices")
     .update({
       amount_paid: newAmountPaid,
       workflow_status: newStatus,
@@ -339,7 +339,7 @@ export async function markFullyPaid(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { data: customer, error: fetchError } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("amount_owed, amount_paid, currency, xero_invoice_id, quickbooks_invoice_id")
     .eq("id", customerId)
     .eq("user_id", user.id)
@@ -355,7 +355,7 @@ export async function markFullyPaid(formData: FormData) {
   );
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .update({
       amount_paid: customer!.amount_owed,
       workflow_status: "paid",
@@ -432,7 +432,7 @@ export async function undoMarkAsPaid(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .update({
       workflow_status: "outstanding",
       amount_paid: 0,
@@ -493,7 +493,7 @@ export async function correctAmountPaid(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { data: customer, error: fetchError } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("amount_owed, currency")
     .eq("id", customerId)
     .eq("user_id", user.id)
@@ -520,7 +520,7 @@ export async function correctAmountPaid(formData: FormData) {
   }
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .update(updatePayload)
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -599,7 +599,7 @@ export async function recordPaymentPromise(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .update({
       promised_date: promisedDateRaw as string,
       promise_notes: notesValue,
@@ -649,7 +649,7 @@ export async function saveInternalNotes(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .update({ internal_notes: notesValue })
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -693,7 +693,7 @@ export async function updateWorkflowStatus(formData: FormData) {
 
   if (status === "paid") {
     const { data: customer } = await supabase
-      .from("customers")
+      .from("invoices")
       .select("amount_owed")
       .eq("id", customerId)
       .eq("user_id", user.id)
@@ -710,7 +710,7 @@ export async function updateWorkflowStatus(formData: FormData) {
   }
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .update(updatePayload)
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -752,7 +752,7 @@ export async function updateCustomerEmail(formData: FormData) {
   // If email is provided, check for duplicates
   if (recipientEmail) {
     const { data: existing } = await supabase
-      .from("customers")
+      .from("invoices")
       .select("id")
       .eq("user_id", user.id)
       .eq("recipient_email", recipientEmail)
@@ -765,7 +765,7 @@ export async function updateCustomerEmail(formData: FormData) {
   }
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .update({ recipient_email: recipientEmail })
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -831,7 +831,7 @@ export async function createCustomer(formData: FormData) {
 
   // Block duplicate emails regardless of unsubscribed status
   const { data: existing } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("id, unsubscribed")
     .eq("user_id", user.id)
     .eq("recipient_email", recipientEmail)
@@ -857,7 +857,7 @@ export async function createCustomer(formData: FormData) {
   const nextSendAt = computeFirstReminderSendAt();
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .insert({
       user_id: user.id,
       recipient_name: recipientName as string,
@@ -925,7 +925,7 @@ export async function enableAutomation(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { data: customer, error: fetchError } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("id, last_sent_at, workflow_status")
     .eq("id", customerId)
     .eq("user_id", user.id)
@@ -944,7 +944,7 @@ export async function enableAutomation(formData: FormData) {
   // Cap active automated reminders at MAX_ACTIVE_REMINDERS
   const MAX_ACTIVE_REMINDERS = 20;
   const { count: activeCount } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("*", { count: "exact", head: true })
     .eq("user_id", user.id)
     .eq("active", true);
@@ -967,7 +967,7 @@ export async function enableAutomation(formData: FormData) {
       : null;
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .update({
       email_subject: emailSubject,
       custom_message: messageValue,
@@ -1020,7 +1020,7 @@ export async function deleteCustomer(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .delete()
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -1073,7 +1073,7 @@ export async function updateDueDate(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
-    .from("customers")
+    .from("invoices")
     .update({ due_date: dueDate })
     .eq("id", customerId)
     .eq("user_id", user.id);
@@ -1152,7 +1152,7 @@ export async function logFollowUp(formData: FormData) {
 
   // Verify the customer belongs to this user
   const { data: customer, error: fetchError } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("id")
     .eq("id", customerId)
     .eq("user_id", user.id)

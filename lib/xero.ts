@@ -327,7 +327,7 @@ async function loadExistingXeroCustomers(userId: string, invoiceIds: string[]) {
 
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
-    .from("customers")
+    .from("invoices")
     .select("id, recipient_email, recipient_name, xero_invoice_id, amount_paid, internal_notes")
     .eq("user_id", userId)
     .in("xero_invoice_id", invoiceIds)
@@ -405,7 +405,7 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
 
     if (existing) {
       const { error } = await supabase
-        .from("customers")
+        .from("invoices")
         .update(isPaid ? { ...payload, active: false } : payload)
         .eq("id", existing.id)
         .eq("user_id", userId);
@@ -435,7 +435,7 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
       continue;
     }
 
-    const { data: newCustomer, error } = await supabase.from("customers").insert({
+    const { data: newCustomer, error } = await supabase.from("invoices").insert({
       ...payload,
       active: false,
       custom_message: null,

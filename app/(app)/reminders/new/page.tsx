@@ -32,7 +32,7 @@ export default async function SetupAutomationPage({
 
   // Fetch the customer — must belong to this user
   const { data: customer } = await supabase
-    .from("customers")
+    .from("invoices")
     .select(
       "id, recipient_name, recipient_email, amount_owed, currency, active, unsubscribed, workflow_status",
     )

@@ -1,259 +1,109 @@
-/*
- * Dashboard — workflow-first collections view.
- * Replaced the automation-first reminder list with a pipeline grouped by
- * workflow_status. The DashboardClient component handles the interactive
- * drawer and groupings; this file stays pure server-side data loading.
- */
-import Image from "next/image";
+import { UserRound, ArrowRight } from "lucide-react";
 import Link from "next/link";
-
-import {
-  ChevronDown,
-  UserRound,
-} from "lucide-react";
-
-import { logout, updateProfileName } from "@/app/actions/auth";
 import { Container } from "@/components/site/container";
-import { DashboardClient } from "@/components/site/dashboard-client";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { requireUser } from "@/lib/auth";
-import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/payments";
-import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { CustomerEvent, CustomerRecord, FollowUpLog, PaymentLog } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { CurrencySelector } from "@/components/site/currency-selector";
+import { ClientRecord, InvoiceRecord, getRemainingBalance } from "@/lib/types";
 
-type CustomerRow = Omit<CustomerRecord, "payment_history" | "followup_history">;
-
-// ──────────────────────────────────────────────────────────
-// Helpers
-// ──────────────────────────────────────────────────────────
-
-import { getDisplayName, getInitials } from "@/lib/utils";
-
-function getPlanLabel({
-  hasSubscription,
-  subscriptionStatus,
-  trialDaysLeft,
-}: {
-  hasSubscription: boolean;
-  subscriptionStatus: string;
-  trialDaysLeft: number;
-}) {
-  if (hasSubscription && trialDaysLeft > 0) {
-    return `${trialDaysLeft} trial day${trialDaysLeft === 1 ? "" : "s"} left`;
-  }
-  if (hasSubscription) return "Active plan";
-  return subscriptionStatus === "none" ? "No active plan" : subscriptionStatus;
-}
-
-function Notice({
-  children,
-  variant,
-}: {
-  children: string;
-  variant: "success" | "error";
-}) {
-  return (
-    <p
-      className={cn(
-        "rounded-2xl border px-4 py-3 text-sm",
-        variant === "success" &&
-          "border-emerald-500/20 bg-emerald-500/10 text-emerald-200",
-        variant === "error" && "border-red-500/20 bg-red-500/10 text-red-200",
-      )}
-      role={variant === "error" ? "alert" : undefined}
-    >
-      {children}
-    </p>
-  );
-}
-
-// ──────────────────────────────────────────────────────────
-// Page
-// ──────────────────────────────────────────────────────────
-
-export default async function CustomersPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string; success?: string }>;
-}) {
+export default async function CustomersPage() {
   const user = await requireUser();
-  const { error, success } = await searchParams;
-  const monthlyPrice = await getLocalizedMonthlyPrice();
-
   const supabase = await createSupabaseServerClient();
 
-  let customers = null;
-  let customerEvents = null;
-  let profile = null;
-  let xeroIntegration = null;
-  let quickbooksIntegration = null;
+  // Fetch clients
+  const { data: clients } = await supabase
+    .from("clients")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("name", { ascending: true })
+    .returns<ClientRecord[]>();
 
-  try {
-    const [customersRes, eventsRes, profileRes, xeroRes, qbRes] = await Promise.all([
-      supabase
-        .from("customers")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .returns<CustomerRow[]>(),
-      supabase
-        .from("customer_events")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .returns<CustomerEvent[]>(),
-      supabase
-        .from("profiles")
-        .select("razorpay_subscription_status, razorpay_renews_at, created_at")
-        .eq("user_id", user.id)
-        .maybeSingle<{
-          razorpay_subscription_status: string | null;
-          razorpay_renews_at: string | null;
-          created_at: string;
-        }>(),
-      supabase
-        .from("integrations")
-        .select("provider")
-        .eq("user_id", user.id)
-        .eq("provider", "xero")
-        .maybeSingle<{ provider: string }>(),
-      supabase
-        .from("integrations")
-        .select("provider")
-        .eq("user_id", user.id)
-        .eq("provider", "quickbooks")
-        .maybeSingle<{ provider: string }>(),
-    ]);
-    
-    customers = customersRes.data;
-    customerEvents = eventsRes.data;
-    profile = profileRes.data;
-    xeroIntegration = xeroRes.data;
-    quickbooksIntegration = qbRes.data;
-  } catch (err) {
-    // Graceful fallback
-  }
+  // Fetch invoices to calculate aggregates
+  const { data: invoices } = await supabase
+    .from("invoices")
+    .select("*")
+    .eq("user_id", user.id)
+    .returns<InvoiceRecord[]>();
 
-  const logsByCustomer = new Map<string, PaymentLog[]>();
-  const followupsByCustomer = new Map<string, FollowUpLog[]>();
-
-  for (const event of customerEvents ?? []) {
-    if (event.event_type === "payment") {
-      const payment: PaymentLog = {
-        id: event.id,
-        customer_id: event.customer_id,
-        user_id: event.user_id,
-        amount: Number(event.amount),
-        currency: event.currency ?? "USD",
-        source: event.payment_source ?? "user",
-        created_at: event.created_at,
-      };
-      const existing = logsByCustomer.get(event.customer_id) ?? [];
-      existing.push(payment);
-      logsByCustomer.set(event.customer_id, existing);
-      continue;
-    }
-
-    if (event.event_type === "followup") {
-      const followup: FollowUpLog = {
-        id: event.id,
-        customer_id: event.customer_id,
-        user_id: event.user_id,
-        followup_date: event.event_date,
-        method: event.followup_method ?? "other",
-        note: event.note,
-        outcome: event.followup_outcome ?? "no_response",
-        created_at: event.created_at,
-      };
-      const existing = followupsByCustomer.get(event.customer_id) ?? [];
-      existing.push(followup);
-      followupsByCustomer.set(event.customer_id, existing);
-    }
-  }
-
-  const _allCustomers = (customers ?? []).map((customer) => ({
-    ...customer,
-    payment_history: logsByCustomer.get(customer.id) ?? [],
-    followup_history: followupsByCustomer.get(customer.id) ?? [],
-  }));
-
-  const uniqueCurrencies = Array.from(new Set(_allCustomers.map(c => c.currency || 'USD'))).sort();
-  const searchParamsAwaited = await searchParams;
-  const urlCurrency = (searchParamsAwaited as any).currency as string | undefined;
-  const selectedCurrency = urlCurrency || (uniqueCurrencies.includes('USD') ? 'USD' : uniqueCurrencies[0] || 'USD');
-  const allCustomers = _allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
-
-  const subscriptionStatus = profile?.razorpay_subscription_status ?? "none";
-  const hasSubscription = hasActiveSubscription(subscriptionStatus, profile?.created_at);
-  const isDevelopment = process.env.NODE_ENV === "development";
-
-  const renewsAt = profile?.razorpay_renews_at
-    ? new Date(profile.razorpay_renews_at).toLocaleDateString()
-    : null;
-
-  const displayName = getDisplayName(
-    user.user_metadata?.full_name,
-    user.email?.split("@")[0] ?? "Profile",
-  );
-
-  let trialDaysLeft = 0;
-  if (!renewsAt && hasSubscription && profile?.created_at && subscriptionStatus !== "active") {
-    trialDaysLeft = getTrialDaysLeft(profile.created_at);
-  }
-
-  const planLabel = getPlanLabel({ hasSubscription, subscriptionStatus, trialDaysLeft });
+  const clientsList = clients || [];
+  const invoicesList = invoices || [];
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* ── Main ─────────────────────────────────────────── */}
       <main id="main-content" className="flex-1">
         <Container className="py-8 sm:py-10">
-          {/* Page heading */}
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
                 Customers
               </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
-                Track what customers owe, log payments, record promises, and follow up — all in one place.
+                View all your customers and their aggregated balances across all invoices.
               </p>
             </div>
-
             <div className="flex shrink-0 flex-col gap-3 sm:items-end">
-              <div className="flex items-center justify-end w-full">
-                <CurrencySelector currencies={uniqueCurrencies} selected={selectedCurrency} />
-              </div>
-
-              <Link href={hasSubscription ? "/customers/new" : "/settings/billing"} className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto gap-2">
-                  <UserRound className="h-4 w-4" />
-                  Add customer
-                </Button>
-              </Link>
+              <Button disabled className="w-full sm:w-auto gap-2">
+                <UserRound className="h-4 w-4" />
+                Add customer (Coming soon)
+              </Button>
             </div>
           </div>
 
-          {/* Notices */}
-          {(success || error) && (
-            <div className="mb-6 space-y-3">
-              {success && <Notice variant="success">{success}</Notice>}
-              {error && <Notice variant="error">{error}</Notice>}
-            </div>
-          )}
+          <div className="rounded-2xl border border-white/10 bg-zinc-900/50 overflow-hidden">
+            <table className="w-full text-left text-sm text-zinc-400">
+              <thead className="bg-white/[0.02] border-b border-white/10">
+                <tr>
+                  <th className="px-4 py-3 font-medium text-zinc-300">Name</th>
+                  <th className="px-4 py-3 font-medium text-zinc-300">Email</th>
+                  <th className="px-4 py-3 font-medium text-zinc-300 text-right">Total Owed</th>
+                  <th className="px-4 py-3 font-medium text-zinc-300 text-right">Total Invoices</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/10">
+                {clientsList.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-zinc-500">
+                      No customers found. Sync from Xero/Quickbooks or add one manually.
+                    </td>
+                  </tr>
+                ) : (
+                  clientsList.map((client) => {
+                    const clientInvoices = invoicesList.filter(i => i.customer_id === client.id || (i.recipient_name === client.name));
+                    
+                    const totalOwed = clientInvoices.reduce((sum, inv) => {
+                      if (inv.workflow_status === "paid" || inv.workflow_status === "written_off") return sum;
+                      return sum + getRemainingBalance(inv);
+                    }, 0);
 
-          {/* Client-side pipeline + drawer */}
-          <DashboardClient
-            customers={allCustomers}
-            hasSubscription={hasSubscription}
-            isDevelopment={isDevelopment}
-            currency={selectedCurrency}
-          />
+                    // Grab currency from the first invoice, default to USD
+                    const currency = clientInvoices[0]?.currency || "USD";
+                    
+                    const formattedTotal = new Intl.NumberFormat(undefined, {
+                      style: "currency",
+                      currency
+                    }).format(totalOwed);
+
+                    return (
+                      <tr key={client.id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="px-4 py-4 font-medium text-zinc-200">{client.name}</td>
+                        <td className="px-4 py-4">{client.email || "—"}</td>
+                        <td className="px-4 py-4 text-right font-medium text-zinc-200">{formattedTotal}</td>
+                        <td className="px-4 py-4 text-right">{clientInvoices.length}</td>
+                        <td className="px-4 py-4 text-right">
+                          <Button variant="ghost" size="sm" className="h-8 gap-1 text-zinc-400 hover:text-zinc-100" asChild>
+                            <Link href={`/customers/${client.id}`}>
+                              View <ArrowRight className="h-3.5 w-3.5" />
+                            </Link>
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </Container>
       </main>
     </div>

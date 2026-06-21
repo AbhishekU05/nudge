@@ -27,8 +27,8 @@ export default async function DashboardPage(props: {
   const supabase = await createSupabaseServerClient();
 
   const [customersRes, eventsRes] = await Promise.all([
-    supabase.from("customers").select("*").eq("user_id", user.id),
-    supabase.from("customer_events").select("*, customers(recipient_name)").eq("user_id", user.id).order("created_at", { ascending: false })
+    supabase.from("invoices").select("*").eq("user_id", user.id),
+    supabase.from("customer_events").select("*, invoices(recipient_name)").eq("user_id", user.id).order("created_at", { ascending: false })
   ]);
 
   const allCustomers = (customersRes.data || []) as CustomerRecord[];

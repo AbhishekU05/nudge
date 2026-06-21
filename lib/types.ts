@@ -105,8 +105,18 @@ export type ReminderRow = {
   followup_history: FollowUpLog[];
 };
 
-// Semantic alias — the UI uses this name when thinking customer-first
-export type CustomerRecord = ReminderRow;
+export type ClientRecord = {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// Semantic alias — the UI uses this name when thinking invoice-first
+export type InvoiceRecord = ReminderRow;
+export type CustomerRecord = ReminderRow; // Keep for backwards compatibility during transition
 
 // Derived helpers
 export function getRemainingBalance(customer: CustomerRecord): number {

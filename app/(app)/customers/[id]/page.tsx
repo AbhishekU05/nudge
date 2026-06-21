@@ -1,92 +1,84 @@
-import { notFound, redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { CustomerDetails } from "@/components/site/customer-details";
-import type { CustomerRecord, PaymentLog, FollowUpLog } from "@/lib/types";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Container } from "@/components/site/container";
+import { Button } from "@/components/ui/button";
+import { requireUser } from "@/lib/auth";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ClientRecord, InvoiceRecord } from "@/lib/types";
 
-export default async function CustomerPage(props: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string }>;
-}) {
-  const { id } = await props.params;
-  const { tab } = await props.searchParams;
+export default async function CustomerProfilePage(props: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
-
+  const { id } = await props.params;
   const supabase = await createSupabaseServerClient();
 
-  const { data: customerData, error } = await supabase
-    .from("customers")
+  const { data: client } = await supabase
+    .from("clients")
     .select("*")
     .eq("id", id)
     .eq("user_id", user.id)
-    .maybeSingle();
+    .maybeSingle<ClientRecord>();
 
-  if (error || !customerData) {
+  if (!client) {
     notFound();
   }
 
-  // Fetch events for this customer
-  const { data: eventsData } = await supabase
-    .from("customer_events")
+  const { data: invoices } = await supabase
+    .from("invoices")
     .select("*")
     .eq("customer_id", id)
-    .order("created_at", { ascending: false });
+    .returns<InvoiceRecord[]>();
 
-  const payment_history: PaymentLog[] = [];
-  const followup_history: FollowUpLog[] = [];
-
-  for (const event of eventsData ?? []) {
-    if (event.event_type === "payment") {
-      payment_history.push({
-        id: event.id,
-        customer_id: event.customer_id,
-        user_id: event.user_id,
-        amount: Number(event.amount),
-        currency: event.currency ?? "USD",
-        source: (event.source as any) || "user",
-        created_at: event.created_at,
-      });
-    } else if (event.event_type === "followup") {
-      followup_history.push({
-        id: event.id,
-        customer_id: event.customer_id,
-        user_id: event.user_id,
-        method: event.method as any,
-        outcome: event.outcome as any,
-        note: event.note,
-        followup_date: event.followup_date,
-        created_at: event.created_at,
-      });
-    }
-  }
-
-  const customerRecord: CustomerRecord = {
-    ...customerData,
-    amount_owed: Number(customerData.amount_owed),
-    amount_paid: Number(customerData.amount_paid),
-    payment_history,
-    followup_history,
-  };
+  const invoicesList = invoices || [];
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <Container className="py-6">
-        <Link 
-          href="/dashboard"
-          className="inline-flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-zinc-100 mb-2 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Dashboard
-        </Link>
-        <CustomerDetails 
-          customer={customerRecord} 
-          initialTab={(tab as any) || "payment"} 
-          isDevelopment={process.env.NODE_ENV === "development"} 
-        />
-      </Container>
+    <div className="flex min-h-screen flex-col">
+      <main className="flex-1">
+        <Container className="py-8 sm:py-10">
+          <div className="mb-8">
+            <Button variant="ghost" size="sm" className="mb-4 -ml-3 text-zinc-400 hover:text-zinc-100" asChild>
+              <Link href="/customers">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to customers
+              </Link>
+            </Button>
+            <h1 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50">{client.name}</h1>
+            {client.email && <p className="mt-2 text-zinc-400">{client.email}</p>}
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-6">
+            <h2 className="text-xl font-medium text-zinc-100 mb-4">Invoices</h2>
+            <div className="overflow-hidden rounded-xl border border-white/10">
+              <table className="w-full text-left text-sm text-zinc-400">
+                <thead className="bg-white/[0.02] border-b border-white/10">
+                  <tr>
+                    <th className="px-4 py-3 font-medium text-zinc-300">Invoice #</th>
+                    <th className="px-4 py-3 font-medium text-zinc-300">Status</th>
+                    <th className="px-4 py-3 font-medium text-zinc-300 text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {invoicesList.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="p-4 text-center text-zinc-500">No invoices attached to this customer.</td>
+                    </tr>
+                  ) : (
+                    invoicesList.map(inv => (
+                      <tr key={inv.id} className="hover:bg-white/[0.02]">
+                        <td className="px-4 py-3 font-medium text-zinc-200">{inv.invoice_number || inv.id.substring(0,8)}</td>
+                        <td className="px-4 py-3 capitalize">{inv.workflow_status.replace('_', ' ')}</td>
+                        <td className="px-4 py-3 text-right text-zinc-200">
+                          {new Intl.NumberFormat(undefined, { style: "currency", currency: inv.currency || "USD" }).format(inv.amount_owed)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </Container>
+      </main>
     </div>
   );
 }

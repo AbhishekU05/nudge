@@ -157,7 +157,7 @@ export async function POST(req: Request) {
         .eq("user_id", userId);
 
       // Pause active reminders since the subscription is gone
-      await supabase.from("customers").update({ active: false }).eq("user_id", userId).eq("active", true);
+      await supabase.from("invoices").update({ active: false }).eq("user_id", userId).eq("active", true);
     }
 
     if (event.event === "payment.failed") {
@@ -181,7 +181,7 @@ export async function POST(req: Request) {
         .eq("user_id", userId);
 
       // Pause active reminders due to payment failure
-      await supabase.from("customers").update({ active: false }).eq("user_id", userId).eq("active", true);
+      await supabase.from("invoices").update({ active: false }).eq("user_id", userId).eq("active", true);
     }
 
     logger.payment({
