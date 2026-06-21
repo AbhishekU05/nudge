@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function CurrencySelector({
   currencies,
@@ -17,24 +16,21 @@ export function CurrencySelector({
   if (currencies.length <= 1) return null;
 
   return (
-    <Select
+    <select
       value={selected}
-      onValueChange={(val) => {
+      onChange={(e) => {
+        const val = e.target.value;
         const params = new URLSearchParams(searchParams.toString());
         params.set("currency", val);
         router.push(`${pathname}?${params.toString()}`);
       }}
+      className="h-9 w-[120px] rounded-md border border-white/10 bg-white/[0.05] px-3 py-1 text-sm text-zinc-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
     >
-      <SelectTrigger className="w-[120px] h-9 bg-white/[0.05] border-white/10 text-zinc-200">
-        <SelectValue placeholder="Currency" />
-      </SelectTrigger>
-      <SelectContent>
-        {currencies.map((c) => (
-          <SelectItem key={c} value={c}>
-            {c}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      {currencies.map((c) => (
+        <option key={c} value={c} className="bg-[#18181b] text-zinc-200">
+          {c}
+        </option>
+      ))}
+    </select>
   );
 }
