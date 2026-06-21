@@ -15,17 +15,20 @@ function formatCurrency(value: number, currency: string = "USD") {
   }).format(Number(value));
 }
 
+import { CollectionTrendWidget, DashboardPipelineWidget } from "@/components/site/dashboard-widgets";
+
 export default async function DashboardPage() {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
   const [customersRes, eventsRes] = await Promise.all([
     supabase.from("customers").select("*").eq("user_id", user.id),
-    supabase.from("customer_events").select("*, customers(recipient_name)").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5)
+    supabase.from("customer_events").select("*, customers(recipient_name)").eq("user_id", user.id).order("created_at", { ascending: false })
   ]);
 
   const customers = (customersRes.data || []) as CustomerRecord[];
   const events = eventsRes.data || [];
+  const recentEvents = events.slice(0, 5);
 
   let totalCollected = 0;
   let totalOutstanding = 0;
@@ -122,6 +125,11 @@ export default async function DashboardPage() {
             </Card>
           </div>
 
+          <div className="grid gap-8 lg:grid-cols-[1fr_1fr] mb-8">
+            <DashboardPipelineWidget customers={customers} />
+            <CollectionTrendWidget events={events} />
+          </div>
+
           <div className="grid gap-8 lg:grid-cols-2">
             {/* Customers Overview */}
             <div>
@@ -179,9 +187,9 @@ export default async function DashboardPage() {
                 </Link>
               </div>
 
-              {events.length > 0 ? (
+              {recentEvents.length > 0 ? (
                 <div className="space-y-3">
-                  {events.map((event) => {
+                  {recentEvents.map((event) => {
                     const isPayment = event.event_type === "payment";
                     const customerName = event.customers?.recipient_name || "Unknown Customer";
                     
