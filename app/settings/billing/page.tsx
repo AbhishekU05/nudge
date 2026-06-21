@@ -51,11 +51,8 @@ export default async function BillingPage({
   const monthlyPrice = await getLocalizedMonthlyPrice();
   const supabase = await createSupabaseServerClient();
   let profile = null;
-  let stripeConnection = null;
-
   try {
-    const [profileRes, stripeRes] = await Promise.all([
-      supabase
+    const profileRes = await supabase
       .from("profiles")
       .select("razorpay_subscription_status,razorpay_renews_at,created_at")
       .eq("user_id", user.id)
@@ -63,19 +60,11 @@ export default async function BillingPage({
         razorpay_subscription_status: string | null;
         razorpay_renews_at: string | null;
         created_at: string;
-      }>(),
-      supabase
-        .from("stripe_connections")
-        .select("stripe_account_id, webhook_secret")
-        .eq("user_id", user.id)
-        .maybeSingle<{ stripe_account_id: string | null; webhook_secret: string | null }>(),
-    ]);
+      }>();
     profile = profileRes.data;
-    stripeConnection = stripeRes.data;
   } catch (err) {
     // Graceful fallback on error
     profile = null;
-    stripeConnection = null;
   }
 
   const status = profile?.razorpay_subscription_status ?? "none";
@@ -239,70 +228,6 @@ export default async function BillingPage({
                   </CardContent>
                 </Card>
 
-                <details className="group rounded-xl border border-white/10 bg-white/[0.03] open:bg-white/[0.04] transition-colors">
-                  <summary className="flex cursor-pointer items-center justify-between p-6 font-medium text-zinc-100 marker:content-none select-none">
-                    <div className="flex items-center gap-3">
-                      <ShieldCheck className="h-5 w-5 text-primary" />
-                      <span className="text-xl">Stripe Integration</span>
-                      <Badge variant="warning" className="uppercase text-[10px] tracking-wider px-2 py-0.5 ml-2">Beta</Badge>
-                    </div>
-                    <span className="transition-transform duration-200 group-open:rotate-180 text-zinc-500">
-                      <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3.13523 6.15803C3.3241 5.95657 3.64052 5.94637 3.84197 6.13523L7.5 9.56464L11.158 6.13523C11.3595 5.94637 11.6759 5.95657 11.8648 6.15803C12.0536 6.35949 12.0434 6.67591 11.842 6.86477L7.84197 10.6148C7.64964 10.7951 7.35036 10.7951 7.15803 10.6148L3.15803 6.86477C2.95657 6.67591 2.94637 6.35949 3.13523 6.15803Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path>
-                      </svg>
-                    </span>
-                  </summary>
-                  <div className="border-t border-white/10 p-6 pt-4 text-sm text-zinc-400 space-y-6">
-                    <p className="leading-relaxed">
-                      In your Stripe Dashboard go to <strong>Developers &rarr; Webhooks</strong>, add the above URL as an endpoint, and select <code>invoice.created</code> and <code>invoice.paid</code> as events. Paste the signing secret below.
-                    </p>
-
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Webhook URL</label>
-                        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs text-zinc-300 overflow-x-auto whitespace-nowrap">
-                          https://duely.in/api/stripe/webhook?user_id={user.id}
-                        </div>
-                      </div>
-
-                      <form
-                        action={async (formData) => {
-                          "use server";
-                          const secret = formData.get("webhook_secret") as string;
-                          if (!secret) return;
-                          
-                          const user = await requireUser();
-                          const supabase = await createSupabaseServerClient();
-                          
-                          await supabase.from("stripe_connections").upsert({
-                            user_id: user.id,
-                            webhook_secret: secret,
-                          }, { onConflict: "user_id" });
-                          
-                          revalidatePath("/settings/billing");
-                        }}
-                        className="space-y-4"
-                      >
-                        <div className="space-y-2">
-                          <label htmlFor="webhook_secret" className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Signing Secret</label>
-                          <input
-                            type="password"
-                            id="webhook_secret"
-                            name="webhook_secret"
-                            placeholder="whsec_..."
-                            defaultValue={stripeConnection?.webhook_secret ?? ""}
-                            className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                            required
-                          />
-                        </div>
-                        <Button type="submit" variant="secondary" className="w-full sm:w-auto">
-                          <ShieldCheck className="mr-2 h-3.5 w-3.5" />
-                          Save Secret
-                        </Button>
-                      </form>
-                    </div>
-                  </div>
-                </details>
               </section>
 
               <aside className="space-y-4">

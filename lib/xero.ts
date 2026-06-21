@@ -53,6 +53,8 @@ type ExistingCustomerRow = {
   recipient_email: string;
   recipient_name: string;
   xero_invoice_id: string | null;
+  amount_paid?: number;
+  internal_notes?: string | null;
 };
 
 function getXeroClientId() {
@@ -324,7 +326,7 @@ async function loadExistingXeroCustomers(userId: string, invoiceIds: string[]) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("customers")
-    .select("id, recipient_email, recipient_name, xero_invoice_id")
+    .select("id, recipient_email, recipient_name, xero_invoice_id, amount_paid, internal_notes")
     .eq("user_id", userId)
     .in("xero_invoice_id", invoiceIds)
     .returns<ExistingCustomerRow[]>();
@@ -356,6 +358,7 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
     totalInvoices: invoices.length,
     updated: 0,
   };
+  const newPaymentLogs: any[] = [];
 
   for (const invoice of invoices) {
     const invoiceId = invoice.invoiceID;
@@ -377,6 +380,9 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
     const email = normalizeEmail(invoice.contact?.emailAddress) ?? existing?.recipient_email ?? "";
     const amountOwed = getInvoiceTotal(invoice);
     const amountPaid = Math.min(amountOwed, Number(invoice.amountPaid ?? (isPaid ? amountOwed : 0)));
+    const existingAmountPaid = existing ? Number(existing.amount_paid || 0) : 0;
+    const newlyPaid = amountPaid - existingAmountPaid;
+    const internalNotes = invoice.reference ? `Xero Reference: ${invoice.reference}` : null;
 
     if (amountOwed <= 0) {
       result.skipped += 1;
@@ -392,6 +398,7 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
       recipient_name: contactName,
       workflow_status: status,
       xero_invoice_id: invoiceId,
+      internal_notes: existing?.internal_notes || internalNotes,
     };
 
     if (existing) {
@@ -410,10 +417,23 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
       } else {
         result.updated += 1;
       }
+
+      if (newlyPaid > 0) {
+        newPaymentLogs.push({
+          customer_id: existing.id,
+          user_id: userId,
+          event_type: "payment",
+          event_date: new Date().toISOString().slice(0, 10),
+          amount: newlyPaid,
+          currency: payload.currency,
+          payment_source: "user",
+        });
+      }
+
       continue;
     }
 
-    const { error } = await supabase.from("customers").insert({
+    const { data: newCustomer, error } = await supabase.from("customers").insert({
       ...payload,
       active: false,
       custom_message: null,
@@ -422,13 +442,37 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
       reminder_frequency_days: 7,
       unsubscribed: false,
       user_id: userId,
-    });
+    }).select("id").single();
 
     if (error) {
       throw new Error(error.message);
     }
 
+    if (newlyPaid > 0 && newCustomer) {
+      newPaymentLogs.push({
+        customer_id: newCustomer.id,
+        user_id: userId,
+        event_type: "payment",
+        event_date: new Date().toISOString().slice(0, 10),
+        amount: newlyPaid,
+        currency: payload.currency,
+        payment_source: "user",
+      });
+    }
+
     result.imported += 1;
+  }
+
+  if (newPaymentLogs.length > 0) {
+    const { error: logsError } = await supabase.from("customer_events").insert(newPaymentLogs);
+    if (logsError) {
+      logger.error({
+        message: "Failed to insert payment logs from Xero sync",
+        context: "syncXeroInvoicesForUser",
+        error: logsError.message,
+        user_id: userId,
+      });
+    }
   }
 
   const { error: syncError } = await supabase

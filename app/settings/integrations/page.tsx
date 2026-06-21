@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, Mail, PlugZap, RefreshCw, Unplug } from "lucide-react";
+import { revalidatePath } from "next/cache";
+import { ArrowLeft, CheckCircle2, Mail, PlugZap, RefreshCw, Unplug, ShieldCheck } from "lucide-react";
 
 import { disconnectXero, syncXeroNow, disconnectQuickBooks, syncQuickBooksNow, disconnectGmail } from "@/app/actions/integrations";
 import { Container } from "@/components/site/container";
@@ -97,8 +98,16 @@ export default async function IntegrationsPage({
     .eq("provider", "quickbooks")
     .maybeSingle<IntegrationRow>();
 
+  const { data: stripeConnection } = await supabase
+    .from("stripe_connections")
+    .select("stripe_account_id, webhook_secret")
+    .eq("user_id", user.id)
+    .maybeSingle<{ stripe_account_id: string | null; webhook_secret: string | null }>();
+
   const isConnectedXero = Boolean(xero);
   const isConnectedQuickBooks = Boolean(quickbooks);
+  const isConnectedStripe = Boolean(stripeConnection?.webhook_secret);
+  const hasAccountingIntegration = isConnectedXero || isConnectedQuickBooks || isConnectedStripe;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -123,8 +132,8 @@ export default async function IntegrationsPage({
         <Container className="py-8 sm:py-10">
           <div className="mx-auto max-w-4xl space-y-6">
             <div>
-              <Badge variant={isGmailConnected || isConnectedXero || isConnectedQuickBooks ? "success" : "default"}>
-                {isGmailConnected || isConnectedXero || isConnectedQuickBooks ? "Connected" : "Optional"}
+              <Badge variant={isGmailConnected || hasAccountingIntegration ? "success" : "default"}>
+                {isGmailConnected || hasAccountingIntegration ? "Connected" : "Optional"}
               </Badge>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
                 Integrations
@@ -310,9 +319,13 @@ export default async function IntegrationsPage({
                         changing your login flow.
                       </p>
                     </div>
-                    <Link href="/api/integrations/xero/connect">
-                      <Button className="w-full sm:w-auto">Connect Xero</Button>
-                    </Link>
+                    {hasAccountingIntegration ? (
+                      <Button className="w-full sm:w-auto" disabled>Connect Xero</Button>
+                    ) : (
+                      <Link href="/api/integrations/xero/connect">
+                        <Button className="w-full sm:w-auto">Connect Xero</Button>
+                      </Link>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -391,9 +404,123 @@ export default async function IntegrationsPage({
                         payment status aligned automatically.
                       </p>
                     </div>
-                    <Link href="/api/integrations/quickbooks/connect">
-                      <Button className="w-full sm:w-auto">Connect QuickBooks</Button>
-                    </Link>
+                    {hasAccountingIntegration ? (
+                      <Button className="w-full sm:w-auto" disabled>Connect QuickBooks</Button>
+                    ) : (
+                      <Link href="/api/integrations/quickbooks/connect">
+                        <Button className="w-full sm:w-auto">Connect QuickBooks</Button>
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ── Stripe Integration Card ─────────────────────── */}
+            <Card className="overflow-hidden border-white/10 bg-white/[0.035]">
+              <CardHeader className="border-b border-white/10">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-2xl">
+                      <ShieldCheck className="h-5 w-5 text-primary" />
+                      Stripe
+                      <Badge variant="warning" className="uppercase text-[10px] tracking-wider px-2 py-0.5 ml-2">Beta</Badge>
+                    </CardTitle>
+                    <CardDescription className="mt-2 max-w-xl">
+                      Import outstanding invoices and keep Duely payment status aligned with Stripe.
+                    </CardDescription>
+                  </div>
+                  {isConnectedStripe ? (
+                    <Badge variant="success" className="gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Connected to Stripe
+                    </Badge>
+                  ) : (
+                    <Badge variant="muted">Not connected</Badge>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6 p-6">
+                {isConnectedStripe ? (
+                  <div className="space-y-6">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                        <p className="text-xs text-zinc-600">Status</p>
+                        <p className="mt-2 text-sm font-semibold text-zinc-100">
+                          Webhook Active
+                        </p>
+                      </div>
+                    </div>
+                    <form
+                      action={async () => {
+                        "use server";
+                        const user = await requireUser();
+                        const supabase = await createSupabaseServerClient();
+                        await supabase.from("stripe_connections").delete().eq("user_id", user.id);
+                        revalidatePath("/settings/integrations");
+                      }}
+                    >
+                      <Button
+                        type="submit"
+                        variant="secondary"
+                        className="w-full text-red-400 hover:text-red-300 sm:w-auto"
+                      >
+                        <Unplug className="h-3.5 w-3.5 mr-2" />
+                        Disconnect Stripe
+                      </Button>
+                    </form>
+                  </div>
+                ) : (
+                  <div className={`border-t border-white/10 pt-4 text-sm text-zinc-400 space-y-6 ${hasAccountingIntegration ? 'opacity-50 pointer-events-none' : ''}`}>
+                    <p className="leading-relaxed">
+                      In your Stripe Dashboard go to <strong>Developers &rarr; Webhooks</strong>, add the below URL as an endpoint, and select <code>invoice.created</code> and <code>invoice.paid</code> as events. Paste the signing secret below.
+                    </p>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Webhook URL</label>
+                        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs text-zinc-300 overflow-x-auto whitespace-nowrap">
+                          https://duely.in/api/stripe/webhook?user_id={user.id}
+                        </div>
+                      </div>
+
+                      <form
+                        action={async (formData) => {
+                          "use server";
+                          const secret = formData.get("webhook_secret") as string;
+                          if (!secret) return;
+                          
+                          const user = await requireUser();
+                          const supabase = await createSupabaseServerClient();
+                          
+                          await supabase.from("stripe_connections").upsert({
+                            user_id: user.id,
+                            webhook_secret: secret,
+                          }, { onConflict: "user_id" });
+                          
+                          revalidatePath("/settings/integrations");
+                        }}
+                        className="space-y-4"
+                      >
+                        <div className="space-y-2">
+                          <label htmlFor="webhook_secret" className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Signing Secret</label>
+                          <input
+                            type="password"
+                            id="webhook_secret"
+                            name="webhook_secret"
+                            placeholder="whsec_..."
+                            defaultValue={stripeConnection?.webhook_secret ?? ""}
+                            className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            required
+                            disabled={hasAccountingIntegration}
+                          />
+                        </div>
+                        <Button type="submit" variant="secondary" className="w-full sm:w-auto" disabled={hasAccountingIntegration}>
+                          <ShieldCheck className="mr-2 h-3.5 w-3.5" />
+                          Save Secret
+                        </Button>
+                      </form>
+                    </div>
                   </div>
                 )}
               </CardContent>

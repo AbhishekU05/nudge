@@ -43,6 +43,8 @@ type ExistingCustomerRow = {
   recipient_email: string;
   recipient_name: string;
   quickbooks_invoice_id: string | null;
+  amount_paid?: number;
+  internal_notes?: string | null;
 };
 
 function getQuickBooksClientId() {
@@ -292,7 +294,7 @@ async function loadExistingQuickBooksCustomers(userId: string, invoiceIds: strin
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("customers")
-    .select("id, recipient_email, recipient_name, quickbooks_invoice_id")
+    .select("id, recipient_email, recipient_name, quickbooks_invoice_id, amount_paid, internal_notes")
     .eq("user_id", userId)
     .in("quickbooks_invoice_id", invoiceIds)
     .returns<ExistingCustomerRow[]>();
@@ -326,6 +328,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
     totalInvoices: invoices.length,
     updated: 0,
   };
+  const newPaymentLogs: any[] = [];
 
   for (const invoice of invoices) {
     const invoiceId = invoice.Id;
@@ -354,6 +357,9 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
     const contactName = qbCustomer?.DisplayName || qbCustomer?.FullyQualifiedName || "QuickBooks Customer";
     const email = normalizeEmail(qbCustomer?.PrimaryEmailAddr?.Address ?? invoice.BillEmail?.Address) ?? existing?.recipient_email ?? "";
     const amountPaid = Math.min(totalAmount, totalAmount - amountDue);
+    const existingAmountPaid = existing ? Number(existing.amount_paid || 0) : 0;
+    const newlyPaid = amountPaid - existingAmountPaid;
+    const qbNotes = invoice.PrivateNote ? `QB Note: ${invoice.PrivateNote}` : null;
 
     if (totalAmount <= 0) {
       result.skipped += 1;
@@ -369,6 +375,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
       recipient_name: contactName,
       workflow_status: status,
       quickbooks_invoice_id: invoiceId,
+      internal_notes: existing?.internal_notes || qbNotes,
     };
 
     if (existing) {
@@ -387,10 +394,23 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
       } else {
         result.updated += 1;
       }
+
+      if (newlyPaid > 0) {
+        newPaymentLogs.push({
+          customer_id: existing.id,
+          user_id: userId,
+          event_type: "payment",
+          event_date: new Date().toISOString().slice(0, 10),
+          amount: newlyPaid,
+          currency: payload.currency,
+          payment_source: "user",
+        });
+      }
+
       continue;
     }
 
-    const { error } = await supabase.from("customers").insert({
+    const { data: newCustomer, error } = await supabase.from("customers").insert({
       ...payload,
       active: false,
       custom_message: null,
@@ -399,13 +419,37 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
       reminder_frequency_days: 7,
       unsubscribed: false,
       user_id: userId,
-    });
+    }).select("id").single();
 
     if (error) {
       throw new Error(error.message);
     }
 
+    if (newlyPaid > 0 && newCustomer) {
+      newPaymentLogs.push({
+        customer_id: newCustomer.id,
+        user_id: userId,
+        event_type: "payment",
+        event_date: new Date().toISOString().slice(0, 10),
+        amount: newlyPaid,
+        currency: payload.currency,
+        payment_source: "user",
+      });
+    }
+
     result.imported += 1;
+  }
+
+  if (newPaymentLogs.length > 0) {
+    const { error: logsError } = await supabase.from("customer_events").insert(newPaymentLogs);
+    if (logsError) {
+      logger.error({
+        message: "Failed to insert payment logs from QuickBooks sync",
+        context: "syncQuickBooksInvoicesForUser",
+        error: logsError.message,
+        user_id: userId,
+      });
+    }
   }
 
   const { error: syncError } = await supabase

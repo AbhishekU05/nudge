@@ -99,7 +99,7 @@ export async function getLocalizedMonthlyPrice() {
   const monthlyPrice = formatMonthlyPrice(amount, currency);
 
   return {
-    inline: `about ${monthlyPrice}`,
-    standalone: `About ${monthlyPrice}`,
+    inline: `${monthlyPrice}`,
+    standalone: `${monthlyPrice}`,
   } satisfies LocalizedMonthlyPrice;
 }

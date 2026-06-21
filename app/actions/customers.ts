@@ -19,6 +19,7 @@ import {
 } from "@/lib/reminder-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
+import { pushPaymentToXero, pushPaymentToQuickBooks } from "@/lib/integrations-push";
 import type { WorkflowStatus, CustomerRecord, PaymentLogSource, FollowUpMethod, FollowUpOutcome } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
@@ -147,10 +148,10 @@ export async function recordPartialPayment(formData: FormData) {
   // Fetch the current record to compute new totals
   const { data: customer, error: fetchError } = await supabase
     .from("customers")
-    .select("amount_owed, amount_paid, currency")
+    .select("amount_owed, amount_paid, currency, xero_invoice_id, quickbooks_invoice_id")
     .eq("id", customerId)
     .eq("user_id", user.id)
-    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "amount_paid" | "currency">>();
+    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "amount_paid" | "currency" | "xero_invoice_id" | "quickbooks_invoice_id">>();
 
   if (fetchError || !customer) {
     redirectToDashboard({ error: "Customer not found." });
@@ -212,6 +213,14 @@ export async function recordPartialPayment(formData: FormData) {
     });
   }
 
+  // Push to Integrations
+  const todayIso = new Date().toISOString().slice(0, 10);
+  if (customer!.xero_invoice_id) {
+    pushPaymentToXero(user.id, customer!.xero_invoice_id, amount!, todayIso);
+  } else if (customer!.quickbooks_invoice_id) {
+    pushPaymentToQuickBooks(user.id, customer!.quickbooks_invoice_id, amount!, todayIso);
+  }
+
   logger.action({
     action_name: "record_partial_payment",
     reminder_id: customerId as string,
@@ -249,10 +258,10 @@ export async function markFullyPaid(formData: FormData) {
 
   const { data: customer, error: fetchError } = await supabase
     .from("customers")
-    .select("amount_owed, amount_paid, currency")
+    .select("amount_owed, amount_paid, currency, xero_invoice_id, quickbooks_invoice_id")
     .eq("id", customerId)
     .eq("user_id", user.id)
-    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "amount_paid" | "currency">>();
+    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "amount_paid" | "currency" | "xero_invoice_id" | "quickbooks_invoice_id">>();
 
   if (fetchError || !customer) {
     redirectToDashboard({ error: "Customer not found." });
@@ -299,6 +308,14 @@ export async function markFullyPaid(formData: FormData) {
       redirectToDashboard({
         error: "Customer was marked paid, but the payment history entry could not be saved.",
       });
+    }
+
+    // Push to Integrations
+    const todayIso = new Date().toISOString().slice(0, 10);
+    if (customer!.xero_invoice_id) {
+      pushPaymentToXero(user.id, customer!.xero_invoice_id, remainingBefore, todayIso);
+    } else if (customer!.quickbooks_invoice_id) {
+      pushPaymentToQuickBooks(user.id, customer!.quickbooks_invoice_id, remainingBefore, todayIso);
     }
   }
 
@@ -622,6 +639,74 @@ export async function updateWorkflowStatus(formData: FormData) {
 
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Status updated." });
+}
+
+// ---------------------------------------------------------------------------
+// Update customer email manually
+// ---------------------------------------------------------------------------
+export async function updateCustomerEmail(formData: FormData) {
+  const user = await requireUser();
+
+  try {
+    await enforceRateLimit(user.id, "reminder_toggle");
+  } catch (error) {
+    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
+  }
+
+  const customerId = formData.get("customer_id");
+  if (typeof customerId !== "string" || !customerId) {
+    redirectToDashboard({ error: "Invalid customer." });
+  }
+
+  const recipientEmailRaw = formData.get("recipient_email");
+  const recipientEmail = typeof recipientEmailRaw === "string" ? recipientEmailRaw.trim().toLowerCase() : "";
+
+  if (recipientEmail && !isValidEmail(recipientEmail)) {
+    redirectToDashboard({ error: "Enter a valid email address." });
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  // If email is provided, check for duplicates
+  if (recipientEmail) {
+    const { data: existing } = await supabase
+      .from("customers")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("recipient_email", recipientEmail)
+      .neq("id", customerId)
+      .maybeSingle<{ id: string }>();
+
+    if (existing) {
+      redirectToDashboard({ error: "Another customer with this email already exists." });
+    }
+  }
+
+  const { error } = await supabase
+    .from("customers")
+    .update({ recipient_email: recipientEmail })
+    .eq("id", customerId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    logger.error({
+      message: "Database error updating customer email",
+      context: "updateCustomerEmail",
+      user_id: user.id,
+      error: error.message,
+    });
+    redirectToDashboard({ error: "Failed to update email." });
+  }
+
+  logger.action({
+    action_name: "update_customer_email",
+    reminder_id: customerId as string,
+    user_id: user.id,
+    success: true,
+  });
+
+  revalidatePath("/dashboard");
+  redirectToDashboard({ success: "Email updated." });
 }
 
 
