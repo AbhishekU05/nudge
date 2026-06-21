@@ -242,6 +242,13 @@ export default async function CustomersPage({
                   )}
                 </div>
               )}
+              
+              <Link href={hasSubscription ? "/customers/new" : "/settings/billing"} className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto gap-2">
+                  <UserRound className="h-4 w-4" />
+                  Add customer
+                </Button>
+              </Link>
             </div>
           </div>
 

@@ -406,9 +406,6 @@ function ActivityFeed({ customers }: { customers: CustomerRecord[] }) {
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-zinc-200">{item.label}</p>
                   <p className="mt-0.5 truncate text-sm text-zinc-500">{item.sub}</p>
-                  <p className="mt-0.5 text-xs text-zinc-700">
-                    <LocalTime value={item.at} />
-                  </p>
                 </div>
               </div>
             ))}
@@ -490,8 +487,8 @@ export function DashboardClient({
         />
       </div>
 
-      {/* Main layout */}
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        {/* Main layout */}
+      <div className="grid gap-5">
         {/* Pipeline */}
         <section>
           {customers.length === 0 ? (
@@ -539,12 +536,6 @@ export function DashboardClient({
             </div>
           )}
         </section>
-
-        {/* Sidebar */}
-        <aside className="space-y-5">
-          <QuickAddCard hasSubscription={hasSubscription} />
-          <ActivityFeed customers={customers} />
-        </aside>
       </div>
 
     </>
