@@ -42,10 +42,12 @@ export default async function CustomersPage() {
               </p>
             </div>
             <div className="flex shrink-0 flex-col gap-3 sm:items-end">
-              <Button disabled className="w-full sm:w-auto gap-2">
-                <UserRound className="h-4 w-4" />
-                Add customer (Coming soon)
-              </Button>
+              <Link href="/customers/new">
+                <Button className="w-full sm:w-auto gap-2">
+                  <UserRound className="h-4 w-4" />
+                  Add customer
+                </Button>
+              </Link>
             </div>
           </div>
 

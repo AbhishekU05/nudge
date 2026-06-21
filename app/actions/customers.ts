@@ -817,32 +817,24 @@ export async function createCustomer(formData: FormData) {
     redirect("/settings/billing?error=subscription_required");
   }
 
-  const recipientName = getString(formData, "recipient_name");
-  if (!recipientName) redirectToNewCustomer("Customer name is required.");
+  const customerId = getString(formData, "customer_id");
+  if (!customerId) redirectToNewCustomer("Customer selection is required.");
 
-  const recipientEmailRaw = getString(formData, "recipient_email");
-  if (!recipientEmailRaw) redirectToNewCustomer("Customer email is required.");
-
-  const recipientEmail = (recipientEmailRaw as string).toLowerCase();
-  if (!isValidEmail(recipientEmail)) redirectToNewCustomer("Enter a valid email address.");
-
-  if ((recipientName as string).length > 100) redirectToNewCustomer("Name is too long (max 100 chars).");
-  if (recipientEmail.length > 320) redirectToNewCustomer("Email is too long.");
-
-  // Block duplicate emails regardless of unsubscribed status
-  const { data: existing } = await supabase
-    .from("invoices")
-    .select("id, unsubscribed")
+  const { data: clientData } = await supabase
+    .from("clients")
+    .select("name, email")
+    .eq("id", customerId)
     .eq("user_id", user.id)
-    .eq("recipient_email", recipientEmail)
-    .maybeSingle<{ id: string; unsubscribed: boolean }>();
+    .single();
 
-  if (existing) {
-    const msg = existing.unsubscribed
-      ? "This customer previously unsubscribed. Their record still exists in your pipeline."
-      : "A customer with this email already exists.";
-    redirectToNewCustomer(msg);
+  if (!clientData) {
+    redirectToNewCustomer("Selected customer not found.");
   }
+
+  const recipientName = clientData.name;
+  const recipientEmail = clientData.email || "";
+
+
 
   const amountInput = getString(formData, "amount_owed");
   if (!amountInput) redirectToNewCustomer("Amount owed is required.");
@@ -860,6 +852,7 @@ export async function createCustomer(formData: FormData) {
     .from("invoices")
     .insert({
       user_id: user.id,
+      customer_id: customerId,
       recipient_name: recipientName as string,
       recipient_email: recipientEmail,
       amount_owed: amountOwed,
