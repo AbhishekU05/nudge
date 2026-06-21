@@ -3,7 +3,7 @@ import { Container } from "@/components/site/container";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Users, AlertCircle, ArrowRight, Activity, Percent, Clock, Send, Info } from "lucide-react";
+import { DollarSign, Users, AlertCircle, ArrowRight, Activity, Percent, Clock, Send, Info, Mail, Zap, FileText } from "lucide-react";
 import { getDaysOverdue, type CustomerRecord } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 
@@ -26,9 +26,12 @@ export default async function DashboardPage(props: {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const [customersRes, eventsRes] = await Promise.all([
+  const [customersRes, eventsRes, draftsRes, activeClientsRes, activeInvoicesRes] = await Promise.all([
     supabase.from("invoices").select("*").eq("user_id", user.id),
-    supabase.from("customer_events").select("*, invoices(recipient_name)").eq("user_id", user.id).order("created_at", { ascending: false })
+    supabase.from("customer_events").select("*, clients(name), invoices(recipient_name)").eq("user_id", user.id).order("created_at", { ascending: false }),
+    supabase.from("email_drafts").select("*").eq("user_id", user.id).eq("status", "pending").order("created_at", { ascending: false }).limit(5),
+    supabase.from("clients").select("id, name, next_send_at").eq("user_id", user.id).eq("active", true).order("next_send_at", { ascending: true }).limit(5),
+    supabase.from("invoices").select("id, recipient_name, next_send_at").eq("user_id", user.id).eq("active", true).order("next_send_at", { ascending: true }).limit(5)
   ]);
 
   const allCustomers = (customersRes.data || []) as CustomerRecord[];
@@ -41,6 +44,14 @@ export default async function DashboardPage(props: {
   const customerIds = new Set(customers.map(c => c.id));
   const events = (eventsRes.data || []).filter((e: any) => e.customer_id && customerIds.has(e.customer_id));
   const recentEvents = events.slice(0, 5);
+
+  const pendingDrafts = draftsRes.data || [];
+  const activeAutomations = [
+    ...(activeClientsRes.data || []).map(c => ({ id: c.id, name: c.name, next_send_at: c.next_send_at, type: 'client' })),
+    ...(activeInvoicesRes.data || []).map(i => ({ id: i.id, name: i.recipient_name, next_send_at: i.next_send_at, type: 'invoice' }))
+  ].sort((a, b) => new Date(a.next_send_at).getTime() - new Date(b.next_send_at).getTime()).slice(0, 5);
+
+  const recentInvoices = [...customers].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5);
 
   let totalCollected = 0;
   let totalOutstanding = 0;
@@ -219,7 +230,7 @@ export default async function DashboardPage(props: {
                 <div className="space-y-3">
                   {recentEvents.map((event) => {
                     const isPayment = event.event_type === "payment";
-                    const customerName = event.customers?.recipient_name || "Unknown Customer";
+                    const customerName = event.clients?.name || event.invoices?.recipient_name || "Unknown Customer";
                     
                     return (
                       <Link
@@ -256,6 +267,120 @@ export default async function DashboardPage(props: {
                   <Clock className="mx-auto h-8 w-8 text-zinc-500 mb-3" />
                   <h3 className="text-sm font-medium text-zinc-200">No activity yet</h3>
                   <p className="text-sm text-zinc-500 mt-1 max-w-[200px] mx-auto">Your timeline will populate once you start logging payments and sending follow-ups.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-3 mt-8">
+            {/* Recent Invoices */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold tracking-tight text-zinc-50 flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-zinc-400" /> Recent Invoices
+                </h2>
+                <Link href="/invoices" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 flex items-center gap-1 transition-colors">
+                  View all <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+
+              {recentInvoices.length > 0 ? (
+                <div className="space-y-3">
+                  {recentInvoices.map((inv) => (
+                    <Link
+                      key={inv.id}
+                      href={`/invoices/${inv.id}`}
+                      className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-zinc-200 truncate">{inv.recipient_name}</h3>
+                        <p className="text-xs text-zinc-500 mt-0.5">
+                          {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0 ml-4">
+                        <div className="font-medium text-zinc-200">{formatCurrency(Number(inv.amount_owed) || 0, inv.currency || selectedCurrency)}</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center flex flex-col justify-center h-[200px]">
+                  <p className="text-sm text-zinc-500">No invoices yet.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Pending Queue */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold tracking-tight text-zinc-50 flex items-center gap-2">
+                  <Mail className="h-5 w-5 text-zinc-400" /> Pending Queue
+                </h2>
+                <Link href="/drafts" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 flex items-center gap-1 transition-colors">
+                  View all <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+
+              {pendingDrafts.length > 0 ? (
+                <div className="space-y-3">
+                  {pendingDrafts.map((draft: any) => (
+                    <Link
+                      key={draft.id}
+                      href={`/drafts`}
+                      className="flex flex-col p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors"
+                    >
+                      <h3 className="font-medium text-zinc-200 truncate">{draft.subject}</h3>
+                      <p className="text-xs text-zinc-500 mt-1 truncate">
+                        To: {draft.to_email}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center flex flex-col justify-center h-[200px]">
+                  <p className="text-sm text-zinc-500">Queue is empty.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Active Automations */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold tracking-tight text-zinc-50 flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-zinc-400" /> Active Automations
+                </h2>
+                <Link href="/automations" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 flex items-center gap-1 transition-colors">
+                  View all <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+
+              {activeAutomations.length > 0 ? (
+                <div className="space-y-3">
+                  {activeAutomations.map((auto: any) => (
+                    <Link
+                      key={`${auto.type}-${auto.id}`}
+                      href={`/customers/${auto.id}`}
+                      className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-zinc-200 truncate">{auto.name || "Unknown"}</h3>
+                        <p className="text-xs text-zinc-500 mt-0.5 capitalize">
+                          {auto.type} Automation
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0 ml-4">
+                        <div className="text-xs text-zinc-400">Next Send</div>
+                        <div className="text-sm font-medium text-zinc-200">
+                          {auto.next_send_at ? formatDistanceToNow(new Date(auto.next_send_at), { addSuffix: true }) : "N/A"}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center flex flex-col justify-center h-[200px]">
+                  <p className="text-sm text-zinc-500">No active automations.</p>
                 </div>
               )}
             </div>
