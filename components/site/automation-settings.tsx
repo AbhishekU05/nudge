@@ -42,11 +42,20 @@ export function AutomationSettings({
 }: AutomationSettingsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [type, setType] = useState<"recurring" | "sequence">(reminderType || "recurring");
-  const [templates, setTemplates] = useState<Template[]>(
-    reminderTemplates?.length > 0 
-      ? reminderTemplates 
-      : [{ subject: "Reminder", body_html: "Your balance is due.", days_offset: 7 }]
-  );
+  const cleanTemplates = (reminderTemplates?.length > 0 
+    ? reminderTemplates 
+    : [{ subject: "Reminder", body_html: "Your balance is due.", days_offset: 7 }]
+  ).map(tpl => ({
+    ...tpl,
+    body_html: tpl.body_html
+      .replace(/<\/?p>/g, '\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+  }));
+
+  const [templates, setTemplates] = useState<Template[]>(cleanTemplates);
   const router = useRouter();
 
   const handleAddTemplate = () => {

@@ -97,6 +97,13 @@ function processTemplate(template: Template, vars: Record<string, string>) {
   let subject = template.subject || "";
   let body = template.body_html || "";
 
+  // Convert basic HTML to newlines if legacy HTML exists
+  body = body.replace(/<\/?p>/g, '\n').replace(/<br\s*\/?>/gi, '\n');
+  // Strip all other HTML tags
+  body = body.replace(/<[^>]+>/g, '');
+  // Clean up excessive newlines
+  body = body.replace(/\n{3,}/g, '\n\n').trim();
+
   for (const [key, value] of Object.entries(vars)) {
     const regex = new RegExp(`{{\\s*${key}\\s*}}`, "g");
     subject = subject.replace(regex, value);
