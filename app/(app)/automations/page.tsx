@@ -67,7 +67,7 @@ export default async function AutomationsPage() {
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-medium text-zinc-200">{client.name}</span>
                         <Badge variant={client.auto_approve ? "success" : "muted"}>
-                          {client.auto_approve ? "Auto" : "Queue"}
+                          {client.auto_approve ? "Auto" : "Manual Review"}
                         </Badge>
                       </div>
                       <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
@@ -112,7 +112,7 @@ export default async function AutomationsPage() {
                           <p className="text-xs text-zinc-500 mt-0.5">{invoice.invoice_number || 'Invoice'}</p>
                         </div>
                         <Badge variant={invoice.auto_approve ? "success" : "muted"}>
-                          {invoice.auto_approve ? "Auto" : "Queue"}
+                          {invoice.auto_approve ? "Auto" : "Manual Review"}
                         </Badge>
                       </div>
                       <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
