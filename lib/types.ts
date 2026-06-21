@@ -92,6 +92,16 @@ export type ReminderRow = {
   quickbooks_invoice_id: string | null;
   invoice_number: string | null;
 
+  // Automation
+  active: boolean;
+  auto_approve: boolean;
+  next_send_at: string | null;
+  last_sent_at: string | null;
+  reminder_frequency_days: number;
+  reminder_type: "recurring" | "sequence";
+  reminder_templates: { subject: string; body_html: string; days_offset?: number }[];
+  sequence_index: number;
+
   created_at: string;
   updated_at: string;
 
@@ -113,6 +123,9 @@ export type ClientRecord = {
   unsubscribed: boolean;
   unsubscribe_token: string;
   auto_approve: boolean;
+  reminder_type: "recurring" | "sequence";
+  reminder_templates: { subject: string; body_html: string; days_offset?: number }[];
+  sequence_index: number;
 
   created_at: string;
   updated_at: string;

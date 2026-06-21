@@ -14,17 +14,28 @@ export const dynamic = "force-dynamic";
 
 const CLAIM_WINDOW_MS = 5 * 60 * 1000;
 
-type DueClient = {
+type Template = { subject: string; body_html: string; days_offset?: number };
+
+type DueEntity = {
+  type: "client" | "invoice";
   id: string;
   user_id: string;
-  name: string;
+  recipient_name: string;
   email: string;
+  reminder_type: "recurring" | "sequence";
+  reminder_templates: Template[];
+  sequence_index: number;
   reminder_frequency_days: number;
-  unsubscribe_token: string;
+  unsubscribe_token?: string;
   next_send_at: string;
   last_sent_at: string | null;
   active: boolean;
   auto_approve: boolean;
+  // invoice specific
+  invoice_number?: string | null;
+  amount_owed?: number;
+  currency?: string;
+  customer_id?: string;
 };
 
 type ProfileRow = {
@@ -55,17 +66,16 @@ function isAuthorized(request: Request) {
   return false;
 }
 
-async function claimClient(params: { client: DueClient; nowIso: string }) {
+async function claimEntity(params: { table: "clients" | "invoices"; id: string; nextSendAt: string; nowIso: string }) {
   const leaseUntil = new Date(Date.now() + CLAIM_WINDOW_MS).toISOString();
   const supabase = createSupabaseAdminClient();
 
   const { data, error } = await supabase
-    .from("clients")
+    .from(params.table)
     .update({ next_send_at: leaseUntil })
-    .eq("id", params.client.id)
+    .eq("id", params.id)
     .eq("active", true)
-    .eq("unsubscribed", false)
-    .eq("next_send_at", params.client.next_send_at)
+    .eq("next_send_at", params.nextSendAt)
     .lte("next_send_at", params.nowIso)
     .select("id")
     .maybeSingle<{ id: string }>();
@@ -74,13 +84,26 @@ async function claimClient(params: { client: DueClient; nowIso: string }) {
   return leaseUntil;
 }
 
-async function restoreClaim(params: { clientId: string; leaseUntil: string; originalNextSendAt: string }) {
+async function restoreClaim(params: { table: "clients" | "invoices"; id: string; leaseUntil: string; originalNextSendAt: string }) {
   const supabase = createSupabaseAdminClient();
   await supabase
-    .from("clients")
+    .from(params.table)
     .update({ next_send_at: params.originalNextSendAt })
-    .eq("id", params.clientId)
+    .eq("id", params.id)
     .eq("next_send_at", params.leaseUntil);
+}
+
+function processTemplate(template: Template, vars: Record<string, string>) {
+  let subject = template.subject || "";
+  let body = template.body_html || "";
+
+  for (const [key, value] of Object.entries(vars)) {
+    const regex = new RegExp(`{{\\s*${key}\\s*}}`, "g");
+    subject = subject.replace(regex, value);
+    body = body.replace(regex, value);
+  }
+
+  return { subject, body };
 }
 
 export async function POST(request: Request) {
@@ -97,41 +120,78 @@ export async function POST(request: Request) {
   const nowIso = new Date().toISOString();
 
   // 1. Fetch eligible clients
-  const { data: clientsData, error: clientsError } = await supabase
+  const { data: clientsData } = await supabase
     .from("clients")
-    .select("id, user_id, name, email, reminder_frequency_days, unsubscribe_token, next_send_at, last_sent_at, active, auto_approve")
+    .select("*")
     .eq("active", true)
     .eq("unsubscribed", false)
     .lte("next_send_at", nowIso)
     .order("next_send_at", { ascending: true })
-    .limit(50)
-    .returns<DueClient[]>();
+    .limit(30);
 
-  if (clientsError) {
-    logger.cron({ job_name: "send_reminders", status: "error", error: clientsError.message, request_id: requestId });
-    return NextResponse.json({ error: clientsError.message }, { status: 500 });
+  // 2. Fetch eligible invoices
+  const { data: invoicesData } = await supabase
+    .from("invoices")
+    .select("*")
+    .eq("active", true)
+    .neq("workflow_status", "paid")
+    .lte("next_send_at", nowIso)
+    .order("next_send_at", { ascending: true })
+    .limit(30);
+
+  const entities: DueEntity[] = [
+    ...(clientsData || []).map((c) => ({
+      type: "client" as const,
+      id: c.id,
+      user_id: c.user_id,
+      recipient_name: c.name,
+      email: c.email,
+      reminder_type: c.reminder_type,
+      reminder_templates: c.reminder_templates,
+      sequence_index: c.sequence_index,
+      reminder_frequency_days: c.reminder_frequency_days,
+      next_send_at: c.next_send_at,
+      last_sent_at: c.last_sent_at,
+      active: c.active,
+      auto_approve: c.auto_approve,
+    })),
+    ...(invoicesData || []).map((i) => ({
+      type: "invoice" as const,
+      id: i.id,
+      user_id: i.user_id,
+      recipient_name: i.recipient_name,
+      email: i.recipient_email,
+      reminder_type: i.reminder_type,
+      reminder_templates: i.reminder_templates,
+      sequence_index: i.sequence_index,
+      reminder_frequency_days: i.reminder_frequency_days,
+      next_send_at: i.next_send_at,
+      last_sent_at: i.last_sent_at,
+      active: i.active,
+      auto_approve: i.auto_approve,
+      invoice_number: i.invoice_number,
+      amount_owed: i.amount_owed,
+      currency: i.currency,
+      customer_id: i.customer_id,
+    }))
+  ];
+
+  if (entities.length === 0) {
+    return NextResponse.json({ ok: true, processed: 0 });
   }
 
-  const clients = clientsData ?? [];
-  const userIds = [...new Set(clients.map((c) => c.user_id))];
+  const userIds = [...new Set(entities.map((e) => e.user_id))];
 
-  // 2. Fetch subscriptions
-  const { data: profiles, error: profileError } = userIds.length
-    ? await supabase
-        .from("profiles")
-        .select("user_id,razorpay_subscription_status,created_at")
-        .in("user_id", userIds)
-        .returns<ProfileRow[]>()
-    : { data: [], error: null };
-
-  if (profileError) {
-    logger.cron({ job_name: "send_reminders", status: "error", error: profileError.message, request_id: requestId });
-    return NextResponse.json({ error: profileError.message }, { status: 500 });
-  }
+  // Fetch subscriptions
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("user_id,razorpay_subscription_status,created_at")
+    .in("user_id", userIds)
+    .returns<ProfileRow[]>();
 
   const profileByUserId = new Map((profiles ?? []).map((p) => [p.user_id, p]));
 
-  // 3. Fetch sender details
+  // Fetch sender details
   const authUsersMap = new Map<string, { email: string | null; name: string }>();
   for (const uid of userIds) {
     const { data: { user } } = await supabase.auth.admin.getUserById(uid);
@@ -147,64 +207,68 @@ export async function POST(request: Request) {
   let sent = 0;
   let drafted = 0;
   let failed = 0;
-  let skippedNoSubscription = 0;
-  let skippedNoInvoices = 0;
 
-  for (const client of clients) {
-    const profile = profileByUserId.get(client.user_id);
+  for (const entity of entities) {
+    const profile = profileByUserId.get(entity.user_id);
     const subscriptionStatus = profile?.razorpay_subscription_status ?? null;
     const createdAt = profile?.created_at ?? null;
 
     if (!hasActiveSubscription(subscriptionStatus, createdAt)) {
-      skippedNoSubscription += 1;
-      await supabase.from("clients").update({ active: false }).eq("user_id", client.user_id).eq("active", true);
+      await supabase.from(entity.type === "client" ? "clients" : "invoices").update({ active: false }).eq("id", entity.id);
       continue;
     }
 
-    const leaseUntil = await claimClient({ client, nowIso });
+    const table = entity.type === "client" ? "clients" : "invoices";
+    const leaseUntil = await claimEntity({ table, id: entity.id, nextSendAt: entity.next_send_at, nowIso });
     if (!leaseUntil) continue;
 
     claimed += 1;
 
     try {
-      // Fetch outstanding invoices for this client
-      const { data: invoices, error: invError } = await supabase
-        .from("invoices")
-        .select("id, invoice_number, amount_owed, currency, due_date")
-        .eq("customer_id", client.id)
-        .neq("workflow_status", "paid")
-        .order("due_date", { ascending: true });
-
-      if (invError || !invoices || invoices.length === 0) {
-        skippedNoInvoices += 1;
-        await supabase
-          .from("clients")
-          .update({
-            next_send_at: computeRecurringReminderSendAt(client.reminder_frequency_days, new Date()),
-          })
-          .eq("id", client.id)
-          .eq("next_send_at", leaseUntil);
-        continue;
-      }
-
-      const sender = authUsersMap.get(client.user_id);
-      if (!sender || !client.email || client.email.trim() === "") {
-        await supabase.from("clients").update({ active: false }).eq("id", client.id);
+      const sender = authUsersMap.get(entity.user_id);
+      if (!sender || !entity.email || entity.email.trim() === "") {
+        await supabase.from(table).update({ active: false }).eq("id", entity.id);
         failed += 1;
         continue;
       }
 
-      // Generate HTML Body
-      const totalOwed = invoices.reduce((acc, inv) => acc + inv.amount_owed, 0);
-      const currency = invoices[0]?.currency || "USD";
-      const totalFormatted = new Intl.NumberFormat("en-US", { style: "currency", currency }).format(totalOwed);
+      // Pick template
+      const templates = entity.reminder_templates || [];
+      const tpl = templates[entity.sequence_index] || templates[templates.length - 1] || { subject: "Reminder", body_html: "" };
 
-      const htmlBody = `
-        <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto; line-height: 1.5;">
-          <h2 style="color: #111; margin-bottom: 24px;">Account Statement</h2>
-          <p>Hi ${client.name},</p>
-          <p>This is a reminder from ${sender.name} that your account has an outstanding balance of <strong>${totalFormatted}</strong>.</p>
-          
+      let htmlBody = "";
+      let subject = "";
+
+      if (entity.type === "client") {
+        // Fetch all outstanding invoices
+        const { data: invoices } = await supabase
+          .from("invoices")
+          .select("*")
+          .eq("customer_id", entity.id)
+          .neq("workflow_status", "paid")
+          .order("due_date", { ascending: true });
+
+        if (!invoices || invoices.length === 0) {
+          await supabase.from("clients").update({ active: false }).eq("id", entity.id);
+          continue;
+        }
+
+        const totalOwed = invoices.reduce((acc, inv) => acc + inv.amount_owed, 0);
+        const currency = invoices[0]?.currency || "USD";
+        const totalFormatted = new Intl.NumberFormat(undefined, { style: "currency", currency }).format(totalOwed);
+
+        const vars = {
+          company_name: sender.name,
+          first_name: entity.recipient_name.split(" ")[0],
+          invoice_count: invoices.length.toString(),
+          total_owed: totalFormatted,
+        };
+
+        const processed = processTemplate(tpl, vars);
+        subject = processed.subject;
+
+        // Append table
+        const tableHtml = `
           <table style="width: 100%; border-collapse: collapse; margin-top: 24px; margin-bottom: 24px;">
             <thead>
               <tr style="border-bottom: 1px solid #eee; text-align: left;">
@@ -225,21 +289,44 @@ export async function POST(request: Request) {
               `).join('')}
             </tbody>
           </table>
-          
-          <p style="margin-top: 32px;">Please process payment at your earliest convenience.</p>
-          <p>Best,<br/>${sender.name}</p>
-        </div>
-      `;
+        `;
 
-      const subject = `Account Statement - ${sender.name}`;
-      const status = client.auto_approve ? "sent" : "draft";
+        htmlBody = `
+          <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto; line-height: 1.5;">
+            ${processed.body}
+            ${tableHtml}
+          </div>
+        `;
+
+      } else {
+        // Invoice logic
+        const currency = entity.currency || "USD";
+        const amountFormatted = new Intl.NumberFormat(undefined, { style: "currency", currency }).format(entity.amount_owed || 0);
+        
+        const vars = {
+          company_name: sender.name,
+          first_name: entity.recipient_name.split(" ")[0],
+          amount_owed: amountFormatted,
+          invoice_number: entity.invoice_number || "Invoice",
+        };
+
+        const processed = processTemplate(tpl, vars);
+        subject = processed.subject;
+        htmlBody = `
+          <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto; line-height: 1.5;">
+            ${processed.body}
+          </div>
+        `;
+      }
+
+      const status = entity.auto_approve ? "sent" : "draft";
 
       // Insert into email_drafts
       const { data: draftRecord, error: draftError } = await supabase
         .from("email_drafts")
         .insert({
-          user_id: client.user_id,
-          client_id: client.id,
+          user_id: entity.user_id,
+          client_id: entity.type === "client" ? entity.id : (entity.customer_id || entity.id),
           subject,
           body_html: htmlBody,
           status,
@@ -253,15 +340,15 @@ export async function POST(request: Request) {
       }
 
       // If auto-approve, send it right away
-      if (client.auto_approve) {
-        const gmailAvailable = await hasGmailTokens(client.user_id);
+      if (entity.auto_approve) {
+        const gmailAvailable = await hasGmailTokens(entity.user_id);
         if (gmailAvailable) {
           try {
             await sendGmail({
-              userId: client.user_id,
+              userId: entity.user_id,
               senderName: sender.name,
               senderEmail: sender.email || "",
-              to: client.email,
+              to: entity.email,
               subject,
               body: htmlBody,
               html: true,
@@ -271,7 +358,7 @@ export async function POST(request: Request) {
             const resend = getResendClient();
             await resend.emails.send({
               from: `${sender.name} via Duely <reminders@duely.in>`,
-              to: client.email,
+              to: entity.email,
               subject,
               html: htmlBody,
               replyTo: sender.email || undefined,
@@ -281,7 +368,7 @@ export async function POST(request: Request) {
           const resend = getResendClient();
           await resend.emails.send({
             from: `${sender.name} via Duely <reminders@duely.in>`,
-            to: client.email,
+            to: entity.email,
             subject,
             html: htmlBody,
             replyTo: sender.email || undefined,
@@ -292,26 +379,53 @@ export async function POST(request: Request) {
         drafted += 1;
       }
 
-      // Finalize client
+      // Finalize and advance sequence
       const sentOrDraftedAt = new Date();
+      let nextSequenceIndex = entity.sequence_index;
+      let nextSendAt;
+
+      if (entity.reminder_type === "sequence") {
+        if (nextSequenceIndex < templates.length - 1) {
+          nextSequenceIndex += 1;
+          const nextOffset = templates[nextSequenceIndex].days_offset || 7;
+          nextSendAt = computeRecurringReminderSendAt(nextOffset, sentOrDraftedAt);
+        } else {
+          // Sequence is over, stop sending
+          await supabase
+            .from(table)
+            .update({
+              last_sent_at: sentOrDraftedAt.toISOString(),
+              active: false,
+              sequence_index: nextSequenceIndex,
+            })
+            .eq("id", entity.id)
+            .eq("next_send_at", leaseUntil);
+          continue; // Skip the normal update below
+        }
+      } else {
+        // Recurring
+        nextSendAt = computeRecurringReminderSendAt(entity.reminder_frequency_days, sentOrDraftedAt);
+      }
+
       await supabase
-        .from("clients")
+        .from(table)
         .update({
           last_sent_at: sentOrDraftedAt.toISOString(),
-          next_send_at: computeRecurringReminderSendAt(client.reminder_frequency_days, sentOrDraftedAt),
+          next_send_at: nextSendAt,
+          sequence_index: nextSequenceIndex,
         })
-        .eq("id", client.id)
+        .eq("id", entity.id)
         .eq("next_send_at", leaseUntil);
 
     } catch (e) {
       failed += 1;
-      await restoreClaim({ clientId: client.id, leaseUntil, originalNextSendAt: client.next_send_at });
+      await restoreClaim({ table, id: entity.id, leaseUntil, originalNextSendAt: entity.next_send_at });
     }
   }
 
-  logger.cron({ job_name: "send_reminders", status: "end", processed: clients.length, success_count: sent + drafted, failure_count: failed, request_id: requestId });
+  logger.cron({ job_name: "send_reminders", status: "end", processed: entities.length, success_count: sent + drafted, failure_count: failed, request_id: requestId });
 
-  return NextResponse.json({ ok: true, processed: clients.length, claimed, sent, drafted, failed, skippedNoSubscription, skippedNoInvoices });
+  return NextResponse.json({ ok: true, processed: entities.length, claimed, sent, drafted, failed });
 }
 
 export async function GET(request: Request) {

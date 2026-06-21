@@ -46,6 +46,7 @@ import {
 } from "@/app/actions/customers";
 import { FOLLOWUP_TEMPLATES } from "@/lib/followup-templates";
 import { pauseReminder, resumeReminder } from "@/app/actions/reminders";
+import { AutomationSettings } from "@/components/site/automation-settings";
 import { cn } from "@/lib/utils";
 import type { CustomerRecord, FollowUpTone, FollowUpMethod, FollowUpOutcome } from "@/lib/types";
 import { getRemainingBalance, getDaysOverdue } from "@/lib/types";
@@ -711,7 +712,16 @@ function AutomationTab({
   customer: CustomerRecord;
   isDevelopment: boolean;
 }) {
-  return null;
+  return (
+    <AutomationSettings 
+      entityType="invoice"
+      entityId={customer.id}
+      active={customer.active}
+      autoApprove={customer.auto_approve}
+      reminderType={customer.reminder_type}
+      reminderTemplates={customer.reminder_templates || []}
+    />
+  );
 }
 
 

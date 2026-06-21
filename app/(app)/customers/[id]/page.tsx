@@ -2,7 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/site/container";
-import { ClientAutomationSettings } from "@/components/site/client-automation-settings";
+import { AutomationSettings } from "@/components/site/automation-settings";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -87,7 +87,14 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
             </div>
             
             <div className="lg:col-span-1">
-              <ClientAutomationSettings client={client} />
+              <AutomationSettings 
+                entityType="client"
+                entityId={client.id}
+                active={client.active}
+                autoApprove={client.auto_approve}
+                reminderType={client.reminder_type}
+                reminderTemplates={client.reminder_templates || []}
+              />
             </div>
           </div>
         </Container>
