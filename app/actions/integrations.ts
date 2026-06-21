@@ -114,3 +114,16 @@ export async function disconnectGmail() {
   revalidatePath("/settings/integrations");
   redirectToIntegrations({ success: "Gmail disconnected. Reminders will now send from reminders@duely.in." });
 }
+
+export async function syncXeroBackground() {
+  const user = await requireUser();
+  try {
+    const result = await syncXeroInvoicesForUser(user.id);
+    revalidatePath("/dashboard");
+    revalidatePath("/customers");
+    revalidatePath("/pipeline");
+    return { success: true, message: `Synced ${result.imported} imported, ${result.updated} updated.` };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : "Unable to sync Xero." };
+  }
+}

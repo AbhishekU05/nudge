@@ -26,9 +26,13 @@ type AppSidebarProps = {
     initials: string;
   };
   subscriptionStatus: string;
+  hasXero?: boolean;
+  hasQuickBooks?: boolean;
 };
 
-export function AppSidebar({ user, subscriptionStatus }: AppSidebarProps) {
+import { GlobalSyncButton } from "./global-sync-button";
+
+export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks }: AppSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const pathname = usePathname();
 
@@ -91,6 +95,11 @@ export function AppSidebar({ user, subscriptionStatus }: AppSidebarProps) {
 
       {/* Main Nav */}
       <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
+        {hasXero && (
+          <div className="mb-4 pb-2 border-b border-white/10">
+            <GlobalSyncButton isExpanded={isExpanded} />
+          </div>
+        )}
         {navItems.map((item) => {
           const isActive = pathname?.startsWith(item.href);
           return (

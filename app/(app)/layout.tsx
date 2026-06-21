@@ -12,15 +12,29 @@ export default async function AppLayout({
   const supabase = await createSupabaseServerClient();
   
   let subscriptionStatus = "none";
+  let hasXero = false;
+  let hasQuickBooks = false;
+
   try {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("razorpay_subscription_status")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    const [profileRes, integrationsRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("razorpay_subscription_status")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("integrations")
+        .select("provider")
+        .eq("user_id", user.id)
+    ]);
       
-    if (profile?.razorpay_subscription_status) {
-      subscriptionStatus = profile.razorpay_subscription_status;
+    if (profileRes.data?.razorpay_subscription_status) {
+      subscriptionStatus = profileRes.data.razorpay_subscription_status;
+    }
+
+    if (integrationsRes.data) {
+      hasXero = integrationsRes.data.some(i => i.provider === "xero");
+      hasQuickBooks = integrationsRes.data.some(i => i.provider === "quickbooks");
     }
   } catch (e) {
     // Graceful fallback
@@ -42,6 +56,8 @@ export default async function AppLayout({
           initials,
         }} 
         subscriptionStatus={subscriptionStatus} 
+        hasXero={hasXero}
+        hasQuickBooks={hasQuickBooks}
       />
       <div className="flex-1 flex flex-col min-w-0">
         {children}
