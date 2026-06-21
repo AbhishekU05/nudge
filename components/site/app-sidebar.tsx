@@ -95,11 +95,7 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks }:
 
       {/* Main Nav */}
       <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
-        {hasXero && (
-          <div className="mb-4 pb-2 border-b border-white/10">
-            <GlobalSyncButton isExpanded={isExpanded} />
-          </div>
-        )}
+
         {navItems.map((item) => {
           const isActive = pathname?.startsWith(item.href);
           return (
@@ -127,6 +123,11 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks }:
 
       {/* Bottom Nav */}
       <div className="border-t border-white/10 p-2 space-y-1">
+        {(hasXero || hasQuickBooks) && (
+          <div className="mb-1">
+            <GlobalSyncButton isExpanded={isExpanded} provider={hasXero ? 'xero' : 'quickbooks'} />
+          </div>
+        )}
         {bottomItems.map((item) => {
           const isActive = pathname?.startsWith(item.href);
           return (

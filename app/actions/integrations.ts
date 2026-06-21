@@ -115,15 +115,21 @@ export async function disconnectGmail() {
   redirectToIntegrations({ success: "Gmail disconnected. Reminders will now send from reminders@duely.in." });
 }
 
-export async function syncXeroBackground() {
+export async function syncIntegrationBackground(provider: 'xero' | 'quickbooks') {
   const user = await requireUser();
   try {
-    const result = await syncXeroInvoicesForUser(user.id);
+    let result;
+    if (provider === 'xero') {
+      result = await syncXeroInvoicesForUser(user.id);
+    } else {
+      result = await syncQuickBooksInvoicesForUser(user.id);
+    }
     revalidatePath("/dashboard");
     revalidatePath("/customers");
     revalidatePath("/pipeline");
     return { success: true, message: `Synced ${result.imported} imported, ${result.updated} updated.` };
   } catch (error) {
-    return { success: false, message: error instanceof Error ? error.message : "Unable to sync Xero." };
+    return { success: false, message: error instanceof Error ? error.message : `Unable to sync ${provider}.` };
   }
 }
+
