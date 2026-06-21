@@ -33,17 +33,12 @@ export async function pushPaymentToXero(
       await xero.refreshToken();
     }
 
-    // Get the first active bank account
-    const accountsResponse = await xero.accountingApi.getAccounts(
-      integration.tenant_id,
-      undefined,
-      'Type=="BANK"'
-    );
-    const bankAccount = accountsResponse.body.accounts?.find(a => String(a.status) === "ACTIVE");
+    let bankAccountId = integration.bank_account_id;
 
-    if (!bankAccount?.accountID) {
+    // If no bank account is configured, we must not push a payment
+    if (!bankAccountId) {
       logger.error({
-        message: "No active bank account found in Xero for pushing payment",
+        message: "No bank account configured for Xero dual sync",
         context: "pushPaymentToXero",
         user_id: userId,
       });
@@ -53,7 +48,7 @@ export async function pushPaymentToXero(
     // Create the payment
     await xero.accountingApi.createPayment(integration.tenant_id, {
       invoice: { invoiceID: invoiceId },
-      account: { accountID: bankAccount.accountID },
+      account: { accountID: bankAccountId },
       amount: amount,
       date: dateIso,
     });

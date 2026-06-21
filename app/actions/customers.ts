@@ -238,6 +238,88 @@ export async function recordPartialPayment(formData: FormData) {
 }
 
 // ---------------------------------------------------------------------------
+// Delete a payment log
+// Subtracts amount_paid and recalculates workflow_status automatically.
+// ---------------------------------------------------------------------------
+export async function deletePaymentLog(formData: FormData) {
+  const user = await requireUser();
+
+  const logId = formData.get("log_id");
+  const customerId = formData.get("customer_id");
+  
+  if (typeof logId !== "string" || !logId || typeof customerId !== "string" || !customerId) {
+    redirectToDashboard({ error: "Invalid request." });
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  // Get the log to know how much to subtract
+  const { data: log, error: logError } = await supabase
+    .from("customer_events")
+    .select("amount")
+    .eq("id", logId)
+    .eq("user_id", user.id)
+    .eq("event_type", "payment")
+    .single();
+
+  if (logError || !log) {
+    redirectToDashboard({ error: "Payment log not found." });
+  }
+
+  // Get customer to calculate new totals
+  const { data: customer, error: fetchError } = await supabase
+    .from("customers")
+    .select("amount_owed, amount_paid")
+    .eq("id", customerId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (fetchError || !customer) {
+    redirectToDashboard({ error: "Customer not found." });
+  }
+
+  const newAmountPaid = Math.max(0, Number(customer.amount_paid) - Number(log.amount));
+  const remaining = Number(customer.amount_owed) - newAmountPaid;
+  const newStatus = remaining <= 0 ? "paid" : newAmountPaid > 0 ? "partial" : "outstanding";
+
+  // Update customer
+  const { error: updateError } = await supabase
+    .from("customers")
+    .update({
+      amount_paid: newAmountPaid,
+      workflow_status: newStatus,
+    })
+    .eq("id", customerId)
+    .eq("user_id", user.id);
+
+  if (updateError) {
+    redirectToDashboard({ error: "Failed to update customer balance." });
+  }
+
+  // Delete the log
+  const { error: deleteError } = await supabase
+    .from("customer_events")
+    .delete()
+    .eq("id", logId)
+    .eq("user_id", user.id);
+
+  if (deleteError) {
+    redirectToDashboard({ error: "Failed to delete payment log." });
+  }
+
+  logger.action({
+    action_name: "delete_payment_log",
+    reminder_id: customerId,
+    user_id: user.id,
+    success: true,
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/customers");
+  redirectToDashboard({ success: "Payment log deleted and balance updated." });
+}
+
+// ---------------------------------------------------------------------------
 // Mark fully paid (shortcut — sets amount_paid = amount_owed)
 // ---------------------------------------------------------------------------
 export async function markFullyPaid(formData: FormData) {

@@ -42,6 +42,7 @@ import {
   updateDueDate,
   logFollowUp,
   updateCustomerEmail,
+  deletePaymentLog,
 } from "@/app/actions/customers";
 import { FOLLOWUP_TEMPLATES } from "@/lib/followup-templates";
 import { pauseReminder, resumeReminder } from "@/app/actions/reminders";
@@ -135,9 +136,9 @@ function PaymentHistory({ customer }: { customer: CustomerRecord }) {
           {history.map((payment) => (
             <div
               key={payment.id}
-              className="flex items-start justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3 py-3"
+              className="group relative flex items-start justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3 py-3 overflow-hidden"
             >
-              <div className="min-w-0">
+              <div className="min-w-0 transition-opacity group-hover:opacity-60">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-semibold text-zinc-100">
                     {formatCurrency(Number(payment.amount), payment.currency)}
@@ -154,7 +155,16 @@ function PaymentHistory({ customer }: { customer: CustomerRecord }) {
                   })}
                 </p>
               </div>
-              <ReceiptText className="mt-0.5 h-4 w-4 shrink-0 text-zinc-600" />
+              <div className="flex items-center">
+                <form action={deletePaymentLog} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <input type="hidden" name="log_id" value={payment.id} />
+                  <input type="hidden" name="customer_id" value={customer.id} />
+                  <Button type="submit" variant="destructive" size="icon" className="h-8 w-8">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </form>
+                <ReceiptText className="mt-0.5 h-4 w-4 shrink-0 text-zinc-600 transition-opacity group-hover:opacity-0" />
+              </div>
             </div>
           ))}
         </div>

@@ -256,6 +256,20 @@ export default async function IntegrationsPage({
                       </div>
                     </div>
 
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                      <p className="text-xs text-zinc-600">Dual Sync Bank Account</p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <p className="truncate text-sm font-semibold text-zinc-100">
+                          {xero?.bank_account_name ? xero.bank_account_name : "Not configured (Dual sync disabled)"}
+                        </p>
+                        <Link href="/settings/integrations/xero/bank">
+                          <Button variant="secondary" size="sm">
+                            {xero?.bank_account_id ? "Change" : "Setup"}
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+
                     <div className="flex flex-col gap-3 sm:flex-row">
                       <form action={syncXeroNow}>
                         <Button type="submit" className="w-full sm:w-auto">

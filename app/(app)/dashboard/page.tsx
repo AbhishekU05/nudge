@@ -16,6 +16,7 @@ function formatCurrency(value: number, currency: string = "USD") {
 }
 
 import { CollectionTrendWidget, DashboardPipelineWidget } from "@/components/site/dashboard-widgets";
+import { DashboardBackgroundSync } from "@/components/site/dashboard-background-sync";
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -68,6 +69,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <DashboardBackgroundSync />
       <main id="main-content" className="flex-1">
         <Container className="py-8 sm:py-10">
           <div className="mb-8 flex items-center justify-between">

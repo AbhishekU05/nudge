@@ -133,3 +133,45 @@ export async function syncIntegrationBackground(provider: 'xero' | 'quickbooks')
   }
 }
 
+export async function dailyBackgroundSync() {
+  const user = await requireUser();
+  const supabase = await createSupabaseServerClient();
+  
+  const { data: integrations } = await supabase
+    .from("integrations")
+    .select("*")
+    .eq("user_id", user.id);
+
+  if (!integrations || integrations.length === 0) return { success: false, message: "No integrations" };
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  let synced = false;
+
+  for (const integration of integrations) {
+    if (integration.provider === "xero" || integration.provider === "quickbooks") {
+      const lastSynced = integration.last_synced_at 
+        ? new Date(integration.last_synced_at).toISOString().slice(0, 10) 
+        : null;
+
+      if (lastSynced !== todayIso) {
+        try {
+          if (integration.provider === "xero") {
+            await syncXeroInvoicesForUser(user.id);
+          } else {
+            await syncQuickBooksInvoicesForUser(user.id);
+          }
+          synced = true;
+        } catch (e) {
+          // silently fail background sync
+        }
+      }
+    }
+  }
+
+  if (synced) {
+    revalidatePath("/dashboard");
+    revalidatePath("/customers");
+  }
+  return { success: true };
+}
+

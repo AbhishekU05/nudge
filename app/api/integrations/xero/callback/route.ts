@@ -29,10 +29,9 @@ export async function GET(request: Request) {
 
   try {
     const result = await completeXeroOAuthCallback(request.url, state);
-    return redirectToSettings(
-      "success",
-      `Xero connected. Imported ${result.imported} invoices and updated ${result.updated + result.markedPaid}.`,
-    );
+    const url = new URL("/settings/integrations/xero/bank", getAppUrl());
+    url.searchParams.set("success", `Xero connected. Imported ${result.imported} invoices and updated ${result.updated + result.markedPaid}.`);
+    return NextResponse.redirect(url);
   } catch (error) {
     logger.error({
       message: "Xero OAuth callback failed",
