@@ -302,7 +302,7 @@ async function fetchAllXeroInvoices(xero: XeroClient, tenantId: string) {
       undefined,
       undefined,
       undefined,
-      ["AUTHORISED", "PAID"],
+      undefined,
       page,
       false,
       undefined,
@@ -313,8 +313,7 @@ async function fetchAllXeroInvoices(xero: XeroClient, tenantId: string) {
 
     invoices.push(...(response.body.invoices ?? []));
 
-    const pagination = response.body.pagination;
-    if (!pagination?.pageCount || page >= pagination.pageCount) {
+    if ((response.body.invoices?.length || 0) < 100) {
       break;
     }
     page += 1;

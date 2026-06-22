@@ -243,26 +243,40 @@ async function getQuickBooksIntegration(userId: string) {
 }
 
 async function fetchAllQuickBooksInvoices(accessToken: string, realmId: string) {
-  const query = `select * from Invoice where Balance > '0' or MetaData.LastUpdatedTime >= '${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}'`;
-  
-  const url = new URL(`${getApiBaseUrl()}/v3/company/${realmId}/query`);
-  url.searchParams.set("query", query);
-  url.searchParams.set("minorversion", "65");
+  const invoices: any[] = [];
+  let startPosition = 1;
+  const maxResults = 1000;
 
-  const response = await fetch(url.toString(), {
-    headers: {
-      "Accept": "application/json",
-      "Authorization": `Bearer ${accessToken}`,
-    },
-  });
+  while (true) {
+    const query = `select * from Invoice STARTPOSITION ${startPosition} MAXRESULTS ${maxResults}`;
+    
+    const url = new URL(`${getApiBaseUrl()}/v3/company/${realmId}/query`);
+    url.searchParams.set("query", query);
+    url.searchParams.set("minorversion", "65");
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Failed to fetch QuickBooks invoices: ${text}`);
+    const response = await fetch(url.toString(), {
+      headers: {
+        "Accept": "application/json",
+        "Authorization": `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Failed to fetch QuickBooks invoices: ${text}`);
+    }
+
+    const data = await response.json();
+    const batch = data.QueryResponse?.Invoice || [];
+    invoices.push(...batch);
+
+    if (batch.length < maxResults) {
+      break;
+    }
+    startPosition += maxResults;
   }
 
-  const data = await response.json();
-  return data.QueryResponse?.Invoice || [];
+  return invoices;
 }
 
 async function fetchQuickBooksCustomers(accessToken: string, realmId: string, customerIds: string[]) {
