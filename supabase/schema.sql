@@ -32,7 +32,9 @@ create table if not exists public.profiles (
   google_refresh_token text,
   gmail_connected_email text,
   gmail_oauth_state text,
-  is_admin boolean default false not null
+  is_admin boolean default false not null,
+  timezone text default 'UTC',
+  weekly_digest_enabled boolean default true
 );
 
 drop trigger if exists profiles_set_updated_at on public.profiles;

@@ -376,3 +376,26 @@ export async function resetPassword(formData: FormData) {
   await supabase.auth.signOut();
   redirect("/login?success=Password+updated+successfully.+You+can+now+log+in.");
 }
+
+export async function updateDigestSettings(formData: FormData) {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const timezone = formData.get("timezone") as string;
+  const weekly_digest_enabled = formData.get("weekly_digest_enabled") === "true";
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ timezone, weekly_digest_enabled })
+    .eq("user_id", user.id);
+
+  if (error) {
+    redirect(buildPathWithQuery("/settings/general", { error: "Failed to update settings" }));
+  }
+
+  redirect(buildPathWithQuery("/settings/general", { success: "Settings updated" }));
+}

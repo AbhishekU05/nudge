@@ -1,10 +1,11 @@
 import { requireUser } from "@/lib/auth";
-import { updateProfileName, logout } from "@/app/actions/auth";
+import { updateProfileName, logout, updateDigestSettings } from "@/app/actions/auth";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { UserRound, LogOut, Download } from "lucide-react";
+import { UserRound, LogOut, Download, Mail } from "lucide-react";
 import { getDisplayName } from "@/lib/utils";
 
 export default async function GeneralSettingsPage() {
@@ -13,6 +14,9 @@ export default async function GeneralSettingsPage() {
     user.user_metadata?.full_name,
     user.email?.split("@")[0] ?? "Profile",
   );
+
+  const supabase = await createSupabaseServerClient();
+  const { data: profile } = await supabase.from("profiles").select("timezone, weekly_digest_enabled").eq("user_id", user.id).single();
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -58,6 +62,61 @@ export default async function GeneralSettingsPage() {
             
             <Button type="submit">
               Save Changes
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className="border-white/10 bg-white/[0.035]">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Mail className="h-5 w-5 text-primary" />
+            Weekly Digest
+          </CardTitle>
+          <CardDescription>
+            Receive a weekly snapshot of your collections via email every Monday at 8 AM.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={updateDigestSettings} className="space-y-4 max-w-md">
+            <div className="space-y-2 flex flex-col">
+              <Label htmlFor="timezone" className="text-zinc-400">
+                Timezone
+              </Label>
+              <select 
+                id="timezone"
+                name="timezone"
+                defaultValue={profile?.timezone || "UTC"}
+                className="bg-black/20 text-white border border-white/10 rounded-md p-2"
+              >
+                <option value="America/New_York">Eastern Time (ET)</option>
+                <option value="America/Chicago">Central Time (CT)</option>
+                <option value="America/Denver">Mountain Time (MT)</option>
+                <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                <option value="Europe/London">London (GMT/BST)</option>
+                <option value="Europe/Paris">Central European Time (CET)</option>
+                <option value="Asia/Kolkata">India Standard Time (IST)</option>
+                <option value="Australia/Sydney">Australian Eastern Time (AET)</option>
+                <option value="UTC">UTC</option>
+              </select>
+            </div>
+            
+            <div className="flex items-center gap-2 mt-4">
+              <input 
+                type="checkbox" 
+                id="weekly_digest_enabled" 
+                name="weekly_digest_enabled" 
+                value="true"
+                defaultChecked={profile?.weekly_digest_enabled ?? true}
+                className="h-4 w-4 bg-transparent border-white/10 rounded accent-primary"
+              />
+              <Label htmlFor="weekly_digest_enabled" className="text-zinc-300">
+                Enable Weekly Digest
+              </Label>
+            </div>
+            
+            <Button type="submit" className="mt-4">
+              Save Preferences
             </Button>
           </form>
         </CardContent>
