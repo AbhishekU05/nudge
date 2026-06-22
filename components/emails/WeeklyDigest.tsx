@@ -122,39 +122,38 @@ export const WeeklyDigestEmail = ({
                 </Row>
               </Section>
 
-              {/* Charts */}
+              {/* Charts Row 1 */}
               <Section style={metricsSection}>
                 <Row>
-                  <Column style={chartContainer}>
-                    <Text style={chartTitle}>Pipeline Status</Text>
-                    <Img src={curr.pipelineStatusChartUrl} alt="Pipeline Status" width="100%" />
+                  <Column style={{ width: "50%", paddingRight: "10px" }}>
+                    <div style={chartContainer}>
+                      <Text style={chartTitle}>Pipeline Status</Text>
+                      <Img src={curr.pipelineStatusChartUrl} alt="Pipeline Status" width="100%" />
+                    </div>
+                  </Column>
+                  <Column style={{ width: "50%", paddingLeft: "10px" }}>
+                    <div style={chartContainer}>
+                      <Text style={chartTitle}>Collection Trends</Text>
+                      <Img src={curr.collectionTrendsChartUrl} alt="Collection Trends" width="100%" />
+                    </div>
                   </Column>
                 </Row>
               </Section>
 
+              {/* Charts Row 2 */}
               <Section style={metricsSection}>
                 <Row>
-                  <Column style={chartContainer}>
-                    <Text style={chartTitle}>Collection Trends</Text>
-                    <Img src={curr.collectionTrendsChartUrl} alt="Collection Trends" width="100%" />
+                  <Column style={{ width: "50%", paddingRight: "10px" }}>
+                    <div style={chartContainer}>
+                      <Text style={chartTitle}>A/R Aging</Text>
+                      <Img src={curr.agingChartUrl} alt="Aging" width="100%" />
+                    </div>
                   </Column>
-                </Row>
-              </Section>
-
-              <Section style={metricsSection}>
-                <Row>
-                  <Column style={chartContainer}>
-                    <Text style={chartTitle}>A/R Aging</Text>
-                    <Img src={curr.agingChartUrl} alt="Aging" width="100%" />
-                  </Column>
-                </Row>
-              </Section>
-              
-              <Section style={metricsSection}>
-                <Row>
-                  <Column style={chartContainer}>
-                    <Text style={chartTitle}>Follow-up Activity</Text>
-                    <Img src={curr.followupActivityChartUrl} alt="Follow-up Activity" width="100%" />
+                  <Column style={{ width: "50%", paddingLeft: "10px" }}>
+                    <div style={chartContainer}>
+                      <Text style={chartTitle}>Follow-up Activity</Text>
+                      <Img src={curr.followupActivityChartUrl} alt="Follow-up Activity" width="100%" />
+                    </div>
                   </Column>
                 </Row>
               </Section>
