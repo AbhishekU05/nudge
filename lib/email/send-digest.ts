@@ -6,7 +6,7 @@ import { getDaysOverdue } from "@/lib/types";
 import { logger } from "@/lib/logger";
 import { hasGmailTokens, sendGmail } from "@/lib/gmail";
 import { render } from "@react-email/render";
-import { WeeklyDigestEmail } from "@/components/emails/WeeklyDigest";
+import WeeklyDigestEmail from "@/components/emails/WeeklyDigest";
 
 export async function sendWeeklyDigestEmails(targetUserId?: string) {
   const supabase = createSupabaseAdminClient();
@@ -44,7 +44,6 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
         hour12: false 
       });
       const formatted = formatter.format(now);
-      // e.g. "Mon, 08" or "Mon, 8"
       return formatted.startsWith("Mon") && (formatted.includes("08") || formatted.endsWith(" 8"));
     } catch (e) {
       return false;
@@ -82,167 +81,356 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
 
     if (invError || !invoices) continue;
 
-    // Fetch payments in last 7 days
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
     const { data: events } = await supabase
       .from("customer_events")
       .select("*, invoices(recipient_name)")
-      .eq("user_id", userId)
-      .eq("event_type", "payment")
-      .gte("created_at", sevenDaysAgo.toISOString());
+      .eq("user_id", userId);
 
-    // Calculate metrics and populate lists
-    let totalOut = 0;
-    let totalOver = 0;
-    let overdueCount = 0;
-    
-    let totalCollected = 0;
-    let totalDaysToPayment = 0;
-    let paidCustomersWithDates = 0;
-    let revenueThisMonth = 0;
-    let revenueLastMonth = 0;
-
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
-    const lastMonth = lastMonthDate.getMonth();
-    const lastMonthYear = lastMonthDate.getFullYear();
-
-    const overdueInvoicesList: any[] = [];
-    const upcomingInvoicesList: any[] = [];
-    const promisesThisWeekList: any[] = [];
-    const paymentsReceivedList: any[] = [];
-    const actionItemsList: string[] = [];
-
-    const agingBuckets = { "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
-
-    invoices.forEach(inv => {
-      const remaining = Number(inv.amount_owed) - Number(inv.amount_paid);
-      const paid = Number(inv.amount_paid);
+    // Group invoices by currency
+    const invoicesByCurrency = invoices.reduce((acc, inv) => {
       const currency = inv.currency || "USD";
+      if (!acc[currency]) acc[currency] = [];
+      acc[currency].push(inv);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    // Group events by currency
+    const eventsByCurrency = (events || []).reduce((acc, ev) => {
+      const currency = ev.currency || "USD";
+      if (!acc[currency]) acc[currency] = [];
+      acc[currency].push(ev);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    const allCurrencies = Array.from(new Set([...Object.keys(invoicesByCurrency), ...Object.keys(eventsByCurrency)]));
+
+    const currencyDigests = [];
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    for (const currency of allCurrencies) {
+      const currInvoices = invoicesByCurrency[currency] || [];
+      const currEvents = eventsByCurrency[currency] || [];
+
+      let totalOut = 0;
+      let totalOver = 0;
+      let overdueCount = 0;
       
-      totalOut += Math.max(0, remaining);
-      totalCollected += paid;
+      let totalCollected = 0;
+      let totalDaysToPayment = 0;
+      let paidCustomersWithDates = 0;
+      let revenueThisMonth = 0;
+      let revenueLastMonth = 0;
 
-      const isPaid = remaining <= 0 || inv.client_paid_at;
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
+      const lastMonth = lastMonthDate.getMonth();
+      const lastMonthYear = lastMonthDate.getFullYear();
+
+      const overdueInvoicesList: any[] = [];
+      const upcomingInvoicesList: any[] = [];
+      const promisesThisWeekList: any[] = [];
+      const paymentsReceivedList: any[] = [];
+      const actionItemsList: string[] = [];
+
+      const agingBuckets: Record<string, number> = { "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
+      const forecastBuckets: Record<string, number> = { "0-30 Days": 0, "31-60 Days": 0, "61-90 Days": 0 };
       
-      if (isPaid && inv.client_paid_at && inv.due_date) {
-        paidCustomersWithDates++;
-        const invDate = new Date(inv.due_date);
-        const paidDate = new Date(inv.client_paid_at);
-        const diffTime = Math.abs(paidDate.getTime() - invDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        totalDaysToPayment += diffDays;
-      }
+      let followupsBeforePaymentCount = 0;
+      let customersWithFollowupsAndPaid = 0;
+      const customersWithPromises = new Set<string>();
+      const customersWithPromisesKept = new Set<string>();
 
-      if (remaining <= 0) return;
+      currInvoices.forEach((inv: any) => {
+        const remaining = Number(inv.amount_owed) - Number(inv.amount_paid);
+        const paid = Number(inv.amount_paid);
+        
+        totalOut += Math.max(0, remaining);
+        totalCollected += paid;
 
-      const daysOverdue = getDaysOverdue(inv as any);
-      
-      if (daysOverdue !== null) {
-        totalOver += remaining;
-        overdueCount++;
-
-        // Aging
-        if (daysOverdue <= 30) agingBuckets["1-30"] += remaining;
-        else if (daysOverdue <= 60) agingBuckets["31-60"] += remaining;
-        else if (daysOverdue <= 90) agingBuckets["61-90"] += remaining;
-        else agingBuckets["90+"] += remaining;
-
-        overdueInvoicesList.push({
-          clientName: inv.recipient_name || "Unknown",
-          amount: `${currency} ${remaining.toFixed(2)}`,
-          daysOverdue: daysOverdue,
-          lastContact: inv.last_sent_at ? new Date(inv.last_sent_at).toLocaleDateString() : undefined
-        });
-
-        // Action items (e.g. if > 15 days overdue)
-        if (daysOverdue > 15 && overdueInvoicesList.length <= 5) {
-          actionItemsList.push(`Follow up with ${inv.recipient_name || "Unknown"} on ${currency} ${remaining.toFixed(2)} (${daysOverdue} days overdue)`);
+        const isPaid = remaining <= 0 || inv.client_paid_at;
+        
+        if (isPaid && inv.client_paid_at && inv.due_date) {
+          paidCustomersWithDates++;
+          const invDate = new Date(inv.due_date);
+          const paidDate = new Date(inv.client_paid_at);
+          const diffTime = Math.abs(paidDate.getTime() - invDate.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          totalDaysToPayment += diffDays;
         }
-      } else if (inv.due_date) {
-        // Upcoming in next 14 days?
-        const due = new Date(inv.due_date);
-        const diffTime = due.getTime() - now.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        if (diffDays >= 0 && diffDays <= 14) {
-          upcomingInvoicesList.push({
+
+        if (remaining <= 0) return;
+
+        const daysOverdue = getDaysOverdue(inv as any);
+        
+        if (daysOverdue !== null) {
+          totalOver += remaining;
+          overdueCount++;
+
+          if (daysOverdue <= 30) agingBuckets["1-30"] += remaining;
+          else if (daysOverdue <= 60) agingBuckets["31-60"] += remaining;
+          else if (daysOverdue <= 90) agingBuckets["61-90"] += remaining;
+          else agingBuckets["90+"] += remaining;
+
+          overdueInvoicesList.push({
             clientName: inv.recipient_name || "Unknown",
             amount: `${currency} ${remaining.toFixed(2)}`,
-            dueInDays: diffDays
+            daysOverdue: daysOverdue,
+            lastContact: inv.last_sent_at ? new Date(inv.last_sent_at).toLocaleDateString() : undefined,
+            rawAmount: remaining
           });
+
+          if (daysOverdue > 15 && overdueInvoicesList.length <= 5) {
+            actionItemsList.push(`Follow up with ${inv.recipient_name || "Unknown"} on ${currency} ${remaining.toFixed(2)} (${daysOverdue} days overdue)`);
+          }
+        } else if (inv.due_date) {
+          const due = new Date(inv.due_date);
+          const diffTime = due.getTime() - now.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays <= 30) forecastBuckets["0-30 Days"] += remaining;
+          else if (diffDays <= 60) forecastBuckets["31-60 Days"] += remaining;
+          else if (diffDays <= 90) forecastBuckets["61-90 Days"] += remaining;
+
+          if (diffDays >= 0 && diffDays <= 14) {
+            upcomingInvoicesList.push({
+              clientName: inv.recipient_name || "Unknown",
+              amount: `${currency} ${remaining.toFixed(2)}`,
+              dueInDays: diffDays
+            });
+          }
         }
+
+        if (inv.workflow_status === "promised" && inv.promised_date) {
+          const promiseDate = new Date(inv.promised_date);
+          const nextWeek = new Date();
+          nextWeek.setDate(nextWeek.getDate() + 7);
+          if (promiseDate >= now && promiseDate <= nextWeek) {
+             promisesThisWeekList.push({
+               clientName: inv.recipient_name || "Unknown",
+               amount: `${currency} ${remaining.toFixed(2)}`,
+               dueDate: promiseDate.toLocaleDateString()
+             });
+          }
+        }
+      });
+
+      const collectionsByMonth: Record<string, number> = {};
+      const followupsByMonth: Record<string, number> = {};
+      const monthLabels: string[] = [];
+      
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(currentYear, currentMonth - i, 1);
+        const mKey = d.toLocaleString('default', { month: 'short', year: 'numeric' });
+        collectionsByMonth[mKey] = 0;
+        followupsByMonth[mKey] = 0;
+        monthLabels.push(mKey);
       }
+      
+      const followupsPerCustomer: Record<string, number> = {};
 
-      // Promises due this week
-      if (inv.workflow_status === "promised" && inv.promised_date) {
-        const promiseDate = new Date(inv.promised_date);
-        const nextWeek = new Date();
-        nextWeek.setDate(nextWeek.getDate() + 7);
-        if (promiseDate >= now && promiseDate <= nextWeek) {
-           promisesThisWeekList.push({
-             clientName: inv.recipient_name || "Unknown",
-             amount: `${currency} ${remaining.toFixed(2)}`,
-             dueDate: promiseDate.toLocaleDateString()
-           });
+      currEvents.forEach((e: any) => {
+        const date = new Date(e.created_at);
+        const monthKey = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+        const eMonth = date.getMonth();
+        const eYear = date.getFullYear();
+
+        if (e.event_type === "payment" && e.amount) {
+          if (collectionsByMonth[monthKey] !== undefined) {
+            collectionsByMonth[monthKey] += Number(e.amount);
+          }
+          if (eMonth === currentMonth && eYear === currentYear) {
+            revenueThisMonth += Number(e.amount);
+          } else if (eMonth === lastMonth && eYear === lastMonthYear) {
+            revenueLastMonth += Number(e.amount);
+          }
+          if (followupsPerCustomer[e.customer_id] > 0) {
+            customersWithFollowupsAndPaid++;
+            followupsBeforePaymentCount += followupsPerCustomer[e.customer_id];
+          }
+          if (customersWithPromises.has(e.customer_id)) {
+            customersWithPromisesKept.add(e.customer_id);
+          }
+          
+          if (date >= sevenDaysAgo) {
+            paymentsReceivedList.push({
+              clientName: e.invoices?.recipient_name || "Unknown",
+              amount: `${currency} ${Number(e.amount).toFixed(2)}`,
+              date: date.toLocaleDateString()
+            });
+          }
+
+        } else if (e.event_type === "followup") {
+          if (followupsByMonth[monthKey] !== undefined) {
+            followupsByMonth[monthKey] += 1;
+          }
+          followupsPerCustomer[e.customer_id] = (followupsPerCustomer[e.customer_id] || 0) + 1;
+          if (e.followup_outcome === "promise_made") {
+            customersWithPromises.add(e.customer_id);
+          }
         }
-      }
-    });
+      });
 
-    // Payments received (and revenue stats)
-    if (events) {
-      events.forEach(ev => {
-        const clientName = ev.invoices?.recipient_name || "Unknown";
-        paymentsReceivedList.push({
-          clientName,
-          amount: `${ev.currency || "USD"} ${Number(ev.amount).toFixed(2)}`,
-          date: new Date(ev.created_at).toLocaleDateString()
-        });
+      const promiseKeptRate = customersWithPromises.size > 0 
+        ? (customersWithPromisesKept.size / customersWithPromises.size) * 100 
+        : 0;
 
-        // Revenue stats
-        const evDate = new Date(ev.created_at);
-        if (evDate.getMonth() === currentMonth && evDate.getFullYear() === currentYear) {
-          revenueThisMonth += Number(ev.amount) || 0;
-        } else if (evDate.getMonth() === lastMonth && evDate.getFullYear() === lastMonthYear) {
-          revenueLastMonth += Number(ev.amount) || 0;
+      const avgFollowupsBeforePayment = customersWithFollowupsAndPaid > 0 
+        ? (followupsBeforePaymentCount / customersWithFollowupsAndPaid).toFixed(1) 
+        : "0";
+
+      const collectionRate = (totalCollected + totalOut) > 0 ? (totalCollected / (totalCollected + totalOut)) * 100 : 0;
+
+      upcomingInvoicesList.sort((a, b) => a.dueInDays - b.dueInDays);
+      overdueInvoicesList.sort((a, b) => b.rawAmount - a.rawAmount);
+      
+      const topOffenders = overdueInvoicesList.slice(0, 5);
+
+      const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, maximumFractionDigits: 0 });
+
+      // Build charts
+      const encodeChart = (config: any) => `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(config))}&w=500&h=300&bkg=transparent&f=png`;
+
+      const darkThemeColors = {
+        text: '#fafafa',
+        grid: 'rgba(255,255,255,0.1)',
+        tick: '#a1a1aa'
+      };
+
+      const chartOptions = {
+        legend: { display: false },
+        scales: {
+          xAxes: [{ ticks: { fontColor: darkThemeColors.tick }, gridLines: { display: false } }],
+          yAxes: [{ ticks: { fontColor: darkThemeColors.tick }, gridLines: { color: darkThemeColors.grid } }]
         }
+      };
+
+      const outstandingAmount = Math.max(0, totalOut - totalOver);
+      const pipelineStatusChartUrl = encodeChart({
+        type: 'outlabeledPie',
+        data: {
+          labels: ['Paid', 'Outstanding', 'Overdue'],
+          datasets: [{
+            backgroundColor: ['#10b981', '#3b82f6', '#ef4444'],
+            data: [totalCollected, outstandingAmount, totalOver]
+          }]
+        },
+        options: {
+          plugins: {
+            legend: false,
+            outlabels: {
+              text: '%l: %v',
+              color: 'white',
+              stretch: 35,
+              font: { resizable: true, minSize: 12, maxSize: 18 }
+            }
+          }
+        }
+      });
+
+      const agingChartUrl = encodeChart({
+        type: 'bar',
+        data: {
+          labels: ['1-30', '31-60', '61-90', '90+'],
+          datasets: [{
+            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+            data: [agingBuckets["1-30"], agingBuckets["31-60"], agingBuckets["61-90"], agingBuckets["90+"]]
+          }]
+        },
+        options: chartOptions
+      });
+
+      const topOffendersChartUrl = encodeChart({
+        type: 'horizontalBar',
+        data: {
+          labels: topOffenders.map(o => o.clientName.substring(0, 15)),
+          datasets: [{
+            backgroundColor: '#ef4444',
+            data: topOffenders.map(o => o.rawAmount)
+          }]
+        },
+        options: {
+          legend: { display: false },
+          scales: {
+            xAxes: [{ ticks: { fontColor: darkThemeColors.tick }, gridLines: { color: darkThemeColors.grid } }],
+            yAxes: [{ ticks: { fontColor: darkThemeColors.tick }, gridLines: { display: false } }]
+          }
+        }
+      });
+
+      const collectionsDataArray = monthLabels.map(m => collectionsByMonth[m]);
+      const collectionTrendsChartUrl = encodeChart({
+        type: 'line',
+        data: {
+          labels: monthLabels,
+          datasets: [{
+            label: 'Revenue',
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+            data: collectionsDataArray,
+            fill: true
+          }]
+        },
+        options: chartOptions
+      });
+
+      const followupsDataArray = monthLabels.map(m => followupsByMonth[m]);
+      const followupActivityChartUrl = encodeChart({
+        type: 'bar',
+        data: {
+          labels: monthLabels,
+          datasets: [{
+            label: 'Follow-ups',
+            backgroundColor: '#3b82f6',
+            data: followupsDataArray
+          }]
+        },
+        options: chartOptions
+      });
+
+      currencyDigests.push({
+        currencyCode: currency,
+        rawTotalOut: totalOut,
+        totalOutstanding: formatter.format(totalOut),
+        totalOverdue: formatter.format(totalOver),
+        totalCollected: formatter.format(totalCollected),
+        revenueThisMonth: formatter.format(revenueThisMonth),
+        revenueLastMonth: formatter.format(revenueLastMonth),
+        averageDaysToPayment: paidCustomersWithDates > 0 ? Math.round(totalDaysToPayment / paidCustomersWithDates) : 0,
+        collectionRate,
+        promiseKeptRate,
+        avgFollowupsBeforePayment,
+        overdueCount,
+        
+        collectionTrendsChartUrl,
+        pipelineStatusChartUrl,
+        topOffendersChartUrl,
+        agingChartUrl,
+        followupActivityChartUrl,
+
+        upcomingInvoices: upcomingInvoicesList,
+        overdueInvoices: topOffenders,
+        promisesThisWeek: promisesThisWeekList,
+        paymentsReceived: paymentsReceivedList,
+        actionItems: actionItemsList
       });
     }
 
-    // Sort upcoming by days due asc
-    upcomingInvoicesList.sort((a, b) => a.dueInDays - b.dueInDays);
-    overdueInvoicesList.sort((a, b) => b.daysOverdue - a.daysOverdue);
+    currencyDigests.sort((a, b) => b.rawTotalOut - a.rawTotalOut);
 
-    // Render React Email
     const dateRange = `${sevenDaysAgo.toLocaleDateString()} - ${now.toLocaleDateString()}`;
-    const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }); // rough estimate
-    
+
     try {
       const htmlContent = await render(
         WeeklyDigestEmail({
           dateRange,
-          totalOutstanding: formatter.format(totalOut),
-          totalOverdue: formatter.format(totalOver),
-          totalCollected: formatter.format(totalCollected),
-          revenueThisMonth: formatter.format(revenueThisMonth),
-          revenueLastMonth: formatter.format(revenueLastMonth),
-          averageDaysToPayment: paidCustomersWithDates > 0 ? Math.round(totalDaysToPayment / paidCustomersWithDates) : 0,
-          overdueCount,
-          overdueInvoices: overdueInvoicesList,
-          upcomingInvoices: upcomingInvoicesList,
-          promisesThisWeek: promisesThisWeekList,
-          paymentsReceived: paymentsReceivedList,
-          agingBuckets,
-          actionItems: actionItemsList
+          currencies: currencyDigests
         })
       );
 
       const subject = "Your weekly collections snapshot";
 
-      // Attempt to send via connected Gmail, else fallback
       const hasGmail = await hasGmailTokens(userId);
       if (hasGmail) {
         await sendGmail({
@@ -254,18 +442,18 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           body: htmlContent,
           html: true
         });
+        emailsSent++;
       } else {
         await resend.emails.send({
-          from: getFromEmail(), // uses standard noreply@duely.in or whatever is configured
+          from: getFromEmail(),
           to: userEmail,
           subject,
           html: htmlContent,
         });
+        emailsSent++;
       }
-
-      emailsSent++;
-    } catch (err) {
-      logger.error({ message: `Failed to send digest to ${userEmail}`, error: err, context: "sendWeeklyDigestEmails", user_id: userId });
+    } catch (e) {
+      logger.error({ message: "Failed to send digest email", error: e, user_id: userId, context: "sendWeeklyDigestEmails" });
     }
   }
 

@@ -1,77 +1,55 @@
 import {
   Body,
+  Button,
   Container,
   Head,
   Heading,
   Hr,
   Html,
-  Link,
   Preview,
   Section,
   Text,
-  Column,
   Row,
-  Button
+  Column,
+  Img
 } from "@react-email/components";
 import * as React from "react";
 
-interface WeeklyDigestEmailProps {
-  dateRange: string;
+export interface CurrencyDigest {
+  currencyCode: string;
   totalOutstanding: string;
   totalOverdue: string;
   totalCollected: string;
   revenueThisMonth: string;
   revenueLastMonth: string;
   averageDaysToPayment: number;
+  collectionRate: number;
+  promiseKeptRate: number;
+  avgFollowupsBeforePayment: string;
   overdueCount: number;
-  agingBuckets: {
-    "1-30": number;
-    "31-60": number;
-    "61-90": number;
-    "90+": number;
-  };
-  upcomingInvoices: {
-    clientName: string;
-    amount: string;
-    dueInDays: number;
-  }[];
-  overdueInvoices: {
-    clientName: string;
-    amount: string;
-    daysOverdue: number;
-    lastContact?: string;
-  }[];
-  promisesThisWeek: {
-    clientName: string;
-    amount: string;
-    dueDate: string;
-  }[];
-  paymentsReceived: {
-    clientName: string;
-    amount: string;
-    date: string;
-  }[];
+  
+  collectionTrendsChartUrl: string;
+  pipelineStatusChartUrl: string;
+  topOffendersChartUrl: string;
+  agingChartUrl: string;
+  followupActivityChartUrl: string;
+
+  upcomingInvoices: any[];
+  overdueInvoices: any[];
+  promisesThisWeek: any[];
+  paymentsReceived: any[];
   actionItems: string[];
+}
+
+export interface WeeklyDigestEmailProps {
+  dateRange: string;
+  currencies: CurrencyDigest[];
 }
 
 export const WeeklyDigestEmail = ({
   dateRange,
-  totalOutstanding,
-  totalOverdue,
-  totalCollected,
-  revenueThisMonth,
-  revenueLastMonth,
-  averageDaysToPayment,
-  overdueCount,
-  agingBuckets,
-  upcomingInvoices,
-  overdueInvoices,
-  promisesThisWeek,
-  paymentsReceived,
-  actionItems
+  currencies
 }: WeeklyDigestEmailProps) => {
-  const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
-  const totalAging = Object.values(agingBuckets).reduce((a, b) => a + b, 0) || 1; // prevent div by zero
 
   return (
     <Html>
@@ -105,172 +83,207 @@ export const WeeklyDigestEmail = ({
             <Text style={dateText} className="text-secondary">{dateRange}</Text>
           </Section>
 
-          {/* Action Items */}
-          {actionItems && actionItems.length > 0 && (
-            <Section style={actionItemsSection}>
-              <Heading style={sectionTitle} className="text-primary">Action Items</Heading>
-              <ul style={actionList}>
-                {actionItems.map((item, idx) => (
-                  <li key={idx} style={actionListItem} className="action-item">• {item}</li>
-                ))}
-              </ul>
+          {(!currencies || currencies.length === 0) && (
+            <Section style={section}>
+              <Text style={metricValue} className="text-primary">All caught up!</Text>
+              <Text style={metricLabel} className="text-secondary">No outstanding invoices or activities found.</Text>
             </Section>
           )}
 
-          {/* Metrics Row 1 */}
-          <Section style={metricsSection}>
-            <Row>
-              <Column style={metricCard} className="card">
-                <Text style={metricLabel} className="text-secondary">Total Outstanding</Text>
-                <Text style={metricValue} className="text-primary">{totalOutstanding}</Text>
-              </Column>
-              <Column style={metricCard} className="card">
-                <Text style={metricLabel} className="text-secondary">Total Overdue</Text>
-                <Text style={metricValueOverdue}>{totalOverdue}</Text>
-              </Column>
-              <Column style={metricCard} className="card">
-                <Text style={metricLabel} className="text-secondary">Total Collected</Text>
-                <Text style={metricValue} className="text-primary">{totalCollected}</Text>
-              </Column>
-            </Row>
-          </Section>
+          {currencies && currencies.map((curr, cIdx) => (
+            <div key={cIdx} style={{ marginBottom: '40px' }}>
+              <Heading style={currencyTitle} className="text-primary">{curr.currencyCode} Analytics</Heading>
 
-          {/* Metrics Row 2 */}
-          <Section style={metricsSection}>
-            <Row>
-              <Column style={metricCard} className="card">
-                <Text style={metricLabel} className="text-secondary">Avg. Days to Payment</Text>
-                <Text style={metricValue} className="text-primary">{averageDaysToPayment}</Text>
-              </Column>
-              <Column style={metricCard} className="card">
-                <Text style={metricLabel} className="text-secondary">Revenue (This Month)</Text>
-                <Text style={metricValue} className="text-primary">{revenueThisMonth}</Text>
-              </Column>
-              <Column style={metricCard} className="card">
-                <Text style={metricLabel} className="text-secondary">Revenue (Last Month)</Text>
-                <Text style={metricValue} className="text-primary">{revenueLastMonth}</Text>
-              </Column>
-            </Row>
-          </Section>
+              {/* Action Items */}
+              {curr.actionItems && curr.actionItems.length > 0 && (
+                <Section style={actionItemsSection}>
+                  <Heading style={sectionTitle} className="text-primary">Action Items</Heading>
+                  <ul style={actionList}>
+                    {curr.actionItems.map((item, idx) => (
+                      <li key={idx} style={actionListItem} className="action-item">• {item}</li>
+                    ))}
+                  </ul>
+                </Section>
+              )}
 
-          {/* Aging Analytics (Horizontal Bar) */}
-          <Section style={section}>
-            <Heading style={sectionTitle} className="text-primary">Aging Overview</Heading>
-            <div style={agingContainer} className="aging-container">
-              {Object.entries(agingBuckets).map(([label, value], i) => {
-                const percent = Math.max(2, (value / totalAging) * 100);
-                const colors = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444"];
-                return (
-                  <div key={label} style={{ marginBottom: '10px' }}>
-                    <Text style={agingLabel} className="text-secondary">{label} Days: {formatter.format(value)}</Text>
-                    <div style={{ width: '100%', backgroundColor: '#e4e4e7', borderRadius: '4px', height: '8px' }} className="aging-track">
-                      <div style={{ width: `${percent}%`, backgroundColor: colors[i], borderRadius: '4px', height: '8px' }} />
-                    </div>
-                  </div>
-                );
-              })}
+              {/* Metrics Row 1 */}
+              <Section style={metricsSection}>
+                <Row>
+                  <Column style={metricCard} className="card">
+                    <Text style={metricLabel} className="text-secondary">Total Outstanding</Text>
+                    <Text style={metricValue} className="text-primary">{curr.totalOutstanding}</Text>
+                  </Column>
+                  <Column style={metricCard} className="card">
+                    <Text style={metricLabel} className="text-secondary">Total Overdue</Text>
+                    <Text style={metricValueOverdue}>{curr.totalOverdue}</Text>
+                  </Column>
+                  <Column style={metricCard} className="card">
+                    <Text style={metricLabel} className="text-secondary">Total Collected</Text>
+                    <Text style={metricValue} className="text-primary">{curr.totalCollected}</Text>
+                  </Column>
+                </Row>
+              </Section>
+
+              {/* Metrics Row 2 */}
+              <Section style={metricsSection}>
+                <Row>
+                  <Column style={metricCard} className="card">
+                    <Text style={metricLabel} className="text-secondary">Collection Rate</Text>
+                    <Text style={metricValue} className="text-primary">{curr.collectionRate.toFixed(1)}%</Text>
+                  </Column>
+                  <Column style={metricCard} className="card">
+                    <Text style={metricLabel} className="text-secondary">Avg Days to Pay</Text>
+                    <Text style={metricValue} className="text-primary">{curr.averageDaysToPayment}</Text>
+                  </Column>
+                  <Column style={metricCard} className="card">
+                    <Text style={metricLabel} className="text-secondary">Avg Follow-ups to Pay</Text>
+                    <Text style={metricValue} className="text-primary">{curr.avgFollowupsBeforePayment}</Text>
+                  </Column>
+                </Row>
+              </Section>
+
+              {/* Charts */}
+              <Section style={metricsSection}>
+                <Row>
+                  <Column style={chartContainer}>
+                    <Text style={chartTitle} className="text-primary">Pipeline Status</Text>
+                    <Img src={curr.pipelineStatusChartUrl} alt="Pipeline Status" width="100%" />
+                  </Column>
+                </Row>
+              </Section>
+
+              <Section style={metricsSection}>
+                <Row>
+                  <Column style={chartContainer}>
+                    <Text style={chartTitle} className="text-primary">Collection Trends</Text>
+                    <Img src={curr.collectionTrendsChartUrl} alt="Collection Trends" width="100%" />
+                  </Column>
+                </Row>
+              </Section>
+
+              <Section style={metricsSection}>
+                <Row>
+                  <Column style={chartContainer}>
+                    <Text style={chartTitle} className="text-primary">A/R Aging</Text>
+                    <Img src={curr.agingChartUrl} alt="Aging" width="100%" />
+                  </Column>
+                </Row>
+              </Section>
+              
+              <Section style={metricsSection}>
+                <Row>
+                  <Column style={chartContainer}>
+                    <Text style={chartTitle} className="text-primary">Follow-up Activity</Text>
+                    <Img src={curr.followupActivityChartUrl} alt="Follow-up Activity" width="100%" />
+                  </Column>
+                </Row>
+              </Section>
+
+              {/* Top Offenders */}
+              {curr.overdueInvoices && curr.overdueInvoices.length > 0 && (
+                <Section style={section}>
+                  <Heading style={sectionTitle} className="text-primary">Top Offenders</Heading>
+                  <Img src={curr.topOffendersChartUrl} alt="Top Offenders" width="100%" style={{ marginBottom: '15px' }} />
+                  
+                  <table style={table}>
+                    <thead>
+                      <tr>
+                        <th style={th} className="table-th">Client</th>
+                        <th style={th} className="table-th">Amount</th>
+                        <th style={th} className="table-th">Days Overdue</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {curr.overdueInvoices.map((inv, idx) => ( 
+                        <tr key={idx} style={tr} className="table-tr">
+                          <td style={td} className="table-td">{inv.clientName}</td>
+                          <td style={td} className="table-td">{inv.amount}</td>
+                          <td style={{ ...td, color: '#ef4444' }} className="table-td">{inv.daysOverdue} days</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </Section>
+              )}
+
+              {/* Upcoming Invoices */}
+              {curr.upcomingInvoices && curr.upcomingInvoices.length > 0 && (
+                <Section style={section}>
+                  <Heading style={sectionTitle} className="text-primary">Upcoming in 14 Days</Heading>
+                  <table style={table}>
+                    <thead>
+                      <tr>
+                        <th style={th} className="table-th">Client</th>
+                        <th style={th} className="table-th">Amount</th>
+                        <th style={th} className="table-th">Due In</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {curr.upcomingInvoices.map((inv, idx) => (
+                        <tr key={idx} style={tr} className="table-tr">
+                          <td style={td} className="table-td">{inv.clientName}</td>
+                          <td style={td} className="table-td">{inv.amount}</td>
+                          <td style={{ ...td, color: '#3b82f6' }} className="table-td">{inv.dueInDays} days</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </Section>
+              )}
+
+              {/* Promises this Week */}
+              {curr.promisesThisWeek && curr.promisesThisWeek.length > 0 && (
+                <Section style={section}>
+                  <Heading style={sectionTitle} className="text-primary">Promises Due This Week (Unpaid)</Heading>
+                  <table style={table}>
+                    <thead>
+                      <tr>
+                        <th style={th} className="table-th">Client</th>
+                        <th style={th} className="table-th">Amount</th>
+                        <th style={th} className="table-th">Due Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {curr.promisesThisWeek.map((prom, idx) => (
+                        <tr key={idx} style={tr} className="table-tr">
+                          <td style={td} className="table-td">{prom.clientName}</td>
+                          <td style={td} className="table-td">{prom.amount}</td>
+                          <td style={td} className="table-td">{prom.dueDate}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </Section>
+              )}
+
+              {/* Payments Received */}
+              {curr.paymentsReceived && curr.paymentsReceived.length > 0 && (
+                <Section style={section}>
+                  <Heading style={sectionTitle} className="text-primary">Payments Received (Last 7 Days)</Heading>
+                  <table style={table}>
+                    <thead>
+                      <tr>
+                        <th style={th} className="table-th">Client</th>
+                        <th style={th} className="table-th">Amount</th>
+                        <th style={th} className="table-th">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {curr.paymentsReceived.map((pay, idx) => (
+                        <tr key={idx} style={tr} className="table-tr">
+                          <td style={td} className="table-td">{pay.clientName}</td>
+                          <td style={{ ...td, color: '#10b981' }} className="table-td">{pay.amount}</td>
+                          <td style={td} className="table-td">{pay.date}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </Section>
+              )}
+
+              <Hr style={hr} className="hr" />
             </div>
-          </Section>
-
-          {/* Upcoming Invoices */}
-          {upcomingInvoices && upcomingInvoices.length > 0 && (
-            <Section style={section}>
-              <Heading style={sectionTitle} className="text-primary">Upcoming in 14 Days</Heading>
-              <table style={table}>
-                <thead>
-                  <tr>
-                    <th style={th} className="table-th">Client</th>
-                    <th style={th} className="table-th">Amount</th>
-                    <th style={th} className="table-th">Due In</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {upcomingInvoices.map((inv, idx) => (
-                    <tr key={idx} style={tr} className="table-tr">
-                      <td style={td} className="table-td">{inv.clientName}</td>
-                      <td style={td} className="table-td">{inv.amount}</td>
-                      <td style={{ ...td, color: '#3b82f6' }} className="table-td">{inv.dueInDays} days</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Section>
-          )}
-
-          {/* Overdue Invoices */}
-          {overdueInvoices && overdueInvoices.length > 0 && (
-            <Section style={section}>
-              <Heading style={sectionTitle} className="text-primary">Overdue Invoices</Heading>
-              <table style={table}>
-                <thead>
-                  <tr>
-                    <th style={th} className="table-th">Client</th>
-                    <th style={th} className="table-th">Amount</th>
-                    <th style={th} className="table-th">Days Overdue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {overdueInvoices.slice(0, 10).map((inv, idx) => ( // show top 10
-                    <tr key={idx} style={tr} className="table-tr">
-                      <td style={td} className="table-td">{inv.clientName}</td>
-                      <td style={td} className="table-td">{inv.amount}</td>
-                      <td style={{ ...td, color: '#ef4444' }} className="table-td">{inv.daysOverdue} days</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Section>
-          )}
-
-          {/* Promises this Week */}
-          {promisesThisWeek && promisesThisWeek.length > 0 && (
-            <Section style={section}>
-              <Heading style={sectionTitle} className="text-primary">Promises Due This Week (Unpaid)</Heading>
-              <table style={table}>
-                <thead>
-                  <tr>
-                    <th style={th} className="table-th">Client</th>
-                    <th style={th} className="table-th">Amount</th>
-                    <th style={th} className="table-th">Due Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {promisesThisWeek.map((prom, idx) => (
-                    <tr key={idx} style={tr} className="table-tr">
-                      <td style={td} className="table-td">{prom.clientName}</td>
-                      <td style={td} className="table-td">{prom.amount}</td>
-                      <td style={td} className="table-td">{prom.dueDate}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Section>
-          )}
-
-          {/* Payments Received */}
-          {paymentsReceived && paymentsReceived.length > 0 && (
-            <Section style={section}>
-              <Heading style={sectionTitle} className="text-primary">Payments Received</Heading>
-              <table style={table}>
-                <thead>
-                  <tr>
-                    <th style={th} className="table-th">Client</th>
-                    <th style={th} className="table-th">Amount</th>
-                    <th style={th} className="table-th">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paymentsReceived.map((pay, idx) => (
-                    <tr key={idx} style={tr} className="table-tr">
-                      <td style={td} className="table-td">{pay.clientName}</td>
-                      <td style={{ ...td, color: '#10b981' }} className="table-td">{pay.amount}</td>
-                      <td style={td} className="table-td">{pay.date}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Section>
-          )}
+          ))}
 
           {/* CTA */}
           <Section style={ctaSection}>
@@ -279,7 +292,6 @@ export const WeeklyDigestEmail = ({
             </Button>
           </Section>
 
-          <Hr style={hr} className="hr" />
           <Section>
             <Text style={footerText} className="text-secondary">
               You are receiving this because you have the Weekly Digest enabled in your Duely settings.
@@ -326,6 +338,31 @@ const logoText = {
   margin: "0 0 10px 0",
 };
 
+const currencyTitle = {
+  fontSize: "20px",
+  lineHeight: "1.3",
+  fontWeight: "600",
+  color: "#18181b",
+  margin: "0 0 15px 0",
+  paddingBottom: "10px",
+  borderBottom: "2px solid #3b82f6",
+  display: "inline-block",
+};
+
+const chartTitle = {
+  fontSize: "14px",
+  fontWeight: "600",
+  color: "#18181b",
+  margin: "0 0 5px 0",
+  textAlign: "center" as const,
+};
+
+const chartContainer = {
+  padding: "10px",
+  backgroundColor: "#09090b", // explicitly dark so QuickChart renders well with transparent background
+  borderRadius: "8px",
+};
+
 const heading = {
   fontSize: "22px",
   lineHeight: "1.3",
@@ -361,7 +398,7 @@ const actionListItem = {
 };
 
 const metricsSection = {
-  marginBottom: "30px",
+  marginBottom: "20px",
 };
 
 const metricCard = {
@@ -370,10 +407,11 @@ const metricCard = {
   borderRadius: "8px",
   marginRight: "10px",
   textAlign: "center" as const,
+  width: "33%"
 };
 
 const metricLabel = {
-  fontSize: "12px",
+  fontSize: "11px",
   textTransform: "uppercase" as const,
   color: "#71717a", // zinc-500
   letterSpacing: "0.5px",
@@ -381,14 +419,14 @@ const metricLabel = {
 };
 
 const metricValue = {
-  fontSize: "20px",
+  fontSize: "18px",
   fontWeight: "bold",
   color: "#18181b", // zinc-900
   margin: "0",
 };
 
 const metricValueOverdue = {
-  fontSize: "20px",
+  fontSize: "18px",
   fontWeight: "bold",
   color: "#ef4444", // red-500
   margin: "0",
@@ -403,18 +441,6 @@ const sectionTitle = {
   fontWeight: "600",
   color: "#18181b",
   margin: "0 0 15px 0",
-};
-
-const agingContainer = {
-  padding: "15px",
-  backgroundColor: "#f4f4f5", // zinc-100
-  borderRadius: "8px",
-};
-
-const agingLabel = {
-  fontSize: "13px",
-  color: "#52525b", // zinc-600
-  marginBottom: "4px",
 };
 
 const table = {
