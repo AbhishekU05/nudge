@@ -5,16 +5,21 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getDaysOverdue } from "@/lib/types";
 import { logger } from "@/lib/logger";
 
-export async function sendWeeklyDigestEmails() {
+export async function sendWeeklyDigestEmails(targetUserId?: string) {
   const supabase = createSupabaseAdminClient();
   const resend = getResendClient();
 
-  // Fetch all active invoices with remaining balance
-  const { data: invoices, error: invoicesError } = await supabase
-    .from("invoices")
-    .select("*")
-    .eq("active", true)
-    .gt("amount_owed", 0);
+    let query = supabase
+      .from("invoices")
+      .select("*")
+      .eq("active", true)
+      .gt("amount_owed", 0);
+
+    if (targetUserId) {
+      query = query.eq("user_id", targetUserId);
+    }
+
+    const { data: invoices, error: invoicesError } = await query;
 
   if (invoicesError || !invoices) {
     logger.error({ message: "Failed to fetch invoices for digest", error: invoicesError, context: "sendWeeklyDigestEmails" });

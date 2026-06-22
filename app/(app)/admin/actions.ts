@@ -5,9 +5,9 @@ import { sendWeeklyDigestEmails } from "@/lib/email/send-digest";
 import { revalidatePath } from "next/cache";
 
 export async function testDigestEmail() {
-  await requireAdmin();
+  const user = await requireAdmin();
   
-  const result = await sendWeeklyDigestEmails();
+  const result = await sendWeeklyDigestEmails(user.id);
   
   if (result.success) {
     console.log(`Sent ${result.count} digest emails.`);

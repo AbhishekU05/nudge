@@ -29,8 +29,8 @@ export default async function AdminDashboardPage() {
                   Weekly Digest Email
                 </CardTitle>
                 <CardDescription>
-                  Manually trigger the weekly snapshot email for all users.
-                  This will actually send emails, so use with caution.
+                  Manually trigger the weekly snapshot email. 
+                  This test button will ONLY send the digest to your own admin email address.
                 </CardDescription>
               </CardHeader>
               <CardContent>
