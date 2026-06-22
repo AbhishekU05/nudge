@@ -226,6 +226,16 @@ function normalizeEmail(email: string | null | undefined) {
   return email?.trim().toLowerCase() || null;
 }
 
+function toIsoDate(value: Date | string | null | undefined) {
+  if (!value) return null;
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString().slice(0, 10);
+}
+
 async function getQuickBooksIntegration(userId: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
@@ -376,8 +386,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
     const newlyPaid = amountPaid - existingAmountPaid;
     const qbNotes = invoice.DocNumber ? `QB Doc: ${invoice.DocNumber}` : null;
     
-    const paymentDateStr = invoice.MetaData?.LastUpdatedTime || new Date().toISOString();
-    const paymentDate = new Date(paymentDateStr).toISOString().slice(0, 10);
+    const paymentDate = toIsoDate(invoice.MetaData?.LastUpdatedTime) || new Date().toISOString().slice(0, 10);
 
     if (totalAmount <= 0) {
       result.skipped += 1;
