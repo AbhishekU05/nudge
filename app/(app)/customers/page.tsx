@@ -28,6 +28,24 @@ export default async function CustomersPage() {
   const clientsList = clients || [];
   const invoicesList = invoices || [];
 
+  const clientsWithData = clientsList.map((client) => {
+    const clientInvoices = invoicesList.filter(i => i.customer_id === client.id || (i.recipient_name === client.name));
+    
+    const totalOwed = clientInvoices.reduce((sum, inv) => {
+      if (inv.workflow_status === "paid" || inv.workflow_status === "written_off") return sum;
+      return sum + getRemainingBalance(inv);
+    }, 0);
+
+    const currency = clientInvoices[0]?.currency || "USD";
+
+    return {
+      ...client,
+      clientInvoices,
+      totalOwed,
+      currency
+    };
+  }).sort((a, b) => b.totalOwed - a.totalOwed);
+
   return (
     <div className="flex min-h-screen flex-col">
       <main id="main-content" className="flex-1">
@@ -63,37 +81,27 @@ export default async function CustomersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
-                {clientsList.length === 0 ? (
+                {clientsWithData.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="p-8 text-center text-zinc-500">
                       No customers found. Sync from Xero/Quickbooks or add one manually.
                     </td>
                   </tr>
                 ) : (
-                  clientsList.map((client) => {
-                    const clientInvoices = invoicesList.filter(i => i.customer_id === client.id || (i.recipient_name === client.name));
-                    
-                    const totalOwed = clientInvoices.reduce((sum, inv) => {
-                      if (inv.workflow_status === "paid" || inv.workflow_status === "written_off") return sum;
-                      return sum + getRemainingBalance(inv);
-                    }, 0);
-
-                    // Grab currency from the first invoice, default to USD
-                    const currency = clientInvoices[0]?.currency || "USD";
-                    
+                  clientsWithData.map(({ id, name, email, clientInvoices, totalOwed, currency }) => {
                     const formattedTotal = new Intl.NumberFormat(undefined, {
                       style: "currency",
                       currency
                     }).format(totalOwed);
 
                     return (
-                      <tr key={client.id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="px-4 py-4 font-medium text-zinc-200">{client.name}</td>
-                        <td className="px-4 py-4">{client.email || "—"}</td>
+                      <tr key={id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="px-4 py-4 font-medium text-zinc-200">{name}</td>
+                        <td className="px-4 py-4">{email || "—"}</td>
                         <td className="px-4 py-4 text-right font-medium text-zinc-200">{formattedTotal}</td>
                         <td className="px-4 py-4 text-right">{clientInvoices.length}</td>
                         <td className="px-4 py-4 text-right">
-                          <Link href={`/customers/${client.id}`}>
+                          <Link href={`/customers/${id}`}>
                             <Button variant="ghost" size="sm" className="h-8 gap-1 text-zinc-400 hover:text-zinc-100">
                               View <ArrowRight className="h-3.5 w-3.5" />
                             </Button>

@@ -9,11 +9,7 @@ const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
 async function run() {
-  const { data: users } = await supabase.auth.admin.listUsers();
-  const user = users.users.find(u => u.email === "a.upadhya05@gmail.com");
-  if (user) {
-    const { data: events } = await supabase.from("customer_events").select("*").eq("user_id", user.id);
-    console.log("Events:", events);
-  }
+  const { data, error } = await supabase.from("customer_events").select("*").limit(1);
+  console.log("Error:", error);
 }
 run();

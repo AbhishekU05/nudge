@@ -418,7 +418,7 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
 
       if (newlyPaid > 0) {
         newPaymentLogs.push({
-          customer_id: existing.id,
+          invoice_id: existing.id,
           user_id: userId,
           event_type: "payment",
           event_date: new Date().toISOString().slice(0, 10),
@@ -462,7 +462,7 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
 
     if (newlyPaid > 0 && newCustomer) {
       newPaymentLogs.push({
-        customer_id: newCustomer.id,
+        invoice_id: newCustomer.id,
         user_id: userId,
         event_type: "payment",
         event_date: new Date().toISOString().slice(0, 10),

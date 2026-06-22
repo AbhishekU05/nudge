@@ -38,7 +38,7 @@ export function CollectionTrendWidget({ events, currency = "USD" }: { events: Cu
 
     events.forEach((event) => {
       if (event.event_type === "payment" && event.amount) {
-        const d = new Date(event.created_at);
+        const d = new Date(event.event_date || event.created_at);
         const monthLabel = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
         if (monthlyTotals[monthLabel] !== undefined) {
           monthlyTotals[monthLabel] += Number(event.amount);
