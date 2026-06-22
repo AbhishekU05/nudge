@@ -337,8 +337,10 @@ const chartTitle = {
 
 const chartContainer = {
   padding: "10px",
-  backgroundColor: "#f4f4f5", // zinc-100 to match metrics cards
+  backgroundColor: "#ffffff", // white to match metrics cards
+  border: "1px solid #e4e4e7", // light border
   borderRadius: "8px",
+  boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
 };
 
 const heading = {
@@ -381,11 +383,13 @@ const metricsSection = {
 
 const metricCard = {
   padding: "15px",
-  backgroundColor: "#f4f4f5", // zinc-100
+  backgroundColor: "#ffffff", // white
+  border: "1px solid #e4e4e7", // light border (zinc-200)
   borderRadius: "8px",
   marginRight: "10px",
   textAlign: "center" as const,
-  width: "33%"
+  width: "33%",
+  boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)", // subtle shadow
 };
 
 const metricLabel = {
