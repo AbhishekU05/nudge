@@ -99,8 +99,12 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
     let overdueCount = 0;
     
     const overdueInvoicesList: any[] = [];
+    const upcomingInvoicesList: any[] = [];
     const promisesThisWeekList: any[] = [];
     const paymentsReceivedList: any[] = [];
+    const actionItemsList: string[] = [];
+
+    const agingBuckets = { "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
 
     invoices.forEach(inv => {
       const remaining = Number(inv.amount_owed) - Number(inv.amount_paid);
@@ -114,12 +118,36 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       if (daysOverdue !== null) {
         totalOver += remaining;
         overdueCount++;
+
+        // Aging
+        if (daysOverdue <= 30) agingBuckets["1-30"] += remaining;
+        else if (daysOverdue <= 60) agingBuckets["31-60"] += remaining;
+        else if (daysOverdue <= 90) agingBuckets["61-90"] += remaining;
+        else agingBuckets["90+"] += remaining;
+
         overdueInvoicesList.push({
           clientName: inv.recipient_name || "Unknown",
           amount: `${currency} ${remaining.toFixed(2)}`,
           daysOverdue: daysOverdue,
           lastContact: inv.last_sent_at ? new Date(inv.last_sent_at).toLocaleDateString() : undefined
         });
+
+        // Action items (e.g. if > 15 days overdue)
+        if (daysOverdue > 15 && overdueInvoicesList.length <= 5) {
+          actionItemsList.push(`Follow up with ${inv.recipient_name || "Unknown"} on ${currency} ${remaining.toFixed(2)} (${daysOverdue} days overdue)`);
+        }
+      } else if (inv.due_date) {
+        // Upcoming in next 14 days?
+        const due = new Date(inv.due_date);
+        const diffTime = due.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays >= 0 && diffDays <= 14) {
+          upcomingInvoicesList.push({
+            clientName: inv.recipient_name || "Unknown",
+            amount: `${currency} ${remaining.toFixed(2)}`,
+            dueInDays: diffDays
+          });
+        }
       }
 
       // Promises due this week
@@ -149,7 +177,8 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       });
     }
 
-    // Sort overdue by days overdue desc
+    // Sort upcoming by days due asc
+    upcomingInvoicesList.sort((a, b) => a.dueInDays - b.dueInDays);
     overdueInvoicesList.sort((a, b) => b.daysOverdue - a.daysOverdue);
 
     // Render React Email
@@ -164,8 +193,11 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           totalOverdue: formatter.format(totalOver),
           overdueCount,
           overdueInvoices: overdueInvoicesList,
+          upcomingInvoices: upcomingInvoicesList,
           promisesThisWeek: promisesThisWeekList,
-          paymentsReceived: paymentsReceivedList
+          paymentsReceived: paymentsReceivedList,
+          agingBuckets,
+          actionItems: actionItemsList
         })
       );
 

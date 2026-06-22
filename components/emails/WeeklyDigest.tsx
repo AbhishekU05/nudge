@@ -5,7 +5,6 @@ import {
   Heading,
   Hr,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -21,6 +20,17 @@ interface WeeklyDigestEmailProps {
   totalOutstanding: string;
   totalOverdue: string;
   overdueCount: number;
+  agingBuckets: {
+    "1-30": number;
+    "31-60": number;
+    "61-90": number;
+    "90+": number;
+  };
+  upcomingInvoices: {
+    clientName: string;
+    amount: string;
+    dueInDays: number;
+  }[];
   overdueInvoices: {
     clientName: string;
     amount: string;
@@ -37,6 +47,7 @@ interface WeeklyDigestEmailProps {
     amount: string;
     date: string;
   }[];
+  actionItems: string[];
 }
 
 export const WeeklyDigestEmail = ({
@@ -44,10 +55,16 @@ export const WeeklyDigestEmail = ({
   totalOutstanding,
   totalOverdue,
   overdueCount,
+  agingBuckets,
+  upcomingInvoices,
   overdueInvoices,
   promisesThisWeek,
-  paymentsReceived
+  paymentsReceived,
+  actionItems
 }: WeeklyDigestEmailProps) => {
+  const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  const totalAging = Object.values(agingBuckets).reduce((a, b) => a + b, 0) || 1; // prevent div by zero
+
   return (
     <Html>
       <Head />
@@ -59,6 +76,18 @@ export const WeeklyDigestEmail = ({
             <Heading style={heading}>Your weekly collections snapshot</Heading>
             <Text style={dateText}>{dateRange}</Text>
           </Section>
+
+          {/* Action Items */}
+          {actionItems && actionItems.length > 0 && (
+            <Section style={actionItemsSection}>
+              <Heading style={sectionTitle}>Action Items</Heading>
+              <ul style={actionList}>
+                {actionItems.map((item, idx) => (
+                  <li key={idx} style={actionListItem}>• {item}</li>
+                ))}
+              </ul>
+            </Section>
+          )}
 
           {/* Metrics Row */}
           <Section style={metricsSection}>
@@ -78,8 +107,52 @@ export const WeeklyDigestEmail = ({
             </Row>
           </Section>
 
+          {/* Aging Analytics (Horizontal Bar) */}
+          <Section style={section}>
+            <Heading style={sectionTitle}>Aging Overview</Heading>
+            <div style={agingContainer}>
+              {Object.entries(agingBuckets).map(([label, value], i) => {
+                const percent = Math.max(2, (value / totalAging) * 100);
+                const colors = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444"];
+                return (
+                  <div key={label} style={{ marginBottom: '10px' }}>
+                    <Text style={agingLabel}>{label} Days: {formatter.format(value)}</Text>
+                    <div style={{ width: '100%', backgroundColor: '#27272a', borderRadius: '4px', height: '8px' }}>
+                      <div style={{ width: `${percent}%`, backgroundColor: colors[i], borderRadius: '4px', height: '8px' }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
+
+          {/* Upcoming Invoices */}
+          {upcomingInvoices && upcomingInvoices.length > 0 && (
+            <Section style={section}>
+              <Heading style={sectionTitle}>Upcoming in 14 Days</Heading>
+              <table style={table}>
+                <thead>
+                  <tr>
+                    <th style={th}>Client</th>
+                    <th style={th}>Amount</th>
+                    <th style={th}>Due In</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {upcomingInvoices.map((inv, idx) => (
+                    <tr key={idx} style={tr}>
+                      <td style={td}>{inv.clientName}</td>
+                      <td style={td}>{inv.amount}</td>
+                      <td style={{ ...td, color: '#3b82f6' }}>{inv.dueInDays} days</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Section>
+          )}
+
           {/* Overdue Invoices */}
-          {overdueInvoices.length > 0 && (
+          {overdueInvoices && overdueInvoices.length > 0 && (
             <Section style={section}>
               <Heading style={sectionTitle}>Overdue Invoices</Heading>
               <table style={table}>
@@ -88,16 +161,14 @@ export const WeeklyDigestEmail = ({
                     <th style={th}>Client</th>
                     <th style={th}>Amount</th>
                     <th style={th}>Days Overdue</th>
-                    <th style={th}>Last Contact</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {overdueInvoices.map((inv, idx) => (
+                  {overdueInvoices.slice(0, 10).map((inv, idx) => ( // show top 10
                     <tr key={idx} style={tr}>
                       <td style={td}>{inv.clientName}</td>
                       <td style={td}>{inv.amount}</td>
-                      <td style={{ ...td, color: '#e53e3e', fontWeight: 'bold' }}>{inv.daysOverdue} days</td>
-                      <td style={td}>{inv.lastContact || 'None'}</td>
+                      <td style={{ ...td, color: '#ef4444' }}>{inv.daysOverdue} days</td>
                     </tr>
                   ))}
                 </tbody>
@@ -106,7 +177,7 @@ export const WeeklyDigestEmail = ({
           )}
 
           {/* Promises this Week */}
-          {promisesThisWeek.length > 0 && (
+          {promisesThisWeek && promisesThisWeek.length > 0 && (
             <Section style={section}>
               <Heading style={sectionTitle}>Promises Due This Week (Unpaid)</Heading>
               <table style={table}>
@@ -131,9 +202,9 @@ export const WeeklyDigestEmail = ({
           )}
 
           {/* Payments Received */}
-          {paymentsReceived.length > 0 && (
+          {paymentsReceived && paymentsReceived.length > 0 && (
             <Section style={section}>
-              <Heading style={sectionTitle}>Payments Received This Week</Heading>
+              <Heading style={sectionTitle}>Payments Received</Heading>
               <table style={table}>
                 <thead>
                   <tr>
@@ -146,7 +217,7 @@ export const WeeklyDigestEmail = ({
                   {paymentsReceived.map((pay, idx) => (
                     <tr key={idx} style={tr}>
                       <td style={td}>{pay.clientName}</td>
-                      <td style={{ ...td, color: '#38a169', fontWeight: 'bold' }}>{pay.amount}</td>
+                      <td style={{ ...td, color: '#10b981' }}>{pay.amount}</td>
                       <td style={td}>{pay.date}</td>
                     </tr>
                   ))}
@@ -158,7 +229,7 @@ export const WeeklyDigestEmail = ({
           {/* CTA */}
           <Section style={ctaSection}>
             <Button href="https://duely.in/dashboard" style={button}>
-              View Dashboard
+              View Full Dashboard
             </Button>
           </Section>
 
@@ -176,44 +247,71 @@ export const WeeklyDigestEmail = ({
 
 export default WeeklyDigestEmail;
 
+/* 
+  DARK THEME STYLES 
+  Mimicking Duely's zinc-950 / zinc-900 / blue-600 palette 
+*/
+
 const main = {
-  backgroundColor: "#f6f9fc",
+  backgroundColor: "#09090b", // zinc-950
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+  color: "#fafafa",
 };
 
 const container = {
-  backgroundColor: "#ffffff",
+  backgroundColor: "#18181b", // zinc-900
   margin: "0 auto",
   padding: "40px 20px",
-  borderRadius: "8px",
+  borderRadius: "12px",
   maxWidth: "600px",
+  border: "1px solid #27272a", // zinc-800
 };
 
 const header = {
   paddingBottom: "20px",
-  borderBottom: "1px solid #e2e8f0",
+  borderBottom: "1px solid #27272a",
   marginBottom: "30px",
 };
 
 const logoText = {
   fontSize: "24px",
   fontWeight: "bold",
-  color: "#1a202c",
+  color: "#fafafa",
   margin: "0 0 10px 0",
 };
 
 const heading = {
-  fontSize: "24px",
+  fontSize: "22px",
   lineHeight: "1.3",
-  fontWeight: "700",
-  color: "#1a202c",
+  fontWeight: "600",
+  color: "#fafafa",
   margin: "0 0 5px 0",
 };
 
 const dateText = {
   fontSize: "14px",
-  color: "#718096",
+  color: "#a1a1aa", // zinc-400
   margin: "0",
+};
+
+const actionItemsSection = {
+  backgroundColor: "rgba(59, 130, 246, 0.1)", // faint blue
+  borderLeft: "4px solid #3b82f6", // blue-500
+  padding: "15px",
+  marginBottom: "30px",
+  borderRadius: "0 8px 8px 0",
+};
+
+const actionList = {
+  margin: 0,
+  padding: 0,
+  listStyle: "none",
+};
+
+const actionListItem = {
+  color: "#bfdbfe", // blue-200
+  fontSize: "14px",
+  marginBottom: "6px",
 };
 
 const metricsSection = {
@@ -222,8 +320,8 @@ const metricsSection = {
 
 const metricCard = {
   padding: "15px",
-  backgroundColor: "#f7fafc",
-  borderRadius: "6px",
+  backgroundColor: "#27272a", // zinc-800
+  borderRadius: "8px",
   marginRight: "10px",
   textAlign: "center" as const,
 };
@@ -231,7 +329,7 @@ const metricCard = {
 const metricLabel = {
   fontSize: "12px",
   textTransform: "uppercase" as const,
-  color: "#718096",
+  color: "#a1a1aa", // zinc-400
   letterSpacing: "0.5px",
   margin: "0 0 5px 0",
 };
@@ -239,14 +337,14 @@ const metricLabel = {
 const metricValue = {
   fontSize: "20px",
   fontWeight: "bold",
-  color: "#2d3748",
+  color: "#fafafa", // zinc-50
   margin: "0",
 };
 
 const metricValueOverdue = {
   fontSize: "20px",
   fontWeight: "bold",
-  color: "#e53e3e",
+  color: "#ef4444", // red-500
   margin: "0",
 };
 
@@ -255,10 +353,22 @@ const section = {
 };
 
 const sectionTitle = {
-  fontSize: "18px",
+  fontSize: "16px",
   fontWeight: "600",
-  color: "#2d3748",
+  color: "#fafafa",
   margin: "0 0 15px 0",
+};
+
+const agingContainer = {
+  padding: "15px",
+  backgroundColor: "#1f1f22", // dark gray
+  borderRadius: "8px",
+};
+
+const agingLabel = {
+  fontSize: "13px",
+  color: "#d4d4d8", // zinc-300
+  marginBottom: "4px",
 };
 
 const table = {
@@ -269,33 +379,33 @@ const table = {
 const th = {
   textAlign: "left" as const,
   padding: "10px",
-  borderBottom: "2px solid #e2e8f0",
-  color: "#4a5568",
+  borderBottom: "1px solid #3f3f46", // zinc-700
+  color: "#a1a1aa", // zinc-400
   fontSize: "12px",
   textTransform: "uppercase" as const,
 };
 
 const tr = {
-  borderBottom: "1px solid #e2e8f0",
+  borderBottom: "1px solid #27272a", // zinc-800
 };
 
 const td = {
   padding: "12px 10px",
-  color: "#2d3748",
+  color: "#e4e4e7", // zinc-200
   fontSize: "14px",
 };
 
 const ctaSection = {
   textAlign: "center" as const,
   marginTop: "40px",
-  marginBottom: "40px",
+  marginBottom: "30px",
 };
 
 const button = {
-  backgroundColor: "#1a202c",
-  borderRadius: "6px",
+  backgroundColor: "#2563eb", // blue-600
+  borderRadius: "8px",
   color: "#ffffff",
-  fontSize: "16px",
+  fontSize: "14px",
   textDecoration: "none",
   textAlign: "center" as const,
   display: "inline-block",
@@ -304,12 +414,12 @@ const button = {
 };
 
 const hr = {
-  borderColor: "#e2e8f0",
+  borderColor: "#27272a", // zinc-800
   margin: "20px 0",
 };
 
 const footerText = {
-  color: "#a0aec0",
+  color: "#71717a", // zinc-500
   fontSize: "12px",
   textAlign: "center" as const,
 };
