@@ -38,6 +38,10 @@ function isAuthorized(request: Request) {
 export async function POST(request: Request) {
   const requestId = crypto.randomUUID();
 
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("integrations")
@@ -51,15 +55,12 @@ export async function POST(request: Request) {
 
   let success = 0;
   let failed = 0;
-  let finalError = null;
 
   for (const integration of data ?? []) {
     try {
       await syncXeroInvoicesForUser(integration.user_id);
       success += 1;
     } catch (syncError) {
-      console.error("SYNC FAILED FOR USER", integration.user_id, syncError);
-      finalError = syncError;
       failed += 1;
       logger.error({
         message: "Scheduled Xero sync failed",

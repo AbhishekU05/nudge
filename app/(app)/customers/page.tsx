@@ -1,4 +1,4 @@
-import { UserRound, ArrowRight, Download } from "lucide-react";
+import { UserRound, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Container } from "@/components/site/container";
 import { Button } from "@/components/ui/button";
@@ -59,13 +59,9 @@ export default async function CustomersPage() {
                 View all your customers and their aggregated balances across all invoices.
               </p>
             </div>
-            <div className="flex shrink-0 flex-col sm:flex-row gap-3 sm:items-center">
-              <Button variant="outline" className="w-full sm:w-auto gap-2 bg-transparent text-zinc-300 border-white/10 hover:bg-white/[0.05] hover:text-white" disabled>
-                <Download className="h-4 w-4" />
-                Export CSV
-              </Button>
+            <div className="flex shrink-0 flex-col gap-3 sm:items-end">
               <Link href="/customers/new">
-                <Button className="w-full sm:w-auto gap-2 bg-white text-zinc-950 hover:bg-zinc-200">
+                <Button className="w-full sm:w-auto gap-2">
                   <UserRound className="h-4 w-4" />
                   Add customer
                 </Button>

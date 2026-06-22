@@ -1,19 +1,16 @@
-const fs = require('fs');
-const env = fs.readFileSync('.env.local', 'utf8').split('\n').reduce((acc, line) => {
-  const [key, ...val] = line.split('=');
-  if (key) acc[key] = val.join('=').replace(/^"|"$/g, '');
-  return acc;
-}, {});
-
 const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+require('dotenv').config({ path: '.env.local' });
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function run() {
-  const { data: users } = await supabase.auth.admin.listUsers();
-  const user = users.users.find(u => u.email === "a.upadhya05@gmail.com");
-  if (user) {
-    const { data: invoices } = await supabase.from("invoices").select("*").eq("user_id", user.id);
-    console.log("Total Invoices:", invoices.length);
+  const { data } = await supabase.from("auth.users").select("*").eq("email", "a.upadhya05@gmail.com");
+  console.log("Users:", data);
+  if (data && data.length > 0) {
+    const { data: invoices } = await supabase.from("invoices").select("invoice_number, amount_owed, workflow_status, active").eq("user_id", data[0].id);
+    console.log("Invoices:", invoices);
   }
 }
 run();

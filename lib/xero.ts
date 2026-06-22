@@ -389,7 +389,8 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
     const internalNotes = invoice.reference ? `Xero Reference: ${invoice.reference}` : null;
     
     // Parse payment date if available, fallback to today
-    const paymentDate = toIsoDate(invoice.fullyPaidOnDate) || toIsoDate(invoice.updatedDateUTC as any) || new Date().toISOString().slice(0, 10);
+    const paymentDateStr = invoice.fullyPaidOnDate || invoice.updatedDateUTC?.toISOString() || new Date().toISOString();
+    const paymentDate = paymentDateStr.substring(0, 10);
 
     if (amountOwed <= 0) {
       result.skipped += 1;
