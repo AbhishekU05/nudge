@@ -75,23 +75,43 @@ export const WeeklyDigestEmail = ({
 
   return (
     <Html>
-      <Head />
+      <Head>
+        <style>
+          {`
+            @media (prefers-color-scheme: dark) {
+              .main { background-color: #09090b !important; color: #fafafa !important; }
+              .container { background-color: #18181b !important; border-color: #27272a !important; }
+              .header { border-color: #27272a !important; }
+              .text-primary { color: #fafafa !important; }
+              .text-secondary { color: #a1a1aa !important; }
+              .action-item { color: #bfdbfe !important; }
+              .card { background-color: #27272a !important; }
+              .aging-container { background-color: #1f1f22 !important; }
+              .aging-track { background-color: #27272a !important; }
+              .table-th { border-color: #3f3f46 !important; color: #a1a1aa !important; }
+              .table-tr { border-color: #27272a !important; }
+              .table-td { color: #e4e4e7 !important; }
+              .hr { border-color: #27272a !important; }
+            }
+          `}
+        </style>
+      </Head>
       <Preview>Your weekly collections snapshot - Duely</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          <Section style={header}>
-            <Text style={logoText}>Duely</Text>
-            <Heading style={heading}>Your weekly collections snapshot</Heading>
-            <Text style={dateText}>{dateRange}</Text>
+      <Body style={main} className="main">
+        <Container style={container} className="container">
+          <Section style={header} className="header">
+            <Text style={logoText} className="text-primary">Duely</Text>
+            <Heading style={heading} className="text-primary">Your weekly collections snapshot</Heading>
+            <Text style={dateText} className="text-secondary">{dateRange}</Text>
           </Section>
 
           {/* Action Items */}
           {actionItems && actionItems.length > 0 && (
             <Section style={actionItemsSection}>
-              <Heading style={sectionTitle}>Action Items</Heading>
+              <Heading style={sectionTitle} className="text-primary">Action Items</Heading>
               <ul style={actionList}>
                 {actionItems.map((item, idx) => (
-                  <li key={idx} style={actionListItem}>• {item}</li>
+                  <li key={idx} style={actionListItem} className="action-item">• {item}</li>
                 ))}
               </ul>
             </Section>
@@ -100,17 +120,17 @@ export const WeeklyDigestEmail = ({
           {/* Metrics Row 1 */}
           <Section style={metricsSection}>
             <Row>
-              <Column style={metricCard}>
-                <Text style={metricLabel}>Total Outstanding</Text>
-                <Text style={metricValue}>{totalOutstanding}</Text>
+              <Column style={metricCard} className="card">
+                <Text style={metricLabel} className="text-secondary">Total Outstanding</Text>
+                <Text style={metricValue} className="text-primary">{totalOutstanding}</Text>
               </Column>
-              <Column style={metricCard}>
-                <Text style={metricLabel}>Total Overdue</Text>
+              <Column style={metricCard} className="card">
+                <Text style={metricLabel} className="text-secondary">Total Overdue</Text>
                 <Text style={metricValueOverdue}>{totalOverdue}</Text>
               </Column>
-              <Column style={metricCard}>
-                <Text style={metricLabel}>Total Collected</Text>
-                <Text style={metricValue}>{totalCollected}</Text>
+              <Column style={metricCard} className="card">
+                <Text style={metricLabel} className="text-secondary">Total Collected</Text>
+                <Text style={metricValue} className="text-primary">{totalCollected}</Text>
               </Column>
             </Row>
           </Section>
@@ -118,32 +138,32 @@ export const WeeklyDigestEmail = ({
           {/* Metrics Row 2 */}
           <Section style={metricsSection}>
             <Row>
-              <Column style={metricCard}>
-                <Text style={metricLabel}>Avg. Days to Payment</Text>
-                <Text style={metricValue}>{averageDaysToPayment}</Text>
+              <Column style={metricCard} className="card">
+                <Text style={metricLabel} className="text-secondary">Avg. Days to Payment</Text>
+                <Text style={metricValue} className="text-primary">{averageDaysToPayment}</Text>
               </Column>
-              <Column style={metricCard}>
-                <Text style={metricLabel}>Revenue (This Month)</Text>
-                <Text style={metricValue}>{revenueThisMonth}</Text>
+              <Column style={metricCard} className="card">
+                <Text style={metricLabel} className="text-secondary">Revenue (This Month)</Text>
+                <Text style={metricValue} className="text-primary">{revenueThisMonth}</Text>
               </Column>
-              <Column style={metricCard}>
-                <Text style={metricLabel}>Revenue (Last Month)</Text>
-                <Text style={metricValue}>{revenueLastMonth}</Text>
+              <Column style={metricCard} className="card">
+                <Text style={metricLabel} className="text-secondary">Revenue (Last Month)</Text>
+                <Text style={metricValue} className="text-primary">{revenueLastMonth}</Text>
               </Column>
             </Row>
           </Section>
 
           {/* Aging Analytics (Horizontal Bar) */}
           <Section style={section}>
-            <Heading style={sectionTitle}>Aging Overview</Heading>
-            <div style={agingContainer}>
+            <Heading style={sectionTitle} className="text-primary">Aging Overview</Heading>
+            <div style={agingContainer} className="aging-container">
               {Object.entries(agingBuckets).map(([label, value], i) => {
                 const percent = Math.max(2, (value / totalAging) * 100);
                 const colors = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444"];
                 return (
                   <div key={label} style={{ marginBottom: '10px' }}>
-                    <Text style={agingLabel}>{label} Days: {formatter.format(value)}</Text>
-                    <div style={{ width: '100%', backgroundColor: '#27272a', borderRadius: '4px', height: '8px' }}>
+                    <Text style={agingLabel} className="text-secondary">{label} Days: {formatter.format(value)}</Text>
+                    <div style={{ width: '100%', backgroundColor: '#e4e4e7', borderRadius: '4px', height: '8px' }} className="aging-track">
                       <div style={{ width: `${percent}%`, backgroundColor: colors[i], borderRadius: '4px', height: '8px' }} />
                     </div>
                   </div>
@@ -155,21 +175,21 @@ export const WeeklyDigestEmail = ({
           {/* Upcoming Invoices */}
           {upcomingInvoices && upcomingInvoices.length > 0 && (
             <Section style={section}>
-              <Heading style={sectionTitle}>Upcoming in 14 Days</Heading>
+              <Heading style={sectionTitle} className="text-primary">Upcoming in 14 Days</Heading>
               <table style={table}>
                 <thead>
                   <tr>
-                    <th style={th}>Client</th>
-                    <th style={th}>Amount</th>
-                    <th style={th}>Due In</th>
+                    <th style={th} className="table-th">Client</th>
+                    <th style={th} className="table-th">Amount</th>
+                    <th style={th} className="table-th">Due In</th>
                   </tr>
                 </thead>
                 <tbody>
                   {upcomingInvoices.map((inv, idx) => (
-                    <tr key={idx} style={tr}>
-                      <td style={td}>{inv.clientName}</td>
-                      <td style={td}>{inv.amount}</td>
-                      <td style={{ ...td, color: '#3b82f6' }}>{inv.dueInDays} days</td>
+                    <tr key={idx} style={tr} className="table-tr">
+                      <td style={td} className="table-td">{inv.clientName}</td>
+                      <td style={td} className="table-td">{inv.amount}</td>
+                      <td style={{ ...td, color: '#3b82f6' }} className="table-td">{inv.dueInDays} days</td>
                     </tr>
                   ))}
                 </tbody>
@@ -180,21 +200,21 @@ export const WeeklyDigestEmail = ({
           {/* Overdue Invoices */}
           {overdueInvoices && overdueInvoices.length > 0 && (
             <Section style={section}>
-              <Heading style={sectionTitle}>Overdue Invoices</Heading>
+              <Heading style={sectionTitle} className="text-primary">Overdue Invoices</Heading>
               <table style={table}>
                 <thead>
                   <tr>
-                    <th style={th}>Client</th>
-                    <th style={th}>Amount</th>
-                    <th style={th}>Days Overdue</th>
+                    <th style={th} className="table-th">Client</th>
+                    <th style={th} className="table-th">Amount</th>
+                    <th style={th} className="table-th">Days Overdue</th>
                   </tr>
                 </thead>
                 <tbody>
                   {overdueInvoices.slice(0, 10).map((inv, idx) => ( // show top 10
-                    <tr key={idx} style={tr}>
-                      <td style={td}>{inv.clientName}</td>
-                      <td style={td}>{inv.amount}</td>
-                      <td style={{ ...td, color: '#ef4444' }}>{inv.daysOverdue} days</td>
+                    <tr key={idx} style={tr} className="table-tr">
+                      <td style={td} className="table-td">{inv.clientName}</td>
+                      <td style={td} className="table-td">{inv.amount}</td>
+                      <td style={{ ...td, color: '#ef4444' }} className="table-td">{inv.daysOverdue} days</td>
                     </tr>
                   ))}
                 </tbody>
@@ -205,21 +225,21 @@ export const WeeklyDigestEmail = ({
           {/* Promises this Week */}
           {promisesThisWeek && promisesThisWeek.length > 0 && (
             <Section style={section}>
-              <Heading style={sectionTitle}>Promises Due This Week (Unpaid)</Heading>
+              <Heading style={sectionTitle} className="text-primary">Promises Due This Week (Unpaid)</Heading>
               <table style={table}>
                 <thead>
                   <tr>
-                    <th style={th}>Client</th>
-                    <th style={th}>Amount</th>
-                    <th style={th}>Due Date</th>
+                    <th style={th} className="table-th">Client</th>
+                    <th style={th} className="table-th">Amount</th>
+                    <th style={th} className="table-th">Due Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {promisesThisWeek.map((prom, idx) => (
-                    <tr key={idx} style={tr}>
-                      <td style={td}>{prom.clientName}</td>
-                      <td style={td}>{prom.amount}</td>
-                      <td style={td}>{prom.dueDate}</td>
+                    <tr key={idx} style={tr} className="table-tr">
+                      <td style={td} className="table-td">{prom.clientName}</td>
+                      <td style={td} className="table-td">{prom.amount}</td>
+                      <td style={td} className="table-td">{prom.dueDate}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -230,21 +250,21 @@ export const WeeklyDigestEmail = ({
           {/* Payments Received */}
           {paymentsReceived && paymentsReceived.length > 0 && (
             <Section style={section}>
-              <Heading style={sectionTitle}>Payments Received</Heading>
+              <Heading style={sectionTitle} className="text-primary">Payments Received</Heading>
               <table style={table}>
                 <thead>
                   <tr>
-                    <th style={th}>Client</th>
-                    <th style={th}>Amount</th>
-                    <th style={th}>Date</th>
+                    <th style={th} className="table-th">Client</th>
+                    <th style={th} className="table-th">Amount</th>
+                    <th style={th} className="table-th">Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paymentsReceived.map((pay, idx) => (
-                    <tr key={idx} style={tr}>
-                      <td style={td}>{pay.clientName}</td>
-                      <td style={{ ...td, color: '#10b981' }}>{pay.amount}</td>
-                      <td style={td}>{pay.date}</td>
+                    <tr key={idx} style={tr} className="table-tr">
+                      <td style={td} className="table-td">{pay.clientName}</td>
+                      <td style={{ ...td, color: '#10b981' }} className="table-td">{pay.amount}</td>
+                      <td style={td} className="table-td">{pay.date}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -259,9 +279,9 @@ export const WeeklyDigestEmail = ({
             </Button>
           </Section>
 
-          <Hr style={hr} />
+          <Hr style={hr} className="hr" />
           <Section>
-            <Text style={footerText}>
+            <Text style={footerText} className="text-secondary">
               You are receiving this because you have the Weekly Digest enabled in your Duely settings.
             </Text>
           </Section>
@@ -274,35 +294,35 @@ export const WeeklyDigestEmail = ({
 export default WeeklyDigestEmail;
 
 /* 
-  DARK THEME STYLES 
-  Mimicking Duely's zinc-950 / zinc-900 / blue-600 palette 
+  LIGHT/DARK THEME STYLES 
+  Defaults to Light, overridden by CSS classes for Dark.
 */
 
 const main = {
-  backgroundColor: "#09090b", // zinc-950
+  backgroundColor: "#f4f4f5", // zinc-100
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
-  color: "#fafafa",
+  color: "#18181b",
 };
 
 const container = {
-  backgroundColor: "#18181b", // zinc-900
+  backgroundColor: "#ffffff",
   margin: "0 auto",
   padding: "40px 20px",
   borderRadius: "12px",
   maxWidth: "600px",
-  border: "1px solid #27272a", // zinc-800
+  border: "1px solid #e4e4e7", // zinc-200
 };
 
 const header = {
   paddingBottom: "20px",
-  borderBottom: "1px solid #27272a",
+  borderBottom: "1px solid #e4e4e7",
   marginBottom: "30px",
 };
 
 const logoText = {
   fontSize: "24px",
   fontWeight: "bold",
-  color: "#fafafa",
+  color: "#18181b",
   margin: "0 0 10px 0",
 };
 
@@ -310,13 +330,13 @@ const heading = {
   fontSize: "22px",
   lineHeight: "1.3",
   fontWeight: "600",
-  color: "#fafafa",
+  color: "#18181b",
   margin: "0 0 5px 0",
 };
 
 const dateText = {
   fontSize: "14px",
-  color: "#a1a1aa", // zinc-400
+  color: "#71717a", // zinc-500
   margin: "0",
 };
 
@@ -335,7 +355,7 @@ const actionList = {
 };
 
 const actionListItem = {
-  color: "#bfdbfe", // blue-200
+  color: "#1d4ed8", // blue-700
   fontSize: "14px",
   marginBottom: "6px",
 };
@@ -346,7 +366,7 @@ const metricsSection = {
 
 const metricCard = {
   padding: "15px",
-  backgroundColor: "#27272a", // zinc-800
+  backgroundColor: "#f4f4f5", // zinc-100
   borderRadius: "8px",
   marginRight: "10px",
   textAlign: "center" as const,
@@ -355,7 +375,7 @@ const metricCard = {
 const metricLabel = {
   fontSize: "12px",
   textTransform: "uppercase" as const,
-  color: "#a1a1aa", // zinc-400
+  color: "#71717a", // zinc-500
   letterSpacing: "0.5px",
   margin: "0 0 5px 0",
 };
@@ -363,7 +383,7 @@ const metricLabel = {
 const metricValue = {
   fontSize: "20px",
   fontWeight: "bold",
-  color: "#fafafa", // zinc-50
+  color: "#18181b", // zinc-900
   margin: "0",
 };
 
@@ -381,19 +401,19 @@ const section = {
 const sectionTitle = {
   fontSize: "16px",
   fontWeight: "600",
-  color: "#fafafa",
+  color: "#18181b",
   margin: "0 0 15px 0",
 };
 
 const agingContainer = {
   padding: "15px",
-  backgroundColor: "#1f1f22", // dark gray
+  backgroundColor: "#f4f4f5", // zinc-100
   borderRadius: "8px",
 };
 
 const agingLabel = {
   fontSize: "13px",
-  color: "#d4d4d8", // zinc-300
+  color: "#52525b", // zinc-600
   marginBottom: "4px",
 };
 
@@ -405,19 +425,19 @@ const table = {
 const th = {
   textAlign: "left" as const,
   padding: "10px",
-  borderBottom: "1px solid #3f3f46", // zinc-700
-  color: "#a1a1aa", // zinc-400
+  borderBottom: "1px solid #e4e4e7", // zinc-200
+  color: "#71717a", // zinc-500
   fontSize: "12px",
   textTransform: "uppercase" as const,
 };
 
 const tr = {
-  borderBottom: "1px solid #27272a", // zinc-800
+  borderBottom: "1px solid #f4f4f5", // zinc-100
 };
 
 const td = {
   padding: "12px 10px",
-  color: "#e4e4e7", // zinc-200
+  color: "#3f3f46", // zinc-700
   fontSize: "14px",
 };
 
@@ -440,12 +460,12 @@ const button = {
 };
 
 const hr = {
-  borderColor: "#27272a", // zinc-800
+  borderColor: "#e4e4e7", // zinc-200
   margin: "20px 0",
 };
 
 const footerText = {
-  color: "#71717a", // zinc-500
+  color: "#a1a1aa", // zinc-400
   fontSize: "12px",
   textAlign: "center" as const,
 };
