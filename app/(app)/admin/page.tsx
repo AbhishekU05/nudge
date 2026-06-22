@@ -3,7 +3,7 @@ import { Container } from "@/components/site/container";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Mail } from "lucide-react";
-import { testDigestEmail } from "./actions";
+import { testDigestEmail, wipeAdminData } from "./actions";
 
 export default async function AdminDashboardPage() {
   await requireAdmin();
@@ -37,6 +37,24 @@ export default async function AdminDashboardPage() {
                 <form action={testDigestEmail}>
                   <Button type="submit" variant="secondary">
                     Send Test Digest
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-red-500/5 border-red-500/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-400">
+                  Wipe Account Data
+                </CardTitle>
+                <CardDescription>
+                  Permanently delete all customers, invoices, events, and drafts for your admin account only. Useful for resetting data before a fresh sync test.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form action={wipeAdminData}>
+                  <Button type="submit" variant="secondary" className="bg-red-500/10 text-red-500 hover:bg-red-500/20">
+                    Wipe My Data
                   </Button>
                 </form>
               </CardContent>

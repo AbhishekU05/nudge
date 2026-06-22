@@ -17,3 +17,16 @@ export async function testDigestEmail() {
   
   revalidatePath("/admin");
 }
+
+export async function wipeAdminData() {
+  const user = await requireAdmin();
+  const { createSupabaseAdminClient } = await import("@/lib/supabase/admin");
+  const supabase = createSupabaseAdminClient();
+  
+  await supabase.from("customer_events").delete().eq("user_id", user.id);
+  await supabase.from("email_drafts").delete().eq("user_id", user.id);
+  await supabase.from("invoices").delete().eq("user_id", user.id);
+  await supabase.from("clients").delete().eq("user_id", user.id);
+  
+  revalidatePath("/");
+}
