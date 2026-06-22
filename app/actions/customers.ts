@@ -228,7 +228,7 @@ export async function recordPartialPayment(formData: FormData) {
     success: true,
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   redirectToDashboard({
     success:
       newStatus === "paid"
@@ -314,7 +314,7 @@ export async function deletePaymentLog(formData: FormData) {
     success: true,
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   revalidatePath("/customers");
   redirectToDashboard({ success: "Payment log deleted and balance updated." });
 }
@@ -408,7 +408,7 @@ export async function markFullyPaid(formData: FormData) {
     success: true,
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   redirectToDashboard({ success: "Customer marked as fully paid." });
 }
 
@@ -459,7 +459,7 @@ export async function undoMarkAsPaid(formData: FormData) {
     success: true,
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   redirectToDashboard({ success: "Payment status reset to outstanding." });
 }
 
@@ -559,7 +559,7 @@ export async function correctAmountPaid(formData: FormData) {
     success: true,
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   redirectToDashboard({
     success:
       newStatus === "paid"
@@ -625,7 +625,7 @@ export async function recordPaymentPromise(formData: FormData) {
     success: true,
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   redirectToDashboard({ success: "Payment promise recorded." });
 }
 
@@ -658,7 +658,7 @@ export async function saveInternalNotes(formData: FormData) {
     redirectToDashboard({ error: "Failed to save notes." });
   }
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   redirectToDashboard({ success: "Notes saved." });
 }
 
@@ -719,7 +719,7 @@ export async function updateWorkflowStatus(formData: FormData) {
     redirectToDashboard({ error: "Failed to update status." });
   }
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   redirectToDashboard({ success: "Status updated." });
 }
 
@@ -792,7 +792,7 @@ export async function updateCustomerEmail(formData: FormData) {
     success: true,
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   redirectToDashboard({ success: "Email updated." });
 }
 
@@ -878,7 +878,7 @@ export async function createCustomer(formData: FormData) {
 
   logger.action({ action_name: "create_customer", user_id: user.id, success: true });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   redirectToDashboard({ success: `${recipientName} added to your pipeline.` });
 }
 
@@ -964,7 +964,7 @@ export async function enableAutomation(formData: FormData) {
     success: true,
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   revalidatePath(`/customers/${clientId}`);
 }
 
@@ -1010,7 +1010,7 @@ export async function deleteCustomer(formData: FormData) {
     success: true,
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   redirectToDashboard({ success: "Customer deleted." });
 }
 
@@ -1063,7 +1063,7 @@ export async function updateDueDate(formData: FormData) {
     success: true,
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   redirectToDashboard({
     success: dueDate ? `Due date set to ${dueDate}.` : "Due date cleared.",
   });
@@ -1157,6 +1157,6 @@ export async function logFollowUp(formData: FormData) {
     success: true,
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
   redirectToDashboard({ success: "Follow-up logged." });
 }

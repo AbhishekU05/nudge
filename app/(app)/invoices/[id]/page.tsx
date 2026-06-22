@@ -47,7 +47,7 @@ export default async function CustomerPage(props: {
         user_id: event.user_id,
         amount: Number(event.amount),
         currency: event.currency ?? "USD",
-        source: (event.source as any) || "user",
+        source: (event.payment_source as any) || "user",
         created_at: event.created_at,
       });
     } else if (event.event_type === "followup") {
@@ -55,10 +55,10 @@ export default async function CustomerPage(props: {
         id: event.id,
         customer_id: event.customer_id,
         user_id: event.user_id,
-        method: event.method as any,
-        outcome: event.outcome as any,
+        method: event.followup_method as any,
+        outcome: event.followup_outcome as any,
         note: event.note,
-        followup_date: event.followup_date,
+        followup_date: event.event_date,
         created_at: event.created_at,
       });
     }
