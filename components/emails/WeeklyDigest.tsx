@@ -19,6 +19,10 @@ interface WeeklyDigestEmailProps {
   dateRange: string;
   totalOutstanding: string;
   totalOverdue: string;
+  totalCollected: string;
+  revenueThisMonth: string;
+  revenueLastMonth: string;
+  averageDaysToPayment: number;
   overdueCount: number;
   agingBuckets: {
     "1-30": number;
@@ -54,6 +58,10 @@ export const WeeklyDigestEmail = ({
   dateRange,
   totalOutstanding,
   totalOverdue,
+  totalCollected,
+  revenueThisMonth,
+  revenueLastMonth,
+  averageDaysToPayment,
   overdueCount,
   agingBuckets,
   upcomingInvoices,
@@ -89,7 +97,7 @@ export const WeeklyDigestEmail = ({
             </Section>
           )}
 
-          {/* Metrics Row */}
+          {/* Metrics Row 1 */}
           <Section style={metricsSection}>
             <Row>
               <Column style={metricCard}>
@@ -101,8 +109,26 @@ export const WeeklyDigestEmail = ({
                 <Text style={metricValueOverdue}>{totalOverdue}</Text>
               </Column>
               <Column style={metricCard}>
-                <Text style={metricLabel}>Overdue Invoices</Text>
-                <Text style={metricValue}>{overdueCount}</Text>
+                <Text style={metricLabel}>Total Collected</Text>
+                <Text style={metricValue}>{totalCollected}</Text>
+              </Column>
+            </Row>
+          </Section>
+
+          {/* Metrics Row 2 */}
+          <Section style={metricsSection}>
+            <Row>
+              <Column style={metricCard}>
+                <Text style={metricLabel}>Avg. Days to Payment</Text>
+                <Text style={metricValue}>{averageDaysToPayment}</Text>
+              </Column>
+              <Column style={metricCard}>
+                <Text style={metricLabel}>Revenue (This Month)</Text>
+                <Text style={metricValue}>{revenueThisMonth}</Text>
+              </Column>
+              <Column style={metricCard}>
+                <Text style={metricLabel}>Revenue (Last Month)</Text>
+                <Text style={metricValue}>{revenueLastMonth}</Text>
               </Column>
             </Row>
           </Section>

@@ -98,6 +98,19 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
     let totalOver = 0;
     let overdueCount = 0;
     
+    let totalCollected = 0;
+    let totalDaysToPayment = 0;
+    let paidCustomersWithDates = 0;
+    let revenueThisMonth = 0;
+    let revenueLastMonth = 0;
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
+    const lastMonth = lastMonthDate.getMonth();
+    const lastMonthYear = lastMonthDate.getFullYear();
+
     const overdueInvoicesList: any[] = [];
     const upcomingInvoicesList: any[] = [];
     const promisesThisWeekList: any[] = [];
@@ -108,10 +121,24 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
 
     invoices.forEach(inv => {
       const remaining = Number(inv.amount_owed) - Number(inv.amount_paid);
-      if (!inv.active || remaining <= 0) return;
-
+      const paid = Number(inv.amount_paid);
       const currency = inv.currency || "USD";
-      totalOut += remaining;
+      
+      totalOut += Math.max(0, remaining);
+      totalCollected += paid;
+
+      const isPaid = remaining <= 0 || inv.client_paid_at;
+      
+      if (isPaid && inv.client_paid_at && inv.due_date) {
+        paidCustomersWithDates++;
+        const invDate = new Date(inv.due_date);
+        const paidDate = new Date(inv.client_paid_at);
+        const diffTime = Math.abs(paidDate.getTime() - invDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        totalDaysToPayment += diffDays;
+      }
+
+      if (remaining <= 0) return;
 
       const daysOverdue = getDaysOverdue(inv as any);
       
@@ -165,7 +192,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       }
     });
 
-    // Payments received
+    // Payments received (and revenue stats)
     if (events) {
       events.forEach(ev => {
         const clientName = ev.invoices?.recipient_name || "Unknown";
@@ -174,6 +201,14 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           amount: `${ev.currency || "USD"} ${Number(ev.amount).toFixed(2)}`,
           date: new Date(ev.created_at).toLocaleDateString()
         });
+
+        // Revenue stats
+        const evDate = new Date(ev.created_at);
+        if (evDate.getMonth() === currentMonth && evDate.getFullYear() === currentYear) {
+          revenueThisMonth += Number(ev.amount) || 0;
+        } else if (evDate.getMonth() === lastMonth && evDate.getFullYear() === lastMonthYear) {
+          revenueLastMonth += Number(ev.amount) || 0;
+        }
       });
     }
 
@@ -191,6 +226,10 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           dateRange,
           totalOutstanding: formatter.format(totalOut),
           totalOverdue: formatter.format(totalOver),
+          totalCollected: formatter.format(totalCollected),
+          revenueThisMonth: formatter.format(revenueThisMonth),
+          revenueLastMonth: formatter.format(revenueLastMonth),
+          averageDaysToPayment: paidCustomersWithDates > 0 ? Math.round(totalDaysToPayment / paidCustomersWithDates) : 0,
           overdueCount,
           overdueInvoices: overdueInvoicesList,
           upcomingInvoices: upcomingInvoicesList,
