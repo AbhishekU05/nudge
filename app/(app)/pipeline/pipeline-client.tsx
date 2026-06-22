@@ -28,7 +28,16 @@ export function PipelineClient({
 }) {
   const getCustomersByStatus = (status: WorkflowStatus) => {
     return initialCustomers
-      .filter((c) => c.workflow_status === status)
+      .filter((c) => {
+        if (c.workflow_status === "paid" || c.workflow_status === "written_off") {
+          return status === c.workflow_status;
+        }
+        
+        const isOverdue = getDaysOverdue(c) !== null;
+        if (status === "overdue") return isOverdue;
+        if (status === "outstanding") return !isOverdue;
+        return false;
+      })
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   };
 

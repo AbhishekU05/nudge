@@ -79,21 +79,24 @@ function normalizePaymentLink(link: string): string | null {
 
 async function insertPaymentLog({
   supabase,
-  customerId,
+  invoiceId,
+  clientId,
   userId,
   amount,
   currency,
   source,
 }: {
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
-  customerId: string;
+  invoiceId: string;
+  clientId: string;
   userId: string;
   amount: number;
   currency: string;
   source: PaymentLogSource;
 }) {
   const { error } = await supabase.from("customer_events").insert({
-    customer_id: customerId,
+    invoice_id: invoiceId,
+    customer_id: clientId,
     user_id: userId,
     event_type: "payment",
     event_date: new Date().toISOString().slice(0, 10),
@@ -148,10 +151,10 @@ export async function recordPartialPayment(formData: FormData) {
   // Fetch the current record to compute new totals
   const { data: customer, error: fetchError } = await supabase
     .from("invoices")
-    .select("amount_owed, amount_paid, currency, xero_invoice_id, quickbooks_invoice_id")
+    .select("amount_owed, amount_paid, currency, xero_invoice_id, quickbooks_invoice_id, customer_id")
     .eq("id", customerId)
     .eq("user_id", user.id)
-    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "amount_paid" | "currency" | "xero_invoice_id" | "quickbooks_invoice_id">>();
+    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "amount_paid" | "currency" | "xero_invoice_id" | "quickbooks_invoice_id" | "customer_id">>();
 
   if (fetchError || !customer) {
     redirectToDashboard({ error: "Customer not found." });
@@ -200,7 +203,8 @@ export async function recordPartialPayment(formData: FormData) {
 
   const logInserted = await insertPaymentLog({
     supabase,
-    customerId: customerId as string,
+    invoiceId: customerId as string,
+    clientId: customer!.customer_id as string,
     userId: user.id,
     amount: amount!,
     currency: customer!.currency,
@@ -340,10 +344,10 @@ export async function markFullyPaid(formData: FormData) {
 
   const { data: customer, error: fetchError } = await supabase
     .from("invoices")
-    .select("amount_owed, amount_paid, currency, xero_invoice_id, quickbooks_invoice_id")
+    .select("amount_owed, amount_paid, currency, xero_invoice_id, quickbooks_invoice_id, customer_id")
     .eq("id", customerId)
     .eq("user_id", user.id)
-    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "amount_paid" | "currency" | "xero_invoice_id" | "quickbooks_invoice_id">>();
+    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "amount_paid" | "currency" | "xero_invoice_id" | "quickbooks_invoice_id" | "customer_id">>();
 
   if (fetchError || !customer) {
     redirectToDashboard({ error: "Customer not found." });
@@ -379,7 +383,8 @@ export async function markFullyPaid(formData: FormData) {
   if (remainingBefore > 0) {
     const logInserted = await insertPaymentLog({
       supabase,
-      customerId: customerId as string,
+      invoiceId: customerId as string,
+      clientId: customer!.customer_id as string,
       userId: user.id,
       amount: remainingBefore,
       currency: customer!.currency,
@@ -494,10 +499,10 @@ export async function correctAmountPaid(formData: FormData) {
 
   const { data: customer, error: fetchError } = await supabase
     .from("invoices")
-    .select("amount_owed, currency")
+    .select("amount_owed, currency, customer_id")
     .eq("id", customerId)
     .eq("user_id", user.id)
-    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "currency">>();
+    .maybeSingle<Pick<CustomerRecord, "amount_owed" | "currency" | "customer_id">>();
 
   if (fetchError || !customer) {
     redirectToDashboard({ error: "Customer not found." });
@@ -538,7 +543,8 @@ export async function correctAmountPaid(formData: FormData) {
   if (paid > 0) {
     const logInserted = await insertPaymentLog({
       supabase,
-      customerId: customerId as string,
+      invoiceId: customerId as string,
+      clientId: customer!.customer_id as string,
       userId: user.id,
       amount: paid,
       currency: customer!.currency,
@@ -1121,17 +1127,18 @@ export async function logFollowUp(formData: FormData) {
   // Verify the customer belongs to this user
   const { data: customer, error: fetchError } = await supabase
     .from("invoices")
-    .select("id")
+    .select("id, customer_id")
     .eq("id", customerId)
     .eq("user_id", user.id)
-    .maybeSingle<{ id: string }>();
+    .maybeSingle<{ id: string; customer_id: string }>();
 
   if (fetchError || !customer) {
     redirectToDashboard({ error: "Customer not found." });
   }
 
   const { error } = await supabase.from("customer_events").insert({
-    customer_id: customerId as string,
+    invoice_id: customerId as string,
+    customer_id: customer!.customer_id,
     user_id: user.id,
     event_type: "followup",
     event_date: (followupDate as string).trim(),

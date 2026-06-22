@@ -44,13 +44,14 @@ export default async function PaymentReceivedPage({
   // Fetch the balance so we can set amount_paid and log the customer signal.
   const { data: reminder } = await supabase
     .from("invoices")
-    .select("amount_owed, amount_paid, currency, user_id")
+    .select("amount_owed, amount_paid, currency, user_id, customer_id")
     .eq("unsubscribe_token", token)
     .maybeSingle<{
       amount_owed: number;
-      amount_paid: number;
+      amount_paid: number | null;
       currency: string;
       user_id: string;
+      customer_id: string;
     }>();
 
   // client_paid_at is set ONLY via this path (customer self-reporting).
@@ -78,7 +79,8 @@ export default async function PaymentReceivedPage({
 
     if (remaining > 0) {
       await supabase.from("customer_events").insert({
-        customer_id: data.id,
+        invoice_id: data.id,
+        customer_id: reminder.customer_id,
         user_id: reminder.user_id,
         event_type: "payment",
         event_date: new Date().toISOString().slice(0, 10),
