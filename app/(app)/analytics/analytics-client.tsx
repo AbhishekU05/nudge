@@ -512,7 +512,7 @@ export function AnalyticsClient({
       </div>
 
       {/* Middle Row */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         <Card className="bg-white/[0.02] border-white/10">
           <CardHeader>
             <CardTitle className="text-zinc-100">Top Offenders</CardTitle>
@@ -565,6 +565,35 @@ export function AnalyticsClient({
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-zinc-600">
                   No aging balances.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/[0.02] border-white/10">
+          <CardHeader>
+            <CardTitle className="text-zinc-100">Expected Collections</CardTitle>
+            <CardDescription>Upcoming invoices bucketed by due date.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[250px] w-full">
+              {stats.forecastData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats.forecastData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                    <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v, currency)} />
+                    <Tooltip 
+                      cursor={{ fill: '#ffffff05' }}
+                      content={<CustomTooltip />}
+                    />
+                    <Bar dataKey="amount" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-zinc-600">
+                  No upcoming invoices.
                 </div>
               )}
             </div>

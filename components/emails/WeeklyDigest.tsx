@@ -32,6 +32,7 @@ export interface CurrencyDigest {
   pipelineStatusChartUrl: string;
   topOffendersChartUrl: string;
   agingChartUrl: string;
+  forecastChartUrl: string;
   followupActivityChartUrl: string;
 
   upcomingInvoices: any[];
@@ -127,14 +128,14 @@ export const WeeklyDigestEmail = ({
                 <Row>
                   <Column style={{ width: "50%", paddingRight: "10px" }}>
                     <div style={chartContainer}>
-                      <Text style={chartTitle}>Pipeline Status</Text>
-                      <Img src={curr.pipelineStatusChartUrl} alt="Pipeline Status" width="100%" />
+                      <Text style={chartTitle}>Expected Collections (Upcoming)</Text>
+                      <Img src={curr.forecastChartUrl} alt="Expected Collections" width="100%" />
                     </div>
                   </Column>
                   <Column style={{ width: "50%", paddingLeft: "10px" }}>
                     <div style={chartContainer}>
-                      <Text style={chartTitle}>Collection Trends</Text>
-                      <Img src={curr.collectionTrendsChartUrl} alt="Collection Trends" width="100%" />
+                      <Text style={chartTitle}>A/R Aging (Overdue)</Text>
+                      <Img src={curr.agingChartUrl} alt="Aging" width="100%" />
                     </div>
                   </Column>
                 </Row>
@@ -145,14 +146,14 @@ export const WeeklyDigestEmail = ({
                 <Row>
                   <Column style={{ width: "50%", paddingRight: "10px" }}>
                     <div style={chartContainer}>
-                      <Text style={chartTitle}>A/R Aging</Text>
-                      <Img src={curr.agingChartUrl} alt="Aging" width="100%" />
+                      <Text style={chartTitle}>Pipeline Status</Text>
+                      <Img src={curr.pipelineStatusChartUrl} alt="Pipeline Status" width="100%" />
                     </div>
                   </Column>
                   <Column style={{ width: "50%", paddingLeft: "10px" }}>
                     <div style={chartContainer}>
-                      <Text style={chartTitle}>Follow-up Activity</Text>
-                      <Img src={curr.followupActivityChartUrl} alt="Follow-up Activity" width="100%" />
+                      <Text style={chartTitle}>Collection Trends</Text>
+                      <Img src={curr.collectionTrendsChartUrl} alt="Collection Trends" width="100%" />
                     </div>
                   </Column>
                 </Row>

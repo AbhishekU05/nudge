@@ -290,7 +290,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, maximumFractionDigits: 0 });
 
       // Build charts
-      const encodeChart = (config: any) => `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(config))}&w=500&h=300&bkg=transparent&f=png`;
+      const encodeChart = (config: any) => `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(config))}&w=500&h=300&bkg=transparent&f=png&v=3`;
 
       const lightThemeColors = {
         text: '#18181b',
@@ -299,40 +299,38 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       };
 
       const chartOptions = {
-        legend: { display: false },
-        scales: {
-          xAxes: [{ ticks: { fontColor: lightThemeColors.tick }, gridLines: { display: false } }],
-          yAxes: [{ ticks: { fontColor: lightThemeColors.tick }, gridLines: { color: lightThemeColors.grid } }]
-        },
         plugins: {
+          legend: { display: false },
           datalabels: {
             display: true,
             align: 'top',
+            anchor: 'end',
             color: lightThemeColors.text,
-            font: { weight: 'bold' }
+            font: { weight: 'bold', family: 'sans-serif' }
           }
+        },
+        scales: {
+          x: { ticks: { color: lightThemeColors.tick }, grid: { display: false } },
+          y: { ticks: { color: lightThemeColors.tick }, grid: { color: lightThemeColors.grid } }
         }
       };
 
       const outstandingAmount = Math.max(0, totalOut - totalOver);
       const pipelineStatusChartUrl = encodeChart({
-        type: 'outlabeledPie',
+        type: 'doughnut',
         data: {
           labels: ['Paid', 'Outstanding', 'Overdue'],
           datasets: [{
             backgroundColor: ['#10b981', '#3b82f6', '#ef4444'],
-            data: [totalCollected, outstandingAmount, totalOver]
+            data: [totalCollected, outstandingAmount, totalOver],
+            borderWidth: 0,
+            cutout: '70%'
           }]
         },
         options: {
           plugins: {
-            legend: false,
-            outlabels: {
-              text: '%l: %v',
-              color: '#18181b',
-              stretch: 35,
-              font: { resizable: true, minSize: 12, maxSize: 18 }
-            }
+            legend: { display: true, position: 'bottom', labels: { font: { family: 'sans-serif' } } },
+            datalabels: { display: false }
           }
         }
       });
@@ -343,34 +341,54 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           labels: ['1-30', '31-60', '61-90', '90+'],
           datasets: [{
             backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
-            data: [agingBuckets["1-30"], agingBuckets["31-60"], agingBuckets["61-90"], agingBuckets["90+"]]
+            data: [agingBuckets["1-30"], agingBuckets["31-60"], agingBuckets["61-90"], agingBuckets["90+"]],
+            borderRadius: 4,
+            barThickness: 30
+          }]
+        },
+        options: chartOptions
+      });
+
+      const forecastChartUrl = encodeChart({
+        type: 'bar',
+        data: {
+          labels: ['0-30', '31-60', '61-90'],
+          datasets: [{
+            backgroundColor: '#3b82f6',
+            data: [forecastBuckets["0-30 Days"], forecastBuckets["31-60 Days"], forecastBuckets["61-90 Days"]],
+            borderRadius: 4,
+            barThickness: 30
           }]
         },
         options: chartOptions
       });
 
       const topOffendersChartUrl = encodeChart({
-        type: 'horizontalBar',
+        type: 'bar',
         data: {
           labels: topOffenders.map(o => o.clientName.substring(0, 15)),
           datasets: [{
             backgroundColor: '#ef4444',
-            data: topOffenders.map(o => o.rawAmount)
+            data: topOffenders.map(o => o.rawAmount),
+            borderRadius: 4,
+            barThickness: 20
           }]
         },
         options: {
-          legend: { display: false },
-          scales: {
-            xAxes: [{ ticks: { fontColor: lightThemeColors.tick }, gridLines: { color: lightThemeColors.grid } }],
-            yAxes: [{ ticks: { fontColor: lightThemeColors.tick }, gridLines: { display: false } }]
-          },
+          indexAxis: 'y',
           plugins: {
+            legend: { display: false },
             datalabels: {
               display: true,
               align: 'right',
+              anchor: 'end',
               color: lightThemeColors.text,
-              font: { weight: 'bold' }
+              font: { weight: 'bold', family: 'sans-serif' }
             }
+          },
+          scales: {
+            x: { ticks: { color: lightThemeColors.tick }, grid: { color: lightThemeColors.grid } },
+            y: { ticks: { color: lightThemeColors.tick }, grid: { display: false } }
           }
         }
       });
@@ -385,10 +403,19 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
             borderColor: '#10b981',
             backgroundColor: 'rgba(16, 185, 129, 0.2)',
             data: collectionsDataArray,
-            fill: true
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2,
+            pointRadius: 0
           }]
         },
-        options: chartOptions
+        options: {
+          ...chartOptions,
+          plugins: {
+            ...chartOptions.plugins,
+            datalabels: { display: false }
+          }
+        }
       });
 
       const followupsDataArray = monthLabels.map(m => followupsByMonth[m]);
@@ -399,7 +426,9 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           datasets: [{
             label: 'Follow-ups',
             backgroundColor: '#3b82f6',
-            data: followupsDataArray
+            data: followupsDataArray,
+            borderRadius: 4,
+            barThickness: 30
           }]
         },
         options: chartOptions
@@ -423,6 +452,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
         pipelineStatusChartUrl,
         topOffendersChartUrl,
         agingChartUrl,
+        forecastChartUrl,
         followupActivityChartUrl,
 
         upcomingInvoices: upcomingInvoicesList,
