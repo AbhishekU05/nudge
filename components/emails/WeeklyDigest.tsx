@@ -53,54 +53,34 @@ export const WeeklyDigestEmail = ({
 
   return (
     <Html>
-      <Head>
-        <style>
-          {`
-            @media (prefers-color-scheme: dark) {
-              .main { background-color: #09090b !important; color: #fafafa !important; }
-              .container { background-color: #18181b !important; border-color: #27272a !important; }
-              .header { border-color: #27272a !important; }
-              .text-primary { color: #fafafa !important; }
-              .text-secondary { color: #a1a1aa !important; }
-              .action-item { color: #bfdbfe !important; }
-              .card { background-color: #27272a !important; }
-              .aging-container { background-color: #1f1f22 !important; }
-              .aging-track { background-color: #27272a !important; }
-              .table-th { border-color: #3f3f46 !important; color: #a1a1aa !important; }
-              .table-tr { border-color: #27272a !important; }
-              .table-td { color: #e4e4e7 !important; }
-              .hr { border-color: #27272a !important; }
-            }
-          `}
-        </style>
-      </Head>
+      <Head />
       <Preview>Your weekly collections snapshot - Duely</Preview>
-      <Body style={main} className="main">
-        <Container style={container} className="container">
-          <Section style={header} className="header">
-            <Text style={logoText} className="text-primary">Duely</Text>
-            <Heading style={heading} className="text-primary">Your weekly collections snapshot</Heading>
-            <Text style={dateText} className="text-secondary">{dateRange}</Text>
+      <Body style={main}>
+        <Container style={container}>
+          <Section style={header}>
+            <Text style={logoText}>Duely</Text>
+            <Heading style={heading}>Your weekly collections snapshot</Heading>
+            <Text style={dateText}>{dateRange}</Text>
           </Section>
 
           {(!currencies || currencies.length === 0) && (
             <Section style={section}>
-              <Text style={metricValue} className="text-primary">All caught up!</Text>
-              <Text style={metricLabel} className="text-secondary">No outstanding invoices or activities found.</Text>
+              <Text style={metricValue}>All caught up!</Text>
+              <Text style={metricLabel}>No outstanding invoices or activities found.</Text>
             </Section>
           )}
 
           {currencies && currencies.map((curr, cIdx) => (
             <div key={cIdx} style={{ marginBottom: '40px' }}>
-              <Heading style={currencyTitle} className="text-primary">{curr.currencyCode} Analytics</Heading>
+              <Heading style={currencyTitle}>{curr.currencyCode} Analytics</Heading>
 
               {/* Action Items */}
               {curr.actionItems && curr.actionItems.length > 0 && (
                 <Section style={actionItemsSection}>
-                  <Heading style={sectionTitle} className="text-primary">Action Items</Heading>
+                  <Heading style={sectionTitle}>Action Items</Heading>
                   <ul style={actionList}>
                     {curr.actionItems.map((item, idx) => (
-                      <li key={idx} style={actionListItem} className="action-item">• {item}</li>
+                      <li key={idx} style={actionListItem}>• {item}</li>
                     ))}
                   </ul>
                 </Section>
@@ -109,17 +89,17 @@ export const WeeklyDigestEmail = ({
               {/* Metrics Row 1 */}
               <Section style={metricsSection}>
                 <Row>
-                  <Column style={metricCard} className="card">
-                    <Text style={metricLabel} className="text-secondary">Total Outstanding</Text>
-                    <Text style={metricValue} className="text-primary">{curr.totalOutstanding}</Text>
+                  <Column style={metricCard}>
+                    <Text style={metricLabel}>Total Outstanding</Text>
+                    <Text style={metricValue}>{curr.totalOutstanding}</Text>
                   </Column>
-                  <Column style={metricCard} className="card">
-                    <Text style={metricLabel} className="text-secondary">Total Overdue</Text>
+                  <Column style={metricCard}>
+                    <Text style={metricLabel}>Total Overdue</Text>
                     <Text style={metricValueOverdue}>{curr.totalOverdue}</Text>
                   </Column>
-                  <Column style={metricCard} className="card">
-                    <Text style={metricLabel} className="text-secondary">Total Collected</Text>
-                    <Text style={metricValue} className="text-primary">{curr.totalCollected}</Text>
+                  <Column style={metricCard}>
+                    <Text style={metricLabel}>Total Collected</Text>
+                    <Text style={metricValue}>{curr.totalCollected}</Text>
                   </Column>
                 </Row>
               </Section>
@@ -127,17 +107,17 @@ export const WeeklyDigestEmail = ({
               {/* Metrics Row 2 */}
               <Section style={metricsSection}>
                 <Row>
-                  <Column style={metricCard} className="card">
-                    <Text style={metricLabel} className="text-secondary">Collection Rate</Text>
-                    <Text style={metricValue} className="text-primary">{curr.collectionRate.toFixed(1)}%</Text>
+                  <Column style={metricCard}>
+                    <Text style={metricLabel}>Collection Rate</Text>
+                    <Text style={metricValue}>{curr.collectionRate.toFixed(1)}%</Text>
                   </Column>
-                  <Column style={metricCard} className="card">
-                    <Text style={metricLabel} className="text-secondary">Avg Days to Pay</Text>
-                    <Text style={metricValue} className="text-primary">{curr.averageDaysToPayment}</Text>
+                  <Column style={metricCard}>
+                    <Text style={metricLabel}>Avg Days to Pay</Text>
+                    <Text style={metricValue}>{curr.averageDaysToPayment}</Text>
                   </Column>
-                  <Column style={metricCard} className="card">
-                    <Text style={metricLabel} className="text-secondary">Avg Follow-ups to Pay</Text>
-                    <Text style={metricValue} className="text-primary">{curr.avgFollowupsBeforePayment}</Text>
+                  <Column style={metricCard}>
+                    <Text style={metricLabel}>Avg Follow-ups to Pay</Text>
+                    <Text style={metricValue}>{curr.avgFollowupsBeforePayment}</Text>
                   </Column>
                 </Row>
               </Section>
@@ -146,7 +126,7 @@ export const WeeklyDigestEmail = ({
               <Section style={metricsSection}>
                 <Row>
                   <Column style={chartContainer}>
-                    <Text style={chartTitle} className="text-primary">Pipeline Status</Text>
+                    <Text style={chartTitle}>Pipeline Status</Text>
                     <Img src={curr.pipelineStatusChartUrl} alt="Pipeline Status" width="100%" />
                   </Column>
                 </Row>
@@ -155,7 +135,7 @@ export const WeeklyDigestEmail = ({
               <Section style={metricsSection}>
                 <Row>
                   <Column style={chartContainer}>
-                    <Text style={chartTitle} className="text-primary">Collection Trends</Text>
+                    <Text style={chartTitle}>Collection Trends</Text>
                     <Img src={curr.collectionTrendsChartUrl} alt="Collection Trends" width="100%" />
                   </Column>
                 </Row>
@@ -164,7 +144,7 @@ export const WeeklyDigestEmail = ({
               <Section style={metricsSection}>
                 <Row>
                   <Column style={chartContainer}>
-                    <Text style={chartTitle} className="text-primary">A/R Aging</Text>
+                    <Text style={chartTitle}>A/R Aging</Text>
                     <Img src={curr.agingChartUrl} alt="Aging" width="100%" />
                   </Column>
                 </Row>
@@ -173,7 +153,7 @@ export const WeeklyDigestEmail = ({
               <Section style={metricsSection}>
                 <Row>
                   <Column style={chartContainer}>
-                    <Text style={chartTitle} className="text-primary">Follow-up Activity</Text>
+                    <Text style={chartTitle}>Follow-up Activity</Text>
                     <Img src={curr.followupActivityChartUrl} alt="Follow-up Activity" width="100%" />
                   </Column>
                 </Row>
@@ -182,23 +162,23 @@ export const WeeklyDigestEmail = ({
               {/* Top Offenders */}
               {curr.overdueInvoices && curr.overdueInvoices.length > 0 && (
                 <Section style={section}>
-                  <Heading style={sectionTitle} className="text-primary">Top Offenders</Heading>
+                  <Heading style={sectionTitle}>Top Offenders</Heading>
                   <Img src={curr.topOffendersChartUrl} alt="Top Offenders" width="100%" style={{ marginBottom: '15px' }} />
                   
                   <table style={table}>
                     <thead>
                       <tr>
-                        <th style={th} className="table-th">Client</th>
-                        <th style={th} className="table-th">Amount</th>
-                        <th style={th} className="table-th">Days Overdue</th>
+                        <th style={th}>Client</th>
+                        <th style={th}>Amount</th>
+                        <th style={th}>Days Overdue</th>
                       </tr>
                     </thead>
                     <tbody>
                       {curr.overdueInvoices.map((inv, idx) => ( 
-                        <tr key={idx} style={tr} className="table-tr">
-                          <td style={td} className="table-td">{inv.clientName}</td>
-                          <td style={td} className="table-td">{inv.amount}</td>
-                          <td style={{ ...td, color: '#ef4444' }} className="table-td">{inv.daysOverdue} days</td>
+                        <tr key={idx} style={tr}>
+                          <td style={td}>{inv.clientName}</td>
+                          <td style={td}>{inv.amount}</td>
+                          <td style={{ ...td, color: '#ef4444' }}>{inv.daysOverdue} days</td>
                         </tr>
                       ))}
                     </tbody>
@@ -209,21 +189,21 @@ export const WeeklyDigestEmail = ({
               {/* Upcoming Invoices */}
               {curr.upcomingInvoices && curr.upcomingInvoices.length > 0 && (
                 <Section style={section}>
-                  <Heading style={sectionTitle} className="text-primary">Upcoming in 14 Days</Heading>
+                  <Heading style={sectionTitle}>Upcoming in 14 Days</Heading>
                   <table style={table}>
                     <thead>
                       <tr>
-                        <th style={th} className="table-th">Client</th>
-                        <th style={th} className="table-th">Amount</th>
-                        <th style={th} className="table-th">Due In</th>
+                        <th style={th}>Client</th>
+                        <th style={th}>Amount</th>
+                        <th style={th}>Due In</th>
                       </tr>
                     </thead>
                     <tbody>
                       {curr.upcomingInvoices.map((inv, idx) => (
-                        <tr key={idx} style={tr} className="table-tr">
-                          <td style={td} className="table-td">{inv.clientName}</td>
-                          <td style={td} className="table-td">{inv.amount}</td>
-                          <td style={{ ...td, color: '#3b82f6' }} className="table-td">{inv.dueInDays} days</td>
+                        <tr key={idx} style={tr}>
+                          <td style={td}>{inv.clientName}</td>
+                          <td style={td}>{inv.amount}</td>
+                          <td style={{ ...td, color: '#3b82f6' }}>{inv.dueInDays} days</td>
                         </tr>
                       ))}
                     </tbody>
@@ -234,21 +214,21 @@ export const WeeklyDigestEmail = ({
               {/* Promises this Week */}
               {curr.promisesThisWeek && curr.promisesThisWeek.length > 0 && (
                 <Section style={section}>
-                  <Heading style={sectionTitle} className="text-primary">Promises Due This Week (Unpaid)</Heading>
+                  <Heading style={sectionTitle}>Promises Due This Week (Unpaid)</Heading>
                   <table style={table}>
                     <thead>
                       <tr>
-                        <th style={th} className="table-th">Client</th>
-                        <th style={th} className="table-th">Amount</th>
-                        <th style={th} className="table-th">Due Date</th>
+                        <th style={th}>Client</th>
+                        <th style={th}>Amount</th>
+                        <th style={th}>Due Date</th>
                       </tr>
                     </thead>
                     <tbody>
                       {curr.promisesThisWeek.map((prom, idx) => (
-                        <tr key={idx} style={tr} className="table-tr">
-                          <td style={td} className="table-td">{prom.clientName}</td>
-                          <td style={td} className="table-td">{prom.amount}</td>
-                          <td style={td} className="table-td">{prom.dueDate}</td>
+                        <tr key={idx} style={tr}>
+                          <td style={td}>{prom.clientName}</td>
+                          <td style={td}>{prom.amount}</td>
+                          <td style={td}>{prom.dueDate}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -259,21 +239,21 @@ export const WeeklyDigestEmail = ({
               {/* Payments Received */}
               {curr.paymentsReceived && curr.paymentsReceived.length > 0 && (
                 <Section style={section}>
-                  <Heading style={sectionTitle} className="text-primary">Payments Received (Last 7 Days)</Heading>
+                  <Heading style={sectionTitle}>Payments Received (Last 7 Days)</Heading>
                   <table style={table}>
                     <thead>
                       <tr>
-                        <th style={th} className="table-th">Client</th>
-                        <th style={th} className="table-th">Amount</th>
-                        <th style={th} className="table-th">Date</th>
+                        <th style={th}>Client</th>
+                        <th style={th}>Amount</th>
+                        <th style={th}>Date</th>
                       </tr>
                     </thead>
                     <tbody>
                       {curr.paymentsReceived.map((pay, idx) => (
-                        <tr key={idx} style={tr} className="table-tr">
-                          <td style={td} className="table-td">{pay.clientName}</td>
-                          <td style={{ ...td, color: '#10b981' }} className="table-td">{pay.amount}</td>
-                          <td style={td} className="table-td">{pay.date}</td>
+                        <tr key={idx} style={tr}>
+                          <td style={td}>{pay.clientName}</td>
+                          <td style={{ ...td, color: '#10b981' }}>{pay.amount}</td>
+                          <td style={td}>{pay.date}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -281,7 +261,7 @@ export const WeeklyDigestEmail = ({
                 </Section>
               )}
 
-              <Hr style={hr} className="hr" />
+              <Hr style={hr} />
             </div>
           ))}
 
@@ -293,7 +273,7 @@ export const WeeklyDigestEmail = ({
           </Section>
 
           <Section>
-            <Text style={footerText} className="text-secondary">
+            <Text style={footerText}>
               You are receiving this because you have the Weekly Digest enabled in your Duely settings.
             </Text>
           </Section>
@@ -306,8 +286,7 @@ export const WeeklyDigestEmail = ({
 export default WeeklyDigestEmail;
 
 /* 
-  LIGHT/DARK THEME STYLES 
-  Defaults to Light, overridden by CSS classes for Dark.
+  ALWAYS LIGHT THEME 
 */
 
 const main = {
@@ -321,7 +300,7 @@ const container = {
   margin: "0 auto",
   padding: "40px 20px",
   borderRadius: "12px",
-  maxWidth: "600px",
+  maxWidth: "800px",
   border: "1px solid #e4e4e7", // zinc-200
 };
 
@@ -359,7 +338,7 @@ const chartTitle = {
 
 const chartContainer = {
   padding: "10px",
-  backgroundColor: "#09090b", // explicitly dark so QuickChart renders well with transparent background
+  backgroundColor: "#f4f4f5", // zinc-100 to match metrics cards
   borderRadius: "8px",
 };
 

@@ -292,17 +292,25 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       // Build charts
       const encodeChart = (config: any) => `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(config))}&w=500&h=300&bkg=transparent&f=png`;
 
-      const darkThemeColors = {
-        text: '#fafafa',
-        grid: 'rgba(255,255,255,0.1)',
-        tick: '#a1a1aa'
+      const lightThemeColors = {
+        text: '#18181b',
+        grid: 'rgba(0,0,0,0.1)',
+        tick: '#71717a'
       };
 
       const chartOptions = {
         legend: { display: false },
         scales: {
-          xAxes: [{ ticks: { fontColor: darkThemeColors.tick }, gridLines: { display: false } }],
-          yAxes: [{ ticks: { fontColor: darkThemeColors.tick }, gridLines: { color: darkThemeColors.grid } }]
+          xAxes: [{ ticks: { fontColor: lightThemeColors.tick }, gridLines: { display: false } }],
+          yAxes: [{ ticks: { fontColor: lightThemeColors.tick }, gridLines: { color: lightThemeColors.grid } }]
+        },
+        plugins: {
+          datalabels: {
+            display: true,
+            align: 'top',
+            color: lightThemeColors.text,
+            font: { weight: 'bold' }
+          }
         }
       };
 
@@ -321,7 +329,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
             legend: false,
             outlabels: {
               text: '%l: %v',
-              color: 'white',
+              color: '#18181b',
               stretch: 35,
               font: { resizable: true, minSize: 12, maxSize: 18 }
             }
@@ -353,8 +361,16 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
         options: {
           legend: { display: false },
           scales: {
-            xAxes: [{ ticks: { fontColor: darkThemeColors.tick }, gridLines: { color: darkThemeColors.grid } }],
-            yAxes: [{ ticks: { fontColor: darkThemeColors.tick }, gridLines: { display: false } }]
+            xAxes: [{ ticks: { fontColor: lightThemeColors.tick }, gridLines: { color: lightThemeColors.grid } }],
+            yAxes: [{ ticks: { fontColor: lightThemeColors.tick }, gridLines: { display: false } }]
+          },
+          plugins: {
+            datalabels: {
+              display: true,
+              align: 'right',
+              color: lightThemeColors.text,
+              font: { weight: 'bold' }
+            }
           }
         }
       });
