@@ -349,11 +349,6 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
     else if (amountDue < totalAmount) status = "partial";
     else if (invoice.DueDate && new Date(invoice.DueDate) < new Date()) status = "overdue";
 
-    if (isPaid && !existing) {
-      result.skipped += 1;
-      continue;
-    }
-
     const qbCustomer = qbCustomers.get(invoice.CustomerRef?.value);
     const contactName = qbCustomer?.DisplayName || qbCustomer?.FullyQualifiedName || "QuickBooks Customer";
     const email = normalizeEmail(qbCustomer?.PrimaryEmailAddr?.Address ?? invoice.BillEmail?.Address) ?? existing?.recipient_email ?? "";

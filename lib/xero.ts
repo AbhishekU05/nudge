@@ -374,11 +374,6 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
     const status = getWorkflowStatus(invoice);
     const isPaid = status === "paid";
 
-    if (isPaid && !existing) {
-      result.skipped += 1;
-      continue;
-    }
-
     const contactName = invoice.contact?.name?.trim() || "Xero customer";
     const email = normalizeEmail(invoice.contact?.emailAddress) ?? existing?.recipient_email ?? "";
     const amountOwed = getInvoiceTotal(invoice);
