@@ -421,10 +421,14 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
       continue;
     }
 
-    
     const { data: client, error: clientError } = await supabase
       .from("clients")
-      .insert({ user_id: userId, next_send_at: computeFirstReminderSendAt() })
+      .insert({ 
+        user_id: userId, 
+        name: contactName,
+        email: email,
+        next_send_at: computeFirstReminderSendAt() 
+      })
       .select("id")
       .single();
 
