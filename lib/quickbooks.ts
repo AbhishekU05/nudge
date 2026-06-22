@@ -41,6 +41,7 @@ export type QuickBooksSyncResult = {
 
 type ExistingCustomerRow = {
   id: string;
+  customer_id?: string | null;
   recipient_email: string;
   recipient_name: string;
   quickbooks_invoice_id: string | null;
@@ -309,7 +310,7 @@ async function loadExistingQuickBooksCustomers(userId: string, invoiceIds: strin
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("invoices")
-    .select("id, recipient_email, recipient_name, quickbooks_invoice_id, amount_paid, internal_notes")
+    .select("id, customer_id, recipient_email, recipient_name, quickbooks_invoice_id, amount_paid, internal_notes")
     .eq("user_id", userId)
     .in("quickbooks_invoice_id", invoiceIds)
     .returns<ExistingCustomerRow[]>();
@@ -400,7 +401,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
     if (existing) {
       const { error } = await supabase
         .from("invoices")
-        .update(isPaid ? { ...payload, active: false } : payload)
+        .update(payload)
         .eq("id", existing.id)
         .eq("user_id", userId);
 
@@ -417,6 +418,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
       if (newlyPaid > 0) {
         newPaymentLogs.push({
           invoice_id: existing.id,
+          customer_id: existing.customer_id ?? null,
           user_id: userId,
           event_type: "payment",
           event_date: paymentDate,
@@ -471,6 +473,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
     if (newlyPaid > 0 && newCustomer) {
       newPaymentLogs.push({
         invoice_id: newCustomer.id,
+        customer_id: clientRecord.id,
         user_id: userId,
         event_type: "payment",
         event_date: paymentDate,

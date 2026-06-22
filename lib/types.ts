@@ -20,6 +20,7 @@ export type FollowUpOutcome =
 
 export type FollowUpLog = {
   id: string;
+  invoice_id: string;
   customer_id: string;
   user_id: string;
   followup_date: string;
@@ -33,6 +34,7 @@ export type PaymentLogSource = "user" | "customer" | "adjustment";
 
 export type PaymentLog = {
   id: string;
+  invoice_id: string;
   customer_id: string;
   user_id: string;
   amount: number;
@@ -45,6 +47,7 @@ export type CustomerEventType = "payment" | "followup";
 
 export type CustomerEvent = {
   id: string;
+  invoice_id: string;
   customer_id: string;
   user_id: string;
   event_type: CustomerEventType;
