@@ -407,16 +407,25 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
       continue;
     }
 
+    
+    const { data: client, error: clientError } = await supabase
+      .from("clients")
+      .insert({ user_id: userId, next_send_at: computeFirstReminderSendAt() })
+      .select("id")
+      .single();
+
+    if (clientError) {
+      throw new Error(clientError.message);
+    }
+
     const { data: newCustomer, error } = await supabase.from("invoices").insert({
       ...payload,
-      active: false,
+      customer_id: client.id,
       custom_message: null,
-      next_send_at: computeFirstReminderSendAt(),
       payment_link: null,
-      reminder_frequency_days: 7,
-      unsubscribed: false,
       user_id: userId,
     }).select("id").single();
+
 
     if (error) {
       throw new Error(error.message);
