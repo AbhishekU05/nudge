@@ -336,6 +336,13 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
   const invoiceIds = invoices.map((invoice: any) => invoice.Id).filter(Boolean);
   const existingByInvoiceId = await loadExistingQuickBooksCustomers(userId, invoiceIds);
   const supabase = createSupabaseAdminClient();
+  const { data: clientsData } = await supabase.from("clients").select("id, name, email").eq("user_id", userId);
+  const clientsMap = new Map<string, { id: string }>();
+  for (const client of clientsData || []) {
+    if (client.email) clientsMap.set(client.email.toLowerCase(), client);
+    if (client.name) clientsMap.set(client.name.toLowerCase(), client);
+  }
+
   const result: QuickBooksSyncResult = {
     imported: 0,
     markedPaid: 0,
@@ -353,23 +360,24 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
     }
 
     const existing = existingByInvoiceId.get(invoiceId);
-    
-    const amountDue = Number(invoice.Balance ?? 0);
+
+    const amountPaid = Number(invoice.TotalAmt ?? 0) - Number(invoice.Balance ?? invoice.TotalAmt ?? 0);
     const totalAmount = Number(invoice.TotalAmt ?? 0);
-    const isPaid = amountDue <= 0;
+    const isPaid = totalAmount > 0 && Number(invoice.Balance ?? totalAmount) <= 0;
     
     let status = "outstanding";
     if (isPaid) status = "paid";
-    else if (amountDue < totalAmount) status = "partial";
+    else if (amountPaid > 0 && amountPaid < totalAmount) status = "partial";
     else if (invoice.DueDate && new Date(invoice.DueDate) < new Date()) status = "overdue";
 
-    const qbCustomer = qbCustomers.get(invoice.CustomerRef?.value);
-    const contactName = qbCustomer?.DisplayName || qbCustomer?.FullyQualifiedName || "QuickBooks Customer";
-    const email = normalizeEmail(qbCustomer?.PrimaryEmailAddr?.Address ?? invoice.BillEmail?.Address) ?? existing?.recipient_email ?? "";
-    const amountPaid = Math.min(totalAmount, totalAmount - amountDue);
+    const contactName = invoice.CustomerRef?.name?.trim() || "QuickBooks customer";
+    const email = normalizeEmail(invoice.BillEmail?.Address) ?? existing?.recipient_email ?? "";
     const existingAmountPaid = existing ? Number(existing.amount_paid || 0) : 0;
     const newlyPaid = amountPaid - existingAmountPaid;
-    const qbNotes = invoice.PrivateNote ? `QB Note: ${invoice.PrivateNote}` : null;
+    const qbNotes = invoice.DocNumber ? `QB Doc: ${invoice.DocNumber}` : null;
+    
+    const paymentDateStr = invoice.MetaData?.LastUpdatedTime || new Date().toISOString();
+    const paymentDate = new Date(paymentDateStr).toISOString().slice(0, 10);
 
     if (totalAmount <= 0) {
       result.skipped += 1;
@@ -411,7 +419,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
           invoice_id: existing.id,
           user_id: userId,
           event_type: "payment",
-          event_date: new Date().toISOString().slice(0, 10),
+          event_date: paymentDate,
           amount: newlyPaid,
           currency: payload.currency,
           payment_source: "user",
@@ -421,24 +429,35 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
       continue;
     }
 
-    const { data: client, error: clientError } = await supabase
-      .from("clients")
-      .insert({ 
-        user_id: userId, 
-        name: contactName,
-        email: email,
-        next_send_at: computeFirstReminderSendAt() 
-      })
-      .select("id")
-      .single();
+    let clientRecord = email ? clientsMap.get(email.toLowerCase()) : undefined;
+    if (!clientRecord) {
+      clientRecord = clientsMap.get(contactName.toLowerCase());
+    }
 
-    if (clientError) {
-      throw new Error(clientError.message);
+    if (!clientRecord) {
+      const { data: client, error: clientError } = await supabase
+        .from("clients")
+        .insert({ 
+          user_id: userId, 
+          name: contactName,
+          email: email,
+          next_send_at: computeFirstReminderSendAt() 
+        })
+        .select("id")
+        .single();
+
+      if (clientError) {
+        throw new Error(clientError.message);
+      }
+      
+      clientRecord = { id: client.id };
+      if (email) clientsMap.set(email.toLowerCase(), clientRecord);
+      clientsMap.set(contactName.toLowerCase(), clientRecord);
     }
 
     const { data: newCustomer, error } = await supabase.from("invoices").insert({
       ...payload,
-      customer_id: client.id,
+      customer_id: clientRecord.id,
       custom_message: null,
       payment_link: null,
       user_id: userId,
@@ -454,7 +473,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
         invoice_id: newCustomer.id,
         user_id: userId,
         event_type: "payment",
-        event_date: new Date().toISOString().slice(0, 10),
+        event_date: paymentDate,
         amount: newlyPaid,
         currency: payload.currency,
         payment_source: "user",

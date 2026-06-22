@@ -353,6 +353,13 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
     .filter((invoiceId): invoiceId is string => Boolean(invoiceId));
   const existingByInvoiceId = await loadExistingXeroCustomers(userId, invoiceIds);
   const supabase = createSupabaseAdminClient();
+  const { data: clientsData } = await supabase.from("clients").select("id, name, email").eq("user_id", userId);
+  const clientsMap = new Map<string, { id: string }>();
+  for (const client of clientsData || []) {
+    if (client.email) clientsMap.set(client.email.toLowerCase(), client);
+    if (client.name) clientsMap.set(client.name.toLowerCase(), client);
+  }
+
   const result: XeroSyncResult = {
     imported: 0,
     markedPaid: 0,
@@ -380,6 +387,10 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
     const existingAmountPaid = existing ? Number(existing.amount_paid || 0) : 0;
     const newlyPaid = amountPaid - existingAmountPaid;
     const internalNotes = invoice.reference ? `Xero Reference: ${invoice.reference}` : null;
+    
+    // Parse payment date if available, fallback to today
+    const paymentDateStr = invoice.fullyPaidOnDate || invoice.updatedDateUTC?.toISOString() || new Date().toISOString();
+    const paymentDate = paymentDateStr.substring(0, 10);
 
     if (amountOwed <= 0) {
       result.skipped += 1;
@@ -421,7 +432,7 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
           invoice_id: existing.id,
           user_id: userId,
           event_type: "payment",
-          event_date: new Date().toISOString().slice(0, 10),
+          event_date: paymentDate,
           amount: newlyPaid,
           currency: payload.currency,
           payment_source: "user",
@@ -432,24 +443,35 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
     }
 
     
-    const { data: client, error: clientError } = await supabase
-      .from("clients")
-      .insert({ 
-        user_id: userId, 
-        name: contactName,
-        email: email,
-        next_send_at: computeFirstReminderSendAt() 
-      })
-      .select("id")
-      .single();
+    let clientRecord = email ? clientsMap.get(email.toLowerCase()) : undefined;
+    if (!clientRecord) {
+      clientRecord = clientsMap.get(contactName.toLowerCase());
+    }
 
-    if (clientError) {
-      throw new Error(clientError.message);
+    if (!clientRecord) {
+      const { data: client, error: clientError } = await supabase
+        .from("clients")
+        .insert({ 
+          user_id: userId, 
+          name: contactName,
+          email: email,
+          next_send_at: computeFirstReminderSendAt() 
+        })
+        .select("id")
+        .single();
+
+      if (clientError) {
+        throw new Error(clientError.message);
+      }
+      
+      clientRecord = { id: client.id };
+      if (email) clientsMap.set(email.toLowerCase(), clientRecord);
+      clientsMap.set(contactName.toLowerCase(), clientRecord);
     }
 
     const { data: newCustomer, error } = await supabase.from("invoices").insert({
       ...payload,
-      customer_id: client.id,
+      customer_id: clientRecord.id,
       custom_message: null,
       payment_link: null,
       user_id: userId,
@@ -465,7 +487,7 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
         invoice_id: newCustomer.id,
         user_id: userId,
         event_type: "payment",
-        event_date: new Date().toISOString().slice(0, 10),
+        event_date: paymentDate,
         amount: newlyPaid,
         currency: payload.currency,
         payment_source: "user",
