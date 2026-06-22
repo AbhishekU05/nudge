@@ -33,7 +33,7 @@ export default async function CustomerPage(props: {
   const { data: eventsData } = await supabase
     .from("customer_events")
     .select("*")
-    .eq("customer_id", id)
+    .eq("invoice_id", id)
     .order("created_at", { ascending: false });
 
   const payment_history: PaymentLog[] = [];
