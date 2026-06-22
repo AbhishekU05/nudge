@@ -61,6 +61,7 @@ If a newly paid amount is detected (i.e., `remote_paid > local_paid`), a new eve
 
 - **`active` Column Conflicts:** Previously, sync scripts assumed `active` only existed on the `invoices` table or attempted to disable automation when an invoice was paid. Invoice-level automation and client-level automation both exist, but blindly setting `active: false` on an invoice update can conflict with client-level settings.
 - **Missing `customer_id` on Events:** The database relies on `customer_events.customer_id` to display unified timelines for clients. The sync scripts were previously missing this field when inserting new payments, leading to orphaned timeline events. This is now fixed.
+- **Xero API SDK Date Parsing Exceptions:** When an invoice is paid, Xero's SDK may parse `fullyPaidOnDate` and other date fields as native JavaScript `Date` objects rather than strings, depending on how they are serialized. This caused the sync loop to crash (`TypeError: .substring is not a function`) on the first paid invoice. Always use robust parsing helpers like `toIsoDate()` which handle both string and `Date` types safely.
 
 ## Adding a New Provider
 If you're adding another accounting software integration:
