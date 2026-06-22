@@ -20,3 +20,18 @@ export const requireUser = cache(async () => {
   return user;
 });
 
+export const requireAdmin = cache(async () => {
+  const user = await requireUser();
+  const supabase = await createSupabaseServerClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("user_id", user.id)
+    .single();
+    
+  if (!profile?.is_admin) {
+    redirect("/dashboard");
+  }
+  
+  return user;
+});
