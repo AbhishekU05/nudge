@@ -147,6 +147,7 @@ export default async function CustomersPage({
     if (event.event_type === "payment") {
       const payment: PaymentLog = {
         id: event.id,
+        invoice_id: event.invoice_id,
         customer_id: event.customer_id,
         user_id: event.user_id,
         amount: Number(event.amount),
@@ -163,6 +164,7 @@ export default async function CustomersPage({
     if (event.event_type === "followup") {
       const followup: FollowUpLog = {
         id: event.id,
+        invoice_id: event.invoice_id,
         customer_id: event.customer_id,
         user_id: event.user_id,
         followup_date: event.event_date,

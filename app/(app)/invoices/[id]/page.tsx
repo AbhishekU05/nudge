@@ -43,6 +43,7 @@ export default async function CustomerPage(props: {
     if (event.event_type === "payment") {
       payment_history.push({
         id: event.id,
+        invoice_id: event.invoice_id,
         customer_id: event.customer_id,
         user_id: event.user_id,
         amount: Number(event.amount),
@@ -53,6 +54,7 @@ export default async function CustomerPage(props: {
     } else if (event.event_type === "followup") {
       followup_history.push({
         id: event.id,
+        invoice_id: event.invoice_id,
         customer_id: event.customer_id,
         user_id: event.user_id,
         method: event.followup_method as any,
