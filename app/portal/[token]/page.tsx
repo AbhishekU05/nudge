@@ -6,11 +6,10 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function PortalPage({
-  params,
-}: {
-  params: { token: string };
+export default async function PortalPage(props: {
+  params: Promise<{ token: string }>;
 }) {
+  const params = await props.params;
   const token = params.token;
   if (!token) return notFound();
 
@@ -24,6 +23,7 @@ export default async function PortalPage({
     .single();
 
   if (clientError || !client) {
+    console.error("Portal fetch error:", clientError, "token:", token);
     return notFound();
   }
 
@@ -35,6 +35,7 @@ export default async function PortalPage({
     .order("due_date", { ascending: true });
 
   if (invoicesError || !invoices) {
+    console.error("Invoices fetch error:", invoicesError);
     return notFound();
   }
 
