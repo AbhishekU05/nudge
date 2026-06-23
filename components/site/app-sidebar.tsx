@@ -31,11 +31,13 @@ type AppSidebarProps = {
   subscriptionStatus: string;
   hasXero?: boolean;
   hasQuickBooks?: boolean;
+  groups?: any[];
 };
 
 import { GlobalSyncButton } from "./global-sync-button";
+import { SidebarGroups } from "./sidebar-groups";
 
-export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks }: AppSidebarProps) {
+export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks, groups }: AppSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const pathname = usePathname();
 
@@ -125,6 +127,8 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks }:
             </Link>
           );
         })}
+
+        {groups && <SidebarGroups groups={groups} isExpanded={isExpanded} />}
       </nav>
 
       {/* Bottom Nav */}
