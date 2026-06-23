@@ -25,7 +25,11 @@ import {
   ShieldCheck,
   Zap,
   CreditCard,
-  User
+  User,
+  Mail,
+  Users,
+  Activity,
+  AlertTriangle
 } from "lucide-react";
 import { websiteSchema } from "@/lib/seo/site";
 
@@ -157,7 +161,290 @@ export default async function Home({
         {/* WORKFLOW SECTIONS */}
         <section className="relative overflow-hidden py-24 sm:py-32 space-y-32 sm:space-y-40 bg-zinc-950/50 border-y border-white/5 backdrop-blur-sm">
 
-          {/* Section 1: Promise Tracking */}
+{/* Section 8: QuickBooks and Xero */}
+          <Container>
+            <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+              <SlideIn left>
+                <div className="relative order-2 lg:order-1">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.07),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                    <CardContent className="p-0 space-y-3">
+                      {[
+                        {name:"QuickBooks",connected:true,synced:"Last synced May 25, 9:04 AM",imported:"12 invoices imported"},
+                        {name:"Xero",connected:false,synced:null,imported:null},
+                      ].map((int) => (
+                        <div key={int.name} className={`rounded-xl border px-4 py-4 space-y-2 ${int.connected ? "border-emerald-500/20 bg-emerald-500/5" : "border-white/10 bg-white/[0.02]"}`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Sparkles className={`h-4 w-4 ${int.connected ? "text-emerald-400" : "text-zinc-600"}`} />
+                              <p className="text-sm font-semibold text-zinc-100">{int.name}</p>
+                              {int.connected && <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">Connected</span>}
+                            </div>
+                            <div className={`rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium ${int.connected ? "text-red-400" : "text-indigo-300 bg-indigo-500/10 border-indigo-500/20"}`}>
+                              {int.connected ? "Disconnect" : "Connect"}
+                            </div>
+                          </div>
+                          {int.connected && <p className="text-xs text-zinc-500">{int.synced} · {int.imported}</p>}
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </div>
+              </SlideIn>
+              <FadeIn delay={0.2} className="order-1 lg:order-2 max-w-xl lg:pl-12 xl:pl-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 mb-6">
+                  <Zap className="h-6 w-6 text-emerald-300" />
+                </div>
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  Your invoices are already in QuickBooks. You shouldn&apos;t have to enter them again.
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Connect your QuickBooks or Xero account and Duely imports your outstanding invoices automatically. When a client pays, Duely stops chasing them.
+                </p>
+              </FadeIn>
+            </div>
+          </Container>
+
+{/* Section 5: Reminders from your own email */}
+          <Container>
+            <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+              <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-sky-500/20 bg-sky-500/10 mb-6">
+                  <MessageSquare className="h-6 w-6 text-sky-300" />
+                </div>
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  A reminder from a billing tool looks like a collections agency. A reminder from you gets read.
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Duely connects to your Gmail and sends reminders from your own address. Your clients see your name in the from field, not a SaaS tool.
+                </p>
+              </FadeIn>
+              <SlideIn right delay={0.2} className="flex justify-center">
+                <div className="relative w-full max-w-[26rem]">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.07),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                    <CardContent className="p-0 space-y-3">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Gmail connection</p>
+                      <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-emerald-200">Connected</p>
+                          <p className="text-xs text-emerald-300/60 truncate">alex@youragency.com</p>
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 space-y-1">
+                        <p className="text-xs text-zinc-500">From</p>
+                        <p className="text-sm text-zinc-200">Alex Chen &lt;alex@youragency.com&gt;</p>
+                        <p className="mt-2 text-xs text-zinc-500">To</p>
+                        <p className="text-sm text-zinc-200">sarah@clientco.com</p>
+                        <p className="mt-2 text-xs text-zinc-500">Subject</p>
+                        <p className="text-sm text-zinc-200">Following up on invoice #1042</p>
+                      </div>
+                      <p className="text-xs text-zinc-600">Duely never stores your email content. OAuth only.</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </SlideIn>
+            </div>
+          </Container>
+
+{/* 1. Action Center */}
+          <Container>
+            <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+              <SlideIn left>
+                <div className="relative order-2 lg:order-1">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.06),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                    <CardContent className="p-0">
+                      <div className="p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <h2 className="text-lg font-semibold tracking-tight text-zinc-50 flex items-center gap-2">
+                            <Users className="h-5 w-5 text-zinc-400" /> Customers Action Needed
+                          </h2>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors">
+                            <div>
+                              <h3 className="font-medium text-zinc-200">Acme Corp</h3>
+                              <p className="text-sm text-zinc-500 mt-0.5">
+                                <span className="text-red-400">14 days overdue</span>
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-medium text-zinc-200">$15,400.00</div>
+                              <div className="text-sm text-zinc-500 mt-0.5">Remaining</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </SlideIn>
+              <FadeIn delay={0.2} className="order-1 lg:order-2 max-w-xl lg:pl-12 xl:pl-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 mb-6">
+                  <Zap className="h-6 w-6 text-red-300" />
+                </div>
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  You log in to 14 overdue invoices. Which one is actually a fire?
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Stop guessing who to chase. The Action Center analyzes aging, financial risk, and broken promises to tell you exactly who needs a nudge today, and who can wait.
+                </p>
+              </FadeIn>
+            </div>
+          </Container>
+
+{/* Section 11: Weekly Digest Email */}
+          <Container>
+            <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+              <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-pink-500/20 bg-pink-500/10 mb-6">
+                  <Mail className="h-6 w-6 text-pink-300" />
+                </div>
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  Start your week knowing exactly who to chase.
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Every Monday morning, Duely drops a beautifully formatted digest straight into your inbox. It summarizes exactly what you collected last week, who broke a payment promise, and which invoices just became overdue so you can prioritize your time.
+                </p>
+              </FadeIn>
+              <SlideIn right delay={0.2} className="flex justify-center">
+                <div className="relative w-full max-w-[26rem]">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(236,72,153,0.06),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                    <CardContent className="p-0 space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Mail className="h-4 w-4 text-zinc-400" />
+                        <p className="text-xs font-medium text-zinc-400">Weekly Digest · Monday 8:00 AM</p>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-4">
+                        <div>
+                          <p className="text-lg font-bold text-zinc-100">Your Weekly Collections Briefing</p>
+                          <p className="text-sm text-zinc-400 mt-1">Here is what happened last week and what needs attention.</p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Collected last week</p>
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                              <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                            </div>
+                            <div>
+                              <p className="text-lg font-bold text-emerald-400">$18,400.00</p>
+                              <p className="text-xs text-zinc-500">Across 4 invoices</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 pt-2 border-t border-white/5">
+                          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Action needed</p>
+                          <div className="rounded border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm">
+                            <p className="font-medium text-red-200">Acme Corp ($4,200)</p>
+                            <p className="text-xs text-red-300/70 mt-0.5">Missed their payment promise on Friday.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </SlideIn>
+            </div>
+          </Container>
+
+{/* 4. Client Portal */}
+          <Container>
+            <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+              <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 mb-6">
+                  <User className="h-6 w-6 text-emerald-300" />
+                </div>
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  They keep asking you to resend the invoice. Then they ask for the payment link.
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Give your clients a secure, branded portal where they can view their complete billing history, download past invoices, and pay directly. No more email ping-pong.
+                </p>
+              </FadeIn>
+              <SlideIn right>
+                <div className="relative">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.06),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                    <CardContent className="p-0">
+                        <div className="flex flex-col gap-4 p-4">
+                          <div className="flex flex-col gap-1">
+                            <p className="text-zinc-400 text-[10px] font-medium uppercase tracking-wider">
+                              Client Portal &bull; Your Agency
+                            </p>
+                            <h1 className="text-xl font-semibold tracking-tight text-zinc-100">
+                              Acme Corp
+                            </h1>
+                          </div>
+                          
+                          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-1 shadow-sm">
+                            <p className="text-zinc-400 text-xs font-medium">Total Amount Outstanding</p>
+                            <p className="text-2xl font-bold tracking-tight text-zinc-50">
+                              $4,200.00
+                            </p>
+                          </div>
+                          
+                          <div className="flex flex-col gap-3 bg-zinc-900/50 rounded-xl p-4 border border-zinc-800">
+                            <h2 className="text-sm font-semibold text-zinc-100">How to Pay</h2>
+                            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex flex-col gap-1 shadow-sm">
+                              <p className="text-sm font-medium text-zinc-100">Chase Business</p>
+                              <p className="text-xs text-zinc-500 font-mono">•••• 1234</p>
+                            </div>
+                          </div>
+                        </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </SlideIn>
+            </div>
+          </Container>
+
+{/* Section 4: Automated reminders */}
+          <Container>
+            <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+              <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 mb-6">
+                  <Zap className="h-6 w-6 text-emerald-300" />
+                </div>
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  You&apos;ve followed up three times. You shouldn&apos;t have to do it a fourth.
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Set up automated reminders as a last resort. Duely sends them on schedule until the client pays or you stop the sequence.
+                </p>
+              </FadeIn>
+              <SlideIn right delay={0.2} className="flex justify-center">
+                <div className="relative w-full max-w-[22rem]">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.06),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                    <CardContent className="p-0 space-y-3">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Current status</p>
+                      <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3">
+                        <div>
+                          <p className="text-sm font-medium text-zinc-200">Sending reminders</p>
+                          <p className="mt-0.5 text-xs text-zinc-600">Every 7 days</p>
+                        </div>
+                        <div className="rounded-lg border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-zinc-300">Pause</div>
+                      </div>
+                      <div className="flex flex-col gap-2 rounded-xl border border-white/5 bg-black/20 p-3 text-xs text-zinc-400">
+                        <div className="flex justify-between"><span className="text-zinc-500">Next send:</span><span className="text-zinc-300">May 28, 2025, 9:00 AM</span></div>
+                        <div className="flex justify-between"><span className="text-zinc-500">Last sent:</span><span className="text-zinc-300">May 21, 2025</span></div>
+                      </div>
+                      <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                        <Zap className="h-3 w-3" />Reminder will stop automatically when marked paid
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </SlideIn>
+            </div>
+          </Container>
+
+{/* Section 1: Promise Tracking */}
           <Container>
             <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
               <SlideIn left>
@@ -209,50 +496,7 @@ export default async function Home({
             </div>
           </Container>
 
-          {/* Section 2: Follow-up drafting by tone */}
-          <Container>
-            <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
-              <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-purple-500/20 bg-purple-500/10 mb-6">
-                  <MessageSquare className="h-6 w-6 text-purple-300" />
-                </div>
-                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
-                  Too friendly and they ignore it. Too firm and you damage the relationship.
-                </h2>
-                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
-                  Pick a tone. Duely drafts the message. Edit it before you send.
-                </p>
-              </FadeIn>
-              <SlideIn right delay={0.2} className="flex justify-center">
-                <div className="relative w-full max-w-[26rem]">
-                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.08),transparent_50%)]" />
-                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20 space-y-3">
-                    <CardContent className="p-0 space-y-3">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Tone</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        {[{label:"Friendly",desc:"Warm & casual"},{label:"Professional",desc:"Neutral & clear",active:true},{label:"Firm",desc:"Direct & assertive"}].map((t) => (
-                          <div key={t.label} className={`rounded-xl border px-3 py-2.5 text-left ${t.active ? "border-indigo-500/40 bg-indigo-500/10" : "border-white/10 bg-white/[0.03]"}`}>
-                            <p className={`text-xs font-semibold ${t.active ? "text-indigo-200" : "text-zinc-400"}`}>{t.label}</p>
-                            <p className="mt-0.5 text-[10px] leading-none text-zinc-600">{t.desc}</p>
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Draft message</p>
-                      <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 font-mono text-xs leading-5 text-zinc-400 space-y-1">
-                        <p>Hi Sarah,</p>
-                        <p className="mt-1">I wanted to follow up on invoice #1042 for $2,400, which was due on May 15th.</p>
-                        <p className="mt-1">Please let me know if you have any questions. Happy to help.</p>
-                        <p className="mt-1">Best,<br/>Alex</p>
-                      </div>
-                      <p className="text-xs text-zinc-600">Not happy with the wording? Edit it before sending.</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </SlideIn>
-            </div>
-          </Container>
-
-          {/* Section 3: Partial payments */}
+{/* Section 3: Partial payments */}
           <Container>
             <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
               <SlideIn left>
@@ -305,83 +549,42 @@ export default async function Home({
             </div>
           </Container>
 
-          {/* Section 4: Automated reminders */}
+{/* Section 2: Follow-up drafting by tone */}
           <Container>
             <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
               <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 mb-6">
-                  <Zap className="h-6 w-6 text-emerald-300" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-purple-500/20 bg-purple-500/10 mb-6">
+                  <MessageSquare className="h-6 w-6 text-purple-300" />
                 </div>
                 <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
-                  You&apos;ve followed up three times. You shouldn&apos;t have to do it a fourth.
+                  Too friendly and they ignore it. Too firm and you damage the relationship.
                 </h2>
                 <p className="mt-6 text-lg leading-relaxed text-zinc-400">
-                  Set up automated reminders as a last resort. Duely sends them on schedule until the client pays or you stop the sequence.
-                </p>
-              </FadeIn>
-              <SlideIn right delay={0.2} className="flex justify-center">
-                <div className="relative w-full max-w-[22rem]">
-                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.06),transparent_50%)]" />
-                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
-                    <CardContent className="p-0 space-y-3">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Current status</p>
-                      <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3">
-                        <div>
-                          <p className="text-sm font-medium text-zinc-200">Sending reminders</p>
-                          <p className="mt-0.5 text-xs text-zinc-600">Every 7 days</p>
-                        </div>
-                        <div className="rounded-lg border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-zinc-300">Pause</div>
-                      </div>
-                      <div className="flex flex-col gap-2 rounded-xl border border-white/5 bg-black/20 p-3 text-xs text-zinc-400">
-                        <div className="flex justify-between"><span className="text-zinc-500">Next send:</span><span className="text-zinc-300">May 28, 2025, 9:00 AM</span></div>
-                        <div className="flex justify-between"><span className="text-zinc-500">Last sent:</span><span className="text-zinc-300">May 21, 2025</span></div>
-                      </div>
-                      <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
-                        <Zap className="h-3 w-3" />Reminder will stop automatically when marked paid
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </SlideIn>
-            </div>
-          </Container>
-
-          {/* Section 5: Reminders from your own email */}
-          <Container>
-            <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
-              <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-sky-500/20 bg-sky-500/10 mb-6">
-                  <MessageSquare className="h-6 w-6 text-sky-300" />
-                </div>
-                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
-                  A reminder from a billing tool looks like a collections agency. A reminder from you gets read.
-                </h2>
-                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
-                  Duely connects to your Gmail and sends reminders from your own address. Your clients see your name in the from field, not a SaaS tool.
+                  Pick a tone. Duely drafts the message. Edit it before you send.
                 </p>
               </FadeIn>
               <SlideIn right delay={0.2} className="flex justify-center">
                 <div className="relative w-full max-w-[26rem]">
-                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.07),transparent_50%)]" />
-                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.08),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20 space-y-3">
                     <CardContent className="p-0 space-y-3">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Gmail connection</p>
-                      <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-emerald-200">Connected</p>
-                          <p className="text-xs text-emerald-300/60 truncate">alex@youragency.com</p>
-                        </div>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Tone</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {[{label:"Friendly",desc:"Warm & casual"},{label:"Professional",desc:"Neutral & clear",active:true},{label:"Firm",desc:"Direct & assertive"}].map((t) => (
+                          <div key={t.label} className={`rounded-xl border px-3 py-2.5 text-left ${t.active ? "border-indigo-500/40 bg-indigo-500/10" : "border-white/10 bg-white/[0.03]"}`}>
+                            <p className={`text-xs font-semibold ${t.active ? "text-indigo-200" : "text-zinc-400"}`}>{t.label}</p>
+                            <p className="mt-0.5 text-[10px] leading-none text-zinc-600">{t.desc}</p>
+                          </div>
+                        ))}
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 space-y-1">
-                        <p className="text-xs text-zinc-500">From</p>
-                        <p className="text-sm text-zinc-200">Alex Chen &lt;alex@youragency.com&gt;</p>
-                        <p className="mt-2 text-xs text-zinc-500">To</p>
-                        <p className="text-sm text-zinc-200">sarah@clientco.com</p>
-                        <p className="mt-2 text-xs text-zinc-500">Subject</p>
-                        <p className="text-sm text-zinc-200">Following up on invoice #1042</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Draft message</p>
+                      <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 font-mono text-xs leading-5 text-zinc-400 space-y-1">
+                        <p>Hi Sarah,</p>
+                        <p className="mt-1">I wanted to follow up on invoice #1042 for $2,400, which was due on May 15th.</p>
+                        <p className="mt-1">Please let me know if you have any questions. Happy to help.</p>
+                        <p className="mt-1">Best,<br/>Alex</p>
                       </div>
-                      <p className="text-xs text-zinc-600">Duely never stores your email content. OAuth only.</p>
+                      <p className="text-xs text-zinc-600">Not happy with the wording? Edit it before sending.</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -389,7 +592,7 @@ export default async function Home({
             </div>
           </Container>
 
-          {/* Section 6: Follow-up logging and timeline */}
+{/* Section 6: Follow-up logging and timeline */}
           <Container>
             <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
               <SlideIn left>
@@ -434,7 +637,7 @@ export default async function Home({
             </div>
           </Container>
 
-          {/* Section 7: Full client history */}
+{/* Section 7: Full client history */}
           <Container>
             <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
               <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
@@ -476,51 +679,7 @@ export default async function Home({
             </div>
           </Container>
 
-          {/* Section 8: QuickBooks and Xero */}
-          <Container>
-            <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-              <SlideIn left>
-                <div className="relative order-2 lg:order-1">
-                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.07),transparent_50%)]" />
-                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
-                    <CardContent className="p-0 space-y-3">
-                      {[
-                        {name:"QuickBooks",connected:true,synced:"Last synced May 25, 9:04 AM",imported:"12 invoices imported"},
-                        {name:"Xero",connected:false,synced:null,imported:null},
-                      ].map((int) => (
-                        <div key={int.name} className={`rounded-xl border px-4 py-4 space-y-2 ${int.connected ? "border-emerald-500/20 bg-emerald-500/5" : "border-white/10 bg-white/[0.02]"}`}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Sparkles className={`h-4 w-4 ${int.connected ? "text-emerald-400" : "text-zinc-600"}`} />
-                              <p className="text-sm font-semibold text-zinc-100">{int.name}</p>
-                              {int.connected && <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">Connected</span>}
-                            </div>
-                            <div className={`rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium ${int.connected ? "text-red-400" : "text-indigo-300 bg-indigo-500/10 border-indigo-500/20"}`}>
-                              {int.connected ? "Disconnect" : "Connect"}
-                            </div>
-                          </div>
-                          {int.connected && <p className="text-xs text-zinc-500">{int.synced} · {int.imported}</p>}
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                </div>
-              </SlideIn>
-              <FadeIn delay={0.2} className="order-1 lg:order-2 max-w-xl lg:pl-12 xl:pl-16">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 mb-6">
-                  <Zap className="h-6 w-6 text-emerald-300" />
-                </div>
-                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
-                  Your invoices are already in QuickBooks. You shouldn&apos;t have to enter them again.
-                </h2>
-                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
-                  Connect your QuickBooks or Xero account and Duely imports your outstanding invoices automatically. When a client pays, Duely stops chasing them.
-                </p>
-              </FadeIn>
-            </div>
-          </Container>
-
-          {/* Section 9: Analytics */}
+{/* Section 9: Analytics */}
           <Container>
             <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
               <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
@@ -578,7 +737,7 @@ export default async function Home({
             </div>
           </Container>
 
-          {/* Section 10: CSV export */}
+{/* Section 10: CSV export */}
           <Container>
             <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
               <SlideIn left>
@@ -627,64 +786,81 @@ export default async function Home({
               </FadeIn>
             </div>
           </Container>
-        </section>
 
-          {/* Section 11: Weekly Digest Email */}
+
+          {/* Additional Features */}
           <Container>
-            <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
-              <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-pink-500/20 bg-pink-500/10 mb-6">
-                  <Mail className="h-6 w-6 text-pink-300" />
+            <div className="mx-auto max-w-2xl text-center mb-16">
+              <h2 className="text-3xl font-semibold tracking-[-0.03em] text-zinc-50">
+                And everything else you need.
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Late Fees */}
+              <div className="group rounded-2xl border border-white/10 bg-white/[0.02] p-6  flex flex-col justify-between overflow-hidden relative">
+                <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-red-500/5 to-transparent pointer-events-none" />
+                <div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 mb-4">
+                    <CreditCard className="h-5 w-5 text-red-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-zinc-100">Automated Late Fees</h3>
+                  <p className="mt-2 text-sm text-zinc-400 max-w-sm">You hate charging late fees. But you hate being treated like a free bank even more. Configure a flat or percentage late fee policy once, and let Duely automatically apply it.</p>
                 </div>
-                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
-                  Start your week knowing exactly who to chase.
-                </h2>
-                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
-                  Every Monday morning, Duely drops a beautifully formatted digest straight into your inbox. It summarizes exactly what you collected last week, who broke a payment promise, and which invoices just became overdue so you can prioritize your time.
-                </p>
-              </FadeIn>
-              <SlideIn right delay={0.2} className="flex justify-center">
-                <div className="relative w-full max-w-[26rem]">
-                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(236,72,153,0.06),transparent_50%)]" />
-                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
-                    <CardContent className="p-0 space-y-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Mail className="h-4 w-4 text-zinc-400" />
-                        <p className="text-xs font-medium text-zinc-400">Weekly Digest · Monday 8:00 AM</p>
-                      </div>
-                      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-4">
-                        <div>
-                          <p className="text-lg font-bold text-zinc-100">Your Weekly Collections Briefing</p>
-                          <p className="text-sm text-zinc-400 mt-1">Here is what happened last week and what needs attention.</p>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Collected last week</p>
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                              <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                            </div>
-                            <div>
-                              <p className="text-lg font-bold text-emerald-400">$18,400.00</p>
-                              <p className="text-xs text-zinc-500">Across 4 invoices</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 pt-2 border-t border-white/5">
-                          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Action needed</p>
-                          <div className="rounded border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm">
-                            <p className="font-medium text-red-200">Acme Corp ($4,200)</p>
-                            <p className="text-xs text-red-300/70 mt-0.5">Missed their payment promise on Friday.</p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                <div className="mt-8 rounded-xl border border-white/10 bg-zinc-900/80 p-4 w-full max-w-md shadow-lg shadow-black/40">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium text-zinc-200 text-sm">Default Agency Policy</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-emerald-400 font-medium bg-emerald-400/10 px-2 py-0.5 rounded-full">Active</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-zinc-500">5% monthly fee, applied after 14-day grace period</div>
                 </div>
-              </SlideIn>
+              </div>
+              {/* Cooldowns */}
+              <div className="group rounded-2xl border border-white/10 bg-white/[0.02] p-6 flex flex-col justify-between overflow-hidden relative">
+                <div className="absolute right-0 bottom-0 w-full h-1/2 bg-gradient-to-t from-emerald-500/5 to-transparent pointer-events-none" />
+                <div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 mb-4">
+                    <Activity className="h-5 w-5 text-emerald-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-zinc-100">Smart Cooldowns</h3>
+                  <p className="mt-2 text-sm text-zinc-400">You just called them yesterday. You don't want a robot emailing them today. When you step in, Duely backs off.</p>
+                </div>
+                <div className="mt-8 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-zinc-600" />
+                    <div className="text-xs text-zinc-400">Logged call: "Will pay Monday"</div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-emerald-400" />
+                    <div className="text-xs font-medium text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-md">Automated sequence paused (Cooldown)</div>
+                  </div>
+                </div>
+              </div>
+              {/* Client Groups */}
+              <div className="group rounded-2xl border border-white/10 bg-white/[0.02] p-6 flex flex-col justify-between overflow-hidden relative">
+                <div className="absolute right-0 top-0 w-full h-1/2 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
+                <div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/10 mb-4">
+                    <User className="h-5 w-5 text-blue-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-zinc-100">Client Segmentation</h3>
+                  <p className="mt-2 text-sm text-zinc-400">You can't treat a 5-year VIP the same as someone who disappeared. Group clients and apply targeted automation rules.</p>
+                </div>
+                <div className="mt-8 flex items-center justify-between bg-zinc-900/80 border border-white/10 rounded-xl p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-xs font-medium text-blue-300">SC</div>
+                    <div className="text-sm font-medium text-zinc-200">Stark Corp</div>
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wider font-semibold bg-amber-500/20 text-amber-300 px-2 py-1 rounded flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" /> VIP
+                  </div>
+                </div>
+              </div>
             </div>
           </Container>
+
+        </section>
 
         {/* WORKS WITH */}
         <section className="py-16 border-b border-white/5 bg-zinc-950 text-center">

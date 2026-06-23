@@ -27,8 +27,10 @@ import {
   Zap,
   CreditCard,
   User,
+  Users,
   AlertTriangle,
-  Activity
+  Activity,
+  Mail
 } from "lucide-react";
 import { websiteSchema } from "@/lib/seo/site";
 
