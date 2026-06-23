@@ -549,7 +549,7 @@ export async function getQuickBooksBankAccounts(userId: string) {
       currency: acc.CurrencyRef?.value || "USD"
     }));
   } catch (error) {
-    logger.error("Failed to fetch QuickBooks bank accounts", { error });
+    logger.error({ message: "Failed to fetch QuickBooks bank accounts", context: "quickbooks_bank_sync", original_error: String(error) });
     return [];
   }
 }

@@ -561,7 +561,7 @@ export async function getXeroBankAccounts(userId: string) {
         currency: acc.currencyCode
       }));
   } catch (error) {
-    logger.error("Failed to fetch Xero bank accounts", { error });
+    logger.error({ message: "Failed to fetch Xero bank accounts", context: "xero_bank_sync", original_error: String(error) });
     return [];
   }
 }
