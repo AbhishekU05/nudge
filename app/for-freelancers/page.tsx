@@ -492,6 +492,68 @@ export default async function ForFreelancersPage({
           </Container>
         </section>
 
+        {/* GMAIL INTEGRATION SECTION */}
+        <section className="relative py-24 sm:py-32 bg-zinc-950 border-t border-white/5">
+          {/* 3. Gmail Integration */}
+          <Container>
+            <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+              <SlideIn left>
+                <div className="relative order-2 lg:order-1">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.06),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-6 shadow-xl shadow-black/20">
+                    <CardContent className="p-0">
+                      <div className="flex items-center gap-4 border-b border-white/10 pb-6">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white border border-zinc-200 shadow-sm">
+                          <Image src="/google-logo.svg" alt="Google" width={24} height={24} />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-zinc-100">Google Gmail</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="relative flex h-2 w-2">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                            </span>
+                            <span className="text-sm text-emerald-400 font-medium">
+                              Connected to abhishek@agency.com
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-6 space-y-4">
+                        <div className="flex items-start gap-4">
+                          <div className="mt-1.5 h-2 w-2 rounded-full bg-emerald-500" />
+                          <div>
+                            <p className="text-sm font-medium text-zinc-200">Sent from your real inbox</p>
+                            <p className="text-xs text-zinc-500">Not a weird @mail.duely.in address</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                          <div className="mt-1.5 h-2 w-2 rounded-full bg-emerald-500" />
+                          <div>
+                            <p className="text-sm font-medium text-zinc-200">Replies go straight to you</p>
+                            <p className="text-xs text-zinc-500">Clients reply directly to your email</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </SlideIn>
+              <FadeIn delay={0.2} className="order-1 lg:order-2 max-w-xl lg:pl-12 xl:pl-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/10 mb-6">
+                  <Image src="/google-logo.svg" alt="Google" width={24} height={24} className="opacity-80 grayscale invert" />
+                </div>
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  Automated emails that don&apos;t look automated.
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Connect your Gmail workspace in one click. Reminders are sent directly from your actual inbox — not a generic &quot;no-reply&quot; system address.
+                </p>
+              </FadeIn>
+            </div>
+          </Container>
+        </section>
+
         {/* CORE FOUR SECTIONS */}
         <section id="how-it-works" className="relative overflow-hidden py-24 sm:py-32 space-y-32 sm:space-y-40 bg-zinc-950/50 border-y border-white/5 backdrop-blur-sm">
           <div id="features" className="absolute -top-32" />
@@ -579,65 +641,6 @@ export default async function ForFreelancersPage({
                   </Card>
                 </div>
               </SlideIn>
-            </div>
-          </Container>
-
-          {/* 3. Gmail Integration */}
-          <Container>
-            <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-              <SlideIn left>
-                <div className="relative order-2 lg:order-1">
-                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.06),transparent_50%)]" />
-                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-6 shadow-xl shadow-black/20">
-                    <CardContent className="p-0">
-                      <div className="flex items-center gap-4 border-b border-white/10 pb-6">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white border border-zinc-200 shadow-sm">
-                          <Image src="/google-logo.svg" alt="Google" width={24} height={24} />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-zinc-100">Google Gmail</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="relative flex h-2 w-2">
-                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                            </span>
-                            <span className="text-sm text-emerald-400 font-medium">
-                              Connected to abhishek@agency.com
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-6 space-y-4">
-                        <div className="flex items-start gap-4">
-                          <div className="mt-1.5 h-2 w-2 rounded-full bg-emerald-500" />
-                          <div>
-                            <p className="text-sm font-medium text-zinc-200">Sent from your real inbox</p>
-                            <p className="text-xs text-zinc-500">Not a weird @mail.duely.in address</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-4">
-                          <div className="mt-1.5 h-2 w-2 rounded-full bg-emerald-500" />
-                          <div>
-                            <p className="text-sm font-medium text-zinc-200">Replies go straight to you</p>
-                            <p className="text-xs text-zinc-500">Clients reply directly to your email</p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </SlideIn>
-              <FadeIn delay={0.2} className="order-1 lg:order-2 max-w-xl lg:pl-12 xl:pl-16">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/10 mb-6">
-                  <Image src="/google-logo.svg" alt="Google" width={24} height={24} className="opacity-80 grayscale invert" />
-                </div>
-                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
-                  Automated emails that don&apos;t look automated.
-                </h2>
-                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
-                  Connect your Gmail workspace in one click. Reminders are sent directly from your actual inbox — not a generic &quot;no-reply&quot; system address.
-                </p>
-              </FadeIn>
             </div>
           </Container>
 
