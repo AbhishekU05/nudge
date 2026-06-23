@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { Plus, UserRound, X, Loader2, FileText, ArrowRight, XCircle } from "lucide-react";
+import { Plus, UserRound, X, Loader2, FileText, ArrowRight, XCircle, Globe, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createGroup } from "@/app/(app)/customers/actions";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -32,6 +32,50 @@ export function SidebarGroups({
           </div>
           {isExpanded && <span className="truncate whitespace-nowrap text-sm font-medium">New Group</span>}
         </button>
+
+        {/* Static Global Group */}
+        <div className="flex flex-col">
+          <button
+            onClick={() => setActiveGroup(activeGroup === "global" ? null : "global")}
+            className={cn(
+              "w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors",
+              activeGroup === "global"
+                ? "bg-white/[0.08] text-zinc-100"
+                : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+            )}
+            title={!isExpanded ? "All" : undefined}
+          >
+            <div className="flex flex-col items-center justify-center w-5">
+              <Users className="h-5 w-5 shrink-0 text-indigo-400" />
+            </div>
+            {isExpanded && <span className="truncate whitespace-nowrap text-sm">All</span>}
+          </button>
+
+          {activeGroup === "global" && (
+            <div className="flex flex-col mt-1 ml-3 pl-3 border-l border-white/10 space-y-1">
+              <Link
+                href="/customers"
+                className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+                title={!isExpanded ? "All Customers" : undefined}
+              >
+                <div className="flex flex-col items-center justify-center w-5">
+                  <Users className="h-4 w-4 shrink-0" />
+                </div>
+                {isExpanded && <span className="truncate whitespace-nowrap text-sm">Customers</span>}
+              </Link>
+              <Link
+                href="/invoices"
+                className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+                title={!isExpanded ? "All Invoices" : undefined}
+              >
+                <div className="flex flex-col items-center justify-center w-5">
+                  <FileText className="h-4 w-4 shrink-0" />
+                </div>
+                {isExpanded && <span className="truncate whitespace-nowrap text-sm">Invoices</span>}
+              </Link>
+            </div>
+          )}
+        </div>
 
         {groups.map((group) => {
           const isActive = activeGroup === group.id;

@@ -316,8 +316,8 @@ export default async function DashboardPage(props: {
                 <h2 className="text-xl font-semibold tracking-tight text-zinc-50 flex items-center gap-2">
                   <Mail className="h-5 w-5 text-zinc-400" /> Pending Queue
                 </h2>
-                <Link href="/drafts" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 flex items-center gap-1 transition-colors">
-                  View all <ArrowRight className="h-4 w-4" />
+                <Link href="/automate" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 flex items-center gap-1 transition-colors">
+                  View queue <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
 
@@ -349,8 +349,8 @@ export default async function DashboardPage(props: {
                 <h2 className="text-xl font-semibold tracking-tight text-zinc-50 flex items-center gap-2">
                   <Zap className="h-5 w-5 text-zinc-400" /> Active Automations
                 </h2>
-                <Link href="/automations" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 flex items-center gap-1 transition-colors">
-                  View all <ArrowRight className="h-4 w-4" />
+                <Link href="/automate" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 flex items-center gap-1 transition-colors">
+                  Manage settings <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
 
