@@ -33,7 +33,8 @@ import {
   Mail,
   AlertCircle,
   Clock,
-  DollarSign
+  DollarSign,
+  FileText
 } from "lucide-react";
 import { websiteSchema } from "@/lib/seo/site";
 
@@ -556,28 +557,77 @@ export default async function ForAgenciesPage({
                   <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.06),transparent_50%)]" />
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
                     <CardContent className="p-0">
-                        <div className="flex flex-col gap-4 p-4">
-                          <div className="flex flex-col gap-1">
-                            <p className="text-zinc-400 text-[10px] font-medium uppercase tracking-wider">
-                              Client Portal &bull; Your Agency
-                            </p>
-                            <h1 className="text-xl font-semibold tracking-tight text-zinc-100">
-                              Acme Corp
-                            </h1>
+                        <div className="flex flex-col gap-4 p-5 bg-[#09090b]">
+                          {/* Header */}
+                          <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                            <div className="flex flex-col gap-1">
+                              <p className="text-zinc-500 text-[10px] font-semibold uppercase tracking-widest flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                Your Agency Portal
+                              </p>
+                              <h1 className="text-lg font-bold tracking-tight text-zinc-100 mt-1">
+                                Acme Corp
+                              </h1>
+                            </div>
+                            <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10">
+                              <User className="w-4 h-4 text-zinc-400" />
+                            </div>
                           </div>
                           
-                          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-1 shadow-sm">
-                            <p className="text-zinc-400 text-xs font-medium">Total Amount Outstanding</p>
-                            <p className="text-2xl font-bold tracking-tight text-zinc-50">
-                              $4,200.00
-                            </p>
+                          {/* Balance & Action */}
+                          <div className="bg-zinc-900 border border-white/10 rounded-xl p-4 flex items-center justify-between shadow-xl relative overflow-hidden">
+                            <div className="absolute right-0 top-0 w-32 h-32 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.1),transparent_70%)] pointer-events-none" />
+                            <div className="flex flex-col gap-1 relative z-10">
+                              <p className="text-zinc-400 text-[11px] font-medium uppercase tracking-wider">Total Due</p>
+                              <p className="text-2xl font-bold tracking-tight text-zinc-50">
+                                $4,200.00
+                              </p>
+                            </div>
+                            <button className="relative z-10 bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-bold px-4 py-2 rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1.5">
+                              Pay Balance
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                           
-                          <div className="flex flex-col gap-3 bg-zinc-900/50 rounded-xl p-4 border border-zinc-800">
-                            <h2 className="text-sm font-semibold text-zinc-100">How to Pay</h2>
-                            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex flex-col gap-1 shadow-sm">
-                              <p className="text-sm font-medium text-zinc-100">Chase Business</p>
-                              <p className="text-xs text-zinc-500 font-mono">•••• 1234</p>
+                          {/* Invoice History */}
+                          <div className="flex flex-col gap-3 mt-2">
+                            <div className="flex justify-between items-center px-1">
+                              <h2 className="text-xs font-semibold text-zinc-300">Open Invoices</h2>
+                              <span className="text-[10px] text-zinc-500 hover:text-zinc-300 cursor-pointer">View History</span>
+                            </div>
+                            
+                            <div className="flex flex-col gap-2">
+                              {/* Invoice 1 */}
+                              <div className="bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors rounded-lg p-3 flex items-center justify-between group">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                                    <FileText className="w-3.5 h-3.5 text-red-400" />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-zinc-200">INV-2026-042</p>
+                                    <p className="text-[10px] text-zinc-500">Due 14 days ago</p>
+                                  </div>
+                                </div>
+                                <div className="text-right flex items-center gap-3">
+                                  <p className="text-sm font-semibold text-zinc-100">$2,400.00</p>
+                                </div>
+                              </div>
+
+                              {/* Invoice 2 */}
+                              <div className="bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors rounded-lg p-3 flex items-center justify-between group">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                                    <FileText className="w-3.5 h-3.5 text-amber-400" />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-zinc-200">INV-2026-048</p>
+                                    <p className="text-[10px] text-zinc-500">Due today</p>
+                                  </div>
+                                </div>
+                                <div className="text-right flex items-center gap-3">
+                                  <p className="text-sm font-semibold text-zinc-100">$1,800.00</p>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
