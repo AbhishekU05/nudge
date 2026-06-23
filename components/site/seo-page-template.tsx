@@ -1,11 +1,13 @@
-/* eslint-disable */
 import Link from "next/link";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { CheckCircle2, ArrowRight, MessageSquare, Sparkles, Zap, CreditCard, User, Users, AlertTriangle, Activity, Mail } from "lucide-react";
 import type { SEOPageData } from "@/lib/seo-data";
 import { Container } from "@/components/site/container";
-import { FadeIn, SlideUp } from "@/components/site/scroll-animation";
+import { FadeIn, Reveal, SlideUp, SlideIn } from "@/components/site/scroll-animation";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Mail, CreditCard, Activity, User } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { HeroActionCenter } from "@/components/site/hero-action-center";
+import { cn } from "@/lib/utils";
 
 export default function SEOPageTemplate({ data }: { data: SEOPageData }) {
   const schemaMarkup = {
@@ -23,35 +25,6 @@ export default function SEOPageTemplate({ data }: { data: SEOPageData }) {
         },
         "description": data.metaDescription,
         "url": "https://duely.in"
-      },
-      {
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "How does Duely send reminders?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Duely sends reminders directly from your own connected Gmail account, ensuring they look personal and don&apos;t end up in the spam folder."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Does Duely integrate with my accounting software?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes, Duely has native 1-click integrations with QuickBooks Online and Xero to automatically pull in your unpaid invoices."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How much does Duely cost?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Duely is a flat $29/month with no hidden fees, and comes with a 7-day free trial that requires no credit card."
-            }
-          }
-        ]
       }
     ] as any[]
   };
@@ -59,8 +32,6 @@ export default function SEOPageTemplate({ data }: { data: SEOPageData }) {
   if (data.category && data.slug) {
     let categoryName = data.category.charAt(0).toUpperCase() + data.category.slice(1);
     let categoryPath = `/${data.category}`;
-    
-    // Adjust path matching Next.js routes
     if (data.category === 'competitor') { categoryName = 'Alternatives'; categoryPath = '/alternatives'; }
     if (data.category === 'industry') { categoryName = 'Industries'; categoryPath = '/for'; }
     if (data.category === 'integration') { categoryName = 'Integrations'; categoryPath = '/integrations'; }
@@ -70,238 +41,339 @@ export default function SEOPageTemplate({ data }: { data: SEOPageData }) {
     schemaMarkup["@graph"].push({
       "@type": "BreadcrumbList",
       "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://duely.in"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": categoryName,
-          "item": `https://duely.in${categoryPath}`
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "name": data.title,
-          "item": `https://duely.in/${data.slug}`
-        }
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://duely.in" },
+        { "@type": "ListItem", "position": 2, "name": categoryName, "item": `https://duely.in${categoryPath}` },
+        { "@type": "ListItem", "position": 3, "name": data.title, "item": `https://duely.in/${data.slug}` }
       ]
     });
   }
 
   return (
     <div className="flex flex-col min-h-screen">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaMarkup) }}
-      />
-      
-            {/* Hero Section */}
-      <section className="relative pt-24 pb-20 sm:pt-32 sm:pb-32 lg:pb-40">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_-20%,rgba(79,70,229,0.15),transparent_60%),radial-gradient(ellipse_at_80%_40%,rgba(168,85,247,0.08),transparent_50%)]" />
-        <Container>
-          <FadeIn className="max-w-4xl mx-auto text-center">
-            <h1 className="text-pretty text-5xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-6xl lg:text-7xl lg:leading-[1.05] mb-6">
-              {data.h1}
-            </h1>
-            <p className="mt-6 text-xl text-zinc-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-              {data.subtitle}
-            </p>
-            <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link href="/signup" className="w-full sm:w-auto">
-                <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
-                  {data.cta}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-            <p className="text-sm text-zinc-500 mt-6">7-day free trial • No credit card required</p>
-          </FadeIn>
-        </Container>
-      </section>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaMarkup) }} />
+      <main className="flex-1">
 
-            {/* Pain Point Section */}
-      <section className="py-20 bg-zinc-950/50 border-y border-white/5 backdrop-blur-sm">
-        <Container>
-          <FadeIn className="max-w-3xl mx-auto">
-            <div className="bg-zinc-900 border border-white/10 rounded-2xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-50" />
-              <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-zinc-100 mb-6">The Real Problem</h2>
-              <p className="text-lg text-zinc-400 leading-relaxed">
-                {data.painPoint}
-              </p>
-            </div>
-          </FadeIn>
-        </Container>
-      </section>
+        {/* HERO SECTION */}
+        <section className="relative pt-12 pb-20 sm:pt-16 sm:pb-32 lg:pb-40">
+          <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_-20%,rgba(79,70,229,0.15),transparent_60%),radial-gradient(ellipse_at_80%_40%,rgba(168,85,247,0.08),transparent_50%)]" />
 
-            {/* Features Section */}
-      <section className="py-24">
-        <Container>
-          <div className="max-w-5xl mx-auto">
-            <FadeIn className="text-center mb-16">
-              <h2 className="text-3xl font-semibold tracking-[-0.03em] text-zinc-100 mb-4">Why Duely is Built for You</h2>
-              <p className="text-zinc-400 max-w-2xl mx-auto text-lg">
-                We focus on one thing: getting your overdue invoices paid without ruining your client relationships.
-              </p>
+          <Container>
+            <div className="grid gap-16 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+              <FadeIn className="max-w-2xl">
+                <h1 className="mt-8 text-pretty text-5xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-6xl lg:text-7xl lg:leading-[1.05]">{data.h1}</h1>
+                <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-zinc-400">{data.subtitle}</p>
+                <p className="mt-4 max-w-xl text-pretty text-base font-medium text-zinc-300">Start your 7-day free trial. No credit card required.</p>
+                <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+                  <Link href="/signup" className="w-full sm:w-auto">
+                    <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
+                      {data.cta}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link href="/tools" className="w-full sm:w-auto">
+                    <Button variant="secondary" size="lg" className="h-12 px-8 text-base w-full sm:w-auto">
+                      Explore free tools
+                    </Button>
+                  </Link>
+                </div>
+              </FadeIn>
+
+              <Reveal delay={0.2} className="relative z-10 lg:ml-auto w-full max-w-[640px] lg:max-w-none">
+                <HeroActionCenter />
+              </Reveal>
+            </div>
+          </Container>
+        </section>
+
+        
+        {data.painPoint && (
+          <section className="py-20 bg-zinc-950/50 border-y border-white/5 backdrop-blur-sm">
+            <Container>
+              <FadeIn className="max-w-3xl mx-auto">
+                <div className="bg-zinc-900 border border-white/10 rounded-2xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-50" />
+                  <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-zinc-100 mb-6">The Real Problem</h2>
+                  <p className="text-lg text-zinc-400 leading-relaxed">
+                    {data.painPoint}
+                  </p>
+                </div>
+              </FadeIn>
+            </Container>
+          </section>
+        )}
+
+        {data.features && data.features.length > 0 && (
+          <section className="py-24">
+            <Container>
+              <div className="max-w-5xl mx-auto">
+                <FadeIn className="text-center mb-16">
+                  <h2 className="text-3xl font-semibold tracking-[-0.03em] text-zinc-100 mb-4">Why Duely is Built for You</h2>
+                  <p className="text-zinc-400 max-w-2xl mx-auto text-lg">
+                    We focus on one thing: getting your overdue invoices paid without ruining your client relationships.
+                  </p>
+                </FadeIn>
+                <FadeIn className="grid md:grid-cols-3 gap-8 mb-24">
+                  {data.features.map((feature, index) => (
+                    <div key={index} className="bg-white/[0.02] border border-white/5 rounded-2xl p-8 hover:bg-white/[0.04] transition-colors">
+                      <div className="h-12 w-12 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-6 border border-indigo-500/20">
+                        <CheckCircle2 className="h-6 w-6 text-indigo-400" />
+                      </div>
+                      <p className="text-zinc-300 font-medium leading-relaxed">{feature}</p>
+                    </div>
+                  ))}
+                </FadeIn>
+              </div>
+            </Container>
+          </section>
+        )}
+
+        {/* STATS SECTION */}
+        <section className="py-16 sm:py-20">
+          <Container>
+            <FadeIn>
+              <div className="grid grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-8 lg:gap-16 mx-auto max-w-4xl text-center">
+                {[
+                  {
+                    stat: "$40B+",
+                    label: "The global cost",
+                    description: "Lost globally every year to late payments",
+                    source: "World Bank",
+                  },
+                  {
+                    stat: "50%",
+                    label: "The default rate",
+                    description: "of US B2B invoices are currently overdue",
+                    source: "Atradius 2024",
+                  },
+                  {
+                    stat: "52%",
+                    label: "The silent write-off",
+                    description: "of small businesses give up chasing payments to avoid the awkwardness",
+                    source: "GoCardless / FSB 2025",
+                  },
+                ].map((item) => (
+                  <div key={item.stat}>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
+                      {item.label}
+                    </p>
+                    <p className="text-4xl font-semibold tracking-tight text-zinc-50 sm:text-5xl">
+                      {item.stat}
+                    </p>
+                    <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+                      {item.description}
+                    </p>
+                    <p className="mt-2 text-xs text-zinc-600">
+                      {item.source}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </FadeIn>
-            
-            <FadeIn className="grid md:grid-cols-3 gap-8 mb-24">
-              {data.features.map((feature, index) => (
-                <div key={index} className="bg-white/[0.02] border border-white/5 rounded-2xl p-8 hover:bg-white/[0.04] transition-colors">
-                  <div className="h-12 w-12 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-6 border border-indigo-500/20">
-                    <CheckCircle2 className="h-6 w-6 text-indigo-400" />
-                  </div>
-                  <p className="text-zinc-300 font-medium leading-relaxed">{feature}</p>
-                </div>
-              ))}
-            </FadeIn>
+          </Container>
+        </section>
 
-          {/* Unique Content Section */}
-          {data.longContent && (
-            <div className="prose prose-invert prose-emerald max-w-4xl mx-auto">
-              {data.longContent.type === 'competitor' && (
-                <div className="bg-zinc-900 border border-white/5 rounded-3xl p-8 md:p-12">
-                  <h2 className="text-3xl font-bold text-zinc-100 mb-8 text-center">Feature Breakdown</h2>
-                  <div className="grid md:grid-cols-2 gap-12">
-                    <div>
-                      <h3 className="text-xl font-bold text-zinc-300 mb-6 flex items-center gap-2"><span className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center text-sm">✕</span> Their Approach</h3>
-                      <ul className="space-y-4">
-                        {data.longContent.data.theirWeaknesses.map((w: string, i: number) => (
-                          <li key={i} className="text-zinc-400 flex items-start gap-3">
-                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-700 mt-2 shrink-0" />
-                            {w}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-zinc-300 mb-6 flex items-center gap-2"><span className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-sm">✓</span> Duely's Approach</h3>
-                      <ul className="space-y-4">
-                        {data.longContent.data.ourStrengths.map((s: string, i: number) => (
-                          <li key={i} className="text-zinc-400 flex items-start gap-3">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
-                            {s}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="mt-12 pt-8 border-t border-white/5 text-center">
-                    <p className="text-lg text-zinc-300 italic">{data.longContent.data.conclusion}</p>
-                  </div>
-                </div>
-              )}
+        {/* CORE FOUR SECTIONS */}
+        <section id="how-it-works" className="relative overflow-hidden py-24 sm:py-32 space-y-32 sm:space-y-40 bg-zinc-950/50 border-y border-white/5 backdrop-blur-sm">
+          <div id="features" className="absolute -top-32" />
 
-              {data.longContent.type === 'industry' && (
-                <div className="space-y-12">
-                  <h2 className="text-3xl font-bold text-center mb-8">Specific Challenges in this Industry</h2>
-                  <div className="grid md:grid-cols-3 gap-8">
-                    <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6">
-                      <h3 className="text-emerald-500 font-bold mb-4 border-b border-white/5 pb-4">01. Scope Creep</h3>
-                      <p className="text-zinc-400 text-sm leading-relaxed">{data.longContent.data.challenge1}</p>
-                    </div>
-                    <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6">
-                      <h3 className="text-emerald-500 font-bold mb-4 border-b border-white/5 pb-4">02. Relationship Friction</h3>
-                      <p className="text-zinc-400 text-sm leading-relaxed">{data.longContent.data.challenge2}</p>
-                    </div>
-                    <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6">
-                      <h3 className="text-emerald-500 font-bold mb-4 border-b border-white/5 pb-4">03. Disorganized Tracking</h3>
-                      <p className="text-zinc-400 text-sm leading-relaxed">{data.longContent.data.challenge3}</p>
-                    </div>
-                  </div>
-                  <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-8 text-center mt-8">
-                    <h3 className="text-xl font-bold text-zinc-100 mb-4">The Solution</h3>
-                    <p className="text-zinc-300">{data.longContent.data.solution}</p>
-                  </div>
-                </div>
-              )}
-
-              {data.longContent.type === 'integration' && (
-                <div className="bg-zinc-900 border border-white/5 rounded-3xl p-8 md:p-12">
-                  <h2 className="text-3xl font-bold text-center mb-10">How It Works: Step by Step</h2>
-                  <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
-                    <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-zinc-900 text-emerald-500 font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow">1</div>
-                      <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white/[0.02] p-6 rounded-2xl border border-white/5">
-                        <p className="text-zinc-400">{data.longContent.data.step1}</p>
+          {/* 1. Action Center */}
+          <Container>
+            <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+              <SlideIn left>
+                <div className="relative order-2 lg:order-1">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.06),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                    <CardContent className="p-0">
+                      <div className="p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <h2 className="text-lg font-semibold tracking-tight text-zinc-50 flex items-center gap-2">
+                            <Users className="h-5 w-5 text-zinc-400" /> Customers Action Needed
+                          </h2>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors">
+                            <div>
+                              <h3 className="font-medium text-zinc-200">Acme Corp</h3>
+                              <p className="text-sm text-zinc-500 mt-0.5">
+                                <span className="text-red-400">14 days overdue</span>
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-medium text-zinc-200">$15,400.00</div>
+                              <div className="text-sm text-zinc-500 mt-0.5">Remaining</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-zinc-900 text-emerald-500 font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow">2</div>
-                      <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white/[0.02] p-6 rounded-2xl border border-white/5">
-                        <p className="text-zinc-400">{data.longContent.data.step2}</p>
-                      </div>
-                    </div>
-                    <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-zinc-900 text-emerald-500 font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow">3</div>
-                      <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white/[0.02] p-6 rounded-2xl border border-white/5">
-                        <p className="text-zinc-400">{data.longContent.data.step3}</p>
-                      </div>
-                    </div>
-                    <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-zinc-900 text-emerald-500 font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow">4</div>
-                      <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white/[0.02] p-6 rounded-2xl border border-white/5">
-                        <p className="text-zinc-400">{data.longContent.data.step4}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-12 text-center text-zinc-300 font-medium bg-emerald-500/10 p-6 rounded-xl border border-emerald-500/20">
-                    {data.longContent.data.benefit}
-                  </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              )}
-
-              {data.longContent.type === 'location' && (
-                <div className="bg-zinc-900 border border-white/5 rounded-3xl p-8 md:p-12">
-                  <h2 className="text-3xl font-bold text-zinc-100 mb-8 text-center">Local Business Context</h2>
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-xl font-bold text-emerald-500 mb-3">Business Culture</h3>
-                      <p className="text-zinc-400 leading-relaxed text-lg">{data.longContent.data.culture}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-emerald-500 mb-3">Late Fees vs Automation</h3>
-                      <p className="text-zinc-400 leading-relaxed text-lg">{data.longContent.data.legal}</p>
-                    </div>
-                    <div className="border-t border-white/10 pt-8 mt-8">
-                      <h3 className="text-xl font-bold text-zinc-100 mb-3">The Automated Approach</h3>
-                      <p className="text-zinc-300 leading-relaxed text-lg">{data.longContent.data.solution}</p>
-                    </div>
-                  </div>
+              </SlideIn>
+              <FadeIn delay={0.2} className="order-1 lg:order-2 max-w-xl lg:pl-12 xl:pl-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 mb-6">
+                  <Zap className="h-6 w-6 text-red-300" />
                 </div>
-              )}
-
-              {data.longContent.type === 'use-case' && (
-                <div className="bg-zinc-900 border border-white/5 rounded-3xl p-8 md:p-12">
-                  <h2 className="text-3xl font-bold text-zinc-100 mb-10 text-center">Real-World Scenario</h2>
-                  <div className="grid md:grid-cols-3 gap-8">
-                    <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-6">
-                      <div className="text-red-400 font-bold mb-4 uppercase tracking-wider text-sm flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" /> The Problem</div>
-                      <p className="text-zinc-400 leading-relaxed">{data.longContent.data.problem}</p>
-                    </div>
-                    <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-6">
-                      <div className="text-blue-400 font-bold mb-4 uppercase tracking-wider text-sm flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" /> The Workflow</div>
-                      <p className="text-zinc-400 leading-relaxed">{data.longContent.data.solution}</p>
-                    </div>
-                    <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-6 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-bl-full -mr-16 -mt-16" />
-                      <div className="text-emerald-400 font-bold mb-4 uppercase tracking-wider text-sm flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> The Result</div>
-                      <p className="text-zinc-300 leading-relaxed font-medium relative z-10">{data.longContent.data.result}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  You log in to 14 overdue invoices. Which one is actually a fire?
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Stop guessing who to chase. The Action Center analyzes aging, financial risk, and broken promises to tell you exactly who needs a nudge today, and who can wait.
+                </p>
+              </FadeIn>
             </div>
-          )}
-        </div>
-        </Container>
-      </section>
+          </Container>
 
-      {/* BENTO BOX GRID */}
+          {/* 2. Tone Drafting */}
+          <Container>
+            <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+              <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-purple-500/20 bg-purple-500/10 mb-6">
+                  <MessageSquare className="h-6 w-6 text-purple-300" />
+                </div>
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  Too friendly and they ignore it. Too firm and you damage the relationship.
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Pick a tone. Duely drafts the perfect message based on invoice history. Edit it before you send.
+                </p>
+              </FadeIn>
+              <SlideIn right>
+                <div className="relative">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.06),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                    <CardContent className="p-0 space-y-4">
+                      <div className="flex items-center gap-3 mb-4">
+                        <h2 className="text-lg font-bold tracking-tight text-zinc-50">Queue</h2>
+                        <div className="bg-white/5 px-2 py-0.5 rounded text-xs text-zinc-400">1 waiting</div>
+                      </div>
+                      <div className="flex flex-col p-4 rounded-xl border border-white/10 bg-white/[0.025] transition-colors">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium text-zinc-200">Friendly check-in regarding Invoice #INV-2024-08</h3>
+                            <p className="text-xs text-zinc-500 mt-1">To: david@acmecorp.com</p>
+                          </div>
+                          <span className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded">Draft</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </SlideIn>
+            </div>
+          </Container>
+
+          {/* 3. Gmail Integration */}
+          <Container>
+            <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+              <SlideIn left>
+                <div className="relative order-2 lg:order-1">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.06),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-6 shadow-xl shadow-black/20">
+                    <CardContent className="p-0">
+                      <div className="flex items-center gap-4 border-b border-white/10 pb-6">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white border border-zinc-200 shadow-sm">
+                          <Image src="/google-logo.svg" alt="Google" width={24} height={24} />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-zinc-100">Google Gmail</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="relative flex h-2 w-2">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                            </span>
+                            <span className="text-sm text-emerald-400 font-medium">
+                              Connected to abhishek@agency.com
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-6 space-y-4">
+                        <div className="flex items-start gap-4">
+                          <div className="mt-1.5 h-2 w-2 rounded-full bg-emerald-500" />
+                          <div>
+                            <p className="text-sm font-medium text-zinc-200">Sent from your real inbox</p>
+                            <p className="text-xs text-zinc-500">Not a weird @mail.duely.in address</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                          <div className="mt-1.5 h-2 w-2 rounded-full bg-emerald-500" />
+                          <div>
+                            <p className="text-sm font-medium text-zinc-200">Replies go straight to you</p>
+                            <p className="text-xs text-zinc-500">Clients reply directly to your email</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </SlideIn>
+              <FadeIn delay={0.2} className="order-1 lg:order-2 max-w-xl lg:pl-12 xl:pl-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/10 mb-6">
+                  <Image src="/google-logo.svg" alt="Google" width={24} height={24} className="opacity-80 grayscale invert" />
+                </div>
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  Automated emails that don&apos;t look automated.
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Connect your Gmail workspace in one click. Reminders are sent directly from your actual inbox — not a generic &quot;no-reply&quot; system address.
+                </p>
+              </FadeIn>
+            </div>
+          </Container>
+
+          {/* 4. Client Portal */}
+          <Container>
+            <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+              <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 mb-6">
+                  <User className="h-6 w-6 text-emerald-300" />
+                </div>
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  They keep asking you to resend the invoice. Then they ask for the payment link.
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Give your clients a secure, branded portal where they can view their complete billing history, download past invoices, and pay directly. No more email ping-pong.
+                </p>
+              </FadeIn>
+              <SlideIn right>
+                <div className="relative">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.06),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                    <CardContent className="p-0">
+                        <div className="flex flex-col gap-4 p-4">
+                          <div className="flex flex-col gap-1">
+                            <p className="text-zinc-400 text-[10px] font-medium uppercase tracking-wider">
+                              Client Portal &bull; Your Agency
+                            </p>
+                            <h1 className="text-xl font-semibold tracking-tight text-zinc-100">
+                              Acme Corp
+                            </h1>
+                          </div>
+                          
+                          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-1 shadow-sm">
+                            <p className="text-zinc-400 text-xs font-medium">Total Amount Outstanding</p>
+                            <p className="text-2xl font-bold tracking-tight text-zinc-50">
+                              $4,200.00
+                            </p>
+                          </div>
+                          
+                          <div className="flex flex-col gap-3 bg-zinc-900/50 rounded-xl p-4 border border-zinc-800">
+                            <h2 className="text-sm font-semibold text-zinc-100">How to Pay</h2>
+                            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex flex-col gap-1 shadow-sm">
+                              <p className="text-sm font-medium text-zinc-100">Chase Business</p>
+                              <p className="text-xs text-zinc-500 font-mono">•••• 1234</p>
+                            </div>
+                          </div>
+                        </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </SlideIn>
+            </div>
+          </Container>
+        </section>
+
+        {/* BENTO BOX GRID */}
         <section className="py-24 border-b border-white/5 bg-zinc-950">
           <Container>
             <div className="mx-auto max-w-2xl text-center mb-16">
@@ -451,53 +523,42 @@ export default function SEOPageTemplate({ data }: { data: SEOPageData }) {
           </Container>
         </section>
 
-        
-            {/* Bottom CTA */}
-      <section className="relative py-24 sm:py-32 overflow-hidden border-t border-white/5 bg-background">
-        <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute left-1/2 top-0 -ml-[40rem] h-[40rem] w-[80rem] rounded-full bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.15),transparent_60%)]" />
-          <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.03] mix-blend-overlay" />
-        </div>
-
-        <Container>
-          <SlideUp>
-            <div className="relative z-10 mx-auto max-w-2xl text-center">
-              <h2 className="text-pretty text-4xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-5xl">
-                Ready to fix your cash flow?
-              </h2>
-              <p className="mt-6 text-lg leading-relaxed text-zinc-400">
-                Join hundreds of agencies and freelancers using Duely to automate their accounts receivable.
-              </p>
-
-              <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
-                <Link href="/signup" className="w-full sm:w-auto">
-                  <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
-                    Start Your 7-day free trial
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-              <p className="text-sm text-zinc-500 mt-6">Just $29/month after trial • Cancel anytime</p>
-            </div>
-          </SlideUp>
-        </Container>
-      </section>
-
-      {/* Internal SEO Linking */}
-      {data.relatedLinks && data.relatedLinks.length > 0 && (
-        <section className="py-12 bg-zinc-950 border-t border-white/5 px-6">
-          <div className="max-w-4xl mx-auto">
-            <h4 className="font-bold text-zinc-300 mb-6 text-center">Related Pages</h4>
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
-              {data.relatedLinks.map((link, i) => (
-                <Link key={i} href={link.href} className="bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-emerald-400 border border-white/5 px-4 py-2 rounded-full transition-all">
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+        {/* CTA SECTION */}
+        <section className="relative py-24 sm:py-32 overflow-hidden border-t border-white/5 bg-background">
+          <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+            <div className="absolute left-1/2 top-0 -ml-[40rem] h-[40rem] w-[80rem] rounded-full bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.15),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.03] mix-blend-overlay" />
           </div>
+
+          <Container>
+            <SlideUp>
+              <div className="relative z-10 mx-auto max-w-2xl text-center">
+                <h2 className="text-pretty text-4xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-5xl">
+                  Ready to organize your receivables?
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Stop chasing clients out of your inbox and start collecting payments professionally.
+                </p>
+
+                <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+                  <Link href="/signup" className="w-full sm:w-auto">
+                    <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
+                      Start free trial — no card required
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link href="/tools" className="w-full sm:w-auto">
+                    <Button variant="secondary" size="lg" className="h-12 px-8 text-base w-full sm:w-auto">
+                      Explore free tools
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </SlideUp>
+          </Container>
         </section>
-      )}
+      
+      </main>
     </div>
   );
 }
