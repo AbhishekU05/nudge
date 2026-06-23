@@ -4,9 +4,11 @@ import { notFound } from "next/navigation";
 import { Container } from "@/components/site/container";
 import { AutomationSettings } from "@/components/site/automation-settings";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ClientRecord, InvoiceRecord } from "@/lib/types";
+import { ClientRecord, InvoiceRecord, getRemainingBalance } from "@/lib/types";
+import { CustomerAnalytics } from "./customer-analytics";
 
 export default async function CustomerProfilePage(props: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
@@ -58,8 +60,74 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
+          <div className="space-y-12">
+            {/* 1. Analytics Section */}
+            <section>
+              <h2 className="text-xl font-medium text-zinc-100 mb-6">Analytics</h2>
+              <CustomerAnalytics invoices={invoicesList} />
+            </section>
+
+            {/* 2. Invoices List */}
+            <section>
+              <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-6">
+                <h2 className="text-xl font-medium text-zinc-100 mb-4">Invoices</h2>
+                <div className="overflow-hidden rounded-xl border border-white/10">
+                  <table className="w-full text-left text-sm text-zinc-400">
+                    <thead className="bg-white/[0.02] border-b border-white/10">
+                      <tr>
+                        <th className="px-4 py-3 font-medium text-zinc-300">Invoice #</th>
+                        <th className="px-4 py-3 font-medium text-zinc-300">Status</th>
+                        <th className="px-4 py-3 font-medium text-zinc-300">Due Date</th>
+                        <th className="px-4 py-3 font-medium text-zinc-300 text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/10">
+                      {invoicesList.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="p-4 text-center text-zinc-500">No invoices attached.</td>
+                        </tr>
+                      ) : (
+                        invoicesList.map(inv => {
+                          const remaining = getRemainingBalance(inv);
+                          const isPaid = inv.workflow_status === "paid" || remaining === 0;
+                          const dueDate = inv.due_date ? new Date(inv.due_date) : null;
+                          const isOverdue = !isPaid && dueDate && dueDate < new Date();
+                          
+                          return (
+                            <tr key={inv.id} className="hover:bg-white/[0.02]">
+                              <td className="px-4 py-3 font-medium text-zinc-200">
+                                <Link href={`/invoices/${inv.id}`} className="hover:underline hover:text-indigo-400">
+                                  {inv.invoice_number || inv.id.substring(0,8)}
+                                </Link>
+                              </td>
+                              <td className="px-4 py-3">
+                                {isPaid ? (
+                                  <Badge variant="success">Paid</Badge>
+                                ) : isOverdue ? (
+                                  <Badge variant="danger">Overdue</Badge>
+                                ) : (
+                                  <Badge variant="default">Outstanding</Badge>
+                                )}
+                              </td>
+                              <td className="px-4 py-3">
+                                {dueDate ? dueDate.toLocaleDateString() : "N/A"}
+                              </td>
+                              <td className="px-4 py-3 text-right text-zinc-200">
+                                {new Intl.NumberFormat(undefined, { style: "currency", currency: inv.currency || "USD" }).format(inv.amount_owed)}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            {/* 3. Automation Settings */}
+            <section>
+              <h2 className="text-xl font-medium text-zinc-100 mb-6">Automation Settings</h2>
               <AutomationSettings 
                 entityType="client"
                 entityId={client.id}
@@ -69,43 +137,7 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                 reminderTemplates={client.reminder_templates || []}
                 targetEmail={client.email}
               />
-            </div>
-            
-            <div className="lg:col-span-1">
-              <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-6 h-full">
-                <h2 className="text-xl font-medium text-zinc-100 mb-4">Invoices</h2>
-                <div className="overflow-hidden rounded-xl border border-white/10">
-                  <table className="w-full text-left text-sm text-zinc-400">
-                    <thead className="bg-white/[0.02] border-b border-white/10">
-                      <tr>
-                        <th className="px-4 py-3 font-medium text-zinc-300">Invoice #</th>
-                        <th className="px-4 py-3 font-medium text-zinc-300 text-right">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/10">
-                      {invoicesList.length === 0 ? (
-                        <tr>
-                          <td colSpan={2} className="p-4 text-center text-zinc-500">No invoices attached.</td>
-                        </tr>
-                      ) : (
-                        invoicesList.map(inv => (
-                          <tr key={inv.id} className="hover:bg-white/[0.02]">
-                            <td className="px-4 py-3 font-medium text-zinc-200">
-                              <Link href={`/invoices/${inv.id}`} className="hover:underline hover:text-indigo-400">
-                                {inv.invoice_number || inv.id.substring(0,8)}
-                              </Link>
-                            </td>
-                            <td className="px-4 py-3 text-right text-zinc-200">
-                              {new Intl.NumberFormat(undefined, { style: "currency", currency: inv.currency || "USD" }).format(inv.amount_owed)}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            </section>
           </div>
         </Container>
       </main>
