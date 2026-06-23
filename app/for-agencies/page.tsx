@@ -30,7 +30,10 @@ import {
   Users,
   AlertTriangle,
   Activity,
-  Mail
+  Mail,
+  AlertCircle,
+  Clock,
+  DollarSign
 } from "lucide-react";
 import { websiteSchema } from "@/lib/seo/site";
 
@@ -420,22 +423,63 @@ export default async function ForAgenciesPage({
                   <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.06),transparent_50%)]" />
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
                     <CardContent className="p-0">
-                        <div className="flex flex-col gap-4 p-4">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-zinc-100">A/R Aging</h3>
-                            <span className="text-xs font-medium bg-amber-500/10 text-amber-400 px-2 py-1 rounded-full border border-amber-500/20">Live</span>
+                        <div className="flex flex-col gap-3 p-4 bg-zinc-950/40">
+                          {/* Mini Header */}
+                          <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                              <h3 className="text-sm font-semibold text-zinc-100">Analytics Overview</h3>
+                            </div>
+                            <span className="text-[9px] font-medium bg-white/5 text-zinc-400 px-2 py-0.5 rounded-full border border-white/10 uppercase tracking-wider">Syncing Live</span>
                           </div>
-                          <div className="flex items-end gap-2 h-32 mt-4">
-                            <div className="w-1/4 bg-zinc-800 rounded-t-md h-[40%]" />
-                            <div className="w-1/4 bg-zinc-700 rounded-t-md h-[70%]" />
-                            <div className="w-1/4 bg-amber-500/80 rounded-t-md h-[100%] shadow-[0_0_15px_rgba(245,158,11,0.5)]" />
-                            <div className="w-1/4 bg-red-500/80 rounded-t-md h-[30%]" />
+                          
+                          {/* Mini Stat Cards Row */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="bg-zinc-900 border border-white/5 rounded-lg p-2.5 shadow-sm hover:border-white/10 transition-colors">
+                              <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mb-1 flex items-center justify-between">
+                                Outstanding <AlertCircle className="w-3 h-3 text-blue-500/50" />
+                              </p>
+                              <p className="text-sm font-bold text-zinc-100">$42,500</p>
+                            </div>
+                            <div className="bg-zinc-900 border border-white/5 rounded-lg p-2.5 shadow-sm hover:border-white/10 transition-colors">
+                              <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mb-1 flex items-center justify-between">
+                                Avg Overdue <Clock className="w-3 h-3 text-red-500/50" />
+                              </p>
+                              <p className="text-sm font-bold text-red-400">14 days</p>
+                            </div>
+                            <div className="bg-zinc-900 border border-white/5 rounded-lg p-2.5 shadow-sm hover:border-white/10 transition-colors">
+                              <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mb-1 flex items-center justify-between">
+                                Collection Rate <Activity className="w-3 h-3 text-emerald-500/50" />
+                              </p>
+                              <p className="text-sm font-bold text-emerald-400">89.2%</p>
+                            </div>
+                            <div className="bg-zinc-900 border border-white/5 rounded-lg p-2.5 shadow-sm hover:border-white/10 transition-colors relative overflow-hidden">
+                              <div className="absolute right-0 top-0 w-12 h-12 bg-blue-500/10 rounded-bl-full -mr-4 -mt-4" />
+                              <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mb-1 flex items-center justify-between relative z-10">
+                                Expected 30D <DollarSign className="w-3 h-3 text-blue-500/50" />
+                              </p>
+                              <p className="text-sm font-bold text-blue-400 relative z-10">$18,200</p>
+                            </div>
                           </div>
-                          <div className="flex justify-between text-[10px] text-zinc-500 font-mono mt-1">
-                            <span>1-30</span>
-                            <span>31-60</span>
-                            <span className="text-amber-400">61-90</span>
-                            <span className="text-red-400">90+</span>
+
+                          {/* Mini Chart Area */}
+                          <div className="bg-zinc-900 border border-white/5 rounded-lg p-3 mt-1 shadow-sm relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-bl-full -mr-16 -mt-16 pointer-events-none transition-transform group-hover:scale-110" />
+                            <p className="text-[10px] text-zinc-400 font-medium mb-3 flex items-center gap-1.5">A/R Aging <span className="text-[8px] text-zinc-600">(Live Data)</span></p>
+                            <div className="flex items-end gap-1.5 h-16">
+                              <div className="w-1/4 bg-emerald-500/60 rounded-t-sm h-[30%] transition-all hover:bg-emerald-500/80" />
+                              <div className="w-1/4 bg-blue-500/60 rounded-t-sm h-[60%] transition-all hover:bg-blue-500/80" />
+                              <div className="w-1/4 bg-amber-500/80 rounded-t-sm h-[100%] shadow-[0_0_10px_rgba(245,158,11,0.3)] relative transition-all hover:bg-amber-400">
+                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-amber-500 text-black text-[9px] font-bold px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">$15k</div>
+                              </div>
+                              <div className="w-1/4 bg-red-500/80 rounded-t-sm h-[40%] transition-all hover:bg-red-500" />
+                            </div>
+                            <div className="flex justify-between text-[8px] text-zinc-600 font-mono mt-1.5">
+                              <span>1-30</span>
+                              <span>31-60</span>
+                              <span className="text-amber-500/80">61-90</span>
+                              <span className="text-red-500/80">90+</span>
+                            </div>
                           </div>
                         </div>
                     </CardContent>
