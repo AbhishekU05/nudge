@@ -240,7 +240,7 @@ export default async function Home({
         {/* FULL PAGE ANALYTICS DASHBOARD */}
         <section className="relative py-24 sm:py-32 bg-zinc-950 border-t border-white/5">
 {/* 5. Full-Page Analytics Dashboard */}
-          <Container className="max-w-6xl mt-24">
+          <Container className="max-w-6xl">
             <div className="flex flex-col items-center text-center mb-16">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 mb-6">
                 <Activity className="h-6 w-6 text-amber-300" />
