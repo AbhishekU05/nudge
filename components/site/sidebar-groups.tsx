@@ -13,11 +13,11 @@ export function SidebarGroups({
   groups,
   isExpanded,
 }: {
-  groups: GroupRecord[];
+  groups: (GroupRecord & { customerCount?: number })[];
   isExpanded: boolean;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeGroup, setActiveGroup] = useState<GroupRecord | null>(null);
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
   return (
     <>
@@ -27,34 +27,63 @@ export function SidebarGroups({
           className="w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
           title={!isExpanded ? "New Group" : undefined}
         >
-          <Plus className="h-5 w-5 shrink-0" />
+          <div className="flex flex-col items-center justify-center w-5 h-full">
+            <Plus className="h-5 w-5 shrink-0" />
+          </div>
           {isExpanded && <span className="truncate whitespace-nowrap text-sm font-medium">New Group</span>}
         </button>
 
-        {groups.map((group) => (
-          <button
-            key={group.id}
-            onClick={() => setActiveGroup(group)}
-            className={cn(
-              "w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors",
-              activeGroup?.id === group.id
-                ? "bg-white/[0.08] text-zinc-100"
-                : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
-            )}
-            title={!isExpanded ? group.name : undefined}
-          >
-            <UserRound className="h-5 w-5 shrink-0" style={{ color: group.color || "#3b82f6" }} />
-            {isExpanded && <span className="truncate whitespace-nowrap text-sm">{group.name}</span>}
-          </button>
-        ))}
+        {groups.map((group) => {
+          const isActive = activeGroup === group.id;
+          return (
+            <div key={group.id} className="flex flex-col">
+              <button
+                onClick={() => setActiveGroup(isActive ? null : group.id)}
+                className={cn(
+                  "w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors",
+                  isActive
+                    ? "bg-white/[0.08] text-zinc-100"
+                    : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+                )}
+                title={!isExpanded ? group.name : undefined}
+              >
+                <div className="flex flex-col items-center justify-center w-5">
+                  <UserRound className="h-5 w-5 shrink-0" style={{ color: group.color || "#3b82f6" }} />
+                  <span className="text-[10px] mt-1 font-mono leading-none text-zinc-500">{group.customerCount || 0}</span>
+                </div>
+                {isExpanded && <span className="truncate whitespace-nowrap text-sm">{group.name}</span>}
+              </button>
+
+              {isActive && (
+                <div className="flex flex-col mt-1 ml-3 pl-3 border-l border-white/10 space-y-1">
+                  <Link
+                    href={`/customers?groupId=${group.id}`}
+                    className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+                    title={!isExpanded ? "Customers" : undefined}
+                  >
+                    <div className="flex flex-col items-center justify-center w-5">
+                      <UserRound className="h-4 w-4 shrink-0" />
+                    </div>
+                    {isExpanded && <span className="truncate whitespace-nowrap text-sm">Customers</span>}
+                  </Link>
+                  <Link
+                    href={`/invoices?groupId=${group.id}`}
+                    className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+                    title={!isExpanded ? "Invoices" : undefined}
+                  >
+                    <div className="flex flex-col items-center justify-center w-5">
+                      <FileText className="h-4 w-4 shrink-0" />
+                    </div>
+                    {isExpanded && <span className="truncate whitespace-nowrap text-sm">Invoices</span>}
+                  </Link>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {isModalOpen && <CreateGroupModal onClose={() => setIsModalOpen(false)} />}
-      
-      <GroupSlideOutPanel 
-        group={activeGroup} 
-        onClose={() => setActiveGroup(null)} 
-      />
     </>
   );
 }
@@ -138,165 +167,4 @@ function CreateGroupModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function GroupSlideOutPanel({ group, onClose }: { group: GroupRecord | null; onClose: () => void }) {
-  const [customers, setCustomers] = useState<(ClientRecord & { totalOwed: number; currency: string })[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (!group) return;
-
-    let isMounted = true;
-    setIsLoading(true);
-
-    async function loadData() {
-      const supabase = createSupabaseBrowserClient();
-
-      // Get customer_groups
-      const { data: cgData } = await supabase
-        .from("customer_groups")
-        .select("customer_id")
-        .eq("group_id", group!.id);
-
-      if (!cgData || cgData.length === 0) {
-        if (isMounted) {
-          setCustomers([]);
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      const customerIds = cgData.map((cg) => cg.customer_id);
-
-      // Fetch the customers
-      const { data: clientsData } = await supabase
-        .from("clients")
-        .select("*")
-        .in("id", customerIds);
-
-      if (!clientsData) {
-        if (isMounted) {
-          setCustomers([]);
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      // Fetch invoices to calculate aggregates
-      const { data: invoicesData } = await supabase
-        .from("invoices")
-        .select("*")
-        .in("customer_id", customerIds);
-
-      const invoicesList = invoicesData || [];
-
-      const clientsWithData = clientsData.map((client) => {
-        const clientInvoices = invoicesList.filter((i) => i.customer_id === client.id);
-        const totalOwed = clientInvoices.reduce((sum, inv) => {
-          if (inv.workflow_status === "paid" || inv.workflow_status === "written_off") return sum;
-          return sum + getRemainingBalance(inv as any);
-        }, 0);
-        const currency = clientInvoices[0]?.currency || "USD";
-
-        return {
-          ...(client as ClientRecord),
-          totalOwed,
-          currency,
-        };
-      });
-
-      if (isMounted) {
-        setCustomers(clientsWithData.sort((a, b) => b.totalOwed - a.totalOwed));
-        setIsLoading(false);
-      }
-    }
-
-    loadData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [group]);
-
-  return (
-    <>
-      {/* Backdrop overlay */}
-      <div 
-        className={cn(
-          "fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] transition-opacity duration-300",
-          group ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}
-        onClick={onClose}
-      />
-      
-      {/* Slide-out panel */}
-      <div 
-        className={cn(
-          "fixed top-0 right-0 h-full w-full max-w-md bg-zinc-950 border-l border-zinc-800 z-[100] shadow-2xl transition-transform duration-300 flex flex-col",
-          group ? "translate-x-0" : "translate-x-full"
-        )}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: group?.color || "#3b82f6" }} />
-            <h2 className="text-lg font-semibold text-zinc-100">{group?.name}</h2>
-          </div>
-          <button onClick={onClose} className="p-1 text-zinc-400 hover:text-zinc-100 transition-colors">
-            <XCircle className="h-6 w-6" />
-          </button>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto p-4">
-          {group?.description && (
-            <p className="text-sm text-zinc-400 mb-6">{group.description}</p>
-          )}
-
-          <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2">
-            <UserRound className="h-4 w-4" /> Customers in this group
-          </h3>
-          
-          {isLoading ? (
-            <div className="flex justify-center p-8">
-              <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
-            </div>
-          ) : customers.length === 0 ? (
-            <div className="text-center p-8 border border-dashed border-zinc-800 rounded-xl bg-zinc-900/50">
-              <p className="text-sm text-zinc-500">No customers found in this group.</p>
-              <Link href="/customers" onClick={onClose} className="text-sm text-blue-400 hover:text-blue-300 mt-2 inline-block">
-                Assign from Customers Page
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {customers.map((c) => {
-                const formattedTotal = new Intl.NumberFormat(undefined, {
-                  style: "currency",
-                  currency: c.currency
-                }).format(c.totalOwed);
-
-                return (
-                  <Link
-                    href={`/customers/${c.id}`}
-                    key={c.id}
-                    onClick={onClose}
-                    className="flex items-center justify-between p-3 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 transition-colors group/item"
-                  >
-                    <div>
-                      <div className="font-medium text-zinc-200 text-sm mb-0.5">{c.name}</div>
-                      <div className="text-xs text-zinc-500">{c.email || "No email"}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium text-zinc-300 text-sm mb-0.5">{formattedTotal}</div>
-                      <div className="text-xs text-zinc-500 group-hover/item:text-blue-400 transition-colors flex items-center justify-end gap-1">
-                        View <ArrowRight className="h-3 w-3" />
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    </>
-  );
-}

@@ -81,14 +81,13 @@ function Notice({
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; groupId?: string }>;
 }) {
   const user = await requireUser();
-  const { error, success } = await searchParams;
+  const { error, success, groupId } = await searchParams;
   const monthlyPrice = await getLocalizedMonthlyPrice();
 
   const supabase = await createSupabaseServerClient();
-
   let customers = null;
   let customerEvents = null;
   let profile = null;
@@ -96,7 +95,7 @@ export default async function CustomersPage({
   let quickbooksIntegration = null;
 
   try {
-    const [customersRes, eventsRes, profileRes, xeroRes, qbRes] = await Promise.all([
+    const [customersRes, eventsRes, profileRes, xeroRes, qbRes, customerGroupsRes] = await Promise.all([
       supabase
         .from("invoices")
         .select("*")
@@ -129,6 +128,9 @@ export default async function CustomersPage({
         .eq("user_id", user.id)
         .eq("provider", "quickbooks")
         .maybeSingle<{ provider: string }>(),
+      supabase
+        .from("customer_groups")
+        .select("*"),
     ]);
     
     customers = customersRes.data;
@@ -136,6 +138,14 @@ export default async function CustomersPage({
     profile = profileRes.data;
     xeroIntegration = xeroRes.data;
     quickbooksIntegration = qbRes.data;
+
+    if (groupId && customers) {
+      const customerGroupsList = customerGroupsRes.data || [];
+      const groupCustomerIds = customerGroupsList
+        .filter((cg) => cg.group_id === groupId)
+        .map((cg) => cg.customer_id);
+      customers = customers.filter((c) => groupCustomerIds.includes(c.customer_id || ""));
+    }
   } catch (err) {
     // Graceful fallback
   }

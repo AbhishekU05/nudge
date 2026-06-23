@@ -30,7 +30,7 @@ export default async function AppLayout({
         .eq("user_id", user.id),
       supabase
         .from("groups")
-        .select("*")
+        .select("*, customer_groups(count)")
         .eq("user_id", user.id)
         .order("name", { ascending: true })
     ]);
@@ -45,7 +45,10 @@ export default async function AppLayout({
     }
 
     if (groupsRes.data) {
-      groups = groupsRes.data;
+      groups = groupsRes.data.map(g => ({
+        ...g,
+        customerCount: g.customer_groups?.[0]?.count ?? 0
+      }));
     }
   } catch (e) {
     // Graceful fallback

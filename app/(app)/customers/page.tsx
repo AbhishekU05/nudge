@@ -8,7 +8,14 @@ import { ClientRecord, InvoiceRecord, getRemainingBalance, GroupRecord } from "@
 import { GroupsManager } from "./components/groups-manager";
 import { CustomerGroupsAssigner } from "./components/customer-groups-assigner";
 
-export default async function CustomersPage() {
+export default async function CustomersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await searchParams;
+  const groupId = params?.groupId as string | undefined;
+  
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
@@ -40,10 +47,17 @@ export default async function CustomersPage() {
     .from("customer_groups")
     .select("*");
 
-  const clientsList = clients || [];
   const invoicesList = invoices || [];
   const groupsList = groupsData || [];
   const customerGroupsList = customerGroupsData || [];
+
+  let clientsList = clients || [];
+  if (groupId) {
+    const groupCustomerIds = customerGroupsList
+      .filter((cg) => cg.group_id === groupId)
+      .map((cg) => cg.customer_id);
+    clientsList = clientsList.filter((c) => groupCustomerIds.includes(c.id));
+  }
 
   const clientsWithData = clientsList.map((client) => {
     const clientInvoices = invoicesList.filter(i => i.customer_id === client.id || (i.recipient_name === client.name));

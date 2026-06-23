@@ -21,6 +21,7 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { GroupRecord } from "@/lib/types";
 
 type AppSidebarProps = {
   user: {
@@ -31,13 +32,13 @@ type AppSidebarProps = {
   subscriptionStatus: string;
   hasXero?: boolean;
   hasQuickBooks?: boolean;
-  groups?: any[];
+  groups?: (GroupRecord & { customerCount: number })[];
 };
 
 import { GlobalSyncButton } from "./global-sync-button";
 import { SidebarGroups } from "./sidebar-groups";
 
-export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks, groups }: AppSidebarProps) {
+export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks, groups = [] }: AppSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const pathname = usePathname();
 
