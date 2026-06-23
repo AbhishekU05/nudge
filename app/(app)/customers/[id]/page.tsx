@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/site/container";
@@ -36,15 +36,26 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
         <Container className="py-8 sm:py-10">
-          <div className="mb-8">
-            <Button variant="ghost" size="sm" className="mb-4 -ml-3 text-zinc-400 hover:text-zinc-100">
-              <Link href="/customers" className="flex items-center">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to customers
-              </Link>
-            </Button>
-            <h1 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50">{client.name}</h1>
-            {client.email && <p className="mt-2 text-zinc-400">{client.email}</p>}
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <Button variant="ghost" size="sm" className="mb-4 -ml-3 text-zinc-400 hover:text-zinc-100">
+                <Link href="/customers" className="flex items-center">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to customers
+                </Link>
+              </Button>
+              <h1 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50">{client.name}</h1>
+              {client.email && <p className="mt-2 text-zinc-400">{client.email}</p>}
+            </div>
+            
+            <Link 
+              href={`/portal/${client.unsubscribe_token}`}
+              target="_blank"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 font-medium tracking-tight transition-colors focus-visible:outline-none h-10 px-4 text-sm bg-white/[0.06] text-zinc-100 hover:bg-white/[0.1] sm:self-end"
+            >
+              <ExternalLink className="h-4 w-4" />
+              View Client Portal
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
