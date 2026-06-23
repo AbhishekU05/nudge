@@ -473,6 +473,7 @@ export async function sendTestReminderEmail(reminderId: string) {
       emailSubject: reminder.email_subject,
       customMessage: reminder.custom_message,
       paymentLink: reminder.payment_link,
+      unsubscribeToken: reminder.unsubscribe_token,
     });
     logger.action({
       action_name: "send_test_reminder",

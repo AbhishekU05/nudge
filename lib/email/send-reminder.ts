@@ -46,6 +46,10 @@ export async function sendReminderEmail(params: SendReminderEmailParams) {
     bodyLines.push("", `Here's the payment link: ${params.paymentLink.trim()}`);
   }
 
+  if (params.unsubscribeToken) {
+    bodyLines.push("", `View your account: https://duely.in/portal/${params.unsubscribeToken}`);
+  }
+
   bodyLines.push("", "Best,", safeSenderName);
 
   const body = bodyLines.join("\n");

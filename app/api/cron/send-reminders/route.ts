@@ -139,7 +139,7 @@ export async function POST(request: Request) {
   // 2. Fetch eligible invoices
   const { data: invoicesData } = await supabase
     .from("invoices")
-    .select("*")
+    .select("*, clients(unsubscribe_token)")
     .eq("active", true)
     .neq("workflow_status", "paid")
     .lte("next_send_at", nowIso)
@@ -161,6 +161,7 @@ export async function POST(request: Request) {
       last_sent_at: c.last_sent_at,
       active: c.active,
       auto_approve: c.auto_approve,
+      unsubscribe_token: c.unsubscribe_token,
     })),
     ...(invoicesData || []).map((i) => ({
       type: "invoice" as const,
@@ -180,6 +181,7 @@ export async function POST(request: Request) {
       amount_owed: i.amount_owed,
       currency: i.currency,
       customer_id: i.customer_id,
+      unsubscribe_token: i.clients?.unsubscribe_token,
     }))
   ];
 
@@ -283,6 +285,9 @@ export async function POST(request: Request) {
         }).join('\n');
 
         textBody = `${processed.body}\n\nOutstanding Invoices:\n${textList}`;
+        if (entity.unsubscribe_token) {
+          textBody += `\n\nView your account: https://duely.in/portal/${entity.unsubscribe_token}`;
+        }
 
       } else {
         // Invoice logic
@@ -299,6 +304,9 @@ export async function POST(request: Request) {
         const processed = processTemplate(tpl, vars);
         subject = processed.subject;
         textBody = processed.body;
+        if (entity.unsubscribe_token) {
+          textBody += `\n\nView your account: https://duely.in/portal/${entity.unsubscribe_token}`;
+        }
       }
 
       const status = entity.auto_approve ? "sent" : "draft";
