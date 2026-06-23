@@ -49,8 +49,7 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks, g
     { name: "Analytics", href: "/analytics", icon: BarChart3, color: "text-blue-400", hoverColor: "hover:text-blue-400", activeBg: "bg-blue-500/10" },
     { name: "Customers", href: "/customers", icon: Users, color: "text-rose-400", hoverColor: "hover:text-rose-400", activeBg: "bg-rose-500/10" },
     { name: "Invoices", href: "/invoices", icon: FileText, color: "text-purple-400", hoverColor: "hover:text-purple-400", activeBg: "bg-purple-500/10" },
-    { name: "Queue", href: "/drafts", icon: Mail, color: "text-sky-400", hoverColor: "hover:text-sky-400", activeBg: "bg-sky-500/10" },
-    { name: "Automations", href: "/automations", icon: Zap, color: "text-amber-400", hoverColor: "hover:text-amber-400", activeBg: "bg-amber-500/10" },
+    { name: "Automate", href: "/automate", icon: Mail, color: "text-amber-400", hoverColor: "hover:text-amber-400", activeBg: "bg-amber-500/10" },
   ];
 
   const bottomItems = [
