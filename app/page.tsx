@@ -433,6 +433,50 @@ export default async function Home({
               </SlideIn>
             </div>
           </Container>
+
+          {/* 5. Analytics */}
+          <Container>
+            <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+              <SlideIn left>
+                <div className="relative order-2 lg:order-1">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.06),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                    <CardContent className="p-0">
+                        <div className="flex flex-col gap-4 p-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-zinc-100">A/R Aging</h3>
+                            <span className="text-xs font-medium bg-amber-500/10 text-amber-400 px-2 py-1 rounded-full border border-amber-500/20">Live</span>
+                          </div>
+                          <div className="flex items-end gap-2 h-32 mt-4">
+                            <div className="w-1/4 bg-zinc-800 rounded-t-md h-[40%]" />
+                            <div className="w-1/4 bg-zinc-700 rounded-t-md h-[70%]" />
+                            <div className="w-1/4 bg-amber-500/80 rounded-t-md h-[100%] shadow-[0_0_15px_rgba(245,158,11,0.5)]" />
+                            <div className="w-1/4 bg-red-500/80 rounded-t-md h-[30%]" />
+                          </div>
+                          <div className="flex justify-between text-[10px] text-zinc-500 font-mono mt-1">
+                            <span>1-30</span>
+                            <span>31-60</span>
+                            <span className="text-amber-400">61-90</span>
+                            <span className="text-red-400">90+</span>
+                          </div>
+                        </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </SlideIn>
+              <FadeIn delay={0.2} className="order-1 lg:order-2 max-w-xl lg:pl-12 xl:pl-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 mb-6">
+                  <Activity className="h-6 w-6 text-amber-300" />
+                </div>
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  Stop guessing how much money is trapped in unpaid invoices.
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Instantly see your average time-to-pay, aging reports, collection rate, and who your worst offenders are. The analytics dashboard turns your receivables into actionable insights.
+                </p>
+              </FadeIn>
+            </div>
+          </Container>
         </section>
 
         {/* BENTO BOX GRID */}

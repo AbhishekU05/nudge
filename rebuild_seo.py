@@ -8,7 +8,7 @@ with open("app/page.tsx", "r") as f:
 # 1. Imports
 imports = """import Link from "next/link";
 import Image from "next/image";
-import { CheckCircle2, ArrowRight, MessageSquare, Sparkles, Zap, CreditCard, User, AlertTriangle, Activity, Mail } from "lucide-react";
+import { CheckCircle2, ArrowRight, MessageSquare, Sparkles, Zap, CreditCard, User, Users, AlertTriangle, Activity, Mail } from "lucide-react";
 import type { SEOPageData } from "@/lib/seo-data";
 import { Container } from "@/components/site/container";
 import { FadeIn, Reveal, SlideUp, SlideIn } from "@/components/site/scroll-animation";
