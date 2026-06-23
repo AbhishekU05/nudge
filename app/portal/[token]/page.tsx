@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getDaysOverdue } from "@/lib/types";
 import Link from "next/link";
+import { InvoiceCard } from "@/components/portal/invoice-card";
 
 
 export const dynamic = "force-dynamic";
@@ -62,6 +63,32 @@ export default async function PortalPage(props: {
     0
   );
 
+  // Group unpaid invoices
+  const overdueInvoices: any[] = [];
+  const dueSoonInvoices: any[] = [];
+  const otherOutstandingInvoices: any[] = [];
+
+  outstandingInvoices.forEach(inv => {
+    const overdueDays = inv.due_date ? getDaysOverdue(inv as any) : null;
+    if (overdueDays !== null && overdueDays > 0) {
+      overdueInvoices.push(inv);
+    } else if (inv.due_date) {
+      const [year, month, day] = inv.due_date.split("-").map(Number);
+      const due = new Date(year, month - 1, day);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const daysUntilDue = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysUntilDue <= 14) {
+        dueSoonInvoices.push(inv);
+      } else {
+        otherOutstandingInvoices.push(inv);
+      }
+    } else {
+      otherOutstandingInvoices.push(inv);
+    }
+  });
+
   // Assuming all invoices use the same currency, fallback to USD
   const currency = outstandingInvoices[0]?.currency || paidInvoices[0]?.currency || "USD";
 
@@ -86,82 +113,60 @@ export default async function PortalPage(props: {
           </p>
         </div>
 
-        {/* Outstanding Invoices */}
-        <div className="flex flex-col gap-4">
-          <h2 className="text-xl font-semibold">Outstanding Invoices</h2>
-          {outstandingInvoices.length === 0 ? (
-            <p className="text-zinc-500 dark:text-zinc-400">You have no outstanding invoices.</p>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {outstandingInvoices.map((inv) => {
-                const balance = Math.max(0, Number(inv.amount_owed) - Number(inv.amount_paid));
-                const overdueDays = inv.due_date ? getDaysOverdue(inv as any) : null;
-                const isOverdue = overdueDays !== null && overdueDays > 0;
+        {/* Invoice Sections */}
+        {outstandingInvoices.length === 0 ? (
+          <p className="text-zinc-500 dark:text-zinc-400">You have no outstanding invoices.</p>
+        ) : (
+          <div className="flex flex-col gap-10">
+            {overdueInvoices.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 flex items-center gap-2">
+                  Overdue
+                </h2>
+                <div className="flex flex-col gap-4">
+                  {overdueInvoices.map((inv) => (
+                    <InvoiceCard key={inv.id} invoice={inv} token={token} type="overdue" />
+                  ))}
+                </div>
+              </div>
+            )}
 
-                return (
-                  <div 
-                    key={inv.id} 
-                    className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-sm"
-                  >
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-medium text-lg">
-                          {inv.invoice_number ? `Invoice ${inv.invoice_number}` : "Invoice"}
-                        </h3>
-                        {isOverdue && (
-                          <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-200 dark:border-red-500/20">
-                            {overdueDays} days overdue
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-zinc-500 dark:text-zinc-400 text-sm">
-                        Due: {inv.due_date ? new Date(inv.due_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : "No due date"}
-                      </p>
-                    </div>
+            {dueSoonInvoices.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <h2 className="text-xl font-semibold text-amber-600 dark:text-amber-500 flex items-center gap-2">
+                  Due Soon
+                </h2>
+                <div className="flex flex-col gap-4">
+                  {dueSoonInvoices.map((inv) => (
+                    <InvoiceCard key={inv.id} invoice={inv} token={token} type="due_soon" />
+                  ))}
+                </div>
+              </div>
+            )}
 
-                    <div className="flex items-center justify-between sm:justify-end gap-6 sm:w-1/2">
-                      <p className="text-xl font-semibold">
-                        {new Intl.NumberFormat("en-US", { style: "currency", currency: inv.currency }).format(balance)}
-                      </p>
-                      {inv.payment_link && (
-                        <a 
-                          href={inv.payment_link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center gap-2 rounded-lg border border-transparent font-medium tracking-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 px-4 text-sm bg-zinc-900 text-zinc-50 hover:bg-zinc-900/90 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/90"
-                        >
-                          Pay Now
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+            {otherOutstandingInvoices.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  Outstanding
+                </h2>
+                <div className="flex flex-col gap-4">
+                  {otherOutstandingInvoices.map((inv) => (
+                    <InvoiceCard key={inv.id} invoice={inv} token={token} type="outstanding" />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Paid Invoices */}
         {paidInvoices.length > 0 && (
           <div className="flex flex-col gap-4 pt-8 border-t border-zinc-200 dark:border-zinc-800">
             <h2 className="text-xl font-semibold">Paid History</h2>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               {paidInvoices.map((inv) => (
-                <div 
-                  key={inv.id} 
-                  className="bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl p-4 sm:p-5 flex items-center justify-between opacity-80"
-                >
-                  <div className="flex flex-col gap-1">
-                    <h3 className="font-medium">
-                      {inv.invoice_number ? `Invoice ${inv.invoice_number}` : "Invoice"}
-                    </h3>
-                    <p className="text-zinc-500 dark:text-zinc-400 text-sm">
-                      Paid: {inv.client_paid_at ? new Date(inv.client_paid_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : "Recently paid"}
-                    </p>
-                  </div>
-                  <p className="font-medium text-zinc-600 dark:text-zinc-300">
-                    {new Intl.NumberFormat("en-US", { style: "currency", currency: inv.currency }).format(Number(inv.amount_paid) > 0 ? Number(inv.amount_paid) : Number(inv.amount_owed))}
-                  </p>
+                <div className="opacity-70 grayscale transition-all hover:grayscale-0 hover:opacity-100" key={inv.id}>
+                  <InvoiceCard invoice={inv} token={token} type="paid" />
                 </div>
               ))}
             </div>

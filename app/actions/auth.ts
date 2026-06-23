@@ -399,3 +399,29 @@ export async function updateDigestSettings(formData: FormData) {
 
   redirect(buildPathWithQuery("/settings/general", { success: "Settings updated" }));
 }
+
+export async function updateProfileInfo(formData: FormData) {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const first_name = formData.get("first_name") as string || null;
+  const last_name = formData.get("last_name") as string || null;
+  const company_name = formData.get("company_name") as string || null;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ first_name, last_name, company_name })
+    .eq("user_id", user.id);
+
+  if (error) {
+    redirect(buildPathWithQuery("/settings/general", { error: "Failed to update profile details" }));
+  }
+
+  redirect(buildPathWithQuery("/settings/general", { success: "Profile details updated" }));
+}
+
+

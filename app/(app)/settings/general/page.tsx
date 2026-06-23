@@ -1,11 +1,12 @@
 import { requireUser } from "@/lib/auth";
-import { updateProfileName, logout, updateDigestSettings } from "@/app/actions/auth";
+import { updateProfileName, logout, updateDigestSettings, updateProfileInfo } from "@/app/actions/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { UserRound, LogOut, Download, Mail } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { UserRound, LogOut, Download, Mail, Landmark, Building2 } from "lucide-react";
 import { getDisplayName } from "@/lib/utils";
 
 export default async function GeneralSettingsPage() {
@@ -16,7 +17,7 @@ export default async function GeneralSettingsPage() {
   );
 
   const supabase = await createSupabaseServerClient();
-  const { data: profile } = await supabase.from("profiles").select("timezone, weekly_digest_enabled").eq("user_id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select("timezone, weekly_digest_enabled, company_name, first_name, last_name").eq("user_id", user.id).single();
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -66,6 +67,66 @@ export default async function GeneralSettingsPage() {
           </form>
         </CardContent>
       </Card>
+
+      <Card className="border-white/10 bg-white/[0.035]">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Building2 className="h-5 w-5 text-primary" />
+            Company & Personal Info
+          </CardTitle>
+          <CardDescription>
+            Additional information about you and your business.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={updateProfileInfo} className="space-y-4 max-w-md">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="first_name" className="text-zinc-400">
+                  First Name
+                </Label>
+                <Input
+                  id="first_name"
+                  name="first_name"
+                  defaultValue={profile?.first_name || ""}
+                  maxLength={100}
+                  className="bg-transparent border-white/10 focus:border-primary/50"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="last_name" className="text-zinc-400">
+                  Last Name
+                </Label>
+                <Input
+                  id="last_name"
+                  name="last_name"
+                  defaultValue={profile?.last_name || ""}
+                  maxLength={100}
+                  className="bg-transparent border-white/10 focus:border-primary/50"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="company_name" className="text-zinc-400">
+                Company Name
+              </Label>
+              <Input
+                id="company_name"
+                name="company_name"
+                defaultValue={profile?.company_name || ""}
+                maxLength={200}
+                className="bg-transparent border-white/10 focus:border-primary/50"
+              />
+            </div>
+            
+            <Button type="submit">
+              Save Info
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
 
       <Card className="border-white/10 bg-white/[0.035]">
         <CardHeader>
