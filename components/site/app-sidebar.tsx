@@ -43,14 +43,14 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks, g
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Overview", href: "/dashboard", icon: LayoutDashboard, color: "text-indigo-400", activeBg: "bg-indigo-500/10" },
-    { name: "Activity", href: "/activity", icon: Activity, color: "text-emerald-400", activeBg: "bg-emerald-500/10" },
-    { name: "Pipeline", href: "/pipeline", icon: KanbanSquare, color: "text-amber-400", activeBg: "bg-amber-500/10" },
-    { name: "Analytics", href: "/analytics", icon: BarChart3, color: "text-blue-400", activeBg: "bg-blue-500/10" },
-    { name: "Customers", href: "/customers", icon: Users, color: "text-rose-400", activeBg: "bg-rose-500/10" },
-    { name: "Invoices", href: "/invoices", icon: FileText, color: "text-purple-400", activeBg: "bg-purple-500/10" },
-    { name: "Queue", href: "/drafts", icon: Mail, color: "text-sky-400", activeBg: "bg-sky-500/10" },
-    { name: "Automations", href: "/automations", icon: Zap, color: "text-amber-400", activeBg: "bg-amber-500/10" },
+    { name: "Overview", href: "/dashboard", icon: LayoutDashboard, color: "text-indigo-400", hoverColor: "hover:text-indigo-400", activeBg: "bg-indigo-500/10" },
+    { name: "Activity", href: "/activity", icon: Activity, color: "text-emerald-400", hoverColor: "hover:text-emerald-400", activeBg: "bg-emerald-500/10" },
+    { name: "Pipeline", href: "/pipeline", icon: KanbanSquare, color: "text-amber-400", hoverColor: "hover:text-amber-400", activeBg: "bg-amber-500/10" },
+    { name: "Analytics", href: "/analytics", icon: BarChart3, color: "text-blue-400", hoverColor: "hover:text-blue-400", activeBg: "bg-blue-500/10" },
+    { name: "Customers", href: "/customers", icon: Users, color: "text-rose-400", hoverColor: "hover:text-rose-400", activeBg: "bg-rose-500/10" },
+    { name: "Invoices", href: "/invoices", icon: FileText, color: "text-purple-400", hoverColor: "hover:text-purple-400", activeBg: "bg-purple-500/10" },
+    { name: "Queue", href: "/drafts", icon: Mail, color: "text-sky-400", hoverColor: "hover:text-sky-400", activeBg: "bg-sky-500/10" },
+    { name: "Automations", href: "/automations", icon: Zap, color: "text-amber-400", hoverColor: "hover:text-amber-400", activeBg: "bg-amber-500/10" },
   ];
 
   const bottomItems = [
@@ -116,7 +116,7 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks, g
                 "flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors",
                 isActive
                   ? `${item.activeBg} ${item.color} font-medium`
-                  : `text-zinc-400 hover:bg-white/[0.04] hover:${item.color}`
+                  : `text-zinc-400 hover:bg-white/[0.04] ${item.hoverColor}`
               )}
             >
               <item.icon className="h-5 w-5 shrink-0" />
