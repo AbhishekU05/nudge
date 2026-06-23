@@ -80,3 +80,24 @@ body {
   background: rgba(79, 70, 229, 0.35);
   color: #ffffff;
 }
+
+/* Custom sleek dropdowns across the repo */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23a1a1aa' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.25em 1.25em;
+  padding-right: 2.5rem !important;
+}
+
+select:focus {
+  outline: none;
+}
+
+select option {
+  background-color: #111113; /* var(--card) equivalent */
+  color: #fafafa;
+  padding: 0.5rem;
+}
