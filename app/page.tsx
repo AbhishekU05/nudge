@@ -446,6 +446,48 @@ export default async function Home({
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Analytics */}
+              <div className="group rounded-2xl border border-white/10 bg-white/[0.02] p-6 lg:col-span-2 flex flex-col justify-between overflow-hidden relative">
+                <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-blue-500/5 to-transparent pointer-events-none" />
+                <div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/10 mb-4">
+                    <Sparkles className="h-5 w-5 text-blue-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-zinc-100">Analytics Dashboard</h3>
+                  <p className="mt-2 text-sm text-zinc-400 max-w-sm">Know exactly how much money is trapped in unpaid invoices, at a glance. See your average time-to-pay, aging reports, and collection rate over time.</p>
+                </div>
+                <div className="mt-8 rounded-xl border border-white/10 bg-zinc-900/80 p-4 w-full max-w-md shadow-lg shadow-black/40">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="font-medium text-zinc-200 text-sm">Total Outstanding</div>
+                    <div className="text-sm font-bold text-zinc-100">$42,500</div>
+                  </div>
+                  <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full w-[60%]" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Weekly Digest */}
+              <div className="group rounded-2xl border border-white/10 bg-white/[0.02] p-6 flex flex-col justify-between overflow-hidden relative">
+                <div className="absolute right-0 bottom-0 w-full h-1/2 bg-gradient-to-t from-pink-500/5 to-transparent pointer-events-none" />
+                <div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-pink-500/20 bg-pink-500/10 mb-4">
+                    <Mail className="h-5 w-5 text-pink-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-zinc-100">Weekly Digest Email</h3>
+                  <p className="mt-2 text-sm text-zinc-400">Start your week knowing exactly who to chase with a beautifully formatted digest straight to your inbox.</p>
+                </div>
+                <div className="mt-8 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-emerald-400" />
+                    <div className="text-xs text-zinc-400">Collected: $18,400.00</div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-red-400" />
+                    <div className="text-xs font-medium text-red-300">Action: Acme Corp</div>
+                  </div>
+                </div>
+              </div>
               {/* Late Fees */}
               <div className="group rounded-2xl border border-white/10 bg-white/[0.02] p-6 lg:col-span-2 flex flex-col justify-between overflow-hidden relative">
                 <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-red-500/5 to-transparent pointer-events-none" />

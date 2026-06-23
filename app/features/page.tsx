@@ -520,50 +520,56 @@ export default async function Home({
             </div>
           </Container>
 
-          {/* Section 9: Stripe */}
+          {/* Section 9: Analytics */}
           <Container>
             <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
               <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10 mb-6">
-                  <CreditCard className="h-6 w-6 text-violet-300" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/10 mb-6">
+                  <Sparkles className="h-6 w-6 text-blue-300" />
                 </div>
                 <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
-                  Stripe sends the invoice. Duely handles everything after.
+                  Know exactly how much money is trapped in unpaid invoices, at a glance.
                 </h2>
                 <p className="mt-6 text-lg leading-relaxed text-zinc-400">
-                  Stripe sends the invoice. The moment it&apos;s created, Duely starts watching. Late? It follows up. Paid? It stops.
+                  The Analytics tab gives you a real-time dashboard of your agency's health. See your average time-to-pay, aging reports, and collection rate over time without ever running a manual report again.
                 </p>
               </FadeIn>
               <SlideIn right delay={0.2} className="flex justify-center">
                 <div className="relative w-full max-w-[26rem]">
-                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.07),transparent_50%)]" />
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.07),transparent_50%)]" />
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
                     <CardContent className="p-0 space-y-3">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Stripe Integration <span className="ml-2 rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-300 normal-case tracking-normal">Beta</span></p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Analytics</p>
                       
-                      <div className="space-y-3 pt-2">
-                        <div className="flex items-center gap-3 rounded-xl border border-violet-500/20 bg-violet-500/5 px-4 py-3">
-                          <Sparkles className="h-4 w-4 text-violet-400 shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-violet-200">Listening to Stripe</p>
-                            <p className="text-xs text-violet-300/60 truncate">Watching for new invoices &amp; payments</p>
-                          </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3">
+                          <p className="text-xs text-zinc-500">Total Outstanding</p>
+                          <p className="text-xl font-bold text-zinc-100 mt-1">$42,500</p>
                         </div>
+                        <div className="rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3">
+                          <p className="text-xs text-zinc-500">Average Time to Pay</p>
+                          <p className="text-xl font-bold text-zinc-100 mt-1">14 days</p>
+                        </div>
+                      </div>
 
-                        <div className="rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 space-y-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                            <span className="text-zinc-200 text-sm">Invoice generated</span>
+                      <div className="rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 space-y-3 mt-3">
+                        <p className="text-xs text-zinc-500 mb-2">Aging Report</p>
+                        {[
+                          {label:"Current",amount:"$12,000",pct:"w-[30%]"},
+                          {label:"1-30 days",amount:"$15,500",pct:"w-[40%]"},
+                          {label:"31-60 days",amount:"$10,000",pct:"w-[20%]"},
+                          {label:"60+ days",amount:"$5,000",pct:"w-[10%]"}
+                        ].map((row) => (
+                          <div key={row.label} className="space-y-1.5">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-zinc-400">{row.label}</span>
+                              <span className="text-zinc-200 font-medium">{row.amount}</span>
+                            </div>
+                            <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden">
+                              <div className={`h-full bg-blue-500 rounded-full ${row.pct}`} />
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                            <span className="text-zinc-200 text-sm">Follow-up sent (2 days late)</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="h-4 w-4 rounded-full border-2 border-emerald-400/30 border-t-emerald-400 animate-spin" />
-                            <span className="text-emerald-300 font-medium text-sm">Waiting for payment</span>
-                          </div>
-                        </div>
+                        ))}
                       </div>
                     </CardContent>
                   </Card>
@@ -623,34 +629,62 @@ export default async function Home({
           </Container>
         </section>
 
-        {/* SOCIAL PROOF */}
-        <section className="py-24 border-b border-white/5 bg-zinc-950/30">
+          {/* Section 11: Weekly Digest Email */}
           <Container>
-            <FadeIn>
-              <div className="mx-auto max-w-4xl flex flex-col items-center justify-center rounded-2xl bg-zinc-900/50 border border-white/10 p-8 sm:p-12 text-center shadow-xl backdrop-blur-sm">
-                <div className="flex gap-1 mb-6">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="h-5 w-5 text-amber-500 fill-amber-500" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
+            <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+              <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-pink-500/20 bg-pink-500/10 mb-6">
+                  <Mail className="h-6 w-6 text-pink-300" />
                 </div>
-                <blockquote className="text-xl sm:text-2xl md:text-3xl font-medium tracking-tight text-zinc-100 mb-8 leading-snug">
-                  &quot;This is what you call a complete product.&quot;
-                </blockquote>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 font-semibold">
-                    S
-                  </div>
-                  <div className="text-left">
-                    <div className="font-medium text-zinc-200">Samiksha</div>
-                    <div className="text-sm text-zinc-500">Former Agency Owner</div>
-                  </div>
+                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
+                  Start your week knowing exactly who to chase.
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
+                  Every Monday morning, Duely drops a beautifully formatted digest straight into your inbox. It summarizes exactly what you collected last week, who broke a payment promise, and which invoices just became overdue so you can prioritize your time.
+                </p>
+              </FadeIn>
+              <SlideIn right delay={0.2} className="flex justify-center">
+                <div className="relative w-full max-w-[26rem]">
+                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(236,72,153,0.06),transparent_50%)]" />
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                    <CardContent className="p-0 space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Mail className="h-4 w-4 text-zinc-400" />
+                        <p className="text-xs font-medium text-zinc-400">Weekly Digest · Monday 8:00 AM</p>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-4">
+                        <div>
+                          <p className="text-lg font-bold text-zinc-100">Your Weekly Collections Briefing</p>
+                          <p className="text-sm text-zinc-400 mt-1">Here is what happened last week and what needs attention.</p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Collected last week</p>
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                              <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                            </div>
+                            <div>
+                              <p className="text-lg font-bold text-emerald-400">$18,400.00</p>
+                              <p className="text-xs text-zinc-500">Across 4 invoices</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 pt-2 border-t border-white/5">
+                          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Action needed</p>
+                          <div className="rounded border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm">
+                            <p className="font-medium text-red-200">Acme Corp ($4,200)</p>
+                            <p className="text-xs text-red-300/70 mt-0.5">Missed their payment promise on Friday.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </div>
-            </FadeIn>
+              </SlideIn>
+            </div>
           </Container>
-        </section>
 
         {/* WORKS WITH */}
         <section className="py-16 border-b border-white/5 bg-zinc-950 text-center">
@@ -658,7 +692,7 @@ export default async function Home({
             <FadeIn>
               <h3 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 mb-6">Works with</h3>
               <div className="flex flex-wrap justify-center items-center gap-3 text-zinc-400">
-                {["QuickBooks", "Xero", "Stripe (Beta)", "Gmail"].map((tool) => (
+                {["QuickBooks", "Xero", "Gmail"].map((tool) => (
                   <div key={tool} className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-4 py-2">
                     <Sparkles className="h-4 w-4 text-indigo-400" />
                     <span className="text-sm font-medium">{tool}</span>
