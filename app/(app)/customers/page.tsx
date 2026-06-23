@@ -77,12 +77,22 @@ export default async function CustomersPage({
     };
   }).sort((a, b) => b.totalOwed - a.totalOwed);
 
+  const activeGroup = groupId ? groupsList.find((g) => g.id === groupId) : null;
+
   return (
     <div className="flex min-h-screen flex-col">
       <main id="main-content" className="flex-1">
         <Container className="py-8 sm:py-10">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
+              {activeGroup && (
+                <div className="mb-2">
+                  <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium border border-zinc-800 bg-zinc-900/50 text-zinc-300">
+                    <div className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: activeGroup.color || "#3b82f6" }} />
+                    {activeGroup.name}
+                  </span>
+                </div>
+              )}
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
                 Customers
               </h1>

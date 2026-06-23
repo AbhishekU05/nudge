@@ -93,9 +93,10 @@ export default async function CustomersPage({
   let profile = null;
   let xeroIntegration = null;
   let quickbooksIntegration = null;
+  let activeGroup = null;
 
   try {
-    const [customersRes, eventsRes, profileRes, xeroRes, qbRes, customerGroupsRes] = await Promise.all([
+    const [customersRes, eventsRes, profileRes, xeroRes, qbRes, customerGroupsRes, groupsRes] = await Promise.all([
       supabase
         .from("invoices")
         .select("*")
@@ -131,6 +132,10 @@ export default async function CustomersPage({
       supabase
         .from("customer_groups")
         .select("*"),
+      supabase
+        .from("groups")
+        .select("*")
+        .eq("user_id", user.id),
     ]);
     
     customers = customersRes.data;
@@ -141,6 +146,9 @@ export default async function CustomersPage({
 
     if (groupId && customers) {
       const customerGroupsList = customerGroupsRes.data || [];
+      const groupsList = groupsRes.data || [];
+      activeGroup = groupsList.find((g) => g.id === groupId) || null;
+      
       const groupCustomerIds = customerGroupsList
         .filter((cg) => cg.group_id === groupId)
         .map((cg) => cg.customer_id);
@@ -229,7 +237,14 @@ export default async function CustomersPage({
           {/* Page heading */}
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-
+              {activeGroup && (
+                <div className="mb-2">
+                  <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium border border-zinc-800 bg-zinc-900/50 text-zinc-300">
+                    <div className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: activeGroup.color || "#3b82f6" }} />
+                    {activeGroup.name}
+                  </span>
+                </div>
+              )}
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
                 Invoices
               </h1>
