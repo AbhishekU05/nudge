@@ -139,31 +139,24 @@ export function HeroActionCenter() {
       <div className="flex flex-1 overflow-hidden bg-zinc-950/40">
         
         {/* Sidebar */}
-        <div className="w-16 sm:w-48 border-r border-white/5 bg-zinc-950/80 flex flex-col items-center sm:items-start py-6 px-2 sm:px-4 gap-4">
-          <div className="hidden sm:block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 px-2">Menu</div>
-          <div className="w-full flex sm:justify-start justify-center items-center gap-3 p-2 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
+        <div className="w-16 border-r border-white/5 bg-zinc-950/80 flex flex-col items-center py-6 px-2 gap-4">
+          <div className="w-full flex justify-center items-center p-2.5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
             <LayoutDashboard className="w-5 h-5 shrink-0" />
-            <span className="hidden sm:block text-sm font-medium">Dashboard</span>
           </div>
-          <div className="w-full flex sm:justify-start justify-center items-center gap-3 p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div className="w-full flex justify-center items-center p-2.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
             <CheckSquare className="w-5 h-5 shrink-0" />
-            <span className="hidden sm:block text-sm font-medium">Action Center</span>
           </div>
-          <div className="w-full flex sm:justify-start justify-center items-center gap-3 p-2 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
+          <div className="w-full flex justify-center items-center p-2.5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
             <FileText className="w-5 h-5 shrink-0" />
-            <span className="hidden sm:block text-sm font-medium">Invoices</span>
           </div>
-          <div className="w-full flex sm:justify-start justify-center items-center gap-3 p-2 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
+          <div className="w-full flex justify-center items-center p-2.5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
             <Users className="w-5 h-5 shrink-0" />
-            <span className="hidden sm:block text-sm font-medium">Customers</span>
           </div>
-          <div className="w-full flex sm:justify-start justify-center items-center gap-3 p-2 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
+          <div className="w-full flex justify-center items-center p-2.5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
             <Activity className="w-5 h-5 shrink-0" />
-            <span className="hidden sm:block text-sm font-medium">Analytics</span>
           </div>
-          <div className="mt-auto w-full flex sm:justify-start justify-center items-center gap-3 p-2 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
+          <div className="mt-auto w-full flex justify-center items-center p-2.5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
             <Settings className="w-5 h-5 shrink-0" />
-            <span className="hidden sm:block text-sm font-medium">Settings</span>
           </div>
         </div>
 
@@ -188,7 +181,7 @@ export function HeroActionCenter() {
           </div>
 
           {/* Action List */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 pb-20 custom-scrollbar relative">
+          <div className="flex-1 overflow-y-auto p-4 space-y-2.5 pb-20 custom-scrollbar relative">
             <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
             
             {ACTIONS.map((action, i) => {
@@ -206,15 +199,15 @@ export function HeroActionCenter() {
                     active ? "ring-1 ring-white/10 shadow-lg shadow-black/20" : "opacity-70 hover:opacity-100"
                   )}
                 >
-                  <div className="p-4 sm:p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex gap-4">
-                        <div className={cn("mt-1 flex shrink-0 rounded-lg p-2.5", style.badgeBg)}>
+                  <div className="p-3 sm:p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex gap-3">
+                        <div className={cn("mt-0.5 flex shrink-0 rounded-lg p-2", style.badgeBg)}>
                           <Icon className={cn("h-4 w-4", style.iconColor)} />
                         </div>
                         <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-zinc-100 text-base">{action.headline}</h3>
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <h3 className="font-semibold text-zinc-100 text-sm">{action.headline}</h3>
                             {action.type === 'critical' && active && (
                               <span className="flex h-2 w-2 relative">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -222,35 +215,35 @@ export function HeroActionCenter() {
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-zinc-400 leading-relaxed max-w-lg">{action.context}</p>
+                          <p className="text-xs text-zinc-400 leading-relaxed max-w-lg">{action.context}</p>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-sm font-medium text-zinc-300">{action.clientName}</div>
-                        <div className="text-lg font-bold text-zinc-100">{action.amount}</div>
+                        <div className="text-xs font-medium text-zinc-400 mb-0.5">{action.clientName}</div>
+                        <div className="text-base font-bold text-zinc-100">{action.amount}</div>
                       </div>
                     </div>
 
                     <div className={cn(
-                      "flex items-center justify-end gap-3 pt-4 mt-4 border-t transition-all duration-500 overflow-hidden",
+                      "flex items-center justify-end gap-2 pt-3 mt-3 border-t transition-all duration-500 overflow-hidden",
                       active ? "border-white/10 opacity-100 max-h-20" : "border-white/5 opacity-0 max-h-0 pt-0 mt-0 border-transparent"
                     )}>
                       {action.type !== 'system' && (
                         <>
-                          <button className="text-sm font-medium text-zinc-500 hover:text-zinc-300 transition-colors px-3">
+                          <button className="text-xs font-medium text-zinc-500 hover:text-zinc-300 transition-colors px-2">
                             Snooze
                           </button>
-                          <button className="text-sm font-medium text-zinc-500 hover:text-zinc-300 transition-colors px-3">
+                          <button className="text-xs font-medium text-zinc-500 hover:text-zinc-300 transition-colors px-2">
                             Log Promise
                           </button>
                         </>
                       )}
                       <button className={cn(
-                        "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all",
+                        "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-lg transition-all",
                         style.btnColor
                       )}>
                         {action.primaryAction}
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
