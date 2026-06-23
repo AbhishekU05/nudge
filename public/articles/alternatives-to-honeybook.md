@@ -62,7 +62,7 @@ FreshBooks is primarily an accounting tool, not a dedicated collections CRM. Whi
 AND.CO provides a highly streamlined, accessible platform for managing freelance business basics. It includes standard invoicing, simple time tracking, and straightforward expense management. Its user interface is exceptionally clean and intuitive, making it easy to generate invoices and track basic expenses without facing a steep learning curve. It's an excellent stepping stone for freelancers who are graduating from Word document invoices but aren't ready for complex accounting software.
 
 **What it doesn't do:** 
-The platform is relatively lightweight by design and lacks deep functionality for managing late payments or complex client interactions. There is no dedicated system for tracking specific payment promises, logging manual follow-up attempts, or escalating collections beyond simple, scheduled email reminders. It falls short when you are dealing with a high volume of overdue accounts that require personalized attention, creating a clear gap in post-invoice follow-up.
+The platform is relatively by design and lacks deep functionality for managing late payments or complex client interactions. There is no dedicated system for tracking specific payment promises, logging manual follow-up attempts, or escalating collections beyond simple, scheduled email reminders. It falls short when you are dealing with a high volume of overdue accounts that require personalized attention, creating a clear gap in post-invoice follow-up.
 
 **Price:** Starts at $24/month for the Pro plan (a limited free tier is available).
 

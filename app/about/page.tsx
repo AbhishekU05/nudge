@@ -10,7 +10,7 @@ import { CheckCircle2, MessageSquare, Clock, FileText, Link as LinkIcon, Users }
 
 export const metadata: Metadata = {
   title: "About",
-  description: "Learn more about Duely, the lightweight collections management tool for freelancers, small agencies, and independent consultants.",
+  description: "Learn more about Duely, the collections management tool for freelancers, small agencies, and independent consultants.",
   alternates: { canonical: "/about" },
 };
 
@@ -60,7 +60,7 @@ export default function AboutPage() {
               About Duely
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-8 text-zinc-400">
-              The lightweight collections management tool designed to help you get paid professionally.
+              The collections management tool designed to help you get paid professionally.
             </p>
             <div className="mt-10 flex justify-center">
               <Link href="/signup">
@@ -83,7 +83,7 @@ export default function AboutPage() {
                   What is Duely?
                 </h2>
                 <p className="mt-4 text-2xl font-medium leading-relaxed text-zinc-100 sm:text-3xl">
-                  Duely is a lightweight collections management tool built specifically for modern service businesses.
+                  Duely is a collections management tool built specifically for modern service businesses.
                 </p>
                 <p className="mt-4 text-base leading-7 text-zinc-400">
                   We bridge the gap between sending an invoice and actually getting paid. Instead of letting overdue invoices pile up or manually tracking promises in spreadsheets, Duely gives you a dedicated workspace to manage accounts receivable efficiently and professionally.

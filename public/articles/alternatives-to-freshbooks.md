@@ -96,7 +96,7 @@ Key features:
 
 **Best for:** Small agencies billing 10 to 100 clients who want structured, personal follow-up without the manual work
 
-**Pricing:** $29/month. 14-day free trial, no credit card required.
+**Pricing:** $29/month. 7-day free trial, no credit card required.
 
 ---
 

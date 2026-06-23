@@ -92,7 +92,7 @@ Key features:
 
 **Best for:** Small agency owners billing 10 to 100 clients who want a structured collections workflow without the manual effort
 
-**Pricing:** $29/month. 14-day free trial, no credit card required.
+**Pricing:** $29/month. 7-day free trial, no credit card required.
 
 ---
 
@@ -313,7 +313,7 @@ Duely tracks outstanding invoices, follow-up history, payment promises, and part
 
 ### Is Duely free?
 
-Duely is not free. It costs $29 per month with a 14-day free trial and no credit card required to start. There is no free plan.
+Duely is not free. It costs $29 per month with a 7-day free trial and no credit card required to start. There is no free plan.
 
 ### How often should I follow up on an outstanding invoice?
 

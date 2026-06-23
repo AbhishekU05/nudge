@@ -60,7 +60,7 @@ Without those elements, clients tend to deprioritize the invoice behind newer ob
 
 This is where collections management matters. Collections management is the process of tracking unpaid invoices, documenting commitments, sending reminders, and escalating overdue accounts systematically.
 
-[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
+[Duely](https://duely.in) is a collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
 
 ## What details should you confirm before agreeing to wait?
 

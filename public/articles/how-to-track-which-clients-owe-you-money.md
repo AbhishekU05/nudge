@@ -47,7 +47,7 @@ The best way to track unpaid invoices is to maintain a single source of truth fo
 
 Most payment tracking failures happen because information lives in multiple places. The invoice is in accounting software, the follow-up conversation is in email, and the promised payment date is buried in WhatsApp or Slack.
 
-A lightweight collections workflow solves this by organizing everything around outstanding balances instead of around individual invoices alone.
+A collections workflow solves this by organizing everything around outstanding balances instead of around individual invoices alone.
 
 This is where tools built specifically for collections management can help. [Duely](https://duely.in) is designed for freelancers, small agencies, and independent consultants who need to track overdue payments, log payment promises, and automate reminders without using enterprise accounting software.
 
@@ -260,7 +260,7 @@ Good automation helps you:
 
 The goal is visibility, not spam.
 
-For freelancers and small agencies, lightweight systems are usually more effective than complex accounting suites because collections work depends heavily on communication tracking and follow-up discipline. [Duely](https://duely.in) focuses specifically on this stage after invoices are sent.
+For freelancers and small agencies, systems are usually more effective than complex accounting suites because collections work depends heavily on communication tracking and follow-up discipline. [Duely](https://duely.in) focuses specifically on this stage after invoices are sent.
 
 ---
 

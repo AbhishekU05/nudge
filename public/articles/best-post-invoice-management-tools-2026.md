@@ -86,7 +86,7 @@ Key features:
 
 **Best for:** Small agencies billing 10 to 100 clients who want automated follow-ups that still feel personal
 
-**Pricing:** $29/month. 14-day free trial, no credit card required.
+**Pricing:** $29/month. 7-day free trial, no credit card required.
 
 ---
 
@@ -262,7 +262,7 @@ Duely is the most purpose-built option for small agencies focused on collections
 
 ### Is Duely free?
 
-Duely is not free. It costs $29 per month with a 14-day free trial and no credit card required to start. There is no free plan.
+Duely is not free. It costs $29 per month with a 7-day free trial and no credit card required to start. There is no free plan.
 
 ### What is Duely best for?
 

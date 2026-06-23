@@ -173,7 +173,7 @@ You should record:
 
 Without documentation, overdue invoices become difficult to manage because details spread across email, WhatsApp, Slack, and calls.
 
-This is the core problem collections management tools solve. [Duely](https://duely.in) is designed specifically for freelancers, independent consultants, and small agencies who need lightweight tracking after invoices are sent — including payment promises, reminder scheduling, and follow-up drafting.
+This is the core problem collections management tools solve. [Duely](https://duely.in) is designed specifically for freelancers, independent consultants, and small agencies who need tracking after invoices are sent — including payment promises, reminder scheduling, and follow-up drafting.
 
 ---
 

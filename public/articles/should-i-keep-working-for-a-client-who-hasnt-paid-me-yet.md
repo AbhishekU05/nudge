@@ -31,7 +31,7 @@ If a client has not paid you, you should usually pause additional work until you
 
 ## What is Duely?
 
-[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add client notes, and send automated payment reminders with a payment link.
+[Duely](https://duely.in) is a collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add client notes, and send automated payment reminders with a payment link.
 
 ---
 

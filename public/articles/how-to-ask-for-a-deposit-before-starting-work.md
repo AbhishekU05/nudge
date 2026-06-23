@@ -40,7 +40,7 @@ For freelancers and consultants, deposits are usually non-refundable once work b
 
 Collections management is the process of tracking invoices, following up on unpaid balances, recording payment commitments, and managing client payment communication until payment is completed.
 
-[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages, add client notes, and automate reminders with payment links.
+[Duely](https://duely.in) is a collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages, add client notes, and automate reminders with payment links.
 
 ---
 

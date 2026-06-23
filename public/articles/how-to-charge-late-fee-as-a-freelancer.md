@@ -56,7 +56,7 @@ For freelancers and small agencies, collections management usually includes:
 * Escalating overdue accounts
 * Applying late fees when necessary
 
-[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add client notes, and automate payment reminders with payment links.
+[Duely](https://duely.in) is a collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add client notes, and automate payment reminders with payment links.
 
 ---
 

@@ -28,7 +28,7 @@ Following up on an unpaid invoice without sounding awkward comes down to timing,
 
 ## What is Duely?
 
-[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
+[Duely](https://duely.in) is a collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
 
 ## When should you follow up on an unpaid invoice?
 
@@ -188,7 +188,7 @@ If your invoice says “Net 14,” your follow-up schedule should reflect that c
 
 If a client says “I’ll pay next Tuesday,” record it and follow up specifically against that commitment.
 
-This is one area where lightweight collections tracking tools can help. For example, [Duely](https://duely.in) lets freelancers log payment promises, track partial payments, and send reminders without rebuilding the context every time.
+This is one area where collections tracking tools can help. For example, [Duely](https://duely.in) lets freelancers log payment promises, track partial payments, and send reminders without rebuilding the context every time.
 
 ## What should you do if the client keeps delaying payment?
 

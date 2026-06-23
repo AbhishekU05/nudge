@@ -204,7 +204,7 @@ This includes:
 
 Documentation matters because clients often forget verbal commitments.
 
-A lightweight collections management system helps centralize this information instead of scattering it across email threads and chat apps. [Duely](https://duely.in) lets freelancers and consultants track outstanding balances, log payment promises, record partial payments, and send structured follow-ups without turning the process into a confrontation.
+A collections management system helps centralize this information instead of scattering it across email threads and chat apps. [Duely](https://duely.in) lets freelancers and consultants track outstanding balances, log payment promises, record partial payments, and send structured follow-ups without turning the process into a confrontation.
 
 ## What mistakes make late payment escalation worse?
 
@@ -283,7 +283,7 @@ Automated reminders help by:
 * Keeping records centralized
 * Reducing awkward manual chasing
 
-For freelancers and small agencies, the ideal setup is usually lightweight rather than enterprise-level. [Duely](https://duely.in) focuses specifically on post-invoice collections workflows like payment reminders, payment promise tracking, and follow-up drafting without requiring complex accounting software.
+For freelancers and small agencies, the ideal setup is usually rather than enterprise-level. [Duely](https://duely.in) focuses specifically on post-invoice collections workflows like payment reminders, payment promise tracking, and follow-up drafting without requiring complex accounting software.
 
 ## FAQ
 

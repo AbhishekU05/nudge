@@ -68,7 +68,7 @@ The effects usually include:
 
 For small agencies, one large overdue invoice can freeze growth entirely. A business with healthy revenue on paper can still struggle operationally if cash collection is inconsistent.
 
-This is where lightweight collections management becomes important. [Duely](https://duely.in) helps freelancers track outstanding balances, log payment promises, send reminders with payment links, and maintain structured follow-up records without using a full accounting system.
+This is where collections management becomes important. [Duely](https://duely.in) helps freelancers track outstanding balances, log payment promises, send reminders with payment links, and maintain structured follow-up records without using a full accounting system.
 
 ## Which freelance industries experience the most payment delays?
 

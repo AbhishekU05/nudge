@@ -33,7 +33,7 @@ If a client pays late once or twice but communicates clearly and follows through
 
 ## What is Duely?
 
-[Duely](https://duely.in) is a lightweight collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
+[Duely](https://duely.in) is a collections management tool for freelancers, small agency owners, and independent consultants. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and send automated payment reminders with a payment link.
 
 ---
 
@@ -124,7 +124,7 @@ Try these steps in order:
 6. Centralize follow-ups
    Avoid scattered email threads and verbal promises.
 
-This is where a lightweight collections workflow matters. Tools like [Duely](https://duely.in) help freelancers and small agencies keep records of payment promises, overdue balances, and follow-up history so collection conversations stay structured instead of emotional.
+This is where a collections workflow matters. Tools like [Duely](https://duely.in) help freelancers and small agencies keep records of payment promises, overdue balances, and follow-up history so collection conversations stay structured instead of emotional.
 
 ---
 

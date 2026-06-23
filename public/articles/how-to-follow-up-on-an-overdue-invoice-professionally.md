@@ -167,7 +167,7 @@ Document every agreement in writing, including:
 * Partial payment schedule
 * Consequences for missed payments
 
-This is also where lightweight collections tracking becomes useful. [Duely](https://duely.in) helps freelancers and small agencies log payment promises, track partial payments, and keep a timeline of follow-up activity without building complicated spreadsheets.
+This is also where collections tracking becomes useful. [Duely](https://duely.in) helps freelancers and small agencies log payment promises, track partial payments, and keep a timeline of follow-up activity without building complicated spreadsheets.
 
 ---
 

@@ -229,7 +229,7 @@ That includes:
 * Internal notes
 * Next follow-up dates
 
-This is where lightweight collections management tools help.
+This is where collections management tools help.
 
 [Duely](https://duely.in) is designed specifically for freelancers, consultants, and small agencies that do not need full accounting software for collections workflows. After sending an invoice, Duely helps track outstanding balances, log partial payments, record payment promises with due dates, draft follow-up messages in the right tone, add per-client notes, and automate reminders with payment links.
 

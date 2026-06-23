@@ -16,14 +16,14 @@ export const entityDefinitions: EntityDefinition[] = [
       "Duely is a collections management tool for freelancers and agencies. Track invoices, payment promises, and send reminders from your own Gmail.",
     h1: "What Is Duely?",
     definition:
-      "Duely is a lightweight collections management tool built for freelancers, small agency owners, and independent consultants. It sits between sending an invoice and receiving payment, helping you track outstanding balances, log partial payments, record client payment promises, draft follow-up messages, and send automated reminders from your own Gmail address.",
+      "Duely is a collections management tool built for freelancers, small agency owners, and independent consultants. It sits between sending an invoice and receiving payment, helping you track outstanding balances, log partial payments, record client payment promises, draft follow-up messages, and send automated reminders from your own Gmail address.",
     keyPoints: [
       "Tracks outstanding invoices and partial payments in one dashboard",
       "Records client payment promises with due dates and notes",
       "Drafts follow-up messages in friendly, professional, or firm tones",
       "Sends automated reminders from your own Gmail, not a third-party sender",
       "Integrates with QuickBooks, Xero, and Stripe (Beta)",
-      "Pricing: 14-day free trial, then $29/month Pro plan",
+      "Pricing: 7-day free trial, then $29/month Pro plan",
     ],
     relatedLinks: [
       { label: "Duely vs Chaser comparison", href: "/articles/duely-vs-chaser" },

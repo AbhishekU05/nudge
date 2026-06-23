@@ -236,7 +236,7 @@ It works poorly when:
 
 A hybrid approach usually works best: automate routine reminders but handle sensitive conversations personally.
 
-That is why lightweight collections tools are often more useful for freelancers than enterprise accounting systems. They focus specifically on overdue follow-up workflows rather than full accounting complexity.
+That is why collections tools are often more useful for freelancers than enterprise accounting systems. They focus specifically on overdue follow-up workflows rather than full accounting complexity.
 
 ## FAQ
 

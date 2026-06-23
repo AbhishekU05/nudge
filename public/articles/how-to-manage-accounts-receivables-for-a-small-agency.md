@@ -287,7 +287,7 @@ Clients are also more likely to pay quickly when invoices are simple, accurate, 
 
 ### How do small agencies keep track of unpaid invoices?
 
-Small agencies typically track unpaid invoices using spreadsheets, accounting software, or lightweight collections tools. The important part is maintaining visibility into due dates, overdue balances, payment history, and follow-up communication so invoices do not get ignored after being sent.
+Small agencies typically track unpaid invoices using spreadsheets, accounting software, or collections tools. The important part is maintaining visibility into due dates, overdue balances, payment history, and follow-up communication so invoices do not get ignored after being sent.
 
 ### What is the best payment reminder schedule for agencies?
 

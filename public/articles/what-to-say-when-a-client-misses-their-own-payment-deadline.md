@@ -143,7 +143,7 @@ Thanks,
 
 For independent consultants and agencies, documented communication becomes important if disputes escalate later.
 
-This is also where lightweight collections tracking tools help. [Duely](https://duely.in) lets freelancers and consultants log payment promises, track overdue balances, and maintain a timeline of client communication without managing everything manually in email threads.
+This is also where collections tracking tools help. [Duely](https://duely.in) lets freelancers and consultants log payment promises, track overdue balances, and maintain a timeline of client communication without managing everything manually in email threads.
 
 ---
 

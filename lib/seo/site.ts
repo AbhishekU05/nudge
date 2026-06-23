@@ -7,7 +7,7 @@ export const organizationSchema = {
   url: SITE_URL,
   logo: `${SITE_URL}/logo.svg`,
   description:
-    "Duely is a lightweight collections management tool for freelancers, small agencies, and independent consultants. Track outstanding invoices, payment promises, partial payments, and automated follow-ups.",
+    "Duely is a collections management tool for freelancers, small agencies, and independent consultants. Track outstanding invoices, payment promises, partial payments, and automated follow-ups.",
   sameAs: ["https://x.com/AbhishekU008"],
 };
 

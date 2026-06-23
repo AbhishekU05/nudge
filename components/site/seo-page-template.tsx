@@ -44,7 +44,7 @@ export default function SEOPageTemplate({ data }: { data: SEOPageData }) {
             "name": "How much does Duely cost?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Duely is a flat $29/month with no hidden fees, and comes with a 14-day free trial that requires no credit card."
+              "text": "Duely is a flat $29/month with no hidden fees, and comes with a 7-day free trial that requires no credit card."
             }
           }
         ]
@@ -111,9 +111,9 @@ export default function SEOPageTemplate({ data }: { data: SEOPageData }) {
             >
               {data.cta}
             </Link>
-            <p className="text-sm text-zinc-500 sm:hidden">14-day free trial • No credit card required</p>
+            <p className="text-sm text-zinc-500 sm:hidden">7-day free trial • No credit card required</p>
           </div>
-          <p className="hidden sm:block text-sm text-zinc-500 mt-4">14-day free trial • No credit card required</p>
+          <p className="hidden sm:block text-sm text-zinc-500 mt-4">7-day free trial • No credit card required</p>
         </div>
       </section>
 
@@ -341,7 +341,7 @@ export default function SEOPageTemplate({ data }: { data: SEOPageData }) {
             href="/signup" 
             className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-full font-medium transition-all text-lg"
           >
-            Start Your 14-Day Free Trial <ArrowRight className="h-5 w-5" />
+            Start Your 7-day free trial <ArrowRight className="h-5 w-5" />
           </Link>
           <p className="text-sm text-zinc-500 mt-6">Just $29/month after trial • Cancel anytime</p>
         </div>

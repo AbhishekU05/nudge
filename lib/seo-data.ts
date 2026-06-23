@@ -370,7 +370,7 @@ export const industries: Record<string, SEOPageData> = {
     features: [
       "Follow-ups are sent from your real email, preserving relationships",
       "Visual Kanban board to track late-paying clients",
-      "14-day free trial, flat $29/month after"
+      "7-day free trial, flat $29/month after"
     ],
     painPoint: "PR is an entirely relationship-based business. The last thing you want to do is annoy a client with robotic, aggressive payment demands. Duely allows you to craft highly personalized, polite follow-up templates that get sent directly from your Gmail, saving the relationship while getting you paid.",
     cta: "Automate Your PR Agency AR",
@@ -741,7 +741,7 @@ export const locations: Record<string, SEOPageData> = {
       "Flat $29/month pricing"
     ],
     painPoint: "NYC agency owners don't have time to manually email clients begging for payment. You need a system that works in the background. Duely connects to your Gmail and automatically follows up on late invoices, ensuring you have the cash flow to keep operating in the city.",
-    cta: "Start Your 14-Day Free Trial",
+    cta: "Start Your 7-day free trial",
   },
   "sydney": {
     id: "sydney",
@@ -788,7 +788,7 @@ export const locations: Record<string, SEOPageData> = {
     features: [
       "Syncs with QBO and Xero",
       "Visual Kanban pipeline of all outstanding cash",
-      "14-day free trial"
+      "7-day free trial"
     ],
     painPoint: "Toronto's agency scene is highly competitive. You need to focus on pitching and delivering, not doing manual accounts receivable. Duely takes AR off your plate entirely by automating email follow-ups that look exactly like you wrote them.",
     cta: "Automate Your Reminders Now",

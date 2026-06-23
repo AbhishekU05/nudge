@@ -652,7 +652,7 @@ export default async function ForFreelancersPage({
                 Simple, transparent pricing.
               </h2>
               <p className="mt-4 text-lg text-zinc-400">
-                No complex tiers. No hidden fees. Try it free for 14 days.
+                No complex tiers. No hidden fees. Try it free for 7 days.
               </p>
             </div>
 
@@ -661,7 +661,7 @@ export default async function ForFreelancersPage({
                 <Card className="h-full border-white/10 bg-white/[0.02] relative overflow-hidden group">
                   <CardHeader>
                     <CardTitle className="text-2xl font-semibold text-zinc-100">Free Trial</CardTitle>
-                    <div className="mt-4 text-sm text-zinc-400">14 days, no card required</div>
+                    <div className="mt-4 text-sm text-zinc-400">7 days, no card required</div>
                   </CardHeader>
                   <CardContent>
                     <ul className="mt-8 space-y-4 text-sm text-zinc-300">
@@ -671,7 +671,7 @@ export default async function ForFreelancersPage({
                       </li>
                     </ul>
                     <p className="mt-6 text-sm text-zinc-500 leading-relaxed">
-                      After 14 days you&apos;ll be asked to subscribe. Your data is always yours — export anytime.
+                      After 7 days you&apos;ll be asked to subscribe. Your data is always yours — export anytime.
                     </p>
                     <div className="mt-10">
                       <Link href="/signup">
