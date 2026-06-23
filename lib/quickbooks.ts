@@ -522,7 +522,7 @@ export async function getQuickBooksBankAccounts(userId: string) {
   const integration = await getQuickBooksIntegration(userId);
   if (!integration || !integration.realm_id) return [];
 
-  const { accessToken } = await getValidQuickBooksTokens(integration);
+  const { access_token } = await getValidQuickBooksTokens(integration);
 
   const query = `select * from Account where AccountType = 'Bank'`;
   const url = new URL(`${getApiBaseUrl()}/v3/company/${integration.realm_id}/query`);
@@ -533,7 +533,7 @@ export async function getQuickBooksBankAccounts(userId: string) {
     const response = await fetch(url.toString(), {
       headers: {
         "Accept": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
+        "Authorization": `Bearer ${access_token}`,
       },
     });
 
