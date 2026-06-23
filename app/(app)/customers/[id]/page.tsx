@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ClientRecord, InvoiceRecord, getRemainingBalance } from "@/lib/types";
+import { ClientRecord, InvoiceRecord, getRemainingBalance, GroupRecord } from "@/lib/types";
 import { CustomerAnalytics } from "./customer-analytics";
 
 export default async function CustomerProfilePage(props: { params: Promise<{ id: string }> }) {
@@ -34,6 +34,15 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
 
   const invoicesList = invoices || [];
 
+  // Fetch the assigned group if any
+  const { data: customerGroupData } = await supabase
+    .from("customer_groups")
+    .select("groups(*)")
+    .eq("customer_id", id)
+    .maybeSingle();
+    
+  const group = customerGroupData?.groups as unknown as GroupRecord | undefined;
+
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
@@ -46,7 +55,21 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                   Back to customers
                 </Link>
               </Button>
-              <h1 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50">{client.name}</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-50">{client.name}</h1>
+                {group && (
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border"
+                    style={{
+                      backgroundColor: `${group.color || "#3b82f6"}20`,
+                      color: group.color || "#3b82f6",
+                      borderColor: `${group.color || "#3b82f6"}40`,
+                    }}
+                  >
+                    {group.name}
+                  </span>
+                )}
+              </div>
               {client.email && <p className="mt-2 text-zinc-400">{client.email}</p>}
             </div>
             

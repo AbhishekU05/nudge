@@ -48,8 +48,9 @@ import { FOLLOWUP_TEMPLATES } from "@/lib/followup-templates";
 import { pauseReminder, resumeReminder } from "@/app/actions/reminders";
 import { AutomationSettings } from "@/components/site/automation-settings";
 import { cn } from "@/lib/utils";
-import type { CustomerRecord, FollowUpTone, FollowUpMethod, FollowUpOutcome } from "@/lib/types";
+import type { CustomerRecord, FollowUpTone, FollowUpMethod, FollowUpOutcome, GroupRecord } from "@/lib/types";
 import { getRemainingBalance, getDaysOverdue } from "@/lib/types";
+import Link from "next/link";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -849,10 +850,12 @@ function TimelineTab({ customer }: { customer: CustomerRecord }) {
 // ---------------------------------------------------------------------------
 export function CustomerDetails({
   customer,
+  group,
   initialTab = "timeline",
   isDevelopment,
 }: {
   customer: CustomerRecord | null;
+  group?: GroupRecord | null;
   initialTab?: Tab;
   isDevelopment: boolean;
 }) {
@@ -870,8 +873,26 @@ export function CustomerDetails({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-lg font-semibold tracking-tight text-zinc-50">
-                {customer.recipient_name}
+                {customer.customer_id ? (
+                  <Link href={`/customers/${customer.customer_id}`} className="hover:underline hover:text-indigo-400">
+                    {customer.recipient_name}
+                  </Link>
+                ) : (
+                  customer.recipient_name
+                )}
               </h2>
+              {group && (
+                <span
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border"
+                  style={{
+                    backgroundColor: `${group.color || "#3b82f6"}20`,
+                    color: group.color || "#3b82f6",
+                    borderColor: `${group.color || "#3b82f6"}40`,
+                  }}
+                >
+                  {group.name}
+                </span>
+              )}
               {remaining <= 0 && (
                 <Badge variant={customer.client_paid_at ? "success" : "default"}>
                   {customer.client_paid_at ? "Customer marked paid" : "You marked paid"}

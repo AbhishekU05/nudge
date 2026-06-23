@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CustomerDetails } from "@/components/site/customer-details";
-import type { CustomerRecord, PaymentLog, FollowUpLog } from "@/lib/types";
+import type { CustomerRecord, PaymentLog, FollowUpLog, GroupRecord } from "@/lib/types";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Container } from "@/components/site/container";
@@ -27,6 +27,20 @@ export default async function CustomerPage(props: {
 
   if (error || !customerData) {
     notFound();
+  }
+
+  // Fetch group if customer_id exists
+  let group: GroupRecord | undefined = undefined;
+  if (customerData.customer_id) {
+    const { data: groupData } = await supabase
+      .from("customer_groups")
+      .select("groups(*)")
+      .eq("customer_id", customerData.customer_id)
+      .maybeSingle();
+      
+    if (groupData?.groups) {
+      group = groupData.groups as unknown as GroupRecord;
+    }
   }
 
   // Fetch events for this customer
@@ -86,6 +100,7 @@ export default async function CustomerPage(props: {
         </Link>
         <CustomerDetails 
           customer={customerRecord} 
+          group={group}
           initialTab={(tab as any) || "payment"} 
           isDevelopment={process.env.NODE_ENV === "development"} 
         />
