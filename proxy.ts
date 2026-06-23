@@ -21,6 +21,7 @@ const PUBLIC_ROUTES = [
   "/leonard",
   "/faq",
   "/tools",
+  "/features",
   "/payment-leak-calculator",
   "/for-freelancers",
   "/for-agencies",
@@ -40,7 +41,7 @@ const PUBLIC_ROUTES = [
   "/portal",
 ];
 
-const PASS_THROUGH_ROUTES = ["/", "/auth/callback", "/unsubscribe", "/terms", "/privacy", "/article", "/articles", "/about", "/leonard", "/faq", "/tools", "/payment-leak-calculator", "/for-freelancers", "/for-agencies", "/for-consultants", "/vs/freshbooks", "/vs/honeybook", "/vs/bonsai", "/vs/quickbooks", "/sitemap.xml", "/sitemap-0.xml", "/robots.txt", "/alternatives", "/for", "/integrations", "/location", "/use-case", "/portal"];
+const PASS_THROUGH_ROUTES = ["/", "/auth/callback", "/unsubscribe", "/terms", "/privacy", "/article", "/articles", "/about", "/leonard", "/faq", "/tools", "/features", "/payment-leak-calculator", "/for-freelancers", "/for-agencies", "/for-consultants", "/vs/freshbooks", "/vs/honeybook", "/vs/bonsai", "/vs/quickbooks", "/sitemap.xml", "/sitemap-0.xml", "/robots.txt", "/alternatives", "/for", "/integrations", "/location", "/use-case", "/portal"];
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
