@@ -51,7 +51,7 @@ export function SidebarGroups({
             {isExpanded && <span className="truncate whitespace-nowrap text-sm">All</span>}
           </button>
 
-          {activeGroup === "global" && (
+          {activeGroup === "global" && isExpanded && (
             <div className="flex flex-col mt-1 ml-3 pl-3 border-l border-white/10 space-y-1">
               <Link
                 href="/customers"
@@ -98,7 +98,7 @@ export function SidebarGroups({
                 {isExpanded && <span className="truncate whitespace-nowrap text-sm">{group.name}</span>}
               </button>
 
-              {isActive && (
+              {isActive && isExpanded && (
                 <div className="flex flex-col mt-1 ml-3 pl-3 border-l border-white/10 space-y-1">
                   <Link
                     href={`/customers?groupId=${group.id}`}
