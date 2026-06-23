@@ -49,30 +49,36 @@ export function CustomerGroupsAssigner({
   return (
     <div className="relative flex items-center gap-1.5 flex-wrap" ref={popoverRef}>
       {assignedGroups.map((g) => (
-        <span
+        <button
           key={g.id}
-          className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border"
+          onClick={(e) => {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+          }}
+          className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border transition-opacity hover:opacity-80"
           style={{
             backgroundColor: `${g.color || "#3b82f6"}20`, // 20% opacity
             color: g.color || "#3b82f6",
             borderColor: `${g.color || "#3b82f6"}40`,
           }}
-          title={g.name}
+          title="Change group"
         >
           {g.name}
-        </span>
+        </button>
       ))}
 
-      <button
-        onClick={(e) => {
-          e.preventDefault(); // Prevent navigating to client page if inside a row click
-          setIsOpen(!isOpen);
-        }}
-        className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-zinc-600 text-zinc-400 hover:text-zinc-200 hover:border-zinc-400 transition-colors bg-transparent"
-        title="Manage assigned groups"
-      >
-        {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
-      </button>
+      {assignedGroupIds.length === 0 && (
+        <button
+          onClick={(e) => {
+            e.preventDefault(); // Prevent navigating to client page if inside a row click
+            setIsOpen(!isOpen);
+          }}
+          className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-zinc-600 text-zinc-400 hover:text-zinc-200 hover:border-zinc-400 transition-colors bg-transparent"
+          title="Assign group"
+        >
+          {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+        </button>
+      )}
 
       {isOpen && (
         <div className="absolute top-full left-0 mt-1.5 w-56 rounded-lg border border-zinc-800 bg-zinc-900 p-2 shadow-xl z-10">
@@ -89,6 +95,7 @@ export function CustomerGroupsAssigner({
                     onClick={(e) => {
                       e.preventDefault();
                       handleToggleGroup(g.id, isAssigned);
+                      if (!isAssigned) setIsOpen(false); // Close menu after picking a new group
                     }}
                     className="w-full flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-zinc-800 transition-colors"
                   >

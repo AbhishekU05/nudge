@@ -79,6 +79,9 @@ export async function toggleCustomerGroup(customerId: string, groupId: string, a
   }
 
   if (assign) {
+    // Enforce one group per customer by removing existing mappings first
+    await supabase.from("customer_groups").delete().eq("customer_id", customerId);
+
     const { error } = await supabase.from("customer_groups").insert({
       customer_id: customerId,
       group_id: groupId,
