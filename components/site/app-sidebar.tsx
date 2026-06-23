@@ -45,6 +45,7 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks, g
 
   const navItems = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard, color: "text-indigo-400", hoverColor: "hover:text-indigo-400", activeBg: "bg-indigo-500/10" },
+    { name: "Action Center", href: "/actions", icon: Zap, color: "text-amber-400", hoverColor: "hover:text-amber-400", activeBg: "bg-amber-500/10" },
     { name: "Activity", href: "/activity", icon: Activity, color: "text-emerald-400", hoverColor: "hover:text-emerald-400", activeBg: "bg-emerald-500/10" },
     { name: "Pipeline", href: "/pipeline", icon: KanbanSquare, color: "text-amber-400", hoverColor: "hover:text-amber-400", activeBg: "bg-amber-500/10" },
     { name: "Analytics", href: "/analytics", icon: BarChart3, color: "text-blue-400", hoverColor: "hover:text-blue-400", activeBg: "bg-blue-500/10" },
