@@ -11,9 +11,11 @@ import Link from "next/link";
 
 export function SidebarGroups({
   groups,
+  totalCustomers = 0,
   isExpanded,
 }: {
   groups: (GroupRecord & { customerCount?: number })[];
+  totalCustomers?: number;
   isExpanded: boolean;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,6 +49,7 @@ export function SidebarGroups({
           >
             <div className="flex flex-col items-center justify-center w-5">
               <Users className="h-5 w-5 shrink-0 text-indigo-400" />
+              <span className="text-[10px] mt-1 font-mono leading-none text-zinc-500">{totalCustomers}</span>
             </div>
             {isExpanded && <span className="truncate whitespace-nowrap text-sm">All</span>}
           </button>

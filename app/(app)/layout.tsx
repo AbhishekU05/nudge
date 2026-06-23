@@ -16,9 +16,10 @@ export default async function AppLayout({
   let hasQuickBooks = false;
 
   let groups: any[] = [];
+  let totalCustomers = 0;
 
   try {
-    const [profileRes, integrationsRes, groupsRes] = await Promise.all([
+    const [profileRes, integrationsRes, groupsRes, customersRes] = await Promise.all([
       supabase
         .from("profiles")
         .select("razorpay_subscription_status")
@@ -32,7 +33,11 @@ export default async function AppLayout({
         .from("groups")
         .select("*, customer_groups(count)")
         .eq("user_id", user.id)
-        .order("name", { ascending: true })
+        .order("name", { ascending: true }),
+      supabase
+        .from("clients")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
     ]);
       
     if (profileRes.data?.razorpay_subscription_status) {
@@ -49,6 +54,10 @@ export default async function AppLayout({
         ...g,
         customerCount: g.customer_groups?.[0]?.count ?? 0
       }));
+    }
+
+    if (customersRes.count) {
+      totalCustomers = customersRes.count;
     }
   } catch (e) {
     // Graceful fallback
@@ -73,6 +82,7 @@ export default async function AppLayout({
         hasXero={hasXero}
         hasQuickBooks={hasQuickBooks}
         groups={groups}
+        totalCustomers={totalCustomers}
       />
       <div className="flex-1 flex flex-col min-w-0">
         {children}
