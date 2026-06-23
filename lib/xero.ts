@@ -169,7 +169,7 @@ function tokenNeedsRefresh(expiresAt: string) {
   return new Date(expiresAt).getTime() - Date.now() <= TOKEN_REFRESH_SKEW_MS;
 }
 
-async function getValidXeroClient(integration: XeroIntegrationRow) {
+export async function getValidXeroClient(integration: XeroIntegrationRow) {
   if (!tokenNeedsRefresh(integration.expires_at)) {
     const xero = new XeroClient();
     xero.setTokenSet(storedTokenSet(integration));

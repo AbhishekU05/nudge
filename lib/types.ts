@@ -43,7 +43,7 @@ export type PaymentLog = {
   created_at: string;
 };
 
-export type CustomerEventType = "payment" | "followup";
+export type CustomerEventType = "payment" | "followup" | "late_fee";
 
 export type CustomerEvent = {
   id: string;
@@ -144,6 +144,37 @@ export type EmailDraftRecord = {
   created_at: string;
   updated_at: string;
   sent_at: string | null;
+};
+
+export type GroupRecord = {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  color: string | null;
+  created_at: string;
+};
+
+export type LateFeePolicy = {
+  id: string;
+  user_id: string;
+  name: string;
+  fee_type: "flat" | "percentage";
+  fee_value: number;
+  grace_period_days: number;
+  frequency: "once" | "weekly" | "monthly";
+  apply_to: "existing_invoice" | "new_invoice";
+  excluded_group_ids: string[];
+  active: boolean;
+  created_at: string;
+};
+
+export type AppliedLateFee = {
+  id: string;
+  invoice_id: string;
+  policy_id: string | null;
+  amount: number;
+  applied_at: string;
 };
 
 // Semantic alias — the UI uses this name when thinking invoice-first
