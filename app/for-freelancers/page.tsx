@@ -1,19 +1,19 @@
-/* eslint-disable */
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import { redirect } from "next/navigation";
 
+import { AuthErrorRedirect } from "@/components/site/auth-error-redirect";
 import { Container } from "@/components/site/container";
 import { FadeIn, Reveal, SlideUp, SlideIn } from "@/components/site/scroll-animation";
 import { HeroActionCenter } from "@/components/site/hero-action-center";
-import { cn } from "@/lib/utils";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { LifetimeDealSection } from "@/components/site/lifetime-deal-section";
 import { getRemainingLifetimeSpots } from "@/app/actions/leads";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getEmailLinkErrorMessage } from "@/lib/auth-errors";
@@ -27,10 +27,12 @@ import {
   Zap,
   CreditCard,
   User,
+  Users,
   AlertTriangle,
   Activity,
-  AlertCircle
+  Mail
 } from "lucide-react";
+import { websiteSchema } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
   title: "Invoice Follow-Up Software for Freelancers | Duely",
@@ -47,12 +49,86 @@ export default async function ForFreelancersPage({
     error?: string;
     error_code?: string;
     error_description?: string;
-}>;
+  }>;
 }) {
+  const { error, error_description: errorDescription } = await searchParams;
+
+  if (error || errorDescription) {
+    redirect(
+      `/forgot-password?error=${encodeURIComponent(
+        getEmailLinkErrorMessage(errorDescription ?? error),
+      )}`,
+    );
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const spotsLeft = await getRemainingLifetimeSpots();
+
+  if (user) {
+    redirect("/dashboard");
+  }
+
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Duely",
+    url: "https://duely.in",
+    logo: "https://duely.in/logo.svg",
+    description:
+      "collections management tool for freelancers and small agencies. Track outstanding invoices, payment promises, partial payments, and automate follow-ups.",
+    sameAs: ["https://x.com/AbhishekU008"],
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: "abhishek@duely.in",
+      contactType: "customer support",
+    },
+  };
+
+  const softwareApplicationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Duely",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "29",
+      priceCurrency: "USD",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        billingDuration: "P1M",
+      },
+    },
+    description:
+      "Collections management tool for freelancers and small agencies. Invoice follow-up tracking, payment promise logging, partial payment management.",
+  };
+
+  const homeSchemas = [
+    organizationJsonLd,
+    {
+      "@context": "https://schema.org",
+      ...websiteSchema,
+    },
+    softwareApplicationJsonLd,
+  ];
 
   return (
     <div className="flex flex-1 flex-col overflow-x-hidden">
+      {homeSchemas.map((schema, index) => (
+        <Script
+          key={index}
+          id={`schema-${index}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
+          }}
+        />
+      ))}
+      <AuthErrorRedirect />
       <SiteHeader />
 
       <main id="main-content" className="flex-1">
@@ -74,6 +150,11 @@ export default async function ForFreelancersPage({
                     <Button size="lg" className="h-12 px-8 text-base shadow-lg shadow-indigo-500/20 w-full sm:w-auto">
                       Start free trial — no card required
                       <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link href="/tools" className="w-full sm:w-auto">
+                    <Button variant="secondary" size="lg" className="h-12 px-8 text-base w-full sm:w-auto">
+                      Explore free tools
                     </Button>
                   </Link>
                 </div>
@@ -143,33 +224,25 @@ export default async function ForFreelancersPage({
                   <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.06),transparent_50%)]" />
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
                     <CardContent className="p-0">
-                      <div className="mb-4 flex items-center justify-between border-b border-white/5 pb-4">
-                        <div>
-                          <h2 className="text-xl font-semibold tracking-tight text-zinc-50">Action Center</h2>
-                          <p className="mt-1 text-sm text-zinc-400">Inbox zero for your collections</p>
+                      <div className="p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <h2 className="text-lg font-semibold tracking-tight text-zinc-50 flex items-center gap-2">
+                            <Users className="h-5 w-5 text-zinc-400" /> Customers Action Needed
+                          </h2>
                         </div>
-                      </div>
-                      <div className="rounded-xl border border-red-500/30 bg-red-500/5 ring-1 ring-white/10 p-4">
-                        <div className="mb-3 flex items-start justify-between gap-4">
-                          <div className="flex gap-3">
-                            <div className="mt-1 flex shrink-0 rounded-lg p-2 bg-red-500/20 text-red-300 border border-red-500/30">
-                              <AlertTriangle className="h-4 w-4 text-red-400" />
-                            </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors">
                             <div>
-                              <h3 className="font-semibold text-zinc-100">Broken payment promise</h3>
-                              <p className="mt-1 text-sm text-zinc-400 leading-relaxed">Client promised to pay by Friday. It's now Monday and no payment has been received.</p>
+                              <h3 className="font-medium text-zinc-200">Acme Corp</h3>
+                              <p className="text-sm text-zinc-500 mt-0.5">
+                                <span className="text-red-400">14 days overdue</span>
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-medium text-zinc-200">$15,400.00</div>
+                              <div className="text-sm text-zinc-500 mt-0.5">Remaining</div>
                             </div>
                           </div>
-                          <div className="text-right shrink-0">
-                            <div className="text-sm font-medium text-zinc-300">Acme Corp</div>
-                            <div className="text-lg font-semibold text-zinc-100">$15,400</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
-                          <button className="text-sm font-medium text-zinc-400 hover:text-zinc-200">Dismiss</button>
-                          <button className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg bg-red-500 hover:bg-red-600 text-white shadow-red-500/20">
-                            Send Firm Follow-up <ArrowRight className="h-4 w-4" />
-                          </button>
                         </div>
                       </div>
                     </CardContent>
@@ -209,16 +282,18 @@ export default async function ForFreelancersPage({
                   <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.06),transparent_50%)]" />
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
                     <CardContent className="p-0 space-y-4">
-                      <div className="flex gap-2 p-1 bg-white/[0.03] rounded-lg border border-white/5">
-                        {["Gentle Nudge", "Friendly Reminder", "Firm Escalation"].map((t, i) => (
-                          <div key={t} className={cn("px-3 py-1.5 text-xs font-medium rounded-md", i === 1 ? "bg-white/10 text-zinc-100 shadow-sm" : "text-zinc-500")}>{t}</div>
-                        ))}
+                      <div className="flex items-center gap-3 mb-4">
+                        <h2 className="text-lg font-bold tracking-tight text-zinc-50">Queue</h2>
+                        <div className="bg-white/5 px-2 py-0.5 rounded text-xs text-zinc-400">1 waiting</div>
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-4 font-mono text-sm leading-relaxed text-zinc-300">
-                        <span className="text-zinc-500">Subject:</span> Friendly check-in regarding Invoice #INV-2024-08<br/><br/>
-                        Hi David,<br/><br/>
-                        Hope you're having a good week! Just dropping a quick note that <span className="text-indigo-300 bg-indigo-500/10 px-1 rounded">Invoice #INV-2024-08 for $4,200</span> was due on <span className="text-indigo-300 bg-indigo-500/10 px-1 rounded">May 30</span>.<br/><br/>
-                        If it's already in the payment queue, feel free to ignore this. Otherwise, let me know if you need me to resend the payment link.
+                      <div className="flex flex-col p-4 rounded-xl border border-white/10 bg-white/[0.025] transition-colors">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium text-zinc-200">Friendly check-in regarding Invoice #INV-2024-08</h3>
+                            <p className="text-xs text-zinc-500 mt-1">To: david@acmecorp.com</p>
+                          </div>
+                          <span className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded">Draft</span>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -236,12 +311,20 @@ export default async function ForFreelancersPage({
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-6 shadow-xl shadow-black/20">
                     <CardContent className="p-0">
                       <div className="flex items-center gap-4 border-b border-white/10 pb-6">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white border border-zinc-200 shadow-sm">
                           <Image src="/google-logo.svg" alt="Google" width={24} height={24} />
                         </div>
                         <div>
-                          <p className="font-semibold text-zinc-100">abhishek@freelancer.com</p>
-                          <p className="text-sm text-emerald-400">Connected and sending</p>
+                          <h3 className="font-semibold text-zinc-100">Google Gmail</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="relative flex h-2 w-2">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                            </span>
+                            <span className="text-sm text-emerald-400 font-medium">
+                              Connected to abhishek@agency.com
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <div className="mt-6 space-y-4">
@@ -297,21 +380,31 @@ export default async function ForFreelancersPage({
                   <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.06),transparent_50%)]" />
                   <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
                     <CardContent className="p-0">
-                      <div className="rounded-xl bg-zinc-100 p-4">
-                        <div className="flex justify-between items-center border-b border-zinc-200 pb-4 mb-4">
-                          <div className="font-bold text-zinc-800 text-lg">Acme Corp Portal</div>
-                          <div className="text-sm text-zinc-500">Powered by Duely</div>
-                        </div>
-                        <div className="bg-white rounded-lg p-6 shadow-sm border border-zinc-200">
-                          <p className="text-sm font-medium text-zinc-500 uppercase tracking-widest">Total Outstanding</p>
-                          <p className="text-3xl font-bold text-zinc-900 mt-1">$4,200.00</p>
-                          <div className="mt-6">
-                            <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
-                              Pay via Stripe
-                            </button>
+                        <div className="flex flex-col gap-4 p-4">
+                          <div className="flex flex-col gap-1">
+                            <p className="text-zinc-400 text-[10px] font-medium uppercase tracking-wider">
+                              Client Portal &bull; Your Agency
+                            </p>
+                            <h1 className="text-xl font-semibold tracking-tight text-zinc-100">
+                              Acme Corp
+                            </h1>
+                          </div>
+                          
+                          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-1 shadow-sm">
+                            <p className="text-zinc-400 text-xs font-medium">Total Amount Outstanding</p>
+                            <p className="text-2xl font-bold tracking-tight text-zinc-50">
+                              $4,200.00
+                            </p>
+                          </div>
+                          
+                          <div className="flex flex-col gap-3 bg-zinc-900/50 rounded-xl p-4 border border-zinc-800">
+                            <h2 className="text-sm font-semibold text-zinc-100">How to Pay</h2>
+                            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex flex-col gap-1 shadow-sm">
+                              <p className="text-sm font-medium text-zinc-100">Chase Business</p>
+                              <p className="text-xs text-zinc-500 font-mono">•••• 1234</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
                     </CardContent>
                   </Card>
                 </div>
@@ -328,11 +421,53 @@ export default async function ForFreelancersPage({
                 Everything you need to get paid faster.
               </h2>
               <p className="mt-4 text-lg text-zinc-400">
-                The complete toolkit for managing freelancer cashflow, without the awkward conversations.
+                The complete toolkit for managing agency cashflow, without the awkward conversations.
               </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Analytics */}
+              <div className="group rounded-2xl border border-white/10 bg-white/[0.02] p-6 lg:col-span-2 flex flex-col justify-between overflow-hidden relative">
+                <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-blue-500/5 to-transparent pointer-events-none" />
+                <div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/10 mb-4">
+                    <Sparkles className="h-5 w-5 text-blue-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-zinc-100">Analytics Dashboard</h3>
+                  <p className="mt-2 text-sm text-zinc-400 max-w-sm">Know exactly how much money is trapped in unpaid invoices, at a glance. See your average time-to-pay, aging reports, and collection rate over time.</p>
+                </div>
+                <div className="mt-8 rounded-xl border border-white/10 bg-zinc-900/80 p-4 w-full max-w-md shadow-lg shadow-black/40">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="font-medium text-zinc-200 text-sm">Total Outstanding</div>
+                    <div className="text-sm font-bold text-zinc-100">$42,500</div>
+                  </div>
+                  <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full w-[60%]" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Weekly Digest */}
+              <div className="group rounded-2xl border border-white/10 bg-white/[0.02] p-6 flex flex-col justify-between overflow-hidden relative">
+                <div className="absolute right-0 bottom-0 w-full h-1/2 bg-gradient-to-t from-pink-500/5 to-transparent pointer-events-none" />
+                <div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-pink-500/20 bg-pink-500/10 mb-4">
+                    <Mail className="h-5 w-5 text-pink-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-zinc-100">Weekly Digest Email</h3>
+                  <p className="mt-2 text-sm text-zinc-400">Start your week knowing exactly who to chase with a beautifully formatted digest straight to your inbox.</p>
+                </div>
+                <div className="mt-8 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-emerald-400" />
+                    <div className="text-xs text-zinc-400">Collected: $18,400.00</div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-red-400" />
+                    <div className="text-xs font-medium text-red-300">Action: Acme Corp</div>
+                  </div>
+                </div>
+              </div>
               {/* Late Fees */}
               <div className="group rounded-2xl border border-white/10 bg-white/[0.02] p-6 lg:col-span-2 flex flex-col justify-between overflow-hidden relative">
                 <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-red-500/5 to-transparent pointer-events-none" />
@@ -410,11 +545,11 @@ export default async function ForFreelancersPage({
                 <div className="mt-8 flex gap-3">
                   <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-xs font-medium text-zinc-300">QuickBooks Synced</span>
+                    <span className="text-xs font-medium text-zinc-300">QuickBooks Connected</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-xs font-medium text-zinc-300">Stripe Connected</span>
+                    <span className="text-xs font-medium text-zinc-300">Xero Connected</span>
                   </div>
                 </div>
               </div>
@@ -486,7 +621,6 @@ export default async function ForFreelancersPage({
                         "Message drafting by tone — friendly, firm, or final notice",
                         "Automated reminders sent from your own Gmail",
                         "QuickBooks and Xero integration",
-                        "Stripe sync (Beta)",
                         "CSV export"
                       ].map((feature) => (
                         <li key={feature} className="flex items-center gap-3">
@@ -589,12 +723,8 @@ export default async function ForFreelancersPage({
               <div className="space-y-8">
                 {[
                   {
-                    q: "How is this different from Stripe?",
-                    a: "Stripe processes payments. Duely handles everything that happens before a client actually pays — the follow-ups, the promises, the context, the relationship. They do different jobs."
-                  },
-                  {
-                    q: "How is this different from the Stripe dashboard?",
-                    a: "The Stripe dashboard shows you who hasn't paid. Duely helps you do something about it — without the awkwardness."
+                    q: "How is this different from QuickBooks or Xero?",
+                    a: "QuickBooks and Xero are for accounting. Duely handles everything that happens to actually collect the money — the follow-ups, the promises, the context, the relationship. They do different jobs."
                   },
                   {
                     q: "Who sends the reminder emails?",
@@ -621,12 +751,8 @@ export default async function ForFreelancersPage({
                     a: "Yes — CSV export available anytime."
                   },
                   {
-                    q: "What if a client replies to the reminder email instead of clicking the payment button?",
-                    a: "Just hit \"Pause reminders\" on that client in your Duely dashboard. One click stops the sequence while you handle the conversation manually."
-                  },
-                  {
-                    q: "Does this work without Stripe?",
-                    a: "Yes. Stripe sync is optional. Duely works with any invoicing tool or none at all."
+                    q: "Does this work without an accounting tool?",
+                    a: "Yes. QuickBooks and Xero sync is optional. Duely works with any invoicing tool or none at all via manual entry."
                   }
                 ].map((faq, i) => (
                   <FadeIn key={i} delay={i * 0.05}>
