@@ -76,13 +76,25 @@ export function evaluateClient(
       hasActiveDispute = true;
     }
 
-    // Cooldown check
+    // Cooldown check (Automated emails)
     if (inv.last_sent_at) {
       const sentAt = new Date(inv.last_sent_at);
       sentAt.setHours(0, 0, 0, 0);
       const diff = Math.floor((now.getTime() - sentAt.getTime()) / (1000 * 60 * 60 * 24));
       if (lastContactDaysAgo === null || diff < lastContactDaysAgo) {
         lastContactDaysAgo = diff;
+      }
+    }
+
+    // Cooldown check (Manual follow-ups)
+    if (inv.followup_history && inv.followup_history.length > 0) {
+      for (const log of inv.followup_history) {
+        const followupDate = new Date(log.followup_date || log.created_at);
+        followupDate.setHours(0, 0, 0, 0);
+        const diff = Math.floor((now.getTime() - followupDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (lastContactDaysAgo === null || diff < lastContactDaysAgo) {
+          lastContactDaysAgo = diff;
+        }
       }
     }
   }

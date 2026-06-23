@@ -18,13 +18,29 @@ export default async function ActionsPage() {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const [clientsRes, invoicesRes] = await Promise.all([
+  const [clientsRes, invoicesRes, eventsRes] = await Promise.all([
     supabase.from("clients").select("*").eq("user_id", user.id),
     supabase.from("invoices").select("*").eq("user_id", user.id),
+    supabase.from("customer_events").select("*").eq("user_id", user.id).eq("event_type", "followup"),
   ]);
 
   const clients = (clientsRes.data || []) as ClientRecord[];
   const allInvoices = (invoicesRes.data || []) as InvoiceRecord[];
+  const events = (eventsRes.data || []);
+
+  // Attach follow-up history to invoices manually so the engine can check cooldowns
+  for (const inv of allInvoices) {
+    if (!inv.followup_history) {
+      inv.followup_history = [];
+    }
+    const invEvents = events.filter((e: any) => e.invoice_id === inv.id);
+    for (const e of invEvents) {
+      inv.followup_history.push({
+        ...e,
+        followup_date: e.event_date || e.created_at
+      });
+    }
+  }
 
   const tasks = generateActionPlan(clients, allInvoices);
 
