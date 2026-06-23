@@ -11,6 +11,7 @@ export function SettingsTabs() {
     { name: "General", href: "/settings/general" },
     { name: "Late Fees", href: "/settings/late-fees" },
     { name: "Integrations", href: "/settings/integrations" },
+    { name: "Feedback", href: "/settings/feedback" },
     { name: "Billing", href: "/settings/billing" },
   ];
 

@@ -2,12 +2,13 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-type EventType = "reminder_create" | "reminder_toggle" | "reminder_delete";
+type EventType = "reminder_create" | "reminder_toggle" | "reminder_delete" | "feedback_submit";
 
 const LIMITS: Record<EventType, { perMinute: number; perDay: number }> = {
   reminder_create: { perMinute: 3, perDay: 25 },
   reminder_toggle: { perMinute: 10, perDay: 200 },
   reminder_delete: { perMinute: 10, perDay: 200 },
+  feedback_submit: { perMinute: 2, perDay: 10 },
 };
 
 function minutesAgo(n: number) {
