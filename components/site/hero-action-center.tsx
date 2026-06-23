@@ -65,12 +65,26 @@ export function HeroActionCenter() {
   }, []);
 
   return (
-    <div className="w-full rounded-2xl border border-white/10 bg-zinc-900/60 p-4 shadow-2xl shadow-black/60 backdrop-blur-sm">
-      <div className="mb-4 flex items-center justify-between border-b border-white/5 pb-4">
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight text-zinc-50">Action Center</h2>
-          <p className="mt-1 text-sm text-zinc-400">Inbox zero for your collections</p>
+    <div className="w-full rounded-2xl border border-white/10 bg-[#09090b] shadow-2xl shadow-indigo-500/10 backdrop-blur-sm overflow-hidden flex flex-col">
+      {/* Mock Browser/Dashboard Header */}
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/[0.01]">
+        <div className="flex gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-zinc-800" />
+          <div className="w-3 h-3 rounded-full bg-zinc-800" />
+          <div className="w-3 h-3 rounded-full bg-zinc-800" />
         </div>
+        <div className="ml-4 text-xs font-medium text-zinc-600 flex items-center gap-2">
+          <Zap className="w-3 h-3 text-indigo-500" />
+          Duely Action Center
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-5 bg-zinc-950/40">
+        <div className="mb-4 flex items-center justify-between border-b border-white/5 pb-4">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight text-zinc-50">Action Center</h2>
+            <p className="mt-1 text-sm text-zinc-400">Inbox zero for your collections</p>
+          </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-medium text-red-300">
             <span className="relative flex h-2 w-2">
@@ -136,6 +150,7 @@ export function HeroActionCenter() {
           );
         })}
       </div>
+    </div>
     </div>
   );
 }
