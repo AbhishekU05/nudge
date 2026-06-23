@@ -159,7 +159,7 @@ export default async function Home({
           <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_-20%,rgba(79,70,229,0.15),transparent_60%),radial-gradient(ellipse_at_80%_40%,rgba(168,85,247,0.08),transparent_50%)]" />
 
           <Container>
-            <div className="grid gap-16 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+            <div className="grid gap-16 lg:grid-cols-[0.9fr_1.2fr] lg:items-center">
               <FadeIn className="max-w-2xl">
                 <h1 className="mt-8 text-pretty text-5xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-6xl lg:text-[4.5rem] lg:leading-[1.05]">
                   Getting paid is the easy part. <span className="text-zinc-400">Getting clients to pay isn&apos;t.</span>

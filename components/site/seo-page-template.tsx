@@ -58,7 +58,7 @@ export default function SEOPageTemplate({ data }: { data: SEOPageData }) {
           <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_-20%,rgba(79,70,229,0.15),transparent_60%),radial-gradient(ellipse_at_80%_40%,rgba(168,85,247,0.08),transparent_50%)]" />
 
           <Container>
-            <div className="grid gap-16 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+            <div className="grid gap-16 lg:grid-cols-[0.9fr_1.2fr] lg:items-center">
               <FadeIn className="max-w-2xl">
                 <h1 className="mt-8 text-pretty text-5xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-6xl lg:text-7xl lg:leading-[1.05]">{data.h1}</h1>
                 <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-zinc-400">{data.subtitle}</p>
@@ -175,7 +175,7 @@ export default function SEOPageTemplate({ data }: { data: SEOPageData }) {
         {/* FULL PAGE ANALYTICS DASHBOARD */}
         <section className="relative py-24 sm:py-32 bg-zinc-950 border-t border-white/5">
 {/* 5. Full-Page Analytics Dashboard */}
-          <Container className="max-w-6xl mt-24">
+          <Container className="max-w-6xl">
             <div className="flex flex-col items-center text-center mb-16">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 mb-6">
                 <Activity className="h-6 w-6 text-amber-300" />
