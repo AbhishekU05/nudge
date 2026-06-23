@@ -532,6 +532,40 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
   return result;
 }
 
+export async function getXeroBankAccounts(userId: string) {
+  const supabase = createSupabaseAdminClient();
+  const { data: integration } = await supabase
+    .from("integrations")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("provider", "xero")
+    .maybeSingle<XeroIntegrationRow>();
+
+  if (!integration || !integration.tenant_id) return [];
+
+  try {
+    const { xero } = await getValidXeroClient(integration);
+    const response = await xero.accountingApi.getAccounts(
+      integration.tenant_id,
+      undefined,
+      'Type=="BANK"'
+    );
+    
+    const accounts = response.body.accounts || [];
+    return accounts
+      .filter(acc => acc.bankAccountNumber)
+      .map(acc => ({
+        provider: "xero",
+        name: acc.name,
+        accountNumber: acc.bankAccountNumber,
+        currency: acc.currencyCode
+      }));
+  } catch (error) {
+    logger.error("Failed to fetch Xero bank accounts", { error });
+    return [];
+  }
+}
+
 export async function revokeXeroIntegration(userId: string) {
   const integration = await getXeroIntegration(userId);
   if (!integration) return;

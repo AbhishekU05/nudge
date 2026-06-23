@@ -518,6 +518,42 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
   return result;
 }
 
+export async function getQuickBooksBankAccounts(userId: string) {
+  const integration = await getQuickBooksIntegration(userId);
+  if (!integration || !integration.realm_id) return [];
+
+  const { accessToken } = await getValidQuickBooksTokens(integration);
+
+  const query = `select * from Account where AccountType = 'Bank'`;
+  const url = new URL(`${getApiBaseUrl()}/v3/company/${integration.realm_id}/query`);
+  url.searchParams.set("query", query);
+  url.searchParams.set("minorversion", "65");
+
+  try {
+    const response = await fetch(url.toString(), {
+      headers: {
+        "Accept": "application/json",
+        "Authorization": `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    const accounts = data.QueryResponse?.Account || [];
+
+    return accounts.map((acc: any) => ({
+      provider: "quickbooks",
+      name: acc.Name,
+      accountNumber: acc.AcctNum || "N/A",
+      currency: acc.CurrencyRef?.value || "USD"
+    }));
+  } catch (error) {
+    logger.error("Failed to fetch QuickBooks bank accounts", { error });
+    return [];
+  }
+}
+
 export async function revokeQuickBooksIntegration(userId: string) {
   const integration = await getQuickBooksIntegration(userId);
   if (!integration) return;
