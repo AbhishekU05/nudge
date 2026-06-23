@@ -155,10 +155,15 @@ function ActionCard({ task }: { task: ActionTask }) {
             </Link>
           ) : (
             <Link 
-              href={`/customers/${task.clientId}`} 
+              href={`/invoices/${task.primaryInvoiceId}`} 
               className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium border ${borderClass} bg-black/40 hover:bg-black/60 transition-colors ${textClass}`}
             >
-              Review Account <ArrowRight className="h-4 w-4" />
+              {task.recommendation === "firm_nudge" && "Send Firm Nudge"}
+              {task.recommendation === "friendly_checkin" && "Send Friendly Nudge"}
+              {task.recommendation === "light_nudge" && "Send Light Nudge"}
+              {task.recommendation === "reply_needed" && "Reply to Client"}
+              {(!["firm_nudge", "friendly_checkin", "light_nudge", "reply_needed"].includes(task.recommendation)) && "Follow up"}
+              <ArrowRight className="h-4 w-4" />
             </Link>
           )}
         </div>

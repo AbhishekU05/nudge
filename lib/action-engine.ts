@@ -14,6 +14,7 @@ export type ActionTask = {
   clientId: string;
   clientName: string;
   clientEmail: string | null;
+  primaryInvoiceId: string;
   score: number;
   category: ActionCategory;
   recommendation: ActionRecommendation;
@@ -44,21 +45,29 @@ export function evaluateClient(
   let hasBrokenPromise = false;
   let hasActiveDispute = false;
   let lastContactDaysAgo: number | null = null;
+  let primaryInvoiceId = activeInvoices[0].id;
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
   for (const inv of activeInvoices) {
     clientTotalOwed += getRemainingBalance(inv);
     const overdue = getDaysOverdue(inv) || 0;
-    if (overdue > maxDaysOverdue) {
-      maxDaysOverdue = overdue;
-    }
-
+    
+    // Always prioritize the invoice with a broken promise
     if (inv.workflow_status === "promised" && inv.promised_date) {
       const promiseDate = new Date(inv.promised_date);
       promiseDate.setHours(0, 0, 0, 0);
       if (promiseDate < now) {
         hasBrokenPromise = true;
+        primaryInvoiceId = inv.id;
+      }
+    }
+    
+    // Otherwise, prioritize the oldest overdue invoice
+    if (overdue > maxDaysOverdue) {
+      maxDaysOverdue = overdue;
+      if (!hasBrokenPromise) {
+        primaryInvoiceId = inv.id;
       }
     }
     
@@ -84,6 +93,7 @@ export function evaluateClient(
       clientId: client.id,
       clientName: client.name,
       clientEmail: client.email,
+      primaryInvoiceId,
       score: 0,
       category: "hidden",
       recommendation: "friendly_checkin",
@@ -151,24 +161,25 @@ export function evaluateClient(
     category = "critical";
     recommendation = "firm_nudge";
     if (hasBrokenPromise) {
-      contextText = `${client.name} broke a payment promise. Send a firm follow-up immediately.`;
+      contextText = `Send a firm follow-up. ${client.name} broke a payment promise.`;
     } else {
-      contextText = `${client.name} is ${maxDaysOverdue} days late on a significant balance.`;
+      contextText = `Send a firm follow-up. ${client.name} is ${maxDaysOverdue} days late on a significant balance.`;
     }
   } else if (score >= 35) {
     category = "moderate";
     recommendation = "friendly_checkin";
-    contextText = `${client.name} is ${maxDaysOverdue} days late. A friendly check-in is needed.`;
+    contextText = `Send a friendly check-in. ${client.name} is ${maxDaysOverdue} days late.`;
   } else {
     category = "chill";
     recommendation = "light_nudge";
-    contextText = `${client.name} is only ${maxDaysOverdue} days late. A light nudge is perfect.`;
+    contextText = `Send a light nudge. ${client.name} is only ${maxDaysOverdue} days late.`;
   }
 
   return {
     clientId: client.id,
     clientName: client.name,
     clientEmail: client.email,
+    primaryInvoiceId,
     score,
     category,
     recommendation,
@@ -209,6 +220,7 @@ export function generateActionPlan(clients: ClientRecord[], allInvoices: Invoice
       clientId: "system-recommendation-1",
       clientName: "System Recommendation",
       clientEmail: null,
+      primaryInvoiceId: "system",
       score: 100, // Show at top
       category: "system",
       recommendation: "global_automation",
