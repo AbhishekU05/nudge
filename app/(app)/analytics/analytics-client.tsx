@@ -179,7 +179,7 @@ export function AnalyticsClient({
     const followupsPerCustomer: Record<string, number> = {};
 
     events.forEach(e => {
-      const date = new Date(e.created_at);
+      const date = new Date(e.event_date || e.created_at);
       const monthKey = format(date, "MMM yyyy");
       
       const eMonth = date.getMonth();
