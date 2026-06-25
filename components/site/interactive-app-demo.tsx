@@ -131,26 +131,12 @@ export function InteractiveAppDemo() {
     setActiveGroup((current) => current === groupId ? null : groupId);
   };
 
-  const navigateWithinDemo = (event: MouseEvent<HTMLDivElement>) => {
+  const preventDemoNavigation = (event: MouseEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
-    const href = target.closest("a")?.getAttribute("href");
-
-    if (!href?.startsWith("/")) return;
-
-    const destination = href.split("?")[0];
-    const tab =
-      destination.startsWith("/customers") ? "customers"
-      : destination.startsWith("/invoices") ? "invoices"
-      : destination.startsWith("/pipeline") ? "pipeline"
-      : destination.startsWith("/activity") ? "activity"
-      : destination.startsWith("/analytics") ? "analytics"
-      : destination.startsWith("/dashboard") ? "dashboard"
-      : null;
-
-    if (!tab) return;
-
-    event.preventDefault();
-    setActiveTab(tab);
+    if (target.closest("a")) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   };
 
   return (
@@ -267,7 +253,7 @@ export function InteractiveAppDemo() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0A0A0A] relative">
         {/* Content Views */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6" onClick={navigateWithinDemo}>
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 [&_a]:pointer-events-none [&_a]:cursor-default [&_a]:no-underline" onClickCapture={preventDemoNavigation}>
           {activeTab === "dashboard" && (
             <DashboardUI
               customers={customers}
@@ -489,16 +475,46 @@ export function InteractiveAppDemo() {
                   </button>
                 </div>
               </div>
-              <DashboardUI 
-                customers={customers}
-                events={events}
-                recentEvents={recentEvents}
-                recentInvoices={recentInvoices}
-                activeAutomations={activeAutomations}
-                pendingDrafts={pendingDrafts}
-                uniqueCurrencies={uniqueCurrencies}
-                selectedCurrency={selectedCurrency}
-              />
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/50">
+                <table className="w-full text-left text-sm text-zinc-400">
+                  <thead className="border-b border-white/10 bg-white/[0.02]">
+                    <tr>
+                      <th className="px-4 py-3 font-medium text-zinc-300">Customer</th>
+                      <th className="px-4 py-3 font-medium text-zinc-300">Invoice</th>
+                      <th className="px-4 py-3 font-medium text-zinc-300">Due date</th>
+                      <th className="px-4 py-3 font-medium text-zinc-300">Status</th>
+                      <th className="px-4 py-3 text-right font-medium text-zinc-300">Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/10">
+                    {customers.map((invoice) => {
+                      const balance = Math.max(0, Number(invoice.amount_owed) - Number(invoice.amount_paid));
+                      const status = balance === 0 ? "Paid" : invoice.workflow_status === "overdue" ? "Overdue" : "Outstanding";
+
+                      return (
+                        <tr key={invoice.id} className="transition-colors hover:bg-white/[0.02]">
+                          <td className="px-4 py-4 font-medium text-zinc-200">{invoice.recipient_name}</td>
+                          <td className="px-4 py-4">{invoice.invoice_number || "Invoice"}</td>
+                          <td className="px-4 py-4">{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : "—"}</td>
+                          <td className="px-4 py-4">
+                            <span className={cn(
+                              "inline-flex rounded-full border px-2 py-1 text-xs font-medium",
+                              status === "Paid" && "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
+                              status === "Overdue" && "border-red-500/20 bg-red-500/10 text-red-400",
+                              status === "Outstanding" && "border-blue-500/20 bg-blue-500/10 text-blue-400"
+                            )}>
+                              {status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 text-right font-medium text-zinc-200">
+                            {new Intl.NumberFormat(undefined, { style: "currency", currency: invoice.currency || "USD" }).format(balance)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
