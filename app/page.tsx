@@ -364,6 +364,10 @@ export default async function Home({
               {/* ── Client portal ── */}
               <FeatureFadeIn delay={80}>
                 <div className="relative grid gap-16 py-20 sm:grid-cols-2 sm:items-center">
+                  {/* path node */}
+                  <div className="pointer-events-none absolute bottom-0 left-1/2 hidden -translate-x-1/2 translate-y-1/2 sm:flex items-center justify-center z-10">
+                    <div className="h-2.5 w-2.5 rounded-full bg-indigo-500 ring-4 ring-indigo-500/20" />
+                  </div>
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-4">Client portal</p>
                     <h2 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">
@@ -372,7 +376,7 @@ export default async function Home({
                     <p className="mt-5 text-base leading-relaxed text-zinc-400">
                       Share a secure link with any client. They can view their
                       outstanding balance, download past invoices, and pay
-                      directly — no more &ldquo;can you resend the invoice?&rdquo; emails,
+                      directly &mdash; no more &ldquo;can you resend the invoice?&rdquo; emails,
                       no more payment link ping-pong.
                     </p>
                   </div>
@@ -385,16 +389,80 @@ export default async function Home({
                     <div className="space-y-2.5 mb-5">
                       <div className="flex justify-between items-center rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
                         <span className="text-sm text-zinc-400">Invoice #1041</span>
-                        <span className="text-sm text-red-400">$5,000 · 32d overdue</span>
+                        <span className="text-sm text-red-400">$5,000 &middot; 32d overdue</span>
                       </div>
                       <div className="flex justify-between items-center rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
                         <span className="text-sm text-zinc-400">Invoice #1042</span>
-                        <span className="text-sm text-amber-400">$3,200 · 14d overdue</span>
+                        <span className="text-sm text-amber-400">$3,200 &middot; 14d overdue</span>
                       </div>
                     </div>
                     <div className="rounded-xl bg-indigo-600 py-3 text-center text-sm font-semibold text-white">
                       Pay now
                     </div>
+                  </div>
+                </div>
+              </FeatureFadeIn>
+
+              {/* ── Accounting integrations ── */}
+              <FeatureFadeIn delay={80}>
+                <div className="relative grid gap-16 py-20 sm:grid-cols-2 sm:items-center">
+                  <div className="rounded-2xl border border-white/10 bg-zinc-900/80 p-6 space-y-4 order-last sm:order-first">
+                    {/* Xero */}
+                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 text-xs font-bold text-blue-400">X</div>
+                          <span className="text-sm font-medium text-zinc-300">Xero</span>
+                        </div>
+                        <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">Connected</span>
+                      </div>
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-zinc-600">Last synced</span>
+                          <span className="text-zinc-400">2 minutes ago</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-600">Invoices imported</span>
+                          <span className="text-zinc-400">142 invoices</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* QuickBooks */}
+                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-500/10 text-xs font-bold text-green-400">QB</div>
+                          <span className="text-sm font-medium text-zinc-300">QuickBooks</span>
+                        </div>
+                        <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">Connected</span>
+                      </div>
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-zinc-600">Last synced</span>
+                          <span className="text-zinc-400">14 minutes ago</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-600">Invoices imported</span>
+                          <span className="text-zinc-400">87 invoices</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="pt-1 flex items-center gap-2">
+                      <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      <span className="text-xs text-zinc-500">Auto-syncing every 30 minutes</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-4">Accounting integrations</p>
+                    <h2 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">
+                      Your invoices, already here.
+                    </h2>
+                    <p className="mt-5 text-base leading-relaxed text-zinc-400">
+                      Connect Xero or QuickBooks and Duely pulls in your invoices
+                      automatically. No CSV uploads, no copy-pasting. Your
+                      collections pipeline stays in sync as new invoices are
+                      raised and payments come in.
+                    </p>
                   </div>
                 </div>
               </FeatureFadeIn>
