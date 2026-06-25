@@ -67,22 +67,21 @@ The right post invoice management tool removes the manual burden and makes follo
 
 ### 1. Duely
 
-Duely is built specifically for the gap between sending an invoice and getting paid. Unlike accounting tools that treat collections as an afterthought, Duely's entire product is focused on what happens after the invoice is sent.
+Duely is built specifically for the gap between sending an invoice and getting paid. It features an intelligent Action Center, Automated Late Fees, a dedicated Client Portal, and Smart Cooldowns to fully automate your collections process intelligently.
 
 Its standout feature is sending payment reminders directly from the agency owner's own Gmail account, not from a generic billing system. This means follow-ups feel personal to the client, which increases response rates and preserves the working relationship.
 
 Duely also logs every follow-up, payment promise, and partial payment in a chronological timeline per client. The agency owner always knows exactly where each client stands before reaching out, without having to dig through email threads.
 
 Key features:
-* Send reminders from your own Gmail, not from Duely
-* Track payment promises with dates and outcomes
-* Log partial payments against outstanding balances
+* Action Center prioritizes who to contact based on age, risk, and broken promises
+* Automated Late Fee calculation and billing
+* Secure Client Portal for self-serve payments
+* Client Groups to segment and apply different rules
+* Smart Cooldowns to pause automations when you step in manually
+* Send reminders from your own Gmail, not from a system address
 * Draft follow-ups in three tones: friendly, firm, or final notice
-* Full timeline per client showing every interaction
 * QuickBooks, Xero, and Stripe integrations
-* Automate reminder cadences at a set frequency
-* Client can mark invoice as paid from their end
-* Export everything to CSV
 
 **Best for:** Small agencies billing 10 to 100 clients who want automated follow-ups that still feel personal
 

@@ -30,7 +30,7 @@ If you run a small marketing, design, web, or content agency and you're personal
 
 ## What is Duely?
 
-[Duely](https://duely.in) is a collections management tool built specifically for owner-led marketing, design, web, and content agencies. After sending an invoice, Duely helps you track outstanding balances, log partial payments, record client payment promises with due dates, draft follow-up messages in the right tone, keep internal notes per client, and send automated payment reminders from your own Gmail account with a payment link included.
+[Duely](https://duely.in) is an intelligent collections engine built specifically for owner-led agencies and freelancers. After sending an invoice, Duely's Action Center prioritizes exactly who to chase based on invoice age and risk. It features Automated Late Fees, a dedicated Client Portal for self-serve payments, Client Groups for segmentation, and Smart Cooldowns that prevent automated reminders if you've recently contacted a client manually. It also integrates seamlessly with your Gmail to send personalized payment reminders directly from your own outbox.
 
 ---
 

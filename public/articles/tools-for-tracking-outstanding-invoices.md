@@ -79,16 +79,14 @@ Where most invoicing and accounting tools show you which invoices are overdue an
 The standout feature is that reminders go out from the agency owner's own Gmail account, not from a branded billing system. Clients receive what looks like a personal email, which significantly increases response rates and maintains the working relationship in a way that automated billing system emails do not.
 
 Key features:
-* Send reminders from your own Gmail, not from Duely
-* Track payment promises with dates and outcomes
-* Log partial payments against outstanding balances
+* Action Center prioritizes who to contact based on age, risk, and broken promises
+* Automated Late Fee calculation and billing
+* Secure Client Portal for self-serve payments
+* Client Groups to segment and apply different rules
+* Smart Cooldowns to pause automations when you step in manually
+* Send reminders from your own Gmail, not from a system address
 * Draft follow-ups in three tones: friendly, firm, or final notice
-* Full chronological timeline per client
 * QuickBooks, Xero, and Stripe integrations
-* Automate reminder cadences at set frequency
-* Client can mark invoice as paid from their end
-* Internal notes per client
-* Export to CSV
 
 **Best for:** Small agency owners billing 10 to 100 clients who want a structured collections workflow without the manual effort
 

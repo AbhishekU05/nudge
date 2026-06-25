@@ -37,7 +37,8 @@ export const competitors: Record<string, SEOPageData> = {
     features: [
       "Reminders sent from your actual Gmail outbox, not a generic no-reply address",
       "Built natively for agency owners, without confusing enterprise finance tools",
-      "Tracks explicit payment promises with dates and client timelines"
+      "Intelligent Action Center prioritizes your daily follow-ups",
+      "Automated Late Fees and Smart Cooldowns prevent awkward conversations"
     ],
     painPoint: "Paidnice is great if you're a large finance team needing complex workflows. But if you're an agency owner, you want your emails to look like they came from you personally, not a robot. Duely connects to your Gmail so clients reply directly to you, preserving your relationship.",
     cta: "Start Your Free Trial - No Credit Card Required",
@@ -86,7 +87,7 @@ export const competitors: Record<string, SEOPageData> = {
     subtitle: "Get your invoices paid without the enterprise bloat. Duely is straightforward, fast, and sends emails from your actual Gmail address.",
     features: [
       "100% automated follow-ups that look hand-typed",
-      "Automatically logs when a client promises to pay",
+      "Client Portal lets customers self-serve payments without email ping-pong",
       "Connects to QuickBooks and Xero in seconds"
     ],
     painPoint: "Invoiced focuses on massive billing systems and enterprise B2B payments. You just want your clients to pay their $5,000 retainer without you having to manually type out a reminder email every Friday. Duely handles that beautifully without the enterprise overhead.",
@@ -112,7 +113,7 @@ export const competitors: Record<string, SEOPageData> = {
     features: [
       "Emails land in the primary inbox, sent from your Gmail",
       "Simple, flat-rate pricing at $29/month",
-      "Clear timelines showing exactly when you followed up"
+      "Smart Cooldowns pause automations when you step in manually"
     ],
     painPoint: "Upflow is an incredible tool for finance teams at hyper-growth startups. But for an agency owner, their tool feels like overkill. You don't need complex cash-flow analytics, you just need a polite, automated nudge sent from your own email address to get that invoice paid.",
     cta: "Get Paid Faster with Duely",
@@ -162,7 +163,7 @@ export const competitors: Record<string, SEOPageData> = {
     features: [
       "Pipeline view to drag and drop clients by payment stage",
       "Custom templates for friendly, professional, or firm tones",
-      "Tracks exactly how many days a client is overdue"
+      "Client Groups let you apply different late fees and rules to VIPs"
     ],
     painPoint: "FreshBooks has built-in reminders, but they are rigid and basic. If you have a client stringing you along, you need more than a generic automated ping. Duely gives you a dedicated workflow to track promises, escalate tones, and manage your cash flow pipeline.",
     cta: "Upgrade Your Invoice Reminders",
@@ -186,7 +187,7 @@ export const competitors: Record<string, SEOPageData> = {
     subtitle: "Don't use an all-in-one tool for a specialized problem. Duely is laser-focused on getting your overdue invoices paid.",
     features: [
       "Plugs into your existing Xero or QuickBooks setup",
-      "Dedicated tracking for 'Promise to Pay' dates",
+      "Action Center scores and prioritizes invoices by risk",
       "Sent from your real Gmail so clients actually reply"
     ],
     painPoint: "HoneyBook is an all-in-one CRM that tries to do everything from proposals to scheduling. But when it comes to following up on late payments, its features are severely lacking. Duely is a specialized tool that does one thing incredibly well: getting you paid.",

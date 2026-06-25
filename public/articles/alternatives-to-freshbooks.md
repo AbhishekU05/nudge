@@ -84,15 +84,14 @@ The key difference is that Duely sends payment reminders from the agency owner's
 Duely also creates a full timeline per client showing every follow-up sent, every payment promise made, every partial payment received, and every note logged. The agency owner always knows exactly where each client stands without digging through email.
 
 Key features:
-* Send reminders from your own Gmail, not from Duely
-* Track payment promises with dates and outcomes
-* Log partial payments against outstanding balances
+* Action Center prioritizes who to contact based on age, risk, and broken promises
+* Automated Late Fee calculation and billing
+* Secure Client Portal for self-serve payments
+* Client Groups to segment and apply different rules
+* Smart Cooldowns to pause automations when you step in manually
+* Send reminders from your own Gmail, not from a system address
 * Draft follow-ups in three tones: friendly, firm, or final notice
-* Full chronological timeline per client
 * QuickBooks, Xero, and Stripe integrations
-* Automate reminder cadences at set frequency
-* Client can mark invoice as paid from their end
-* Export to CSV
 
 **Best for:** Small agencies billing 10 to 100 clients who want structured, personal follow-up without the manual work
 
