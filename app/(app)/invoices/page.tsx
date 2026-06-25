@@ -223,8 +223,8 @@ export default async function CustomersPage({
   );
 
   let trialDaysLeft = 0;
-  if (hasSubscription && profile?.created_at && subscriptionStatus !== "active") {
-    trialDaysLeft = getTrialDaysLeft(profile.created_at, subscriptionStatus, profile?.razorpay_renews_at);
+  if (hasSubscription && subscriptionStatus !== "active") {
+    trialDaysLeft = getTrialDaysLeft(profile?.created_at, subscriptionStatus, profile?.razorpay_renews_at);
   }
 
   const planLabel = getPlanLabel({ hasSubscription, subscriptionStatus, trialDaysLeft });

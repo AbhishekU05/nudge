@@ -75,8 +75,8 @@ export default async function BillingPage({
   const isActive = hasActiveSubscription(status, profile?.created_at, profile?.razorpay_renews_at);
 
   let trialDaysLeft = 0;
-  if (isActive && profile?.created_at && status !== "active") {
-    trialDaysLeft = getTrialDaysLeft(profile.created_at, status, profile?.razorpay_renews_at);
+  if (isActive && status !== "active") {
+    trialDaysLeft = getTrialDaysLeft(profile?.created_at, status, profile?.razorpay_renews_at);
   }
 
   // TODO: fix wording

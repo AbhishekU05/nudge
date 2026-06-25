@@ -13,70 +13,7 @@ import {
 } from "@/lib/pricing";
 
 export async function startSubscriptionCheckout() {
-  const user = await requireUser();
-  const headerList = await headers();
-  const countryCode = await getCountryCodeFromHeaders(headerList);
-  const billingRegion = getBillingRegionForCountry(countryCode);
-
-  let subscriptionId: string | undefined;
-
-  try {
-    const keyId = getRequiredEnv("RAZORPAY_KEY_ID");
-    const keySecret = getRequiredEnv("RAZORPAY_KEY_SECRET");
-    const planId = getRequiredEnv(
-      billingRegion === "india" ? "RAZORPAY_PLAN_INR" : "RAZORPAY_PLAN_USD",
-    );
-
-    const razorpay = new Razorpay({
-      key_id: keyId,
-      key_secret: keySecret,
-    });
-
-    const startTime = Date.now();
-    try {
-      const subscription = await razorpay.subscriptions.create({
-        plan_id: planId,
-        total_count: 120, // 10 years, effectively "until canceled"
-        customer_notify: 1,
-        notes: {
-          user_id: user.id,
-          country_code: countryCode ?? "unknown",
-          billing_region: billingRegion,
-        },
-      });
-      subscriptionId = subscription.id;
-      
-      logger.external({
-        service: "Razorpay",
-        action: "create_subscription",
-        success: true,
-        latency: Date.now() - startTime,
-        user_id: user.id,
-      });
-    } catch (err) {
-      logger.external({
-        service: "Razorpay",
-        action: "create_subscription",
-        success: false,
-        latency: Date.now() - startTime,
-        error: err instanceof Error ? err.message : "Unknown error",
-        user_id: user.id,
-      });
-      throw err;
-    }
-  } catch (err) {
-    logger.error({
-      message: "Subscription checkout failed",
-      context: "startSubscriptionCheckout",
-      user_id: user.id,
-      error: err instanceof Error ? err.message : "Unknown error",
-    });
-    redirect("/settings/billing?error=no_portal_url");
-  }
-
-  if (subscriptionId) {
-    redirect(`/checkout?subscriptionId=${subscriptionId}`);
-  }
+  redirect("/settings/billing/waitlist");
 }
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -146,6 +83,8 @@ export async function manageSubscription() {
   redirect("/settings/billing?error=not_supported");
 }
 
+import { revalidatePath } from "next/cache";
+
 export async function joinWaitlist() {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
@@ -177,6 +116,9 @@ export async function joinWaitlist() {
     user_id: user.id,
     success: true,
   });
+
+  revalidatePath("/settings/billing");
+  revalidatePath("/invoices");
 
   redirect("/settings/billing?success=You've been added to the waitlist and granted a 1-month extended trial!");
 }

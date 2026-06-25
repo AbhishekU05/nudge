@@ -1,6 +1,6 @@
 import { CustomerRecord, CustomerEvent } from "./types";
 
-export const mockCustomers: CustomerRecord[] = [
+export const mockCustomers: any[] = [
   {
     id: "1",
     user_id: "user-1",
@@ -64,7 +64,7 @@ export const mockCustomers: CustomerRecord[] = [
   }
 ];
 
-export const mockEvents: CustomerEvent[] = [
+export const mockEvents: any[] = [
   {
     id: "1",
     customer_id: "4",
