@@ -25,13 +25,13 @@ import { ActivityFeed } from "@/app/(app)/activity/activity-feed";
 import { DraftList } from "@/components/site/draft-list";
 import { ActionsUI } from "@/app/(app)/actions/actions-ui";
 import { DashboardUI } from "@/app/(app)/dashboard/dashboard-ui";
-import { mockCustomers, mockEvents, mockClients, mockInvoices } from "@/lib/mock-data";
+import { mockClients, mockInvoices, mockEvents, mockGroups, mockCustomers } from "@/lib/mock-data";
 import { generateActionPlan } from "@/lib/action-engine";
 
 import { LocalTime } from "@/components/site/local-time";
 
 export function InteractiveAppDemo() {
-  const [activeTab, setActiveTab] = useState<"dashboard" | "action-center" | "activity" | "pipeline" | "analytics" | "automate">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "action-center" | "activity" | "pipeline" | "analytics" | "automate" | "customers" | "invoices">("dashboard");
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
@@ -45,12 +45,12 @@ export function InteractiveAppDemo() {
   ] as const;
 
   // Prepare mock data
-  const customers = mockCustomers;
-  const events = mockEvents;
   const uniqueCurrencies = ["USD"];
   const selectedCurrency = "USD";
-  const recentEvents = [...events].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5);
-  const recentInvoices = [...customers].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5);
+  const events = [...mockEvents].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const customers = [...mockInvoices].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const recentEvents = [...events].slice(0, 5);
+  const recentInvoices = [...customers].slice(0, 5);
   const pendingDrafts: any[] = [];
   const activeAutomations: any[] = [];
 
@@ -153,7 +153,8 @@ export function InteractiveAppDemo() {
             {activeGroup === "global" && isExpanded && (
               <div className="flex flex-col mt-1 ml-3 pl-3 border-l border-white/10 space-y-1">
                 <button
-                  className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100 cursor-not-allowed"
+                  onClick={() => setActiveTab("customers")}
+                  className="w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
                   title={!isExpanded ? "All Customers" : undefined}
                 >
                   <div className="flex flex-col items-center justify-center w-5">
@@ -162,7 +163,8 @@ export function InteractiveAppDemo() {
                   {isExpanded && <span className="truncate whitespace-nowrap text-sm">Customers</span>}
                 </button>
                 <button
-                  className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100 cursor-not-allowed"
+                  onClick={() => setActiveTab("invoices")}
+                  className="w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
                   title={!isExpanded ? "All Invoices" : undefined}
                 >
                   <div className="flex flex-col items-center justify-center w-5">
@@ -345,6 +347,100 @@ export function InteractiveAppDemo() {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === "customers" && (
+            <div className="max-w-5xl mx-auto">
+              <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  {activeGroup === "global" && (
+                    <div className="mb-2">
+                      <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium border border-zinc-800 bg-zinc-900/50 text-zinc-300">
+                        <div className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: "#3b82f6" }} />
+                        Global
+                      </span>
+                    </div>
+                  )}
+                  <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
+                    Customers
+                  </h1>
+                  <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
+                    View all your customers and their aggregated balances across all invoices.
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col sm:flex-row gap-3 sm:items-end">
+                  <button className="flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto gap-2">
+                    <UserRound className="h-4 w-4" />
+                    Add customer
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-zinc-900/50 overflow-hidden">
+                <table className="w-full text-left text-sm text-zinc-400">
+                  <thead className="bg-white/[0.02] border-b border-white/10">
+                    <tr>
+                      <th className="px-4 py-3 font-medium text-zinc-300">Name</th>
+                      <th className="px-4 py-3 font-medium text-zinc-300">Email</th>
+                      <th className="px-4 py-3 font-medium text-zinc-300 text-right">Total Owed</th>
+                      <th className="px-4 py-3 font-medium text-zinc-300 text-right">Total Invoices</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/10">
+                    {mockCustomers.map((customer) => {
+                      const formattedTotal = new Intl.NumberFormat(undefined, {
+                        style: "currency",
+                        currency: "USD"
+                      }).format(customer.totalOwed);
+
+                      return (
+                        <tr key={customer.id} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="px-4 py-4 align-top">
+                            <div className="font-medium text-zinc-200 mb-1.5">{customer.name}</div>
+                          </td>
+                          <td className="px-4 py-4 align-top">{customer.email || "—"}</td>
+                          <td className="px-4 py-4 text-right align-top font-medium text-zinc-200">{formattedTotal}</td>
+                          <td className="px-4 py-4 text-right align-top">
+                            {mockInvoices.filter(i => i.customer_id === customer.id || i.recipient_name === customer.name).length}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "invoices" && (
+            <div className="max-w-5xl mx-auto">
+              <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-50 sm:text-5xl">
+                    Invoices
+                  </h1>
+                  <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-500">
+                    Track what invoices owe, log payments, record promises, and follow up — all in one place.
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col gap-3 sm:items-end">
+                  <button className="flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto gap-2">
+                    <UserRound className="h-4 w-4" />
+                    Add invoice
+                  </button>
+                </div>
+              </div>
+              <DashboardUI 
+                customers={customers}
+                events={events}
+                recentEvents={recentEvents}
+                recentInvoices={recentInvoices}
+                activeAutomations={activeAutomations}
+                pendingDrafts={pendingDrafts}
+                uniqueCurrencies={uniqueCurrencies}
+                selectedCurrency={selectedCurrency}
+              />
             </div>
           )}
         </div>
