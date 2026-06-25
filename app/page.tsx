@@ -479,22 +479,25 @@ export default async function Home({
                 Simple, honest pricing
               </h2>
               <p className="mt-3 text-zinc-500">
-                One plan. Everything included. Cancel any time.
+                Try everything free for 7 days. One plan after that.
               </p>
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2">
-              {/* Free */}
+              {/* Free trial */}
               <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-8">
                 <p className="text-sm font-semibold uppercase tracking-widest text-zinc-500">
-                  Free
+                  Free trial
                 </p>
                 <p className="mt-4 text-4xl font-bold text-zinc-50">$0</p>
-                <p className="mt-1 text-sm text-zinc-500">Forever</p>
+                <p className="mt-1 text-sm text-zinc-500">7 days &mdash; no card required</p>
                 <ul className="mt-8 space-y-3 text-sm text-zinc-400">
                   {[
-                    "Up to 5 active clients",
-                    "Manual follow-up drafting",
+                    "Unlimited clients",
+                    "Action Center",
+                    "Gmail integration",
+                    "Late fee automation",
+                    "Client portal",
                     "Activity timeline",
                     "Payment promise tracking",
                     "CSV export",
@@ -503,35 +506,36 @@ export default async function Home({
                       <span className="text-indigo-400">✓</span> {item}
                     </li>
                   ))}
+                  {[
+                    "Automated reminders",
+                    "Xero & QuickBooks sync",
+                  ].map((item) => (
+                    <li key={item} className="flex items-center gap-2 opacity-40">
+                      <span className="text-zinc-600">✕</span> {item}
+                    </li>
+                  ))}
                 </ul>
                 <a
                   href="/signup"
                   className="mt-8 block rounded-lg border border-white/10 py-3 text-center text-sm font-semibold text-zinc-300 transition hover:border-white/20 hover:text-zinc-50"
                 >
-                  Get started
+                  Start free trial
                 </a>
               </div>
 
               {/* Pro */}
               <div className="relative rounded-xl border border-indigo-500/40 bg-indigo-500/[0.06] p-8">
-                <span className="absolute right-5 top-5 rounded-full bg-indigo-600/20 px-2.5 py-0.5 text-xs font-semibold text-indigo-300">
-                  Most popular
-                </span>
                 <p className="text-sm font-semibold uppercase tracking-widest text-indigo-400">
                   Pro
                 </p>
                 <p className="mt-4 text-4xl font-bold text-zinc-50">$29</p>
-                <p className="mt-1 text-sm text-zinc-500">per month</p>
+                <p className="mt-1 text-sm text-zinc-500">per month &mdash; cancel any time</p>
                 <ul className="mt-8 space-y-3 text-sm text-zinc-400">
+                  <li className="font-medium text-zinc-300 mb-1">Everything in the trial, plus:</li>
                   {[
-                    "Unlimited clients",
-                    "Action Center",
                     "Automated reminders & sequences",
-                    "Late fee automation",
-                    "Client portal",
+                    "Xero & QuickBooks sync",
                     "Client groups & segmentation",
-                    "Xero, QuickBooks & Stripe sync",
-                    "Gmail integration",
                     "Analytics & trend charts",
                     "Priority support",
                   ].map((item) => (
