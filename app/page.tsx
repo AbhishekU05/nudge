@@ -458,6 +458,19 @@ export default async function Home({
               </FeatureFadeIn>
 
             </div>{/* end relative path wrapper */}
+
+            {/* See all features link */}
+            <div className="mt-12 text-center border-t border-white/[0.06] pt-12">
+              <a
+                href="/features"
+                className="inline-flex items-center gap-2 text-sm font-medium text-zinc-400 transition hover:text-zinc-100"
+              >
+                See every feature in detail
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="opacity-50">
+                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </a>
+            </div>
           </Container>
         </section>
 

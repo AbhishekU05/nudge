@@ -10,6 +10,7 @@ import { Container } from "@/components/site/container";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
+  { name: "Features", href: "/features" },
   { name: "About", href: "/about" },
 ];
 
