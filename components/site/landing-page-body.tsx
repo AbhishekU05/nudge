@@ -99,7 +99,7 @@ export function LandingPageBody() {
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-4">Automated reminders</p>
                   <h2 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">
-                    Set it once. Let it run.
+                    Take the anxiety out of following up.
                   </h2>
                   <p className="mt-5 text-base leading-relaxed text-zinc-400">
                     Configure a recurring schedule or a multi-step email sequence.
@@ -120,7 +120,7 @@ export function LandingPageBody() {
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-4">Gmail integration</p>
                   <h2 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">
-                    Emails from you, not a bot.
+                    Sound like a human, not a collection agency.
                   </h2>
                   <p className="mt-5 text-base leading-relaxed text-zinc-400">
                     Connect your Gmail and every follow-up lands in the
@@ -188,7 +188,7 @@ export function LandingPageBody() {
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-4">Late fee automation</p>
                   <h2 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">
-                    Charge late fees without the awkward conversation.
+                    Stop being treated like a free bank.
                   </h2>
                   <p className="mt-5 text-base leading-relaxed text-zinc-400">
                     Configure a flat or percentage late fee policy once — with
@@ -210,7 +210,7 @@ export function LandingPageBody() {
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-4">Client portal</p>
                   <h2 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">
-                    Give clients a way to help themselves.
+                    End the &ldquo;can you resend that invoice?&rdquo; emails.
                   </h2>
                   <p className="mt-5 text-base leading-relaxed text-zinc-400">
                     Share a secure link with any client. They can view their
@@ -294,7 +294,7 @@ export function LandingPageBody() {
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-4">Accounting integrations</p>
                   <h2 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">
-                    Your invoices, already here.
+                    Escape the manual data entry trap.
                   </h2>
                   <p className="mt-5 text-base leading-relaxed text-zinc-400">
                     Connect Xero or QuickBooks and Duely pulls in your invoices
