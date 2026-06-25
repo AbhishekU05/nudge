@@ -144,12 +144,55 @@ function PolicyForm({
 }) {
   const [loading, setLoading] = useState(false);
 
+  // "Apply to" group selection — default: all groups included (none excluded)
+  const allGroupIds = groups.map(g => g.id);
+  const initialSelected = allGroupIds.filter(
+    id => !policy?.excluded_group_ids?.includes(id)
+  );
+  const initialNoGroup = policy
+    ? !(policy.excluded_group_ids ?? []).includes("__no_group__")
+    : true;
+
+  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(
+    new Set(initialSelected)
+  );
+  const [includeNoGroup, setIncludeNoGroup] = useState(initialNoGroup);
+
+  const allChecked = groups.length > 0 && selectedGroupIds.size === groups.length;
+  const someChecked = selectedGroupIds.size > 0 && !allChecked;
+
+  function toggleAll() {
+    if (allChecked) {
+      setSelectedGroupIds(new Set());
+    } else {
+      setSelectedGroupIds(new Set(allGroupIds));
+    }
+  }
+
+  function toggleGroup(id: string) {
+    setSelectedGroupIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       const formData = new FormData(e.currentTarget);
+
+      // Compute excluded = groups NOT selected + optionally "__no_group__"
+      const excludedGroupIds = allGroupIds.filter(id => !selectedGroupIds.has(id));
+      if (!includeNoGroup) excludedGroupIds.push("__no_group__");
+
+      // Remove any stale excluded_group_ids from the form and inject computed ones
+      formData.delete("excluded_group_ids");
+      excludedGroupIds.forEach(id => formData.append("excluded_group_ids", id));
+
       if (policy) {
         await updateLateFeePolicy(policy.id, formData);
       } else {
@@ -255,30 +298,68 @@ function PolicyForm({
             </select>
           </div>
 
+          {/* Groups — opt-in */}
           <div className="space-y-2">
-            <Label>Excluded Groups</Label>
-            <p className="text-xs text-zinc-500 mb-2">Select groups to exempt from this late fee.</p>
-            <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border border-white/10 rounded-md bg-black/10">
-              {groups.map(group => (
-                <div key={group.id} className="flex items-center gap-2">
-                  <input 
-                    type="checkbox" 
-                    id={`group-${group.id}`} 
-                    name="excluded_group_ids" 
-                    value={group.id}
-                    defaultChecked={policy?.excluded_group_ids?.includes(group.id)}
+            <Label>Apply Late Fee to Groups</Label>
+            <p className="text-xs text-zinc-500">Check the groups this fee should apply to.</p>
+
+            <div className="rounded-md border border-white/10 bg-black/10 p-3 space-y-2">
+              {/* Check all row */}
+              <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="group-check-all"
+                    checked={allChecked}
+                    ref={el => { if (el) el.indeterminate = someChecked; }}
+                    onChange={toggleAll}
                     className="h-4 w-4 bg-transparent border-white/10 rounded accent-primary"
                   />
-                  <Label htmlFor={`group-${group.id}`} className="text-sm font-normal cursor-pointer">
-                    {group.name}
+                  <Label htmlFor="group-check-all" className="text-sm font-medium cursor-pointer text-zinc-200">
+                    {allChecked ? "Deselect all" : "Select all"}
                   </Label>
                 </div>
-              ))}
-              {groups.length === 0 && (
-                <div className="col-span-2 text-zinc-500 text-sm italic">
-                  No groups available.
+                <span className="text-xs text-zinc-500">{selectedGroupIds.size} of {groups.length} selected</span>
+              </div>
+
+              {/* Per-group checkboxes */}
+              <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto">
+                {groups.map(group => (
+                  <div key={group.id} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id={`group-${group.id}`}
+                      checked={selectedGroupIds.has(group.id)}
+                      onChange={() => toggleGroup(group.id)}
+                      className="h-4 w-4 bg-transparent border-white/10 rounded accent-primary"
+                    />
+                    <Label htmlFor={`group-${group.id}`} className="text-sm font-normal cursor-pointer">
+                      {group.name}
+                    </Label>
+                  </div>
+                ))}
+                {groups.length === 0 && (
+                  <div className="col-span-2 text-zinc-500 text-sm italic">
+                    No groups available.
+                  </div>
+                )}
+              </div>
+
+              {/* No group separator */}
+              <div className="pt-2 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="group-no-group"
+                    checked={includeNoGroup}
+                    onChange={e => setIncludeNoGroup(e.target.checked)}
+                    className="h-4 w-4 bg-transparent border-white/10 rounded accent-primary"
+                  />
+                  <Label htmlFor="group-no-group" className="text-sm font-normal cursor-pointer">
+                    No group <span className="text-zinc-500">(invoices not assigned to any group)</span>
+                  </Label>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
@@ -295,3 +376,4 @@ function PolicyForm({
     </Card>
   );
 }
+
