@@ -65,6 +65,11 @@ export function SiteHeader() {
               {item.name}
             </Link>
           ))}
+          <Link href="/how-it-works">
+            <Button variant="ghost" size="sm" className="text-zinc-300 hover:text-zinc-50">
+              How it works
+            </Button>
+          </Link>
           <Link href="/login">
             <Button variant="ghost" size="sm" className="text-zinc-300 hover:text-zinc-50">
               Sign in
@@ -108,6 +113,11 @@ export function SiteHeader() {
               </Link>
             ))}
             <div className="mt-4 pt-4 border-t border-white/10 flex flex-col gap-3">
+              <Link href="/how-it-works">
+                <Button variant="ghost" className="w-full justify-center h-12 text-base bg-transparent text-zinc-300 border border-zinc-800 hover:bg-white/[0.04]">
+                  How it works
+                </Button>
+              </Link>
               <Link href="/login">
                 <Button variant="secondary" className="w-full justify-center h-12 text-base">
                   Sign in
