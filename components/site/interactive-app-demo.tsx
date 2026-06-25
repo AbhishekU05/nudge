@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
+import { useMemo, useState, type MouseEvent } from "react";
 import { 
   LayoutDashboard, 
   Zap, 
@@ -8,15 +9,14 @@ import {
   KanbanSquare, 
   BarChart3, 
   Settings, 
-  Search,
   Mail,
   CreditCard,
-  Plus,
   Users,
   FileText,
   Clock,
   Receipt,
-  UserRound
+  UserRound,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnalyticsClient } from "@/app/(app)/analytics/analytics-client";
@@ -44,15 +44,70 @@ export function InteractiveAppDemo() {
     { id: "automate", name: "Automate", icon: Mail, color: "text-amber-400", hoverColor: "hover:text-amber-400", activeBg: "bg-amber-500/10" },
   ] as const;
 
+  const groupMemberships = useMemo(() => {
+    const customerIds = mockCustomers.map((customer) => customer.id);
+
+    return new Map([
+      [mockGroups[0]?.id, new Set(customerIds.filter((_, index) => index % 2 === 0))],
+      [mockGroups[1]?.id, new Set(customerIds.filter((_, index) => index % 3 === 0))],
+    ]);
+  }, []);
+
+  const selectedCustomerIds = activeGroup && activeGroup !== "global"
+    ? groupMemberships.get(activeGroup)
+    : null;
+
   // Prepare mock data
   const uniqueCurrencies = ["USD"];
   const selectedCurrency = "USD";
-  const events = [...mockEvents].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  const customers = [...mockInvoices].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const demoEvents = useMemo(() => {
+    if (mockEvents.length > 0) return mockEvents;
+
+    const now = new Date();
+    return mockInvoices.slice(0, 8).flatMap((invoice, index) => {
+      const paymentDate = new Date(now.getFullYear(), now.getMonth() - (index % 6), 8 + index);
+      const followupDate = new Date(paymentDate);
+      followupDate.setDate(followupDate.getDate() - 5);
+      const amount = Math.max(250, Number(invoice.amount_paid) || Math.round(Number(invoice.amount_owed) * 0.4));
+
+      return [
+        {
+          id: "demo-followup-" + invoice.id,
+          customer_id: invoice.customer_id,
+          invoice_id: invoice.id,
+          event_type: "followup",
+          followup_outcome: index % 3 === 0 ? "promise_made" : "sent",
+          created_at: followupDate.toISOString(),
+          event_date: followupDate.toISOString(),
+          invoices: invoice,
+        },
+        {
+          id: "demo-payment-" + invoice.id,
+          customer_id: invoice.customer_id,
+          invoice_id: invoice.id,
+          event_type: "payment",
+          amount,
+          currency: invoice.currency || "USD",
+          created_at: paymentDate.toISOString(),
+          event_date: paymentDate.toISOString(),
+          invoices: invoice,
+        },
+      ];
+    });
+  }, []);
+  const events = demoEvents
+    .filter((event) => !selectedCustomerIds || selectedCustomerIds.has(event.customer_id))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const customers = [...mockInvoices]
+    .filter((invoice) => !selectedCustomerIds || selectedCustomerIds.has(invoice.customer_id))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const visibleCustomers = mockCustomers.filter(
+    (customer) => !selectedCustomerIds || selectedCustomerIds.has(customer.id)
+  );
   const recentEvents = [...events].slice(0, 5);
   const recentInvoices = [...customers].slice(0, 5);
-  const pendingDrafts: any[] = [];
-  const activeAutomations: any[] = [];
+  const pendingDrafts: Record<string, unknown>[] = [];
+  const activeAutomations: Record<string, unknown>[] = [];
 
   // Generate real tasks for Action Center
   // Deep copy to prevent mutating the mock data multiple times
@@ -62,7 +117,7 @@ export function InteractiveAppDemo() {
     if (!inv.followup_history) {
       inv.followup_history = [];
     }
-    const invEvents = clonedEvents.filter((e: any) => e.invoice_id === inv.id);
+    const invEvents = clonedEvents.filter((e: { invoice_id?: string; event_date?: string; created_at: string }) => e.invoice_id === inv.id);
     for (const e of invEvents) {
       inv.followup_history.push({
         ...e,
@@ -71,6 +126,32 @@ export function InteractiveAppDemo() {
     }
   }
   const tasks = generateActionPlan(mockClients, clonedInvoices);
+
+  const selectGroup = (groupId: string) => {
+    setActiveGroup((current) => current === groupId ? null : groupId);
+  };
+
+  const navigateWithinDemo = (event: MouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    const href = target.closest("a")?.getAttribute("href");
+
+    if (!href?.startsWith("/")) return;
+
+    const destination = href.split("?")[0];
+    const tab =
+      destination.startsWith("/customers") ? "customers"
+      : destination.startsWith("/invoices") ? "invoices"
+      : destination.startsWith("/pipeline") ? "pipeline"
+      : destination.startsWith("/activity") ? "activity"
+      : destination.startsWith("/analytics") ? "analytics"
+      : destination.startsWith("/dashboard") ? "dashboard"
+      : null;
+
+    if (!tab) return;
+
+    event.preventDefault();
+    setActiveTab(tab);
+  };
 
   return (
     <div className="flex h-full w-full bg-black rounded-xl overflow-hidden font-sans border border-white/10 shadow-2xl shadow-black/50">
@@ -85,9 +166,13 @@ export function InteractiveAppDemo() {
       >
         <div className="flex h-16 shrink-0 items-center justify-center border-b border-white/10">
           <div className="flex items-center gap-3 overflow-hidden px-2 w-full justify-center cursor-pointer">
-            <div className="h-8 w-8 shrink-0 rounded-md bg-white flex items-center justify-center text-black font-bold">
-              D
-            </div>
+            <Image
+              src="/logo.svg"
+              width={32}
+              height={32}
+              alt="Duely logo"
+              className="h-8 w-8 shrink-0 rounded-md"
+            />
             {isExpanded && (
               <span className="text-xl font-semibold tracking-tight text-zinc-50 truncate transition-opacity duration-300">
                 Duely
@@ -122,59 +207,32 @@ export function InteractiveAppDemo() {
         </nav>
         
         {/* Mock Groups */}
-        <div className="mt-4 pt-4 border-t border-white/10 space-y-1">
-          <button
-            className="w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100 cursor-not-allowed"
-            title={!isExpanded ? "New Group" : undefined}
-          >
-            <div className="flex flex-col items-center justify-center w-5 h-full">
-              <Plus className="h-5 w-5 shrink-0" />
-            </div>
-            {isExpanded && <span className="truncate whitespace-nowrap text-sm font-medium">New Group</span>}
+        <div className="mt-4 border-t border-white/10 pt-4 space-y-1">
+          <button onClick={() => setActiveGroup(null)} className="w-full flex items-center gap-3 rounded-lg px-2.5 py-2 text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100" title={!isExpanded ? "Reset group filter" : undefined}>
+            <Users className="h-5 w-5 shrink-0" />
+            {isExpanded && <span className="truncate whitespace-nowrap text-sm font-medium">Reset filter</span>}
           </button>
 
-          {/* Static Global Group */}
-          <div className="flex flex-col">
-            <button
-              onClick={() => setActiveGroup(activeGroup === "global" ? null : "global")}
-              className={cn(
-                "w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100",
-                activeGroup === "global" && "bg-white/[0.08] text-zinc-100"
-              )}
-              title={!isExpanded ? "All" : undefined}
-            >
-              <div className="flex flex-col items-center justify-center w-5">
-                <Users className="h-5 w-5 shrink-0 text-indigo-400" />
-                <span className="text-[10px] mt-1 font-mono leading-none text-zinc-500">{customers.length}</span>
-              </div>
-              {isExpanded && <span className="truncate whitespace-nowrap text-sm">All</span>}
-            </button>
-            
-            {activeGroup === "global" && isExpanded && (
-              <div className="flex flex-col mt-1 ml-3 pl-3 border-l border-white/10 space-y-1">
-                <button
-                  onClick={() => setActiveTab("customers")}
-                  className="w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
-                  title={!isExpanded ? "All Customers" : undefined}
-                >
-                  <div className="flex flex-col items-center justify-center w-5">
-                    <Users className="h-4 w-4 shrink-0" />
+          {[{ id: "global", name: "All", color: "#818cf8", customerCount: mockCustomers.length }, ...mockGroups.map((group) => ({ ...group, customerCount: groupMemberships.get(group.id)?.size ?? 0 }))].map((group) => {
+            const isActive = activeGroup === group.id;
+            return (
+              <div key={group.id} className="flex flex-col">
+                <button onClick={() => selectGroup(group.id)} className={cn("w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors", isActive ? "bg-white/[0.08] text-zinc-100" : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100")} title={!isExpanded ? group.name : undefined}>
+                  <div className="flex w-5 flex-col items-center justify-center">
+                    {group.id === "global" ? <Users className="h-5 w-5 shrink-0" style={{ color: group.color }} /> : <UserRound className="h-5 w-5 shrink-0" style={{ color: group.color || "#3b82f6" }} />}
+                    <span className="mt-1 font-mono text-[10px] leading-none text-zinc-500">{group.customerCount}</span>
                   </div>
-                  {isExpanded && <span className="truncate whitespace-nowrap text-sm">Customers</span>}
+                  {isExpanded && <><span className="flex-1 truncate whitespace-nowrap text-left text-sm">{group.name}</span><ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isActive && "rotate-180")} /></>}
                 </button>
-                <button
-                  onClick={() => setActiveTab("invoices")}
-                  className="w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
-                  title={!isExpanded ? "All Invoices" : undefined}
-                >
-                  <div className="flex flex-col items-center justify-center w-5">
-                    <FileText className="h-4 w-4 shrink-0" />
+                {isActive && isExpanded && (
+                  <div className="ml-3 mt-1 flex flex-col space-y-1 border-l border-white/10 pl-3">
+                    <button onClick={() => setActiveTab("customers")} className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100"><Users className="h-4 w-4 shrink-0" /><span className="truncate whitespace-nowrap text-sm">Customers</span></button>
+                    <button onClick={() => setActiveTab("invoices")} className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100"><FileText className="h-4 w-4 shrink-0" /><span className="truncate whitespace-nowrap text-sm">Invoices</span></button>
                   </div>
-                  {isExpanded && <span className="truncate whitespace-nowrap text-sm">Invoices</span>}
-                </button>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })}
         </div>
         
         {/* Mock Bottom Nav */}
@@ -209,7 +267,7 @@ export function InteractiveAppDemo() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0A0A0A] relative">
         {/* Content Views */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6" onClick={navigateWithinDemo}>
           {activeTab === "dashboard" && (
             <DashboardUI
               customers={customers}
@@ -388,7 +446,7 @@ export function InteractiveAppDemo() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/10">
-                    {mockCustomers.map((customer) => {
+                    {visibleCustomers.map((customer) => {
                       const formattedTotal = new Intl.NumberFormat(undefined, {
                         style: "currency",
                         currency: "USD"
