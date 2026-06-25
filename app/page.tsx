@@ -8,15 +8,13 @@ import { AuthErrorRedirect } from "@/components/site/auth-error-redirect";
 import { Container } from "@/components/site/container";
 import { FadeIn, Reveal, SlideUp, SlideIn } from "@/components/site/scroll-animation";
 import { HeroActionCenter } from "@/components/site/hero-action-center";
+import { MacWindow } from "@/components/site/mac-window";
+import { InteractiveAppDemo } from "@/components/site/interactive-app-demo";
+import { AppSidebar } from "@/components/site/app-sidebar";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { LifetimeDealSection } from "@/components/site/lifetime-deal-section";
 import { getRemainingLifetimeSpots } from "@/app/actions/leads";
-import { AnalyticsClient } from "@/app/(app)/analytics/analytics-client";
-import { ClientPortalView } from "@/components/portal/client-portal-view";
-import { MacWindow } from "@/components/site/mac-window";
-import { AppSidebar } from "@/components/site/app-sidebar";
-import { mockCustomers, mockEvents, mockUser } from "@/lib/mock-data";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -260,14 +258,158 @@ export default async function Home({
             </div>
 
             <FadeIn>
-              <MacWindow icon={<Activity className="w-3 h-3 text-amber-500" />} title="Duely Analytics" className="h-[600px]">
-                <div className="flex h-full w-full">
-                  <AppSidebar user={mockUser} subscriptionStatus="active" groups={[]} totalCustomers={5} />
-                  <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar">
-                    <AnalyticsClient customers={mockCustomers} events={mockEvents} currency="USD" />
+              <Card className="overflow-hidden border-white/10 bg-[#09090b] shadow-2xl shadow-amber-500/5 rounded-2xl relative">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.03),transparent_60%)] pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.03),transparent_60%)] pointer-events-none" />
+                
+                {/* Mock Browser/Dashboard Header */}
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/[0.01]">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-zinc-800" />
+                    <div className="w-3 h-3 rounded-full bg-zinc-800" />
+                    <div className="w-3 h-3 rounded-full bg-zinc-800" />
+                  </div>
+                  <div className="ml-4 text-xs font-medium text-zinc-600 flex items-center gap-2">
+                    <Activity className="w-3 h-3 text-amber-500" />
+                    Duely Analytics
                   </div>
                 </div>
-              </MacWindow>
+
+                <CardContent className="p-4 sm:p-8 bg-zinc-950/40">
+                  <div className="flex flex-col gap-6">
+                    {/* Top Stats 2 Rows */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {/* Total Collected */}
+                      <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 hover:border-white/10 transition-colors">
+                        <p className="text-[11px] text-zinc-400 font-medium uppercase tracking-wider mb-2 flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5 text-emerald-400" /> Total Collected</p>
+                        <p className="text-2xl font-bold text-zinc-100">$184,200</p>
+                      </div>
+                      {/* Outstanding */}
+                      <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 hover:border-white/10 transition-colors">
+                        <p className="text-[11px] text-zinc-400 font-medium uppercase tracking-wider mb-2 flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5 text-blue-400" /> Outstanding</p>
+                        <p className="text-2xl font-bold text-zinc-100">$42,500</p>
+                      </div>
+                      {/* Avg Days Overdue */}
+                      <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 hover:border-white/10 transition-colors">
+                        <p className="text-[11px] text-zinc-400 font-medium uppercase tracking-wider mb-2 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-red-400" /> Avg Days Overdue</p>
+                        <p className="text-2xl font-bold text-zinc-100">14 <span className="text-sm font-normal text-zinc-500">days</span></p>
+                      </div>
+                      {/* Collection Rate */}
+                      <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 hover:border-white/10 transition-colors">
+                        <p className="text-[11px] text-zinc-400 font-medium uppercase tracking-wider mb-2 flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-amber-400" /> Collection Rate</p>
+                        <p className="text-2xl font-bold text-zinc-100">89.2%</p>
+                      </div>
+                    </div>
+
+                    {/* Charts Row 1: Trends & Pipeline */}
+                    <div className="grid md:grid-cols-3 gap-6">
+                      <div className="md:col-span-2 bg-white/[0.02] border border-white/5 rounded-xl p-5 hover:border-white/10 transition-colors">
+                        <h4 className="text-sm font-semibold text-zinc-100 mb-1">Collection Trends</h4>
+                        <p className="text-xs text-zinc-500 mb-6">Monthly revenue collected over time.</p>
+                        <div className="h-40 flex items-end gap-2">
+                          {/* Fake Area Chart */}
+                          {[20, 35, 30, 50, 45, 70].map((h, i) => (
+                            <div key={i} className="flex-1 bg-emerald-500/20 rounded-t relative overflow-hidden" style={{ height: `${h}%` }}>
+                              <div className="absolute top-0 w-full h-0.5 bg-emerald-400" />
+                              <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-emerald-500/10 to-emerald-500/40" />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex justify-between text-[10px] text-zinc-500 mt-2 font-mono">
+                          <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5 flex flex-col items-center justify-center hover:border-white/10 transition-colors">
+                        <div className="w-full">
+                          <h4 className="text-sm font-semibold text-zinc-100 mb-1">This Month's Pipeline</h4>
+                          <p className="text-xs text-zinc-500 mb-6">Status of customers added.</p>
+                        </div>
+                        {/* Fake Pie Chart */}
+                        <div className="relative w-32 h-32 rounded-full border-[12px] border-zinc-800">
+                          <div className="absolute inset-[-12px] rounded-full border-[12px] border-emerald-500" style={{ clipPath: "polygon(50% 50%, 100% 0, 100% 100%, 0 100%, 0 50%)" }} />
+                          <div className="absolute inset-[-12px] rounded-full border-[12px] border-blue-500" style={{ clipPath: "polygon(50% 50%, 0 50%, 0 0, 60% 0)" }} />
+                          <div className="absolute inset-[-12px] rounded-full border-[12px] border-red-500" style={{ clipPath: "polygon(50% 50%, 60% 0, 100% 0)" }} />
+                        </div>
+                        <div className="flex gap-4 mt-6">
+                          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500" /><span className="text-[10px] text-zinc-400">Paid</span></div>
+                          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500" /><span className="text-[10px] text-zinc-400">Wait</span></div>
+                          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500" /><span className="text-[10px] text-zinc-400">Late</span></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Charts Row 2: A/R Aging, Expected Collections, Top Offenders */}
+                    <div className="grid md:grid-cols-3 gap-6">
+                      {/* Top Offenders */}
+                      <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5 hover:border-white/10 transition-colors">
+                        <h4 className="text-sm font-semibold text-zinc-100 mb-1">Top Offenders</h4>
+                        <p className="text-xs text-zinc-500 mb-6">Highest overdue balances.</p>
+                        <div className="space-y-4">
+                          {[
+                            { name: "Acme Corp", val: 80, amt: "$12,400" },
+                            { name: "Globex", val: 60, amt: "$8,200" },
+                            { name: "Initech", val: 40, amt: "$4,100" }
+                          ].map((offender, i) => (
+                            <div key={i} className="flex flex-col gap-1.5">
+                              <div className="flex justify-between text-[11px]">
+                                <span className="text-zinc-300">{offender.name}</span>
+                                <span className="text-red-400 font-mono">{offender.amt}</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                                <div className="h-full bg-red-500 rounded-full" style={{ width: `${offender.val}%` }} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* A/R Aging */}
+                      <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5 hover:border-white/10 transition-colors">
+                        <h4 className="text-sm font-semibold text-zinc-100 mb-1">A/R Aging</h4>
+                        <p className="text-xs text-zinc-500 mb-6">Overdue by age.</p>
+                        <div className="h-28 flex items-end gap-3 mt-4">
+                          <div className="flex-1 bg-amber-500/20 rounded-t relative hover:bg-amber-500/40 transition-colors" style={{ height: "40%" }}>
+                            <div className="absolute top-0 w-full h-0.5 bg-amber-400" />
+                          </div>
+                          <div className="flex-1 bg-amber-500/20 rounded-t relative hover:bg-amber-500/40 transition-colors" style={{ height: "70%" }}>
+                            <div className="absolute top-0 w-full h-0.5 bg-amber-400" />
+                          </div>
+                          <div className="flex-1 bg-amber-500/50 rounded-t relative shadow-[0_0_15px_rgba(245,158,11,0.2)]" style={{ height: "100%" }}>
+                            <div className="absolute top-0 w-full h-0.5 bg-amber-400" />
+                          </div>
+                          <div className="flex-1 bg-red-500/50 rounded-t relative hover:bg-red-500/70 transition-colors" style={{ height: "30%" }}>
+                            <div className="absolute top-0 w-full h-0.5 bg-red-400" />
+                          </div>
+                        </div>
+                        <div className="flex justify-between text-[10px] text-zinc-500 font-mono mt-3">
+                          <span>1-30</span><span>31-60</span><span className="text-amber-400">61-90</span><span className="text-red-400">90+</span>
+                        </div>
+                      </div>
+
+                      {/* Expected Collections */}
+                      <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5 hover:border-white/10 transition-colors">
+                        <h4 className="text-sm font-semibold text-zinc-100 mb-1">Expected Collections</h4>
+                        <p className="text-xs text-zinc-500 mb-6">Upcoming by due date.</p>
+                        <div className="h-28 flex items-end gap-3 mt-4">
+                          <div className="flex-1 bg-blue-500/40 rounded-t relative hover:bg-blue-500/60 transition-colors" style={{ height: "100%" }}>
+                            <div className="absolute top-0 w-full h-0.5 bg-blue-400" />
+                          </div>
+                          <div className="flex-1 bg-blue-500/20 rounded-t relative hover:bg-blue-500/40 transition-colors" style={{ height: "45%" }}>
+                            <div className="absolute top-0 w-full h-0.5 bg-blue-400" />
+                          </div>
+                          <div className="flex-1 bg-blue-500/20 rounded-t relative hover:bg-blue-500/40 transition-colors" style={{ height: "20%" }}>
+                            <div className="absolute top-0 w-full h-0.5 bg-blue-400" />
+                          </div>
+                        </div>
+                        <div className="flex justify-between text-[10px] text-zinc-500 font-mono mt-3">
+                          <span>Next 30D</span><span>31-60D</span><span>61-90D</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </FadeIn>
           </Container>
         </section>
@@ -291,26 +433,84 @@ export default async function Home({
               <SlideIn right>
                 <div className="relative">
                   <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.06),transparent_50%)]" />
-                  <div className="h-[600px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] shadow-xl shadow-black/20">
-                    <div className="h-full overflow-y-auto custom-scrollbar">
-                      <ClientPortalView 
-                        client={{ name: "Acme Corp", id: "1" }}
-                        agencyName="Your Agency"
-                        bankAccounts={[{ name: "Chase Business Checking", accountNumber: "****1234", currency: "USD" }]}
-                        totalOutstanding={4200}
-                        overdueInvoices={[
-                          { id: "1", amount_owed: 2400, amount_paid: 0, due_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), currency: "USD", recipient_name: "Acme Corp", status: "overdue" }
-                        ]}
-                        dueSoonInvoices={[
-                          { id: "2", amount_owed: 1800, amount_paid: 0, due_date: new Date().toISOString(), currency: "USD", recipient_name: "Acme Corp", status: "open" }
-                        ]}
-                        otherOutstandingInvoices={[]}
-                        paidInvoices={[]}
-                        currency="USD"
-                        token="mock"
-                      />
-                    </div>
-                  </div>
+                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
+                    <CardContent className="p-0">
+                        <div className="flex flex-col gap-4 p-5 bg-[#09090b]">
+                          {/* Header */}
+                          <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                            <div className="flex flex-col gap-1">
+                              <p className="text-zinc-500 text-[10px] font-semibold uppercase tracking-widest flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                Your Agency Portal
+                              </p>
+                              <h1 className="text-lg font-bold tracking-tight text-zinc-100 mt-1">
+                                Acme Corp
+                              </h1>
+                            </div>
+                            <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10">
+                              <User className="w-4 h-4 text-zinc-400" />
+                            </div>
+                          </div>
+                          
+                          {/* Balance & Action */}
+                          <div className="bg-zinc-900 border border-white/10 rounded-xl p-4 flex items-center justify-between shadow-xl relative overflow-hidden">
+                            <div className="absolute right-0 top-0 w-32 h-32 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.1),transparent_70%)] pointer-events-none" />
+                            <div className="flex flex-col gap-1 relative z-10">
+                              <p className="text-zinc-400 text-[11px] font-medium uppercase tracking-wider">Total Due</p>
+                              <p className="text-2xl font-bold tracking-tight text-zinc-50">
+                                $4,200.00
+                              </p>
+                            </div>
+                            <button className="relative z-10 bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-bold px-4 py-2 rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1.5">
+                              Pay Balance
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          
+                          {/* Invoice History */}
+                          <div className="flex flex-col gap-3 mt-2">
+                            <div className="flex justify-between items-center px-1">
+                              <h2 className="text-xs font-semibold text-zinc-300">Open Invoices</h2>
+                              <span className="text-[10px] text-zinc-500 hover:text-zinc-300 cursor-pointer">View History</span>
+                            </div>
+                            
+                            <div className="flex flex-col gap-2">
+                              {/* Invoice 1 */}
+                              <div className="bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors rounded-lg p-3 flex items-center justify-between group">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                                    <FileText className="w-3.5 h-3.5 text-red-400" />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-zinc-200">INV-2026-042</p>
+                                    <p className="text-[10px] text-zinc-500">Due 14 days ago</p>
+                                  </div>
+                                </div>
+                                <div className="text-right flex items-center gap-3">
+                                  <p className="text-sm font-semibold text-zinc-100">$2,400.00</p>
+                                </div>
+                              </div>
+
+                              {/* Invoice 2 */}
+                              <div className="bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors rounded-lg p-3 flex items-center justify-between group">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                                    <FileText className="w-3.5 h-3.5 text-amber-400" />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-zinc-200">INV-2026-048</p>
+                                    <p className="text-[10px] text-zinc-500">Due today</p>
+                                  </div>
+                                </div>
+                                <div className="text-right flex items-center gap-3">
+                                  <p className="text-sm font-semibold text-zinc-100">$1,800.00</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </SlideIn>
             </div>
@@ -379,96 +579,29 @@ export default async function Home({
           </Container>
         </section>
 
-        {/* CORE FOUR SECTIONS */}
-        <section id="how-it-works" className="relative overflow-hidden py-24 sm:py-32 space-y-32 sm:space-y-40 bg-zinc-950/50 border-y border-white/5 backdrop-blur-sm">
+        {/* INTERACTIVE PRODUCT TOUR */}
+        <section id="how-it-works" className="relative py-24 sm:py-32 bg-zinc-950/50 border-y border-white/5 backdrop-blur-sm">
           <div id="features" className="absolute -top-32" />
-
-          {/* 1. Action Center */}
-          <Container>
-            <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-              <SlideIn left>
-                <div className="relative order-2 lg:order-1">
-                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.06),transparent_50%)]" />
-                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
-                    <CardContent className="p-0">
-                      <div className="p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <h2 className="text-lg font-semibold tracking-tight text-zinc-50 flex items-center gap-2">
-                            <Users className="h-5 w-5 text-zinc-400" /> Customers Action Needed
-                          </h2>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors">
-                            <div>
-                              <h3 className="font-medium text-zinc-200">Acme Corp</h3>
-                              <p className="text-sm text-zinc-500 mt-0.5">
-                                <span className="text-red-400">14 days overdue</span>
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-medium text-zinc-200">$15,400.00</div>
-                              <div className="text-sm text-zinc-500 mt-0.5">Remaining</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </SlideIn>
-              <FadeIn delay={0.2} className="order-1 lg:order-2 max-w-xl lg:pl-12 xl:pl-16">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 mb-6">
-                  <Zap className="h-6 w-6 text-red-300" />
-                </div>
-                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
-                  You log in to 14 overdue invoices. Which one is actually a fire?
-                </h2>
-                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
-                  Stop guessing who to chase. The Action Center analyzes aging, financial risk, and broken promises to tell you exactly who needs a nudge today, and who can wait.
-                </p>
-              </FadeIn>
+          
+          <Container className="max-w-6xl">
+            <div className="flex flex-col items-center text-center mb-16">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10 mb-6">
+                <Zap className="h-6 w-6 text-indigo-300" />
+              </div>
+              <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl max-w-3xl">
+                See exactly how Duely gets you paid faster.
+              </h2>
+              <p className="mt-6 text-lg leading-relaxed text-zinc-400 max-w-2xl">
+                Take a spin through the Action Center, track aging invoices in your Pipeline, and see your true cashflow inside Analytics.
+              </p>
             </div>
-          </Container>
 
-          {/* 2. Tone Drafting */}
-          <Container>
-            <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
-              <FadeIn className="max-w-xl lg:pr-12 xl:pr-16">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-purple-500/20 bg-purple-500/10 mb-6">
-                  <MessageSquare className="h-6 w-6 text-purple-300" />
-                </div>
-                <h2 className="text-pretty text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">
-                  Too friendly and they ignore it. Too firm and you damage the relationship.
-                </h2>
-                <p className="mt-6 text-lg leading-relaxed text-zinc-400">
-                  Pick a tone. Duely drafts the perfect message based on invoice history. Edit it before you send.
-                </p>
-              </FadeIn>
-              <SlideIn right>
-                <div className="relative">
-                  <div className="absolute -inset-y-12 -inset-x-12 -z-10 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.06),transparent_50%)]" />
-                  <Card className="overflow-hidden border-white/10 bg-white/[0.02] p-4 shadow-xl shadow-black/20">
-                    <CardContent className="p-0 space-y-4">
-                      <div className="flex items-center gap-3 mb-4">
-                        <h2 className="text-lg font-bold tracking-tight text-zinc-50">Queue</h2>
-                        <div className="bg-white/5 px-2 py-0.5 rounded text-xs text-zinc-400">1 waiting</div>
-                      </div>
-                      <div className="flex flex-col p-4 rounded-xl border border-white/10 bg-white/[0.025] transition-colors">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium text-zinc-200">Friendly check-in regarding Invoice #INV-2024-08</h3>
-                            <p className="text-xs text-zinc-500 mt-1">To: david@acmecorp.com</p>
-                          </div>
-                          <span className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded">Draft</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </SlideIn>
-            </div>
+            <FadeIn>
+              <MacWindow icon={<Zap className="w-3 h-3 text-indigo-500" />} title="Duely Interactive Tour" className="h-[600px] p-0 overflow-hidden shadow-2xl shadow-indigo-500/10 border-white/10">
+                <InteractiveAppDemo />
+              </MacWindow>
+            </FadeIn>
           </Container>
-
         </section>
 
         {/* BENTO BOX GRID */}

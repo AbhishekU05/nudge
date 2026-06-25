@@ -16,9 +16,6 @@ import {
   Bot
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MacWindow } from "./mac-window";
-import { AppSidebar } from "./app-sidebar";
-import { mockUser } from "@/lib/mock-data";
 
 type MockAction = {
   id: string;
@@ -124,10 +121,47 @@ export function HeroActionCenter() {
   }, []);
 
   return (
-    <MacWindow icon={<Zap className="w-3 h-3 text-indigo-500" />} className="h-[600px]">
-      <div className="flex h-full w-full">
-        <AppSidebar user={mockUser} subscriptionStatus="active" groups={[]} totalCustomers={12} />
-        <div className="flex-1 flex flex-col overflow-hidden relative bg-zinc-950/40">
+    <div className="w-full rounded-2xl border border-white/10 bg-[#09090b] shadow-2xl shadow-indigo-500/10 backdrop-blur-sm overflow-hidden flex flex-col h-[600px]">
+      {/* Mock Browser/Dashboard Header */}
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/[0.01]">
+        <div className="flex gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-zinc-800" />
+          <div className="w-3 h-3 rounded-full bg-zinc-800" />
+          <div className="w-3 h-3 rounded-full bg-zinc-800" />
+        </div>
+        <div className="ml-4 text-xs font-medium text-zinc-600 flex items-center gap-2">
+          <Zap className="w-3 h-3 text-indigo-500" />
+          Duely App
+        </div>
+      </div>
+
+      {/* App Layout */}
+      <div className="flex flex-1 overflow-hidden bg-zinc-950/40">
+        
+        {/* Sidebar */}
+        <div className="w-16 border-r border-white/5 bg-zinc-950/80 flex flex-col items-center py-6 px-2 gap-4">
+          <div className="w-full flex justify-center items-center p-2.5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
+            <LayoutDashboard className="w-5 h-5 shrink-0" />
+          </div>
+          <div className="w-full flex justify-center items-center p-2.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <CheckSquare className="w-5 h-5 shrink-0" />
+          </div>
+          <div className="w-full flex justify-center items-center p-2.5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
+            <FileText className="w-5 h-5 shrink-0" />
+          </div>
+          <div className="w-full flex justify-center items-center p-2.5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
+            <Users className="w-5 h-5 shrink-0" />
+          </div>
+          <div className="w-full flex justify-center items-center p-2.5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
+            <Activity className="w-5 h-5 shrink-0" />
+          </div>
+          <div className="mt-auto w-full flex justify-center items-center p-2.5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors">
+            <Settings className="w-5 h-5 shrink-0" />
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden relative">
           
           {/* Header */}
           <div className="px-6 py-5 border-b border-white/5 bg-zinc-950/80 sticky top-0 z-10">
@@ -220,6 +254,6 @@ export function HeroActionCenter() {
 
         </div>
       </div>
-    </MacWindow>
+    </div>
   );
 }
