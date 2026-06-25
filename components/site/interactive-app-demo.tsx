@@ -67,7 +67,7 @@ export function InteractiveAppDemo() {
   const tasks = generateActionPlan(mockClients, clonedInvoices);
 
   return (
-    <div className="flex h-[700px] w-full bg-black rounded-xl overflow-hidden font-sans border border-white/10 shadow-2xl shadow-black/50">
+    <div className="flex h-full w-full bg-black rounded-xl overflow-hidden font-sans border border-white/10 shadow-2xl shadow-black/50">
       {/* Mock Sidebar */}
       <div 
         className={cn(
@@ -153,26 +153,26 @@ export function InteractiveAppDemo() {
             {isExpanded && <span className="truncate whitespace-nowrap text-sm">Settings</span>}
           </div>
         </div>
+
+        {/* Profile Section */}
+        <div className="p-2 border-t border-white/10 relative">
+          <div className="group relative flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors hover:bg-white/[0.04] cursor-not-allowed">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.1] text-xs font-semibold text-zinc-100">
+              JD
+            </div>
+            {isExpanded && (
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="truncate text-sm font-medium text-zinc-200">
+                  John Doe
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0A0A0A] relative">
-        {/* Top Header Mock */}
-        <div className="h-16 shrink-0 border-b border-white/5 flex items-center justify-between px-6 sticky top-0 bg-[#0A0A0A]/80 backdrop-blur-sm z-10">
-          <div className="flex items-center text-sm text-zinc-500">
-            <span className="capitalize">{activeTab.replace('-', ' ')}</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 bg-white/[0.02] border border-white/5 rounded-full px-3 py-1.5">
-              <Search className="w-4 h-4 text-zinc-500" />
-              <span className="text-xs text-zinc-500">Search clients...</span>
-            </div>
-            <div className="h-8 w-8 rounded-full bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-sm font-semibold border border-indigo-500/30">
-              U
-            </div>
-          </div>
-        </div>
-
         {/* Content Views */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
           {activeTab === "dashboard" && (

@@ -35,7 +35,7 @@ export default function HowItWorks() {
 
           <div className="w-full px-2 sm:px-4 lg:px-8 max-w-[100vw]">
             <FadeIn>
-              <MacWindow icon={<Zap className="w-3 h-3 text-indigo-500" />} title="Duely Interactive Tour" className="h-[85vh] p-0 overflow-hidden shadow-2xl shadow-indigo-500/10 border-white/10">
+              <MacWindow icon={<Zap className="w-3 h-3 text-indigo-500" />} title="Duely Interactive Tour" className="h-[95vh] p-0 overflow-hidden shadow-2xl shadow-indigo-500/10 border-white/10">
                 <InteractiveAppDemo />
               </MacWindow>
             </FadeIn>
