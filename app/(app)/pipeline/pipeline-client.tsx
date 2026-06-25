@@ -42,7 +42,7 @@ export function PipelineClient({
   };
 
   return (
-    <div className="flex h-full gap-6 overflow-x-auto pb-4">
+    <div className="flex h-full justify-center gap-6 overflow-x-auto pb-4">
       {COLUMNS.map((column) => {
         const colCustomers = getCustomersByStatus(column.id);
         const colTotal = colCustomers.reduce((acc, c) => {

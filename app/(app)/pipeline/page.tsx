@@ -46,6 +46,7 @@ export default async function PipelinePage(props: {
             <CurrencySelector currencies={uniqueCurrencies} selected={selectedCurrency} />
           </div>
 
+
           <PipelineClient initialCustomers={customers} currency={selectedCurrency} />
         </Container>
       </main>
