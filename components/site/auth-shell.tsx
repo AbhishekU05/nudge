@@ -43,57 +43,7 @@ export function AuthShell({
           </div>
         </div>
 
-        {/* Floating UI Elements (Glassmorphism) */}
-        <div className="relative z-10 mt-12 w-full max-w-md">
-          {/* Main Floating Card */}
-          <div className="relative rounded-3xl border border-white/10 bg-white/[0.02] p-6 shadow-2xl backdrop-blur-xl transition-transform hover:scale-[1.02] duration-500">
-             <div className="absolute -top-px left-10 right-10 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
-             <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/20 border border-indigo-500/30">
-                    <Activity className="h-5 w-5 text-indigo-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-zinc-200">Action Center</p>
-                    <p className="text-xs text-zinc-500">Intelligent Triage</p>
-                  </div>
-                </div>
-                <div className="rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] uppercase tracking-wider font-semibold text-emerald-400 border border-emerald-500/20">
-                  Optimized
-                </div>
-             </div>
-             
-             <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3 border border-white/5 transition-colors hover:bg-white/[0.05]">
-                  <div className="flex items-center gap-3">
-                     <div className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
-                     <p className="text-sm font-medium text-zinc-300">Overdue Invoices</p>
-                  </div>
-                  <p className="font-mono text-sm font-medium text-white">$12,450</p>
-                </div>
-                <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3 border border-white/5 transition-colors hover:bg-white/[0.05]">
-                  <div className="flex items-center gap-3">
-                     <div className="h-2 w-2 rounded-full bg-amber-500" />
-                     <p className="text-sm font-medium text-zinc-300">Active Promises</p>
-                  </div>
-                  <p className="font-mono text-sm font-medium text-white">4 Pending</p>
-                </div>
-             </div>
-          </div>
-          
-          {/* Small Floating Card */}
-          <div className="absolute -right-8 top-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-zinc-900/90 p-4 shadow-xl backdrop-blur-md animate-[bounce_8s_infinite] hover:animate-none hover:scale-105 transition-transform cursor-default">
-             <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500/20 border border-purple-500/30">
-                  <ShieldCheck className="h-4 w-4 text-purple-400" />
-                </div>
-                <div>
-                   <p className="text-sm font-medium text-white">Smart Cooldowns</p>
-                   <p className="text-xs text-zinc-400">Active protection</p>
-                </div>
-             </div>
-          </div>
-        </div>
+
 
         {/* Footer / Trust badges */}
         <div className="relative z-10 flex items-center gap-8 text-sm font-medium text-zinc-500">
