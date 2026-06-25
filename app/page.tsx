@@ -135,29 +135,19 @@ export default async function Home({
         {/* ── Hero ── */}
         <section className="py-28 sm:py-36">
           <Container className="max-w-3xl text-center">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-indigo-400">
-              For freelancers &amp; agencies
-            </p>
             <h1 className="text-4xl font-bold tracking-tight text-zinc-50 sm:text-5xl lg:text-6xl">
               Your invoices are overdue.
               <br />
               <span className="text-zinc-400">Your time shouldn&apos;t be.</span>
             </h1>
-            <p className="mt-6 text-lg leading-relaxed text-zinc-400 max-w-xl mx-auto">
-              Duely tracks every outstanding invoice, automates follow-ups, and
-              tells you exactly who to chase today — so you can get paid without
-              the awkward back-and-forth.
+            <p className="mt-6 text-lg leading-relaxed text-zinc-400 max-w-lg mx-auto">
+              Duely tells you exactly who to chase, automates the follow-ups,
+              and gets you paid without the awkward back-and-forth.
             </p>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-              <a
-                href="/signup"
-                className="inline-flex items-center rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-500"
-              >
-                Get started free
-              </a>
+            <div className="mt-10 flex items-center justify-center">
               <a
                 href="/how-it-works"
-                className="inline-flex items-center rounded-lg border border-white/10 px-6 py-3 text-sm font-semibold text-zinc-300 transition hover:border-white/20 hover:text-zinc-50"
+                className="inline-flex items-center rounded-lg bg-indigo-600 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-500"
               >
                 See how it works
               </a>
