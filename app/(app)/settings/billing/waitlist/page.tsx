@@ -3,7 +3,7 @@ import { ArrowLeft, Clock, Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { joinWaitlist } from "@/app/actions/razorpay";
+import { joinWaitlist } from "@/app/actions/billing";
 
 export default function WaitlistPage() {
   return (

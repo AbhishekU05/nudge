@@ -17,7 +17,7 @@ import { Container } from "@/components/site/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { startSubscriptionCheckout, cancelSubscription } from "@/app/actions/razorpay";
+import { startSubscriptionCheckout, cancelSubscription } from "@/app/actions/billing";
 import { requireUser } from "@/lib/auth";
 import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/payments";
 import { getLocalizedMonthlyPrice } from "@/lib/pricing";
@@ -138,7 +138,7 @@ export default async function BillingPage({
             <div className="space-y-3">
               {success ? (
                 <p className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-                  Payment successful. Your plan will update shortly.
+                  {success === "true" || success === "" ? "Payment successful. Your plan will update shortly." : success}
                 </p>
               ) : null}
 

@@ -1,72 +1,33 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import Razorpay from "razorpay";
-
 import { requireUser } from "@/lib/auth";
-import { getRequiredEnv } from "@/lib/env";
 import { logger } from "@/lib/logger";
-import {
-  getBillingRegionForCountry,
-  getCountryCodeFromHeaders,
-} from "@/lib/pricing";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 export async function startSubscriptionCheckout() {
   redirect("/settings/billing/waitlist");
 }
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-
 export async function cancelSubscription() {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("razorpay_subscription_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!profile?.razorpay_subscription_id) {
-    redirect("/settings/billing?error=no_subscription");
-  }
-
-  const keyId = getRequiredEnv("RAZORPAY_KEY_ID");
-  const keySecret = getRequiredEnv("RAZORPAY_KEY_SECRET");
-
-  const razorpay = new Razorpay({
-    key_id: keyId,
-    key_secret: keySecret,
-  });
-
   const startTime = Date.now();
   try {
-    // cancel_at_cycle_end = false (0) -> cancel immediately
-    await razorpay.subscriptions.cancel(profile.razorpay_subscription_id, false);
-    
-    logger.external({
-      service: "Razorpay",
-      action: "cancel_subscription",
-      success: true,
-      latency: Date.now() - startTime,
-      user_id: user.id,
-    });
-
-    // Optimistically update the database
+    // Optimistically update the database to cancel without external API calls
     await supabase
       .from("profiles")
       .update({ razorpay_subscription_status: "cancelled" })
       .eq("user_id", user.id);
-  } catch (error) {
-    logger.external({
-      service: "Razorpay",
-      action: "cancel_subscription",
-      success: false,
-      latency: Date.now() - startTime,
-      error: error instanceof Error ? error.message : "Unknown error",
+      
+    logger.action({
+      action_name: "cancel_subscription",
+      success: true,
       user_id: user.id,
     });
+  } catch (error) {
     logger.error({
       message: "Cancellation failed",
       context: "cancelSubscription",
@@ -76,14 +37,13 @@ export async function cancelSubscription() {
     redirect("/settings/billing?error=cancellation_failed");
   }
 
+  revalidatePath("/settings/billing");
   redirect("/settings/billing?success=Subscription cancelled successfully");
 }
 
 export async function manageSubscription() {
   redirect("/settings/billing?error=not_supported");
 }
-
-import { revalidatePath } from "next/cache";
 
 export async function joinWaitlist() {
   const user = await requireUser();
