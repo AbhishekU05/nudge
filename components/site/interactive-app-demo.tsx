@@ -13,7 +13,10 @@ import {
   CreditCard,
   Plus,
   Users,
-  FileText
+  FileText,
+  Clock,
+  Receipt,
+  UserRound
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnalyticsClient } from "@/app/(app)/analytics/analytics-client";
@@ -25,9 +28,12 @@ import { DashboardUI } from "@/app/(app)/dashboard/dashboard-ui";
 import { mockCustomers, mockEvents, mockClients, mockInvoices } from "@/lib/mock-data";
 import { generateActionPlan } from "@/lib/action-engine";
 
+import { LocalTime } from "@/components/site/local-time";
+
 export function InteractiveAppDemo() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "action-center" | "activity" | "pipeline" | "analytics" | "automate">("dashboard");
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
   const navItems = [
     { id: "dashboard", name: "Overview", icon: LayoutDashboard, color: "text-indigo-400", hoverColor: "hover:text-indigo-400", activeBg: "bg-indigo-500/10" },
@@ -130,7 +136,11 @@ export function InteractiveAppDemo() {
           {/* Static Global Group */}
           <div className="flex flex-col">
             <button
-              className="w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100 cursor-not-allowed"
+              onClick={() => setActiveGroup(activeGroup === "global" ? null : "global")}
+              className={cn(
+                "w-full flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100",
+                activeGroup === "global" && "bg-white/[0.08] text-zinc-100"
+              )}
               title={!isExpanded ? "All" : undefined}
             >
               <div className="flex flex-col items-center justify-center w-5">
@@ -139,6 +149,29 @@ export function InteractiveAppDemo() {
               </div>
               {isExpanded && <span className="truncate whitespace-nowrap text-sm">All</span>}
             </button>
+            
+            {activeGroup === "global" && isExpanded && (
+              <div className="flex flex-col mt-1 ml-3 pl-3 border-l border-white/10 space-y-1">
+                <button
+                  className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100 cursor-not-allowed"
+                  title={!isExpanded ? "All Customers" : undefined}
+                >
+                  <div className="flex flex-col items-center justify-center w-5">
+                    <Users className="h-4 w-4 shrink-0" />
+                  </div>
+                  {isExpanded && <span className="truncate whitespace-nowrap text-sm">Customers</span>}
+                </button>
+                <button
+                  className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100 cursor-not-allowed"
+                  title={!isExpanded ? "All Invoices" : undefined}
+                >
+                  <div className="flex flex-col items-center justify-center w-5">
+                    <FileText className="h-4 w-4 shrink-0" />
+                  </div>
+                  {isExpanded && <span className="truncate whitespace-nowrap text-sm">Invoices</span>}
+                </button>
+              </div>
+            )}
           </div>
         </div>
         
@@ -228,6 +261,89 @@ export function InteractiveAppDemo() {
                   Review and approve automated emails before they are sent. 
                 </p>
                 <DraftList initialDrafts={[]} />
+              </div>
+
+              {/* Automations Section */}
+              <div className="pt-8 border-t border-white/10">
+                <div className="flex items-center gap-3 mb-8">
+                  <h2 className="text-2xl font-bold tracking-tight text-zinc-50">Active Automations</h2>
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-white/5 text-zinc-400">{mockClients.length + mockInvoices.length} running</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Clients Column */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Users className="h-5 w-5 text-rose-400" />
+                      <h3 className="text-lg font-semibold text-zinc-100">Statement Automations</h3>
+                      <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-white/5 text-zinc-400">{mockClients.length}</span>
+                    </div>
+
+                    <div className="space-y-4">
+                      {mockClients.map(client => (
+                        <div 
+                          key={client.id} 
+                          className="block rounded-xl border border-white/10 bg-zinc-900/50 p-4 transition-colors hover:bg-white/[0.02] hover:border-white/20"
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="font-medium text-zinc-200">{client.name}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${client.auto_approve ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-white/5 text-zinc-400 border border-white/10'}`}>
+                              {client.auto_approve ? "Auto" : "Manual Review"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+                            <div className="flex items-center gap-1.5 text-zinc-400">
+                              <Zap className="h-3 w-3 text-amber-500/70" />
+                              <span className="capitalize">{client.reminder_type}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-zinc-400">
+                              <Clock className="h-3 w-3 text-sky-500/70" />
+                              <span>Next: <LocalTime value={client.next_send_at} fallback="N/A" /></span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Invoices Column */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Receipt className="h-5 w-5 text-purple-400" />
+                      <h3 className="text-lg font-semibold text-zinc-100">Invoice Automations</h3>
+                      <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-white/5 text-zinc-400">{mockInvoices.length}</span>
+                    </div>
+
+                    <div className="space-y-4">
+                      {mockInvoices.map(invoice => (
+                        <div 
+                          key={invoice.id} 
+                          className="block rounded-xl border border-white/10 bg-zinc-900/50 p-4 transition-colors hover:bg-white/[0.02] hover:border-white/20"
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <span className="font-medium text-zinc-200">{invoice.recipient_name}</span>
+                              <p className="text-xs text-zinc-500 mt-0.5">{invoice.invoice_number || 'Invoice'}</p>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${invoice.auto_approve ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-white/5 text-zinc-400 border border-white/10'}`}>
+                              {invoice.auto_approve ? "Auto" : "Manual Review"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+                            <div className="flex items-center gap-1.5 text-zinc-400">
+                              <Zap className="h-3 w-3 text-amber-500/70" />
+                              <span className="capitalize">{invoice.reminder_type || 'sequence'}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-zinc-400">
+                              <Clock className="h-3 w-3 text-sky-500/70" />
+                              <span>Next: <LocalTime value={invoice.due_date} fallback="N/A" /></span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
