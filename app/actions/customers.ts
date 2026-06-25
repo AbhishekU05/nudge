@@ -820,11 +820,11 @@ export async function createCustomer(formData: FormData) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("razorpay_subscription_status, created_at")
+    .select("razorpay_subscription_status, razorpay_renews_at, created_at")
     .eq("user_id", user.id)
-    .maybeSingle<{ razorpay_subscription_status: string | null; created_at: string }>();
+    .maybeSingle<{ razorpay_subscription_status: string | null; razorpay_renews_at: string | null; created_at: string }>();
 
-  if (!hasActiveSubscription(profile?.razorpay_subscription_status ?? null, profile?.created_at)) {
+  if (!hasActiveSubscription(profile?.razorpay_subscription_status ?? null, profile?.created_at, profile?.razorpay_renews_at)) {
     redirect("/settings/billing?error=subscription_required");
   }
 

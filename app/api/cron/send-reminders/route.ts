@@ -41,6 +41,7 @@ type DueEntity = {
 type ProfileRow = {
   user_id: string;
   razorpay_subscription_status: string | null;
+  razorpay_renews_at: string | null;
   created_at: string;
 };
 
@@ -194,7 +195,7 @@ export async function POST(request: Request) {
   // Fetch subscriptions
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("user_id,razorpay_subscription_status,created_at")
+    .select("user_id,razorpay_subscription_status,razorpay_renews_at,created_at")
     .in("user_id", userIds)
     .returns<ProfileRow[]>();
 
@@ -221,8 +222,9 @@ export async function POST(request: Request) {
     const profile = profileByUserId.get(entity.user_id);
     const subscriptionStatus = profile?.razorpay_subscription_status ?? null;
     const createdAt = profile?.created_at ?? null;
+    const renewsAt = profile?.razorpay_renews_at ?? null;
 
-    if (!hasActiveSubscription(subscriptionStatus, createdAt)) {
+    if (!hasActiveSubscription(subscriptionStatus, createdAt, renewsAt)) {
       await supabase.from(entity.type === "client" ? "clients" : "invoices").update({ active: false }).eq("id", entity.id);
       continue;
     }

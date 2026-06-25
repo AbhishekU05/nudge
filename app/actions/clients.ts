@@ -12,13 +12,14 @@ export async function createClient(formData: FormData) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("razorpay_subscription_status, created_at")
+    .select("razorpay_subscription_status, razorpay_renews_at, created_at")
     .eq("user_id", user.id)
     .single();
 
   const hasSubscription = hasActiveSubscription(
     profile?.razorpay_subscription_status ?? null,
-    profile?.created_at
+    profile?.created_at,
+    profile?.razorpay_renews_at
   );
 
   if (!hasSubscription) {

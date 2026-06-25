@@ -210,7 +210,7 @@ export default async function CustomersPage({
   const allCustomers = _allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
 
   const subscriptionStatus = profile?.razorpay_subscription_status ?? "none";
-  const hasSubscription = hasActiveSubscription(subscriptionStatus, profile?.created_at);
+  const hasSubscription = hasActiveSubscription(subscriptionStatus, profile?.created_at, profile?.razorpay_renews_at);
   const isDevelopment = process.env.NODE_ENV === "development";
 
   const renewsAt = profile?.razorpay_renews_at
@@ -223,8 +223,8 @@ export default async function CustomersPage({
   );
 
   let trialDaysLeft = 0;
-  if (!renewsAt && hasSubscription && profile?.created_at && subscriptionStatus !== "active") {
-    trialDaysLeft = getTrialDaysLeft(profile.created_at, subscriptionStatus);
+  if (hasSubscription && profile?.created_at && subscriptionStatus !== "active") {
+    trialDaysLeft = getTrialDaysLeft(profile.created_at, subscriptionStatus, profile?.razorpay_renews_at);
   }
 
   const planLabel = getPlanLabel({ hasSubscription, subscriptionStatus, trialDaysLeft });

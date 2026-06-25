@@ -72,11 +72,11 @@ export default async function BillingPage({
     ? new Date(profile.razorpay_renews_at).toLocaleDateString()
     : null;
   const billingMessage = getBillingMessage(error);
-  const isActive = hasActiveSubscription(status, profile?.created_at);
+  const isActive = hasActiveSubscription(status, profile?.created_at, profile?.razorpay_renews_at);
 
   let trialDaysLeft = 0;
-  if (!renewsAt && isActive && profile?.created_at && status !== "active") {
-    trialDaysLeft = getTrialDaysLeft(profile.created_at, status);
+  if (isActive && profile?.created_at && status !== "active") {
+    trialDaysLeft = getTrialDaysLeft(profile.created_at, status, profile?.razorpay_renews_at);
   }
 
   // TODO: fix wording

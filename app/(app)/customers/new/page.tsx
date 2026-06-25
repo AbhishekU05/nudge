@@ -30,16 +30,18 @@ export default async function NewCustomerPage(props: {
   const supabase = await createSupabaseServerClient();
   const { data: profile } = await supabase
     .from("profiles")
-    .select("razorpay_subscription_status, created_at")
+    .select("razorpay_subscription_status, razorpay_renews_at, created_at")
     .eq("user_id", user.id)
     .maybeSingle<{
       razorpay_subscription_status: string | null;
+      razorpay_renews_at: string | null;
       created_at: string;
     }>();
 
   const hasSubscription = hasActiveSubscription(
     profile?.razorpay_subscription_status ?? null,
     profile?.created_at,
+    profile?.razorpay_renews_at
   );
 
   return (

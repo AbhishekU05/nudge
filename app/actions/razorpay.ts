@@ -151,9 +151,15 @@ export async function joinWaitlist() {
   const supabase = await createSupabaseServerClient();
 
   // Optimistically update the database
+  const renewsAt = new Date();
+  renewsAt.setDate(renewsAt.getDate() + 30);
+  
   const { error } = await supabase
     .from("profiles")
-    .update({ razorpay_subscription_status: "waitlist" })
+    .update({ 
+      razorpay_subscription_status: "waitlist",
+      razorpay_renews_at: renewsAt.toISOString(),
+    })
     .eq("user_id", user.id);
 
   if (error) {
