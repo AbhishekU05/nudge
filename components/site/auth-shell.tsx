@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Zap } from "lucide-react";
 
@@ -14,7 +15,7 @@ export function AuthShell({
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row bg-zinc-950 selection:bg-indigo-500/30">
       {/* Left Panel */}
-      <div className="relative hidden w-full lg:flex lg:w-1/2 xl:w-[45%] items-center justify-center overflow-hidden bg-zinc-950 border-r border-white/5">
+      <div className="relative hidden w-full lg:flex lg:w-1/2 xl:w-[45%] flex-col items-center justify-center gap-6 overflow-hidden bg-zinc-950 border-r border-white/5">
         {/* Subtle gradient */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div
@@ -24,11 +25,15 @@ export function AuthShell({
           <div className="absolute bottom-0 -right-1/4 w-[150%] h-[150%] bg-[radial-gradient(circle_at_bottom,rgba(168,85,247,0.07),transparent_40%)]" />
         </div>
 
-        <Link href="/" className="relative z-10 inline-flex items-center gap-3 transition-opacity hover:opacity-70">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/20 border border-indigo-500/30 shadow-lg shadow-indigo-500/10">
-            <Zap className="h-5 w-5 text-indigo-400" />
-          </div>
-          <span className="text-2xl font-bold tracking-tight text-zinc-50">Duely</span>
+        <Link href="/" className="relative z-10 inline-flex flex-col items-center gap-7 transition-opacity hover:opacity-70">
+          <Image
+            src="/logo.svg"
+            alt="Duely logo"
+            width={96}
+            height={106}
+            priority
+          />
+          <span className="text-4xl font-bold tracking-tight text-zinc-50">Duely</span>
         </Link>
       </div>
 
