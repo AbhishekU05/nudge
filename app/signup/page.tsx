@@ -24,13 +24,13 @@ export default async function SignupPage({
 
   return (
     <AuthShell
-      title="Join Duely."
-      description="Let's set up your workspace so you can start tracking and collecting without the awkwardness."
+      title="Create your account."
+      description="Start tracking invoices and getting paid on time."
     >
       <form action={signup} className="space-y-4">
         <input type="hidden" name="next" value={nextPath} />
         <div className="space-y-2">
-          <Label htmlFor="full_name">What should we call you?</Label>
+          <Label htmlFor="full_name">Full name</Label>
           <Input
             id="full_name"
             name="full_name"
@@ -40,7 +40,7 @@ export default async function SignupPage({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Where should we send notifications?</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             name="email"
@@ -51,7 +51,7 @@ export default async function SignupPage({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Choose a secure password</Label>
+          <Label htmlFor="password">Password</Label>
           <Input
             id="password"
             name="password"

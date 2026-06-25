@@ -25,16 +25,15 @@ export default async function LoginPage({
   });
   const googleAuthEnabled = isGoogleAuthEnabled();
 
-  // TODO: fix the wordings
   return (
     <AuthShell
       title="Welcome back."
-      description="Let's get you back to your workspace."
+      description="Sign in to your Duely account."
     >
       <form action={login} className="space-y-4">
         <input type="hidden" name="next" value={nextPath} />
         <div className="space-y-2">
-          <Label htmlFor="email">Your email</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             name="email"
@@ -45,7 +44,7 @@ export default async function LoginPage({
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Your password</Label>
+            <Label htmlFor="password">Password</Label>
             <Link
               href="/forgot-password"
               className="text-xs font-medium text-zinc-500 underline underline-offset-4 hover:text-zinc-200"

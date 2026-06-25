@@ -13,52 +13,35 @@ export function AuthShell({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen w-full flex-col lg:flex-row bg-zinc-950 selection:bg-indigo-500/30">
-      {/* Left Panel */}
-      <div className="relative hidden w-full lg:flex lg:w-1/2 xl:w-[45%] flex-col items-center justify-center gap-6 overflow-hidden bg-zinc-950 border-r border-white/5">
-        {/* Subtle gradient */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div
-            className="absolute top-0 -left-1/4 w-[150%] h-full bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.10),transparent_50%)] animate-pulse"
-            style={{ animationDuration: "8s" }}
-          />
-          <div className="absolute bottom-0 -right-1/4 w-[150%] h-[150%] bg-[radial-gradient(circle_at_bottom,rgba(168,85,247,0.07),transparent_40%)]" />
-        </div>
-
-        <Link href="/" className="relative z-10 inline-flex flex-col items-center gap-7 transition-opacity hover:opacity-70">
-          <Image
-            src="/logo.svg"
-            alt="Duely logo"
-            width={96}
-            height={106}
-            priority
-          />
-          <span className="text-4xl font-bold tracking-tight text-zinc-50">Duely</span>
-        </Link>
+    <div className="flex min-h-screen w-full items-center justify-center bg-zinc-950 selection:bg-indigo-500/30 p-6 sm:p-12">
+      {/* Subtle background gradients */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-full bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.10),transparent_50%)] animate-pulse"
+          style={{ animationDuration: "8s" }}
+        />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-[80%] bg-[radial-gradient(circle_at_bottom,rgba(168,85,247,0.07),transparent_40%)]" />
       </div>
 
-      {/* Right Panel - Form */}
-      <div className="relative flex flex-1 flex-col items-center justify-center p-6 sm:p-12 lg:p-16">
-        {/* Mobile logo */}
-        <div className="absolute top-8 left-8 lg:hidden">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/20 border border-indigo-500/30">
-              <Zap className="h-4 w-4 text-indigo-400" />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-zinc-50">Duely</span>
+      <div className="relative z-10 w-full max-w-sm xl:max-w-md animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out">
+        {/* Logo */}
+        <div className="mb-8 flex items-center gap-2.5">
+          <Link href="/" className="inline-flex items-center gap-2.5 transition-opacity hover:opacity-70">
+            <Image src="/logo.svg" alt="Duely" width={22} height={24} priority />
+            <span className="text-lg font-bold tracking-tight text-zinc-50">Duely</span>
           </Link>
         </div>
 
-        <div className="w-full max-w-sm xl:max-w-md animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
-          <div className="mb-10 text-center lg:text-left">
-            <h2 className="text-3xl font-semibold tracking-tight text-white">{title}</h2>
-            <p className="mt-2 text-zinc-400">{description}</p>
-          </div>
+        {/* Heading */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold tracking-tight text-white">{title}</h1>
+          <p className="mt-1.5 text-sm text-zinc-400">{description}</p>
+        </div>
 
-          <div className="rounded-3xl border border-white/5 bg-zinc-900/30 p-6 sm:p-8 backdrop-blur-xl shadow-2xl relative">
-            <div className="absolute -inset-1 -z-10 rounded-[2rem] bg-gradient-to-b from-indigo-500/10 to-transparent opacity-50 blur-xl" />
-            {children}
-          </div>
+        {/* Form card */}
+        <div className="rounded-2xl border border-white/5 bg-zinc-900/40 p-6 sm:p-8 backdrop-blur-xl shadow-2xl relative">
+          <div className="absolute -inset-1 -z-10 rounded-[1.5rem] bg-gradient-to-b from-indigo-500/10 to-transparent opacity-50 blur-xl" />
+          {children}
         </div>
       </div>
     </div>
