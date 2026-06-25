@@ -224,7 +224,7 @@ export default async function CustomersPage({
 
   let trialDaysLeft = 0;
   if (!renewsAt && hasSubscription && profile?.created_at && subscriptionStatus !== "active") {
-    trialDaysLeft = getTrialDaysLeft(profile.created_at);
+    trialDaysLeft = getTrialDaysLeft(profile.created_at, subscriptionStatus);
   }
 
   const planLabel = getPlanLabel({ hasSubscription, subscriptionStatus, trialDaysLeft });

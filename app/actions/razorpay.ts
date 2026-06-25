@@ -145,3 +145,32 @@ export async function cancelSubscription() {
 export async function manageSubscription() {
   redirect("/settings/billing?error=not_supported");
 }
+
+export async function joinWaitlist() {
+  const user = await requireUser();
+  const supabase = await createSupabaseServerClient();
+
+  // Optimistically update the database
+  const { error } = await supabase
+    .from("profiles")
+    .update({ razorpay_subscription_status: "waitlist" })
+    .eq("user_id", user.id);
+
+  if (error) {
+    logger.error({
+      message: "Failed to join waitlist",
+      context: "joinWaitlist",
+      user_id: user.id,
+      error: error.message,
+    });
+    redirect("/settings/billing?error=waitlist_failed");
+  }
+
+  logger.action({
+    action_name: "join_waitlist",
+    user_id: user.id,
+    success: true,
+  });
+
+  redirect("/settings/billing?success=You've been added to the waitlist and granted a 1-month extended trial!");
+}

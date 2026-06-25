@@ -76,7 +76,7 @@ export default async function BillingPage({
 
   let trialDaysLeft = 0;
   if (!renewsAt && isActive && profile?.created_at && status !== "active") {
-    trialDaysLeft = getTrialDaysLeft(profile.created_at);
+    trialDaysLeft = getTrialDaysLeft(profile.created_at, status);
   }
 
   // TODO: fix wording
@@ -123,12 +123,12 @@ export default async function BillingPage({
                         </Button>
                       </form>
                     ) : (
-                      <form action={startSubscriptionCheckout}>
-                        <Button type="submit" className="w-full">
+                      <Link href="/settings/billing/waitlist" className="w-full">
+                        <Button className="w-full">
                           <Zap className="h-3.5 w-3.5" />
                           {trialDaysLeft > 0 ? "Upgrade to basic plan" : "Subscribe"}
                         </Button>
-                      </form>
+                      </Link>
                     )}
                   </div>
                 </div>
