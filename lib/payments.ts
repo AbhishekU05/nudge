@@ -12,7 +12,7 @@ export function hasActiveSubscription(
 
   if (createdAt) {
     const isWaitlist = status === "waitlist";
-    const trialDays = isWaitlist ? 44 : 14;
+    const trialDays = isWaitlist ? 37 : 7;
     const trialEndMs = new Date(createdAt).getTime() + (trialDays * 24 * 60 * 60 * 1000);
 
     if (Date.now() < trialEndMs) return true;
@@ -25,7 +25,7 @@ export function getTrialDaysLeft(createdAt?: string | null, status?: string | nu
   if (!createdAt) return 0;
 
   const isWaitlist = status === "waitlist";
-  const trialDays = isWaitlist ? 44 : 14;
+  const trialDays = isWaitlist ? 37 : 7;
   const trialEndMs = new Date(createdAt).getTime() + (trialDays * 24 * 60 * 60 * 1000);
 
   return Math.max(
