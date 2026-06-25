@@ -13,8 +13,7 @@ import { InteractiveAppDemo } from "@/components/site/interactive-app-demo";
 import { AppSidebar } from "@/components/site/app-sidebar";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
-import { LifetimeDealSection } from "@/components/site/lifetime-deal-section";
-import { getRemainingLifetimeSpots } from "@/app/actions/leads";
+
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -91,8 +90,6 @@ export default async function Home({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const spotsLeft = await getRemainingLifetimeSpots();
 
   if (user) {
     redirect("/dashboard");
@@ -832,8 +829,7 @@ export default async function Home({
           </Container>
         </section>
 
-        {/* LIFETIME DEAL */}
-        <LifetimeDealSection spotsLeft={spotsLeft} />
+        {/* Lifetime Deal Section Removed */}
 
         {/* FOUNDER NOTE */}
         <section className="py-24 sm:py-32 border-t border-white/5 bg-zinc-950/50">
