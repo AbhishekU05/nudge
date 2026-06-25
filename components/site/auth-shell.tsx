@@ -1,29 +1,28 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { CheckCircle2, Zap, Clock, TrendingUp, MessageSquare } from "lucide-react";
+import { Zap, Clock, TrendingUp, MessageSquare, ShieldCheck } from "lucide-react";
 
 const FEATURES = [
   {
     icon: Clock,
     label: "Automated follow-ups",
-    sublabel: "Sent from your own email address",
+    sublabel: "Sent from your own email — no awkward templates",
   },
   {
     icon: TrendingUp,
     label: "Track every promise",
-    sublabel: "Payment dates, partials, and disputes",
+    sublabel: "Payment dates, partials, and client notes in one place",
   },
   {
     icon: MessageSquare,
     label: "Gentle, not pushy",
-    sublabel: "Keeps client relationships intact",
+    sublabel: "Keeps the client relationship intact while you get paid",
   },
-];
-
-const STATS = [
-  { value: "3.2×", label: "faster collections" },
-  { value: "80%", label: "less manual chasing" },
-  { value: "$0", label: "awkward phone calls" },
+  {
+    icon: ShieldCheck,
+    label: "Your data, your control",
+    sublabel: "Nothing sent without your review",
+  },
 ];
 
 export function AuthShell({
@@ -48,7 +47,7 @@ export function AuthShell({
           <div className="absolute bottom-0 -right-1/4 w-[150%] h-[150%] bg-[radial-gradient(circle_at_bottom,rgba(168,85,247,0.10),transparent_40%)]" />
         </div>
 
-        {/* Logo */}
+        {/* Logo + headline */}
         <div className="relative z-10">
           <Link href="/" className="inline-flex items-center gap-3 transition-opacity hover:opacity-80">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/20 border border-indigo-500/30 shadow-lg shadow-indigo-500/10">
@@ -57,7 +56,6 @@ export function AuthShell({
             <span className="text-xl font-bold tracking-tight text-zinc-50">Duely</span>
           </Link>
 
-          {/* Headline */}
           <div className="mt-14 max-w-md">
             <h1 className="text-[2.6rem] font-semibold leading-[1.12] tracking-[-0.04em] text-white">
               Get paid faster.{" "}
@@ -65,26 +63,13 @@ export function AuthShell({
             </h1>
             <p className="mt-5 text-base leading-relaxed text-zinc-400">
               Duely tracks your overdue invoices, logs payment promises, and sends
-              polite follow-ups automatically—so you can focus on the work, not the
-              chasing.
+              polite follow-ups automatically — so you can focus on the work, not
+              the chasing.
             </p>
           </div>
 
-          {/* Stat strip */}
-          <div className="mt-10 grid grid-cols-3 gap-3">
-            {STATS.map(({ value, label }) => (
-              <div
-                key={label}
-                className="rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 py-4 text-center backdrop-blur-sm"
-              >
-                <p className="text-2xl font-bold tracking-tight text-white">{value}</p>
-                <p className="mt-1 text-[0.7rem] uppercase tracking-widest text-zinc-500">{label}</p>
-              </div>
-            ))}
-          </div>
-
           {/* Feature list */}
-          <ul className="mt-8 space-y-3">
+          <ul className="mt-10 space-y-4">
             {FEATURES.map(({ icon: Icon, label, sublabel }) => (
               <li key={label} className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 border border-indigo-500/20">
@@ -97,33 +82,13 @@ export function AuthShell({
               </li>
             ))}
           </ul>
-
-          {/* Quote card */}
-          <div className="mt-10 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-5 py-4 backdrop-blur-sm">
-            <p className="text-sm leading-relaxed text-zinc-400">
-              &ldquo;I used to spend hours writing follow-up emails every Friday. Duely
-              does it for me and I've cut my outstanding receivables in half.&rdquo;
-            </p>
-            <p className="mt-3 text-xs font-medium text-zinc-500">
-              — Freelance designer, 3 months on Duely
-            </p>
-          </div>
         </div>
 
-        {/* Footer trust badges */}
-        <div className="relative z-10 flex items-center gap-6 text-xs font-medium text-zinc-500">
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5 text-indigo-400" />
-            <span>Bank-level security</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5 text-indigo-400" />
-            <span>Stripe integrated</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5 text-indigo-400" />
-            <span>No credit card to start</span>
-          </div>
+        {/* Footer */}
+        <div className="relative z-10">
+          <p className="text-xs text-zinc-600">
+            Built for freelancers and small agencies.
+          </p>
         </div>
       </div>
 
