@@ -5,7 +5,7 @@ export function LandingPageBody() {
   return (
     <>
       {/* ── Features ── */}
-      <section className="border-t border-white/5 py-20 sm:py-28">
+      <section id="how-it-works" className="border-t border-white/5 py-20 sm:py-28">
         <Container className="max-w-7xl">
           {/* center path line — only visible on sm+ */}
           <div className="relative">

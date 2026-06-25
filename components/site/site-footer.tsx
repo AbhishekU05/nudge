@@ -26,7 +26,7 @@ export function SiteFooter() {
 
           <div className="flex flex-col gap-3">
             <h3 className="font-semibold text-zinc-100 mb-1">Product</h3>
-            <Link href="/#how-it-works" className="hover:text-zinc-300 transition-colors">How it works</Link>
+            <Link href="/how-it-works" className="hover:text-zinc-300 transition-colors">How it works</Link>
             <Link href="/features" className="hover:text-zinc-300 transition-colors">Features</Link>
             <Link href="/#pricing" className="hover:text-zinc-300 transition-colors">Pricing</Link>
             <Link href="/integrations/quickbooks" className="hover:text-zinc-300 transition-colors">QuickBooks Sync</Link>
