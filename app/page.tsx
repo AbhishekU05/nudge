@@ -113,38 +113,6 @@ export default async function Home({
     softwareApplicationJsonLd,
   ];
 
-  const features = [
-    {
-      label: "01",
-      title: "Action Center",
-      desc: "A daily prioritized queue of who to contact, ranked by invoice aging, financial risk, and broken promises. Stop guessing who to chase — Duely tells you.",
-    },
-    {
-      label: "02",
-      title: "Automated reminders",
-      desc: "Set a recurring schedule or a multi-step email sequence. Reminders go out automatically. The moment you step in manually, the sequence pauses.",
-    },
-    {
-      label: "03",
-      title: "Follow-up drafting",
-      desc: "Generate a follow-up email in one click. Pick a tone — Friendly, Professional, or Firm — and send it from your own Gmail address.",
-    },
-    {
-      label: "04",
-      title: "Late fee automation",
-      desc: "Set a flat or percentage late fee policy once. Duely applies it automatically on chronically late invoices — so you can blame the system, not yourself.",
-    },
-    {
-      label: "05",
-      title: "Client portal",
-      desc: "Give clients a secure link to view their balance, download past invoices, and pay directly. No more 'can you resend the invoice?' emails.",
-    },
-    {
-      label: "06",
-      title: "Accounting integrations",
-      desc: "Sync invoices directly from Xero, QuickBooks, or Stripe. Your pipeline stays up to date without any manual data entry.",
-    },
-  ];
 
   return (
     <div className="flex flex-1 flex-col overflow-x-hidden">
@@ -198,35 +166,210 @@ export default async function Home({
 
         {/* ── Features ── */}
         <section className="border-t border-white/5 py-20 sm:py-28">
-          <Container className="max-w-4xl">
-            <div className="mb-16">
-              <h2 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
-                Built around how collections actually works
-              </h2>
-              <p className="mt-3 text-zinc-500 max-w-md">
-                Every feature is designed to get you paid faster without damaging
-                the relationship.
-              </p>
+          <Container className="max-w-5xl">
+
+            {/* ── Action Center ── */}
+            <div className="grid gap-12 py-16 sm:grid-cols-2 sm:items-center border-b border-white/[0.06]">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-3">Action Center</p>
+                <h2 className="text-2xl font-bold tracking-tight text-zinc-50">
+                  Stop guessing who to chase.
+                </h2>
+                <p className="mt-4 text-sm leading-relaxed text-zinc-500">
+                  Every morning, Duely scores your entire client list by invoice
+                  aging, financial risk, and broken promises — and gives you a
+                  prioritized queue of exactly who needs a nudge today.
+                  No spreadsheets, no gut feel.
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-zinc-900/80 p-4 space-y-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-semibold text-zinc-400">Today&apos;s queue</span>
+                  <span className="text-xs text-zinc-600">3 actions</span>
+                </div>
+                <div className="rounded-lg border border-red-500/30 bg-red-500/[0.06] p-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded">Critical</span>
+                    <span className="text-[11px] text-zinc-500">Acme Corp · $15,400</span>
+                  </div>
+                  <p className="text-xs text-zinc-300">Follow up on broken promise — 18 days overdue</p>
+                  <div className="mt-2.5 inline-flex items-center rounded bg-red-500/15 px-2.5 py-1 text-[11px] font-medium text-red-300">Send firm follow-up</div>
+                </div>
+                <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.04] p-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Moderate</span>
+                    <span className="text-[11px] text-zinc-500">Initech LLC · $2,150</span>
+                  </div>
+                  <p className="text-xs text-zinc-300">14 days overdue — no broken promises yet</p>
+                </div>
+                <div className="rounded-lg border border-white/[0.05] bg-white/[0.02] p-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 bg-white/5 px-1.5 py-0.5 rounded">Chill</span>
+                    <span className="text-[11px] text-zinc-500">Stark Industries · $12,000</span>
+                  </div>
+                  <p className="text-xs text-zinc-500">Only 2 days late. Good payer — they probably forgot.</p>
+                </div>
+              </div>
             </div>
 
-            <div className="divide-y divide-white/[0.06]">
-              {features.map((f, i) => (
-                <div
-                  key={f.title}
-                  className="grid grid-cols-[2rem_1fr] gap-x-8 py-8 sm:grid-cols-[2rem_1fr_1fr]"
-                >
-                  <span className="text-xs font-medium tabular-nums text-zinc-600 pt-0.5">
-                    {f.label}
-                  </span>
-                  <h3 className="text-sm font-semibold text-zinc-100">
-                    {f.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-zinc-500 sm:mt-0 col-start-2 sm:col-start-3">
-                    {f.desc}
-                  </p>
+            {/* ── Automated Reminders ── */}
+            <div className="grid gap-12 py-16 sm:grid-cols-2 sm:items-center border-b border-white/[0.06]">
+              <div className="rounded-xl border border-white/10 bg-zinc-900/80 p-4 order-last sm:order-first">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-semibold text-zinc-300">Invoice automation</span>
+                  <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">Active</span>
                 </div>
-              ))}
+                <div className="space-y-3">
+                  {[
+                    { day: "Day 3", label: "Friendly reminder", done: true },
+                    { day: "Day 7", label: "Professional nudge", done: true },
+                    { day: "Day 14", label: "Firm warning", done: false },
+                  ].map((step) => (
+                    <div key={step.day} className="flex items-center gap-3">
+                      <div className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${
+                        step.done ? "bg-indigo-500" : "bg-zinc-700"
+                      }`} />
+                      <span className="text-[11px] text-zinc-600 w-10">{step.day}</span>
+                      <span className={`text-xs ${
+                        step.done ? "text-zinc-300" : "text-zinc-600"
+                      }`}>{step.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 pt-4 border-t border-white/[0.05] flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  <span className="text-[10px] text-zinc-600">Paused — you logged a manual call today</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-3">Automated reminders</p>
+                <h2 className="text-2xl font-bold tracking-tight text-zinc-50">
+                  Set it once. Let it run.
+                </h2>
+                <p className="mt-4 text-sm leading-relaxed text-zinc-500">
+                  Configure a recurring schedule or a multi-step email sequence.
+                  Reminders go out on autopilot — and the moment you log a
+                  manual call or message, the sequence pauses automatically
+                  so you never sound out of touch.
+                </p>
+              </div>
             </div>
+
+            {/* ── Gmail integration ── */}
+            <div className="grid gap-12 py-16 sm:grid-cols-2 sm:items-center border-b border-white/[0.06]">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-3">Gmail integration</p>
+                <h2 className="text-2xl font-bold tracking-tight text-zinc-50">
+                  Emails from you, not a bot.
+                </h2>
+                <p className="mt-4 text-sm leading-relaxed text-zinc-500">
+                  Connect your Gmail and every follow-up lands in the
+                  client&apos;s inbox as a regular email from your address —
+                  not from a no-reply system. Replies go straight to your
+                  inbox, keeping the conversation natural.
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-zinc-900/80 p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex h-6 w-6 items-center justify-center rounded bg-white/5 text-[11px] font-bold text-zinc-300">G</div>
+                  <span className="text-xs font-medium text-zinc-300">you@gmail.com</span>
+                  <span className="ml-auto text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">Connected</span>
+                </div>
+                <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 space-y-2.5 text-xs">
+                  <div className="flex gap-3">
+                    <span className="w-8 text-zinc-600">To</span>
+                    <span className="text-zinc-300">sarah@acmecorp.com</span>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="w-8 text-zinc-600">From</span>
+                    <span className="text-zinc-300">you@gmail.com</span>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="w-8 text-zinc-600">Re</span>
+                    <span className="text-zinc-400">Invoice #1042 — outstanding balance</span>
+                  </div>
+                  <div className="border-t border-white/[0.05] pt-2.5 text-zinc-500">
+                    Hi Sarah, just a quick follow-up on invoice #1042...
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Late fee automation ── */}
+            <div className="grid gap-12 py-16 sm:grid-cols-2 sm:items-center border-b border-white/[0.06]">
+              <div className="rounded-xl border border-white/10 bg-zinc-900/80 p-4 order-last sm:order-first">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-semibold text-zinc-300">Late fee policy</span>
+                  <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">Enabled</span>
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    { label: "Type", value: "Percentage" },
+                    { label: "Rate", value: "5% per month" },
+                    { label: "Grace period", value: "14 days" },
+                    { label: "Frequency", value: "Monthly" },
+                  ].map((row) => (
+                    <div key={row.label} className="flex justify-between">
+                      <span className="text-xs text-zinc-600">{row.label}</span>
+                      <span className="text-xs text-zinc-300">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 pt-4 border-t border-white/[0.05]">
+                  <p className="text-[10px] text-zinc-600">Next application in 4 days</p>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">Acme Corp — $772 late fee will be logged</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-3">Late fee automation</p>
+                <h2 className="text-2xl font-bold tracking-tight text-zinc-50">
+                  Charge late fees without the awkward conversation.
+                </h2>
+                <p className="mt-4 text-sm leading-relaxed text-zinc-500">
+                  Configure a flat or percentage late fee policy once — with
+                  grace periods and recurring frequencies. Duely applies it
+                  automatically to chronically late invoices. Blame the
+                  system, not yourself.
+                </p>
+              </div>
+            </div>
+
+            {/* ── Client portal ── */}
+            <div className="grid gap-12 py-16 sm:grid-cols-2 sm:items-center">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-3">Client portal</p>
+                <h2 className="text-2xl font-bold tracking-tight text-zinc-50">
+                  Give clients a way to help themselves.
+                </h2>
+                <p className="mt-4 text-sm leading-relaxed text-zinc-500">
+                  Share a secure link with any client. They can view their
+                  outstanding balance, download past invoices, and pay
+                  directly — no more &ldquo;can you resend the invoice?&rdquo; emails,
+                  no more payment link ping-pong.
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-zinc-900/80 p-4">
+                <div className="mb-4">
+                  <p className="text-[10px] uppercase tracking-widest text-zinc-600">Client view</p>
+                  <p className="text-xs font-medium text-zinc-400 mt-1">Outstanding balance</p>
+                  <p className="text-3xl font-bold text-zinc-50 mt-1">$8,200</p>
+                </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between items-center rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+                    <span className="text-xs text-zinc-400">Invoice #1041</span>
+                    <span className="text-xs text-red-400">$5,000 · 32d overdue</span>
+                  </div>
+                  <div className="flex justify-between items-center rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+                    <span className="text-xs text-zinc-400">Invoice #1042</span>
+                    <span className="text-xs text-amber-400">$3,200 · 14d overdue</span>
+                  </div>
+                </div>
+                <div className="rounded-lg bg-indigo-600 py-2.5 text-center text-xs font-semibold text-white">
+                  Pay now
+                </div>
+              </div>
+            </div>
+
           </Container>
         </section>
 
