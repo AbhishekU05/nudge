@@ -115,84 +115,34 @@ export default async function Home({
 
   const features = [
     {
-      icon: "⚡",
+      label: "01",
       title: "Action Center",
-      desc: "A daily prioritized queue of who to contact — ranked by invoice aging, financial risk, and broken promises. No more guessing who to chase.",
+      desc: "A daily prioritized queue of who to contact, ranked by invoice aging, financial risk, and broken promises. Stop guessing who to chase — Duely tells you.",
     },
     {
-      icon: "📊",
-      title: "Collections Pipeline",
-      desc: "Kanban-style board showing every client across Outstanding, Overdue, and Paid stages. See your entire AR at a glance.",
-    },
-    {
-      icon: "📈",
-      title: "Analytics & Trends",
-      desc: "Collection trend charts, monthly revenue collected, and overdue aging breakdowns — so you always know where you stand.",
-    },
-    {
-      icon: "✉️",
-      title: "Smart follow-up drafting",
-      desc: "Generate follow-up emails in one click. Pick a tone — Friendly, Professional, or Firm — and send directly from your own Gmail.",
-    },
-    {
-      icon: "🔔",
+      label: "02",
       title: "Automated reminders",
-      desc: "Set a recurring schedule or a multi-step email sequence. Duely sends reminders automatically and pauses the moment you step in manually.",
+      desc: "Set a recurring schedule or a multi-step email sequence. Reminders go out automatically. The moment you step in manually, the sequence pauses.",
     },
     {
-      icon: "🤝",
-      title: "Payment promise tracking",
-      desc: "Log when a client promises to pay and by when. Duely surfaces broken promises in the Action Center so nothing slips through.",
+      label: "03",
+      title: "Follow-up drafting",
+      desc: "Generate a follow-up email in one click. Pick a tone — Friendly, Professional, or Firm — and send it from your own Gmail address.",
     },
     {
-      icon: "💳",
-      title: "Partial payment logging",
-      desc: "Record partial payments with a running balance and progress bar. Know exactly how much is still owed on every invoice.",
-    },
-    {
-      icon: "📋",
-      title: "Activity timeline",
-      desc: "A full chronological log of every call, email, WhatsApp message, and payment — per client. Complete context, always.",
-    },
-    {
-      icon: "🏦",
+      label: "04",
       title: "Late fee automation",
-      desc: "Configure a flat or percentage late fee policy with grace periods and recurring frequencies. Duely applies fees automatically.",
+      desc: "Set a flat or percentage late fee policy once. Duely applies it automatically on chronically late invoices — so you can blame the system, not yourself.",
     },
     {
-      icon: "👥",
-      title: "Client groups",
-      desc: "Organise clients into groups with custom tags. Exclude VIP accounts from automation or apply tighter policies to chronic late-payers.",
-    },
-    {
-      icon: "🔒",
+      label: "05",
       title: "Client portal",
-      desc: "Give clients a secure, branded link to view their outstanding balance, download past invoices, and pay — without emailing you first.",
+      desc: "Give clients a secure link to view their balance, download past invoices, and pay directly. No more 'can you resend the invoice?' emails.",
     },
     {
-      icon: "🔗",
+      label: "06",
       title: "Accounting integrations",
-      desc: "Sync invoices directly from Xero, QuickBooks, or Stripe. No CSV uploads, no manual data entry.",
-    },
-    {
-      icon: "📧",
-      title: "Gmail integration",
-      desc: "Send follow-ups from your own Gmail address. Emails land in the client's inbox from you — not from a no-reply bot.",
-    },
-    {
-      icon: "⏸️",
-      title: "Smart cooldowns",
-      desc: "When you log a manual call or message, the automated sequence automatically pauses. Duely knows when to step back.",
-    },
-    {
-      icon: "📝",
-      title: "Internal notes",
-      desc: "Add private notes to any client record — context about their situation, promises they made, or anything else you need to remember.",
-    },
-    {
-      icon: "📤",
-      title: "CSV export",
-      desc: "Export your full collections pipeline to CSV at any time. Your data, your format, no lock-in.",
+      desc: "Sync invoices directly from Xero, QuickBooks, or Stripe. Your pipeline stays up to date without any manual data entry.",
     },
   ];
 
@@ -248,28 +198,30 @@ export default async function Home({
 
         {/* ── Features ── */}
         <section className="border-t border-white/5 py-20 sm:py-28">
-          <Container className="max-w-6xl">
-            <div className="mb-14 text-center">
+          <Container className="max-w-4xl">
+            <div className="mb-16">
               <h2 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
-                Everything in one place
+                Built around how collections actually works
               </h2>
-              <p className="mt-3 text-zinc-500 max-w-lg mx-auto">
-                Built for freelancers and agencies who are done chasing payments
-                manually. Every feature you need, nothing you don&apos;t.
+              <p className="mt-3 text-zinc-500 max-w-md">
+                Every feature is designed to get you paid faster without damaging
+                the relationship.
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {features.map((f) => (
+            <div className="divide-y divide-white/[0.06]">
+              {features.map((f, i) => (
                 <div
                   key={f.title}
-                  className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 transition hover:border-white/10 hover:bg-white/[0.04]"
+                  className="grid grid-cols-[2rem_1fr] gap-x-8 py-8 sm:grid-cols-[2rem_1fr_1fr]"
                 >
-                  <span className="text-xl">{f.icon}</span>
-                  <h3 className="mt-3 text-sm font-semibold text-zinc-100">
+                  <span className="text-xs font-medium tabular-nums text-zinc-600 pt-0.5">
+                    {f.label}
+                  </span>
+                  <h3 className="text-sm font-semibold text-zinc-100">
                     {f.title}
                   </h3>
-                  <p className="mt-1.5 text-xs leading-relaxed text-zinc-500">
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-500 sm:mt-0 col-start-2 sm:col-start-3">
                     {f.desc}
                   </p>
                 </div>
