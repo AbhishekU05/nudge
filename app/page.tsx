@@ -13,13 +13,15 @@ import { websiteSchema } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
   title: "Collect what you're owed, keep the relationship",
-  description: "Track outstanding invoices, payment promises, partial payments, and follow-ups. Collections management built for freelancers and agencies.",
+  description:
+    "Track outstanding invoices, payment promises, partial payments, and follow-ups. Collections management built for freelancers and agencies.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: "Collect what you're owed, keep the relationship",
-    description: "Track outstanding invoices, payment promises, partial payments, and follow-ups. Collections management built for freelancers and agencies.",
+    description:
+      "Track outstanding invoices, payment promises, partial payments, and follow-ups. Collections management built for freelancers and agencies.",
     url: "https://duely.in/",
     type: "website",
     images: [
@@ -33,7 +35,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Collect what you're owed, keep the relationship",
-    description: "Track outstanding invoices, payment promises, partial payments, and follow-ups.",
+    description:
+      "Track outstanding invoices, payment promises, partial payments, and follow-ups.",
     images: ["https://duely.in/og-image.png"],
   },
 };
@@ -110,6 +113,89 @@ export default async function Home({
     softwareApplicationJsonLd,
   ];
 
+  const features = [
+    {
+      icon: "⚡",
+      title: "Action Center",
+      desc: "A daily prioritized queue of who to contact — ranked by invoice aging, financial risk, and broken promises. No more guessing who to chase.",
+    },
+    {
+      icon: "📊",
+      title: "Collections Pipeline",
+      desc: "Kanban-style board showing every client across Outstanding, Overdue, and Paid stages. See your entire AR at a glance.",
+    },
+    {
+      icon: "📈",
+      title: "Analytics & Trends",
+      desc: "Collection trend charts, monthly revenue collected, and overdue aging breakdowns — so you always know where you stand.",
+    },
+    {
+      icon: "✉️",
+      title: "Smart follow-up drafting",
+      desc: "Generate follow-up emails in one click. Pick a tone — Friendly, Professional, or Firm — and send directly from your own Gmail.",
+    },
+    {
+      icon: "🔔",
+      title: "Automated reminders",
+      desc: "Set a recurring schedule or a multi-step email sequence. Duely sends reminders automatically and pauses the moment you step in manually.",
+    },
+    {
+      icon: "🤝",
+      title: "Payment promise tracking",
+      desc: "Log when a client promises to pay and by when. Duely surfaces broken promises in the Action Center so nothing slips through.",
+    },
+    {
+      icon: "💳",
+      title: "Partial payment logging",
+      desc: "Record partial payments with a running balance and progress bar. Know exactly how much is still owed on every invoice.",
+    },
+    {
+      icon: "📋",
+      title: "Activity timeline",
+      desc: "A full chronological log of every call, email, WhatsApp message, and payment — per client. Complete context, always.",
+    },
+    {
+      icon: "🏦",
+      title: "Late fee automation",
+      desc: "Configure a flat or percentage late fee policy with grace periods and recurring frequencies. Duely applies fees automatically.",
+    },
+    {
+      icon: "👥",
+      title: "Client groups",
+      desc: "Organise clients into groups with custom tags. Exclude VIP accounts from automation or apply tighter policies to chronic late-payers.",
+    },
+    {
+      icon: "🔒",
+      title: "Client portal",
+      desc: "Give clients a secure, branded link to view their outstanding balance, download past invoices, and pay — without emailing you first.",
+    },
+    {
+      icon: "🔗",
+      title: "Accounting integrations",
+      desc: "Sync invoices directly from Xero, QuickBooks, or Stripe. No CSV uploads, no manual data entry.",
+    },
+    {
+      icon: "📧",
+      title: "Gmail integration",
+      desc: "Send follow-ups from your own Gmail address. Emails land in the client's inbox from you — not from a no-reply bot.",
+    },
+    {
+      icon: "⏸️",
+      title: "Smart cooldowns",
+      desc: "When you log a manual call or message, the automated sequence automatically pauses. Duely knows when to step back.",
+    },
+    {
+      icon: "📝",
+      title: "Internal notes",
+      desc: "Add private notes to any client record — context about their situation, promises they made, or anything else you need to remember.",
+    },
+    {
+      icon: "📤",
+      title: "CSV export",
+      desc: "Export your full collections pipeline to CSV at any time. Your data, your format, no lock-in.",
+    },
+  ];
+
   return (
     <div className="flex flex-1 flex-col overflow-x-hidden">
       {homeSchemas.map((schema, index) => (
@@ -131,17 +217,17 @@ export default async function Home({
         <section className="py-28 sm:py-36">
           <Container className="max-w-3xl text-center">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-indigo-400">
-              Collections, simplified
+              For freelancers &amp; agencies
             </p>
             <h1 className="text-4xl font-bold tracking-tight text-zinc-50 sm:text-5xl lg:text-6xl">
-              Stop chasing invoices.
+              Your invoices are overdue.
               <br />
-              <span className="text-zinc-400">Start getting paid.</span>
+              <span className="text-zinc-400">Your time shouldn&apos;t be.</span>
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-zinc-400 max-w-xl mx-auto">
-              Duely makes managing your invoices easy — track outstanding
-              balances, automate follow-ups, and keep every client relationship
-              intact.
+              Duely tracks every outstanding invoice, automates follow-ups, and
+              tells you exactly who to chase today — so you can get paid without
+              the awkward back-and-forth.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
               <a
@@ -162,59 +248,28 @@ export default async function Home({
 
         {/* ── Features ── */}
         <section className="border-t border-white/5 py-20 sm:py-28">
-          <Container className="max-w-5xl">
+          <Container className="max-w-6xl">
             <div className="mb-14 text-center">
               <h2 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
-                Everything you need to get paid
+                Everything in one place
               </h2>
-              <p className="mt-3 text-zinc-500">
-                Built for freelancers and small agencies who are done with
-                awkward payment chases.
+              <p className="mt-3 text-zinc-500 max-w-lg mx-auto">
+                Built for freelancers and agencies who are done chasing payments
+                manually. Every feature you need, nothing you don&apos;t.
               </p>
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {[
-                {
-                  icon: "⚡",
-                  title: "Action Center",
-                  desc: "A daily prioritized queue of who to contact — ranked by aging, risk, and broken promises. No more guessing.",
-                },
-                {
-                  icon: "✉️",
-                  title: "Smart follow-ups",
-                  desc: "Draft follow-up emails in one click. Choose your tone — friendly, professional, or firm — and send from your own Gmail.",
-                },
-                {
-                  icon: "🔔",
-                  title: "Automated reminders",
-                  desc: "Set a schedule once. Duely sends reminders automatically and pauses the moment you step in manually.",
-                },
-                {
-                  icon: "🏦",
-                  title: "Late fee automation",
-                  desc: "Configure a flat or percentage late fee policy. Duely applies it automatically so you can stop the awkward conversation.",
-                },
-                {
-                  icon: "🔗",
-                  title: "Accounting integrations",
-                  desc: "Sync invoices directly from QuickBooks, Xero, or Stripe — no CSV uploads needed.",
-                },
-                {
-                  icon: "🔒",
-                  title: "Client portal",
-                  desc: "Give clients a secure link to view their balance, download invoices, and pay — without emailing you first.",
-                },
-              ].map((f) => (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {features.map((f) => (
                 <div
                   key={f.title}
-                  className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition hover:border-white/10 hover:bg-white/[0.04]"
+                  className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 transition hover:border-white/10 hover:bg-white/[0.04]"
                 >
-                  <span className="text-2xl">{f.icon}</span>
-                  <h3 className="mt-4 text-sm font-semibold text-zinc-100">
+                  <span className="text-xl">{f.icon}</span>
+                  <h3 className="mt-3 text-sm font-semibold text-zinc-100">
                     {f.title}
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+                  <p className="mt-1.5 text-xs leading-relaxed text-zinc-500">
                     {f.desc}
                   </p>
                 </div>
@@ -224,7 +279,7 @@ export default async function Home({
         </section>
 
         {/* ── Pricing ── */}
-        <section className="border-t border-white/5 py-20 sm:py-28">
+        <section id="pricing" className="border-t border-white/5 py-20 sm:py-28">
           <Container className="max-w-4xl">
             <div className="mb-14 text-center">
               <h2 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
@@ -248,6 +303,7 @@ export default async function Home({
                     "Up to 5 active clients",
                     "Manual follow-up drafting",
                     "Activity timeline",
+                    "Payment promise tracking",
                     "CSV export",
                   ].map((item) => (
                     <li key={item} className="flex items-center gap-2">
@@ -276,11 +332,14 @@ export default async function Home({
                 <ul className="mt-8 space-y-3 text-sm text-zinc-400">
                   {[
                     "Unlimited clients",
-                    "Automated reminders",
                     "Action Center",
+                    "Automated reminders & sequences",
                     "Late fee automation",
                     "Client portal",
-                    "QuickBooks, Xero & Stripe sync",
+                    "Client groups & segmentation",
+                    "Xero, QuickBooks & Stripe sync",
+                    "Gmail integration",
+                    "Analytics & trend charts",
                     "Priority support",
                   ].map((item) => (
                     <li key={item} className="flex items-center gap-2">
