@@ -122,7 +122,7 @@ export default async function ForConsultantsPage({
         </section>
 
         {/* ── All shared sections ── */}
-        <LandingPageBody spotsLeft={spotsLeft} />
+        <LandingPageBody />
       </main>
 
       <SiteFooter />

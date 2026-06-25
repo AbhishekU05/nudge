@@ -120,7 +120,7 @@ export default async function ForFreelancersPage({
         </section>
 
         {/* ── All shared sections ── */}
-        <LandingPageBody spotsLeft={spotsLeft} />
+        <LandingPageBody />
       </main>
 
       <SiteFooter />

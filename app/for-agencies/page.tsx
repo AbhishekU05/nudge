@@ -123,7 +123,7 @@ export default async function ForAgenciesPage({
         </section>
 
         {/* ── All shared sections ── */}
-        <LandingPageBody spotsLeft={spotsLeft} />
+        <LandingPageBody />
       </main>
 
       <SiteFooter />
