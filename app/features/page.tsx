@@ -175,7 +175,7 @@ export default function FeaturesPage() {
                     <h2 className="text-2xl font-bold tracking-tight text-zinc-50">
                       {group.group}
                     </h2>
-                    <p className="mt-2 text-sm text-zinc-500">{group.desc}</p>
+                    <p className="mt-2 text-base text-zinc-500">{group.desc}</p>
                   </div>
 
                   {/* Feature list */}
@@ -185,10 +185,10 @@ export default function FeaturesPage() {
                         key={feature.title}
                         className="grid gap-4 py-6 sm:grid-cols-[280px_1fr]"
                       >
-                        <h3 className="text-sm font-semibold text-zinc-100 pt-0.5">
+                        <h3 className="text-base font-semibold text-zinc-100 pt-0.5">
                           {feature.title}
                         </h3>
-                        <p className="text-sm leading-relaxed text-zinc-500">
+                        <p className="text-base leading-relaxed text-zinc-500">
                           {feature.desc}
                         </p>
                       </div>
