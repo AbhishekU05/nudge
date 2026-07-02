@@ -149,7 +149,7 @@ export async function signup(formData: FormData) {
 
   // TODO: bruhh just fix the redirect
   if (error) {
-    redirect(getSignupErrorPath({ error: error.message, nextPath, email }));
+    redirect(getSignupErrorPath({ error: "Something went wrong. Please try again.", nextPath, email }));
   }
 
   if (data.user?.identities && data.user.identities.length === 0) {
@@ -272,10 +272,10 @@ export async function login(formData: FormData) {
     attempts += 1;
     cookieStore.set("failed_login_attempts", attempts.toString(), { maxAge: 900, path: '/' });
 
-    let errorMessage = error.message;
+    let errorMessage = "Something went wrong. Please try again.";
     if (attempts >= 3) {
       errorMessage = "Too many failed attempts. Please wait before trying again.";
-    } else if (errorMessage.toLowerCase().includes("invalid login credentials")) {
+    } else if (error.message.toLowerCase().includes("invalid login credentials")) {
       errorMessage = "Invalid email or password. If you don't have an account, please sign up.";
     }
 

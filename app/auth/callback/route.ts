@@ -32,14 +32,14 @@ export async function GET(request: Request) {
 
   if (authError) {
     return NextResponse.redirect(
-      new URL(getAuthErrorRedirectPath(authError, nextPath), url.origin),
+      new URL(getAuthErrorRedirectPath("Something went wrong. Please try again.", nextPath), url.origin),
     );
   }
 
   if (!code) {
     return NextResponse.redirect(
       new URL(
-        getAuthErrorRedirectPath("Missing authentication code.", nextPath),
+        getAuthErrorRedirectPath("Something went wrong. Please try again.", nextPath),
         url.origin,
       ),
     );
@@ -50,7 +50,7 @@ export async function GET(request: Request) {
 
   if (error) {
     return NextResponse.redirect(
-      new URL(getAuthErrorRedirectPath(error.message, nextPath), url.origin),
+      new URL(getAuthErrorRedirectPath("Something went wrong. Please try again.", nextPath), url.origin),
     );
   }
 

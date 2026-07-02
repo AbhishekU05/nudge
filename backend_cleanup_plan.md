@@ -299,3 +299,15 @@ ALTER TABLE webhook_events ENABLE ROW LEVEL SECURITY;
 1. **Log Aggregation (Axiom / BetterStack)**: Install the Vercel logging integration to automatically intercept the existing structured JSON output from `lib/logger.ts`, enabling real-time dashboarding and filtering without any code changes.
 2. **Exception & APM Tracking (Sentry)**: Install `@sentry/nextjs` to globally capture unhandled exceptions, memory leaks, and slow Supabase queries. Update `logger.error` to push stack traces directly to Sentry.
 3. **Background Job Visibility (Inngest Native)**: Leverage Inngest's native observability dashboard to monitor executing webhooks, debug stalled step functions, and replay failed background jobs identically in production.
+
+---
+
+## Milestone 8: Admin Dashboard & Global Configuration
+**Goal:** Implement a centralized configuration file for environment/app rules and build out a robust internal Admin Dashboard for system monitoring and manual interventions.
+
+1. **Global Config Setup**: Create a `nudge.config.ts` (or similar) at the root to centralize feature flags, pricing logic, rate limit rules, and default templates.
+2. **Admin Authentication**: Configure protected `/admin/*` routes strictly accessible only by super-admin roles (e.g., matching specific user emails or a boolean flag in profiles).
+3. **Admin Dashboard Views**: 
+   - Expose the `organizations` list and their subscription states.
+   - Expose the `webhook_events` log to see real-time payment ingestion failures.
+   - Add manual triggers for "force sync" on an organization basis.

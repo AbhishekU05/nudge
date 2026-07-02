@@ -19,10 +19,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { startSubscriptionCheckout, cancelSubscription } from "@/app/actions/billing";
 import { requireUser } from "@/lib/auth";
+import { getOrganizationBillingForUser } from "@/lib/organization-billing";
 import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/payments";
 import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
 
 // display billing message
 // TODO: fix wording
@@ -50,34 +50,28 @@ export default async function BillingPage({
   const { canceled, error, success } = await searchParams;
   const monthlyPrice = await getLocalizedMonthlyPrice();
   const supabase = await createSupabaseServerClient();
-  let profile = null;
+  let org = null;
+  let createdAt = new Date().toISOString();
+  
   try {
-    const profileRes = await supabase
+    org = await getOrganizationBillingForUser(supabase, user.id);
+    const { data: profile } = await supabase
       .from("profiles")
-      .select("razorpay_subscription_status,razorpay_renews_at,created_at")
+      .select("created_at")
       .eq("user_id", user.id)
-      .maybeSingle<{
-        razorpay_subscription_status: string | null;
-        razorpay_renews_at: string | null;
-        created_at: string;
-      }>();
-    profile = profileRes.data;
+      .single();
+    if (profile) createdAt = profile.created_at;
   } catch (err) {
-    // Graceful fallback on error
-    profile = null;
+    org = null;
   }
 
-  const status = profile?.razorpay_subscription_status ?? "none";
-  const renewsAt = profile?.razorpay_renews_at
-    ? new Date(profile.razorpay_renews_at).toLocaleDateString()
-    : null;
+  const status = org?.dodo_subscription_status ?? "none";
+  // We don't have renews_at from Dodo stored yet, so we just say Active
+  const renewsAt = status === "active" ? "Active" : null;
   const billingMessage = getBillingMessage(error);
-  const isActive = hasActiveSubscription(status, profile?.created_at, profile?.razorpay_renews_at);
-
+  // Dodo subscriptions don't have a built in trial logic via created_at unless we track it
+  const isActive = status === "active" || status === "on_hold";
   let trialDaysLeft = 0;
-  if (isActive && status !== "active") {
-    trialDaysLeft = getTrialDaysLeft(profile?.created_at, status, profile?.razorpay_renews_at);
-  }
 
   // TODO: fix wording
   return (
@@ -100,37 +94,66 @@ export default async function BillingPage({
                   </p>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-black/25 p-5 backdrop-blur">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">
-                    Basic plan
-                  </p>
-                  <p className="mt-4 text-3xl font-semibold tracking-tight text-zinc-50">
-                    {monthlyPrice.standalone}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-zinc-500">
-                    Customer pipeline, payment logs, follow-up drafting, and
-                    automation controls.
-                  </p>
-                  <div className="mt-5">
-                    {status === "active" ? (
-                      <form action={cancelSubscription}>
-                        <Button
-                          variant="secondary"
-                          type="submit"
-                          className="w-full text-red-400 hover:text-red-300"
-                        >
-                          Cancel subscription
-                        </Button>
-                      </form>
-                    ) : (
-                      <form action={startSubscriptionCheckout}>
-                        <input type="hidden" name="plan" value="monthly" />
-                        <Button type="submit" className="w-full">
-                          <Zap className="h-3.5 w-3.5" />
-                          {trialDaysLeft > 0 ? "Upgrade to basic plan" : "Subscribe"}
-                        </Button>
-                      </form>
-                    )}
+                <div className="flex flex-col gap-4">
+                  <div className="rounded-3xl border border-white/10 bg-black/25 p-5 backdrop-blur">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">
+                      Monthly Plan
+                    </p>
+                    <p className="mt-4 text-3xl font-semibold tracking-tight text-zinc-50">
+                      $29 / mo
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-zinc-500">
+                      Customer pipeline, payment logs, follow-up drafting, and automation controls.
+                    </p>
+                    <div className="mt-5">
+                      {status === "active" && org?.plan_type === "monthly" ? (
+                        <form action={cancelSubscription}>
+                          <Button variant="secondary" type="submit" className="w-full text-red-400 hover:text-red-300">
+                            Cancel subscription
+                          </Button>
+                        </form>
+                      ) : (
+                        <form action={startSubscriptionCheckout}>
+                          <input type="hidden" name="plan" value="monthly" />
+                          <Button type="submit" className="w-full">
+                            <Zap className="h-3.5 w-3.5" />
+                            {status === "active" ? "Switch to Monthly" : "Subscribe Monthly"}
+                          </Button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-3xl border border-emerald-500/30 bg-emerald-950/20 p-5 backdrop-blur relative overflow-hidden">
+                    <div className="absolute top-0 right-0 bg-emerald-500 text-emerald-950 text-[10px] font-bold px-2 py-1 rounded-bl-lg uppercase tracking-wider">
+                      2 Months Free
+                    </div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400/80">
+                      Annual Plan
+                    </p>
+                    <p className="mt-4 text-3xl font-semibold tracking-tight text-zinc-50">
+                      $290 <span className="text-sm font-normal text-zinc-400">/ yr</span>
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-emerald-100/50">
+                      Everything in Monthly, plus 2 months free and priority support.
+                    </p>
+                    <div className="mt-5">
+                      {status === "active" && org?.plan_type === "annual" ? (
+                        <form action={cancelSubscription}>
+                          <Button variant="secondary" type="submit" className="w-full text-red-400 hover:text-red-300">
+                            Cancel subscription
+                          </Button>
+                        </form>
+                      ) : (
+                        <form action={startSubscriptionCheckout}>
+                          <input type="hidden" name="plan" value="annual" />
+                          <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white">
+                            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                            {status === "active" ? "Upgrade to Annual" : "Subscribe Annual"}
+                          </Button>
+                        </form>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -155,6 +178,18 @@ export default async function BillingPage({
                 </p>
               ) : null}
             </div>
+
+            {org?.domain === null && (
+              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 text-sm leading-6 text-amber-200 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="block font-semibold text-amber-100 text-base mb-1">Personal Email Detected</strong>
+                    Because you signed up with a personal email address, this is an isolated solo workspace. You will not be able to invite or collaborate with team members for free on this workspace. 
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
               <section className="space-y-6">
@@ -238,7 +273,7 @@ export default async function BillingPage({
                     </CardTitle>
                     <CardDescription>
                       Checkout and cancellation changes may take a moment to
-                      sync from Razorpay.
+                      sync from Dodo Payments.
                     </CardDescription>
                   </CardHeader>
                 </Card>

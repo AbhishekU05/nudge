@@ -11,6 +11,7 @@ import type {
 export type OrganizationBilling = {
   id: string;
   name: string;
+  domain: string | null;
   role: OrgMemberRole;
   dodo_customer_id: string | null;
   dodo_subscription_id: string | null;
@@ -46,12 +47,13 @@ export async function getOrganizationBillingForUser(
   const { data: organization, error: organizationError } = await supabase
     .from("organizations")
     .select(
-      "id, name, dodo_customer_id, dodo_subscription_id, dodo_subscription_status, plan_type, credits_balance",
+      "id, name, domain, dodo_customer_id, dodo_subscription_id, dodo_subscription_status, plan_type, credits_balance",
     )
     .eq("id", membership.organization_id)
     .single<{
       id: string;
       name: string;
+      domain: string | null;
       dodo_customer_id: string | null;
       dodo_subscription_id: string | null;
       dodo_subscription_status: SubscriptionStatus | null;

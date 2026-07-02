@@ -1,19 +1,13 @@
 export function getEmailLinkErrorMessage(description?: string | null) {
-  const fallback =
-    "That email link is invalid or has expired. Request a new reset link and use the latest email.";
+  const fallback = "Something went wrong. Please try again.";
 
   if (!description) {
     return fallback;
   }
 
-  const normalized = description.replace(/\+/g, " ").trim();
+  const normalized = description.replace(/\+/g, " ").trim().toLowerCase();
 
-  if (
-    normalized.toLowerCase().includes("expired") ||
-    normalized.toLowerCase().includes("invalid")
-  ) {
-    return fallback;
-  }
-
-  return normalized;
+  // If it specifically says expired or invalid, we can optionally provide a slightly better message
+  // but since the user requested "Something went wrong" for all errors, we will just return the fallback.
+  return fallback;
 }
