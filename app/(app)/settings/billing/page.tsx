@@ -20,8 +20,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { startSubscriptionCheckout, cancelSubscription } from "@/app/actions/billing";
 import { requireUser } from "@/lib/auth";
 import { getOrganizationBillingForUser } from "@/lib/organization-billing";
-import { getTrialDaysLeft, hasActiveSubscription } from "@/lib/payments";
-import { getLocalizedMonthlyPrice } from "@/lib/pricing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // display billing message
@@ -69,95 +67,77 @@ export default async function BillingPage({
   // We don't have renews_at from Dodo stored yet, so we just say Active
   const renewsAt = status === "active" ? "Active" : null;
   const billingMessage = getBillingMessage(error);
-  // Dodo subscriptions don't have a built in trial logic via created_at unless we track it
-  const isActive = status === "active" || status === "on_hold";
-  let trialDaysLeft = 0;
 
   // TODO: fix wording
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-            <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] p-6 shadow-2xl shadow-black/30 sm:p-8 lg:p-10">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(79,70,229,0.22),transparent_28rem),radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.12),transparent_20rem)]" />
-              <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
-                <div>
-                  <Badge variant={isActive ? "success" : "warning"} className="gap-1.5">
-                    <Sparkles className="h-3 w-3" />
-                    {isActive ? "Plan enabled" : "Activate billing"}
-                  </Badge>
-                  <h1 className="mt-6 max-w-3xl text-5xl font-semibold tracking-[-0.055em] text-zinc-50 sm:text-6xl">
-                    Keep your collections workflow running.
-                  </h1>
-                  <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-500">
-                    Duely billing unlocks customer tracking, payment history,
-                    and reminder automation without adding accounting-system
-                    overhead.
-                  </p>
-                </div>
+    <div className="mx-auto max-w-6xl space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-50">Billing & Plans</h1>
+        <p className="mt-2 text-sm text-zinc-400">Manage your workspace subscription and payment details.</p>
+      </div>
 
-                <div className="flex flex-col gap-4">
-                  <div className="rounded-3xl border border-white/10 bg-black/25 p-5 backdrop-blur">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">
-                      Monthly Plan
-                    </p>
-                    <p className="mt-4 text-3xl font-semibold tracking-tight text-zinc-50">
-                      $29 / mo
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-zinc-500">
-                      Customer pipeline, payment logs, follow-up drafting, and automation controls.
-                    </p>
-                    <div className="mt-5">
-                      {status === "active" && org?.plan_type === "monthly" ? (
-                        <form action={cancelSubscription}>
-                          <Button variant="secondary" type="submit" className="w-full text-red-400 hover:text-red-300">
-                            Cancel subscription
-                          </Button>
-                        </form>
-                      ) : (
-                        <form action={startSubscriptionCheckout}>
-                          <input type="hidden" name="plan" value="monthly" />
-                          <Button type="submit" className="w-full">
-                            <Zap className="h-3.5 w-3.5" />
-                            {status === "active" ? "Switch to Monthly" : "Subscribe Monthly"}
-                          </Button>
-                        </form>
-                      )}
-                    </div>
-                  </div>
+      <section className="grid gap-6 sm:grid-cols-2 lg:max-w-4xl">
+        <div className="rounded-3xl border border-white/10 bg-black/25 p-6 backdrop-blur">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">
+            Monthly Plan
+          </p>
+          <p className="mt-4 text-3xl font-semibold tracking-tight text-zinc-50">
+            $29 <span className="text-sm font-normal text-zinc-500">/ mo</span>
+          </p>
+          <p className="mt-2 text-sm leading-6 text-zinc-500">
+            Customer pipeline, payment logs, follow-up drafting, and full automation controls.
+          </p>
+          <div className="mt-8">
+            {status === "active" && org?.plan_type === "monthly" ? (
+              <form action={cancelSubscription}>
+                <Button variant="secondary" type="submit" className="w-full text-red-400 hover:text-red-300">
+                  Cancel subscription
+                </Button>
+              </form>
+            ) : (
+              <form action={startSubscriptionCheckout}>
+                <input type="hidden" name="plan" value="monthly" />
+                <Button type="submit" className="w-full">
+                  <Zap className="h-3.5 w-3.5 mr-2" />
+                  {status === "active" ? "Switch to Monthly" : "Subscribe Monthly"}
+                </Button>
+              </form>
+            )}
+          </div>
+        </div>
 
-                  <div className="rounded-3xl border border-emerald-500/30 bg-emerald-950/20 p-5 backdrop-blur relative overflow-hidden">
-                    <div className="absolute top-0 right-0 bg-emerald-500 text-emerald-950 text-[10px] font-bold px-2 py-1 rounded-bl-lg uppercase tracking-wider">
-                      2 Months Free
-                    </div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400/80">
-                      Annual Plan
-                    </p>
-                    <p className="mt-4 text-3xl font-semibold tracking-tight text-zinc-50">
-                      $290 <span className="text-sm font-normal text-zinc-400">/ yr</span>
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-emerald-100/50">
-                      Everything in Monthly, plus 2 months free and priority support.
-                    </p>
-                    <div className="mt-5">
-                      {status === "active" && org?.plan_type === "annual" ? (
-                        <form action={cancelSubscription}>
-                          <Button variant="secondary" type="submit" className="w-full text-red-400 hover:text-red-300">
-                            Cancel subscription
-                          </Button>
-                        </form>
-                      ) : (
-                        <form action={startSubscriptionCheckout}>
-                          <input type="hidden" name="plan" value="annual" />
-                          <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white">
-                            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                            {status === "active" ? "Upgrade to Annual" : "Subscribe Annual"}
-                          </Button>
-                        </form>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
+        <div className="rounded-3xl border border-emerald-500/30 bg-emerald-950/20 p-6 backdrop-blur relative overflow-hidden">
+          <div className="absolute top-0 right-0 bg-emerald-500 text-emerald-950 text-[10px] font-bold px-3 py-1.5 rounded-bl-lg uppercase tracking-wider">
+            2 Months Free
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400/80">
+            Annual Plan
+          </p>
+          <p className="mt-4 text-3xl font-semibold tracking-tight text-zinc-50">
+            $290 <span className="text-sm font-normal text-zinc-400">/ yr</span>
+          </p>
+          <p className="mt-2 text-sm leading-6 text-emerald-100/50">
+            Everything in Monthly, plus 2 months free and priority support.
+          </p>
+          <div className="mt-8">
+            {status === "active" && org?.plan_type === "annual" ? (
+              <form action={cancelSubscription}>
+                <Button variant="secondary" type="submit" className="w-full text-red-400 hover:text-red-300">
+                  Cancel subscription
+                </Button>
+              </form>
+            ) : (
+              <form action={startSubscriptionCheckout}>
+                <input type="hidden" name="plan" value="annual" />
+                <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white">
+                  <Sparkles className="h-3.5 w-3.5 mr-2" />
+                  {status === "active" ? "Upgrade to Annual" : "Subscribe Annual"}
+                </Button>
+              </form>
+            )}
+          </div>
+        </div>
+      </section>
 
             <div className="space-y-3">
               {success ? (
@@ -204,25 +184,17 @@ export default async function BillingPage({
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="grid gap-3 sm:grid-cols-2">
                       <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                         <p className="text-xs text-zinc-600">Status</p>
                         <p className="mt-2 text-sm font-semibold capitalize text-zinc-100">
-                          {trialDaysLeft > 0 ? "free trial" : status}
+                          {status}
                         </p>
                       </div>
                       <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                         <p className="text-xs text-zinc-600">Renews</p>
                         <p className="mt-2 text-sm font-semibold text-zinc-100">
                           {renewsAt ?? "Not scheduled"}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                        <p className="text-xs text-zinc-600">Trial</p>
-                        <p className="mt-2 text-sm font-semibold text-zinc-100">
-                          {trialDaysLeft > 0
-                            ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left`
-                            : "Complete"}
                         </p>
                       </div>
                     </div>

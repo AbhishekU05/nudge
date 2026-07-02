@@ -328,42 +328,35 @@ export function LandingPageBody() {
         <Container className="max-w-4xl">
           <div className="mb-14 text-center">
             <h2 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
-              Simple, honest pricing
+              Simple, honest pricing for your entire team
             </h2>
             <p className="mt-3 text-zinc-500">
-              Try everything free for 7 days. One plan after that.
+              No per-seat pricing. Bring everyone on board for one flat rate. Try everything free for 7 days.
             </p>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
-            {/* Free trial */}
+            {/* Monthly */}
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-8">
               <p className="text-sm font-semibold uppercase tracking-widest text-zinc-500">
-                Free trial
+                Monthly
               </p>
-              <p className="mt-4 text-4xl font-bold text-zinc-50">$0</p>
-              <p className="mt-1 text-sm text-zinc-500">7 days &mdash; no card required</p>
+              <p className="mt-4 flex items-end gap-2 text-4xl font-bold text-zinc-50">
+                $29 <span className="text-base font-medium text-zinc-500 mb-1">/ month</span>
+              </p>
+              <p className="mt-1 text-sm text-zinc-500">for your entire team &mdash; cancel any time</p>
               <ul className="mt-8 space-y-3 text-sm text-zinc-400">
+                <li className="font-medium text-zinc-300 mb-1">Everything included:</li>
                 {[
-                  "Unlimited clients",
-                  "Action Center",
-                  "Gmail integration",
-                  "Late fee automation",
-                  "Client portal",
-                  "Activity timeline",
-                  "Payment promise tracking",
-                  "CSV export",
+                  "Unlimited team members",
+                  "Unlimited clients & invoices",
+                  "Automated reminders & sequences",
+                  "Xero & QuickBooks sync",
+                  "Client portal & payment logging",
+                  "Activity timeline & CSV exports",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2">
                     <span className="text-indigo-400">✓</span> {item}
-                  </li>
-                ))}
-                {[
-                  "Automated reminders",
-                  "Xero & QuickBooks sync",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-2 opacity-40">
-                    <span className="text-zinc-600">✕</span> {item}
                   </li>
                 ))}
               </ul>
@@ -371,36 +364,39 @@ export function LandingPageBody() {
                 href="/signup"
                 className="mt-8 block rounded-lg border border-white/10 py-3 text-center text-sm font-semibold text-zinc-300 transition hover:border-white/20 hover:text-zinc-50"
               >
-                Start free trial
+                Start free 7-day trial
               </a>
             </div>
 
-            {/* Pro */}
-            <div className="relative rounded-xl border border-indigo-500/40 bg-indigo-500/[0.06] p-8">
-              <p className="text-sm font-semibold uppercase tracking-widest text-indigo-400">
-                Pro
+            {/* Annual */}
+            <div className="relative rounded-xl border border-emerald-500/40 bg-emerald-500/[0.06] p-8 overflow-hidden">
+              <div className="absolute top-0 right-0 bg-emerald-500 text-emerald-950 text-[10px] font-bold px-3 py-1.5 rounded-bl-lg uppercase tracking-wider">
+                2 Months Free
+              </div>
+              <p className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
+                Annual
               </p>
-              <p className="mt-4 text-4xl font-bold text-zinc-50">$29</p>
-              <p className="mt-1 text-sm text-zinc-500">per month &mdash; cancel any time</p>
+              <p className="mt-4 flex items-end gap-2 text-4xl font-bold text-zinc-50">
+                $290 <span className="text-base font-medium text-emerald-500/60 mb-1">/ year</span>
+              </p>
+              <p className="mt-1 text-sm text-emerald-500/60">for your entire team &mdash; save $58</p>
               <ul className="mt-8 space-y-3 text-sm text-zinc-400">
-                <li className="font-medium text-zinc-300 mb-1">Everything in the trial, plus:</li>
+                <li className="font-medium text-emerald-300/80 mb-1">Everything in Monthly, plus:</li>
                 {[
-                  "Automated reminders & sequences",
-                  "Xero & QuickBooks sync",
-                  "Client groups & segmentation",
-                  "Analytics & trend charts",
+                  "Unlimited team members",
                   "Priority support",
+                  "2 months free",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2">
-                    <span className="text-indigo-400">✓</span> {item}
+                    <span className="text-emerald-400">✓</span> {item}
                   </li>
                 ))}
               </ul>
               <a
                 href="/signup"
-                className="mt-8 block rounded-lg bg-indigo-600 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-500"
+                className="mt-8 block rounded-lg bg-emerald-600 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-500"
               >
-                Start free trial
+                Start free 7-day trial
               </a>
             </div>
           </div>
