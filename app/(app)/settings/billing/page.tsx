@@ -123,12 +123,13 @@ export default async function BillingPage({
                         </Button>
                       </form>
                     ) : (
-                      <Link href="/settings/billing/waitlist" className="w-full">
-                        <Button className="w-full">
+                      <form action={startSubscriptionCheckout}>
+                        <input type="hidden" name="plan" value="monthly" />
+                        <Button type="submit" className="w-full">
                           <Zap className="h-3.5 w-3.5" />
                           {trialDaysLeft > 0 ? "Upgrade to basic plan" : "Subscribe"}
                         </Button>
-                      </Link>
+                      </form>
                     )}
                   </div>
                 </div>

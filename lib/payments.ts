@@ -1,7 +1,5 @@
 /**
  * Subscription gate — checks whether an org has an active Dodo subscription.
- * Until Dodo Payments is integrated (Milestone 5), all orgs are granted access.
- *
  * Extra arguments are accepted for backward compatibility with frontend components
  * that call this with (status, createdAt, renewsAt). They are intentionally ignored.
  */
@@ -14,7 +12,7 @@ export function hasActiveSubscription(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   renewsAt?: string | null,
 ): boolean {
-  if (!status) return true;
+  if (!status) return false;
   return status === "active" || status === "on_hold";
 }
 
