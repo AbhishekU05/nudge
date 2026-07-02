@@ -46,7 +46,6 @@ export default async function BillingPage({
 }) {
   const user = await requireUser();
   const { canceled, error, success } = await searchParams;
-  const monthlyPrice = await getLocalizedMonthlyPrice();
   const supabase = await createSupabaseServerClient();
   let org = null;
   let createdAt = new Date().toISOString();
