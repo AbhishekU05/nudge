@@ -12,6 +12,7 @@ import { getRequiredEnv } from "@/lib/env";
 import { buildPathWithQuery, getSafeNextPath } from "@/lib/paths";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { OrgMemberRole } from "@/lib/types";
 
 // Extracts string from form in website
 // TODO: make sure this is csec safe
@@ -161,6 +162,67 @@ export async function signup(formData: FormData) {
     );
   }
 
+  if (data.user) {
+    const domain = email.split("@")[1]?.toLowerCase();
+    const PERSONAL_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "aol.com"];
+    const isPersonal = PERSONAL_DOMAINS.includes(domain);
+
+    const adminSupabase = createSupabaseAdminClient();
+
+    if (!isPersonal && domain) {
+      const { data: existingOrg } = await adminSupabase
+        .from("organizations")
+        .select("id")
+        .eq("domain", domain)
+        .maybeSingle();
+
+      if (existingOrg) {
+        const memberRole: OrgMemberRole = "member";
+        await adminSupabase.from("organization_members").insert({
+          organization_id: existingOrg.id,
+          user_id: data.user.id,
+          role: memberRole,
+        });
+      } else {
+        const { data: newOrg } = await adminSupabase
+          .from("organizations")
+          .insert({
+            name: `${fullName}'s Workspace`,
+            domain: domain,
+          })
+          .select("id")
+          .single();
+
+        if (newOrg) {
+          const ownerRole: OrgMemberRole = "owner";
+          await adminSupabase.from("organization_members").insert({
+            organization_id: newOrg.id,
+            user_id: data.user.id,
+            role: ownerRole,
+          });
+        }
+      }
+    } else {
+      const { data: newOrg } = await adminSupabase
+        .from("organizations")
+        .insert({
+          name: `${fullName}'s Workspace`,
+          domain: null,
+        })
+        .select("id")
+        .single();
+
+      if (newOrg) {
+        const ownerRole: OrgMemberRole = "owner";
+        await adminSupabase.from("organization_members").insert({
+          organization_id: newOrg.id,
+          user_id: data.user.id,
+          role: ownerRole,
+        });
+      }
+    }
+  }
+
   if (data.session) {
     redirect(nextPath);
   }
@@ -244,14 +306,29 @@ export async function updateProfileName(formData: FormData) {
   }
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.updateUser({
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { error: authError } = await supabase.auth.updateUser({
     data: {
       full_name: fullName,
     },
   });
 
-  if (error) {
-    redirect(`/dashboard?error=${encodeURIComponent(error.message)}`);
+  if (authError) {
+    redirect(`/dashboard?error=${encodeURIComponent(authError.message)}`);
+  }
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ full_name: fullName })
+    .eq("user_id", user.id);
+
+  if (profileError) {
+    redirect(`/dashboard?error=${encodeURIComponent(profileError.message)}`);
   }
 
   redirect("/dashboard?success=Profile+updated.");
@@ -408,17 +485,37 @@ export async function updateProfileInfo(formData: FormData) {
     redirect("/login");
   }
 
-  const first_name = formData.get("first_name") as string || null;
-  const last_name = formData.get("last_name") as string || null;
+  const first_name = formData.get("first_name") as string || "";
+  const last_name = formData.get("last_name") as string || "";
   const company_name = formData.get("company_name") as string || null;
 
-  const { error } = await supabase
+  const fullName = `${first_name} ${last_name}`.trim() || null;
+
+  const { error: profileError } = await supabase
     .from("profiles")
-    .update({ first_name, last_name, company_name })
+    .update({ full_name: fullName })
     .eq("user_id", user.id);
 
-  if (error) {
+  if (profileError) {
     redirect(buildPathWithQuery("/settings/general", { error: "Failed to update profile details" }));
+  }
+
+  const { data: memberData } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (company_name && memberData?.organization_id) {
+    const adminSupabase = createSupabaseAdminClient();
+    const { error: orgError } = await adminSupabase
+      .from("organizations")
+      .update({ name: company_name })
+      .eq("id", memberData.organization_id);
+
+    if (orgError) {
+      redirect(buildPathWithQuery("/settings/general", { error: "Failed to update company name" }));
+    }
   }
 
   redirect(buildPathWithQuery("/settings/general", { success: "Profile details updated" }));

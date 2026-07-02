@@ -1,6 +1,3 @@
-/*
- * core reminder action layer
- */
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -9,7 +6,6 @@ import { redirect } from "next/navigation";
 import { enforceRateLimit } from "@/lib/abuse";
 import { requireUser } from "@/lib/auth";
 import { sendReminderEmail } from "@/lib/email/send-reminder";
-import { hasActiveSubscription } from "@/lib/payments";
 import { buildPathWithQuery } from "@/lib/paths";
 import {
   computeFirstReminderSendAt,
@@ -17,219 +13,181 @@ import {
 } from "@/lib/reminder-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
+import type { Invoice } from "@/lib/types";
 
-const MAX_REMINDERS = 20;
-const MAX_REMINDERS_MESSAGE = `You’ve reached the limit of ${MAX_REMINDERS} reminders.`;
+const MAX_INVOICES = 20;
 const MAX_PAYMENT_LINK_LENGTH = 2048;
 
-// Get string from form in website
-// TODO: ensure safety
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
 function getString(formData: FormData, key: string): string | null {
   const value = formData.get(key);
-  if (typeof value !== "string") {
-    return null;
-  }
-
+  if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
 }
 
-// get optional string from form 
-// TODO: ensure safety
-function getOptionalString(formData: FormData, key: string): string | null {
-  const value = formData.get(key);
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
-// converts int into currency format 
-// TODO: ensure currency symbol is consistent
 function parseMoney(input: string): number | null {
   const normalized = input.replace(/,/g, "").trim();
-  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
-    return null;
-  }
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null;
   const amount = Number.parseFloat(normalized);
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return null;
-  }
-
+  if (!Number.isFinite(amount) || amount <= 0) return null;
   return Math.round(amount * 100) / 100;
 }
 
-// parses integer with minimum constraint
 function parseIntMin(input: string, min: number): number | null {
   const value = Number.parseInt(input, 10);
-  if (!Number.isFinite(value) || value < min) {
-    return null;
-  }
-
+  if (!Number.isFinite(value) || value < min) return null;
   return value;
 }
 
-// checks if valid email
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// validates optional payment links before storing or rendering them in emails
 function normalizePaymentLink(paymentLink: string): string | null {
-  if (paymentLink.length > MAX_PAYMENT_LINK_LENGTH) {
-    return null;
-  }
-
+  if (paymentLink.length > MAX_PAYMENT_LINK_LENGTH) return null;
   try {
     const url = new URL(paymentLink);
-    if (url.protocol !== "https:" && url.protocol !== "http:") {
-      return null;
-    }
-
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
     return url.toString();
   } catch {
     return null;
   }
 }
 
-// extract error message
 function getErrorMessage(error: unknown, fallback: string) {
-  if (error instanceof Error && error.message.trim().length > 0) {
-    return error.message;
-  }
-
+  if (error instanceof Error && error.message.trim().length > 0) return error.message;
   return fallback;
 }
 
-// bruh is there no better way to do this
 function redirectToNewReminder(error: string): never {
   redirect(buildPathWithQuery("/reminders/new", { error }));
 }
 
-// same with this guy
-function redirectToDashboard(params: {
-  error?: string;
-  success?: string;
-}): never {
+function redirectToDashboard(params: { error?: string; success?: string }): never {
   redirect(buildPathWithQuery("/dashboard", params));
 }
 
-// creates a new reminder
+async function getOrganizationId(userId: string): Promise<string | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return data?.organization_id ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// Create a new invoice/reminder
+// ---------------------------------------------------------------------------
 export async function createReminder(formData: FormData) {
   const user = await requireUser();
 
   try {
     await enforceRateLimit(user.id, "reminder_create");
   } catch (error) {
-    redirectToNewReminder(
-      getErrorMessage(error, "Please wait a minute and try again."),
-    );
+    redirectToNewReminder(getErrorMessage(error, "Please wait a minute and try again."));
   }
+
+  const organizationId = await getOrganizationId(user.id);
+  if (!organizationId) redirectToNewReminder("No organization found. Please contact support.");
 
   const supabase = await createSupabaseServerClient();
 
   const { count } = await supabase
-  .from("invoices")
-  .select("*", { count: "exact", head: true })
-  .eq("user_id", user.id)
-  .eq("active", true);
+    .from("invoices")
+    .select("*", { count: "exact", head: true })
+    .eq("organization_id", organizationId!)
+    .eq("reminders_enabled", true);
 
-  if ((count ?? 0) >= MAX_REMINDERS) {
+  if ((count ?? 0) >= MAX_INVOICES) {
     redirectToNewReminder(
-      `You have reached the limit of ${MAX_REMINDERS} active automated reminders. Pause or remove existing ones first.`,
+      `You have reached the limit of ${MAX_INVOICES} active automated reminders. Pause or remove existing ones first.`,
     );
   }
 
   const recipientName = getString(formData, "recipient_name");
-  if (!recipientName) {
-    redirectToNewReminder("Recipient name is required.");
-  }
+  if (!recipientName) redirectToNewReminder("Recipient name is required.");
 
-  const recipientEmailValue = getString(formData, "recipient_email");
-  if (!recipientEmailValue) {
-    redirectToNewReminder("Recipient email is required.");
-  }
+  const recipientEmailRaw = getString(formData, "recipient_email");
+  if (!recipientEmailRaw) redirectToNewReminder("Recipient email is required.");
 
-  const recipientEmail = recipientEmailValue.toLowerCase();
-  if (!isValidEmail(recipientEmail)) {
-    redirectToNewReminder("Enter a valid recipient email address.");
-  }
+  const recipientEmail = recipientEmailRaw!.toLowerCase();
+  if (!isValidEmail(recipientEmail)) redirectToNewReminder("Enter a valid recipient email address.");
 
-  const { data: existingReminder } = await supabase
-    .from("invoices")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("recipient_email", recipientEmail)
-    .eq("unsubscribed", false)
-    .maybeSingle();
+  const amountInput = getString(formData, "amount");
+  if (!amountInput) redirectToNewReminder("Amount owed is required.");
 
-  if (existingReminder) {
-    redirectToNewReminder("You already have an active or paused reminder for this email address.");
-  }
+  const amount = parseMoney(amountInput!);
+  if (amount == null) redirectToNewReminder("Enter a valid amount owed.");
 
-  const amountInput = getString(formData, "amount_owed");
-  if (!amountInput) {
-    redirectToNewReminder("Amount owed is required.");
-  }
-
-  const amountOwed = parseMoney(amountInput);
-  if (amountOwed == null) {
-    redirectToNewReminder("Enter a valid amount owed.");
-  }
-
-  const currencyInput = getString(formData, "currency") ?? "USD";
+  const currency = getString(formData, "currency") ?? "USD";
 
   const frequencyInput = getString(formData, "reminder_frequency_days");
-  if (!frequencyInput) {
-    redirectToNewReminder("Reminder frequency is required.");
-  }
+  if (!frequencyInput) redirectToNewReminder("Reminder frequency is required.");
 
-  const reminderFrequencyDays = parseIntMin(frequencyInput, 1);
-  if (reminderFrequencyDays == null) {
-    redirectToNewReminder("Reminder frequency must be at least 1 day.");
-  }
+  const reminderFrequencyDays = parseIntMin(frequencyInput!, 1);
+  if (reminderFrequencyDays == null) redirectToNewReminder("Reminder frequency must be at least 1 day.");
 
-  const customMessage = getOptionalString(formData, "custom_message");
-  const rawPaymentLink = getOptionalString(formData, "payment_link");
+  const rawPaymentLink = getString(formData, "payment_link");
   const paymentLink = rawPaymentLink ? normalizePaymentLink(rawPaymentLink) : null;
+  if (rawPaymentLink && !paymentLink) redirectToNewReminder("Enter a valid payment link.");
 
-  if (rawPaymentLink && !paymentLink) {
-    redirectToNewReminder("Enter a valid payment link.");
-  }
+  if (recipientName!.length > 100) redirectToNewReminder("Recipient name is too long.");
+  if (recipientEmail.length > 320) redirectToNewReminder("Recipient email is too long.");
 
-  if (recipientName.length > 100) {
-    redirectToNewReminder("Recipient name is too long.");
-  }
+  // Upsert client record
+  const { data: existingClient } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("organization_id", organizationId!)
+    .eq("email", recipientEmail)
+    .maybeSingle();
 
-  if (recipientEmail.length > 320) {
-    redirectToNewReminder("Recipient email is too long.");
-  }
+  let clientId: string;
 
-  if (customMessage && customMessage.length > 500) {
-    redirectToNewReminder("Custom message is too long (max 500 chars).");
+  if (existingClient) {
+    clientId = existingClient.id;
+  } else {
+    const { data: newClient, error: clientError } = await supabase
+      .from("clients")
+      .insert({
+        organization_id: organizationId!,
+        name: recipientName!,
+        email: recipientEmail,
+      })
+      .select("id")
+      .single();
+
+    if (clientError || !newClient) {
+      logger.error({ message: "Failed to create client", context: "createReminder", user_id: user.id, error: clientError?.message });
+      redirectToNewReminder("An unexpected database error occurred.");
+    }
+
+    clientId = newClient!.id;
   }
 
   const nextSendAt = computeFirstReminderSendAt();
 
   const { error } = await supabase.from("invoices").insert({
-    user_id: user.id,
-    recipient_name: recipientName,
-    recipient_email: recipientEmail,
-    amount_owed: amountOwed,
-    currency: currencyInput,
-    custom_message: customMessage,
+    organization_id: organizationId!,
+    client_id: clientId,
+    amount: amount!,
+    currency,
     payment_link: paymentLink,
-    reminder_frequency_days: reminderFrequencyDays,
+    reminder_frequency_days: reminderFrequencyDays!,
     next_send_at: nextSendAt,
-    active: true,
-    unsubscribed: false,
+    reminders_enabled: true,
+    status: "outstanding",
   });
 
   if (error) {
     logger.error({
-      message: "Database error creating reminder",
+      message: "Database error creating invoice/reminder",
       context: "createReminder",
       user_id: user.id,
       error: error.message,
@@ -237,252 +195,161 @@ export async function createReminder(formData: FormData) {
     redirectToNewReminder("An unexpected database error occurred.");
   }
 
-  logger.action({
-    action_name: "create_reminder",
-    user_id: user.id,
-    success: true,
-  });
+  logger.action({ action_name: "create_reminder", user_id: user.id, success: true });
 
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder created." });
 }
 
-export async function pauseReminder(reminderId: string) {
+// ---------------------------------------------------------------------------
+// Pause / Resume / Delete
+// ---------------------------------------------------------------------------
+export async function pauseReminder(invoiceId: string) {
   const user = await requireUser();
 
   try {
     await enforceRateLimit(user.id, "reminder_toggle");
   } catch (error) {
-    redirectToDashboard({
-      error: getErrorMessage(error, "Please wait a minute and try again."),
-    });
+    redirectToDashboard({ error: getErrorMessage(error, "Please wait a minute and try again.") });
   }
+
+  const organizationId = await getOrganizationId(user.id);
+  if (!organizationId) redirectToDashboard({ error: "No organization found." });
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase
-    .from("clients")
-    .update({ active: false })
-    .eq("id", reminderId)
-    .eq("user_id", user.id);
+    .from("invoices")
+    .update({ reminders_enabled: false, next_send_at: null })
+    .eq("id", invoiceId)
+    .eq("organization_id", organizationId!);
 
   if (error) {
-    logger.error({
-      message: "Database error pausing reminder",
-      context: "pauseReminder",
-      user_id: user.id,
-      error: error.message,
-    });
+    logger.error({ message: "Database error pausing reminder", context: "pauseReminder", user_id: user.id, error: error.message });
     redirectToDashboard({ error: "An unexpected database error occurred." });
   }
 
-  logger.action({
-    action_name: "pause_reminder",
-    reminder_id: reminderId,
-    user_id: user.id,
-    success: true,
-  });
-
+  logger.action({ action_name: "pause_reminder", reminder_id: invoiceId, user_id: user.id, success: true });
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder paused." });
 }
 
-export async function resumeReminder(reminderId: string) {
+export async function resumeReminder(invoiceId: string) {
   const user = await requireUser();
 
   try {
     await enforceRateLimit(user.id, "reminder_toggle");
   } catch (error) {
-    redirectToDashboard({
-      error: getErrorMessage(error, "Please wait a minute and try again."),
-    });
+    redirectToDashboard({ error: getErrorMessage(error, "Please wait a minute and try again.") });
   }
+
+  const organizationId = await getOrganizationId(user.id);
+  if (!organizationId) redirectToDashboard({ error: "No organization found." });
 
   const supabase = await createSupabaseServerClient();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("razorpay_subscription_status, razorpay_renews_at, created_at")
-    .eq("user_id", user.id)
-    .maybeSingle<{
-      razorpay_subscription_status: string | null;
-      razorpay_renews_at: string | null;
-      created_at: string;
-    }>();
-
-  if (
-    !hasActiveSubscription(
-      profile?.razorpay_subscription_status ?? null,
-      profile?.created_at,
-      profile?.razorpay_renews_at
-    )
-  ) {
-    redirect("/settings/billing?error=subscription_required");
-  }
-
-  const { count } = await supabase
-  .from("invoices")
-  .select("*", { count: "exact", head: true })
-  .eq("user_id", user.id)
-  .eq("unsubscribed", false);
-
-  if ((count ?? 0) >= MAX_REMINDERS) {
-      redirectToDashboard({
-        error: MAX_REMINDERS_MESSAGE,
-      });
-    }
 
   const { data: current, error: selectError } = await supabase
-    .from("clients")
-    .select("last_sent_at, reminder_frequency_days")
-    .eq("id", reminderId)
-    .eq("user_id", user.id)
-    .single<{
-      reminder_frequency_days: number;
-      last_sent_at: string | null;
-    }>();
+    .from("invoices")
+    .select("next_send_at, reminder_frequency_days")
+    .eq("id", invoiceId)
+    .eq("organization_id", organizationId!)
+    .single<Pick<Invoice, "next_send_at" | "reminder_frequency_days">>();
 
-  if (selectError) {
-    redirectToDashboard({ error: "An unexpected database error occurred." });
-  }
-
-  if (!current) {
+  if (selectError || !current) {
     redirectToDashboard({ error: "Reminder not found." });
   }
 
-  const nextSendAt = current.last_sent_at
-    ? computeRecurringReminderSendAt(current.reminder_frequency_days)
+  const nextSendAt = current!.next_send_at
+    ? computeRecurringReminderSendAt(current!.reminder_frequency_days)
     : computeFirstReminderSendAt();
 
   const { error: updateError } = await supabase
-    .from("clients")
-    .update({
-      active: true,
-      next_send_at: nextSendAt,
-    })
-    .eq("id", reminderId)
-    .eq("user_id", user.id);
+    .from("invoices")
+    .update({ reminders_enabled: true, next_send_at: nextSendAt })
+    .eq("id", invoiceId)
+    .eq("organization_id", organizationId!);
 
   if (updateError) {
-    logger.error({
-      message: "Database error resuming reminder",
-      context: "resumeReminder",
-      user_id: user.id,
-      error: updateError.message,
-    });
+    logger.error({ message: "Database error resuming reminder", context: "resumeReminder", user_id: user.id, error: updateError.message });
     redirectToDashboard({ error: "An unexpected database error occurred." });
   }
 
-  logger.action({
-    action_name: "resume_reminder",
-    reminder_id: reminderId,
-    user_id: user.id,
-    success: true,
-  });
-
+  logger.action({ action_name: "resume_reminder", reminder_id: invoiceId, user_id: user.id, success: true });
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder resumed." });
 }
 
-export async function deleteReminder(reminderId: string) {
+export async function deleteReminder(invoiceId: string) {
   const user = await requireUser();
 
   try {
     await enforceRateLimit(user.id, "reminder_delete");
   } catch (error) {
-    redirectToDashboard({
-      error: getErrorMessage(error, "Please wait a minute and try again."),
-    });
+    redirectToDashboard({ error: getErrorMessage(error, "Please wait a minute and try again.") });
   }
+
+  const organizationId = await getOrganizationId(user.id);
+  if (!organizationId) redirectToDashboard({ error: "No organization found." });
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("invoices")
     .delete()
-    .eq("id", reminderId)
-    .eq("user_id", user.id);
+    .eq("id", invoiceId)
+    .eq("organization_id", organizationId!);
 
   if (error) {
-    logger.error({
-      message: "Database error deleting reminder",
-      context: "deleteReminder",
-      user_id: user.id,
-      error: error.message,
-    });
+    logger.error({ message: "Database error deleting reminder", context: "deleteReminder", user_id: user.id, error: error.message });
     redirectToDashboard({ error: "An unexpected database error occurred." });
   }
 
-  logger.action({
-    action_name: "delete_reminder",
-    reminder_id: reminderId,
-    user_id: user.id,
-    success: true,
-  });
-
+  logger.action({ action_name: "delete_reminder", reminder_id: invoiceId, user_id: user.id, success: true });
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder deleted." });
 }
 
-export async function sendTestReminderEmail(reminderId: string) {
+// ---------------------------------------------------------------------------
+// Send test email (dev only)
+// ---------------------------------------------------------------------------
+export async function sendTestReminderEmail(invoiceId: string) {
   const user = await requireUser();
 
   if (process.env.NODE_ENV !== "development") {
-    redirectToDashboard({
-      error: "Test email is only available in development.",
-    });
+    redirectToDashboard({ error: "Test email is only available in development." });
   }
+
+  const organizationId = await getOrganizationId(user.id);
+  if (!organizationId) redirectToDashboard({ error: "No organization found." });
 
   const supabase = await createSupabaseServerClient();
-  const { data: reminder, error } = await supabase
+  const { data: invoice, error } = await supabase
     .from("invoices")
-    .select(
-      "id,recipient_name,recipient_email,amount_owed,currency,email_subject,custom_message,payment_link,unsubscribe_token,unsubscribed",
-    )
-    .eq("id", reminderId)
-    .eq("user_id", user.id)
+    .select("id, amount, currency, payment_link, clients(name, email)")
+    .eq("id", invoiceId)
+    .eq("organization_id", organizationId!)
     .maybeSingle<{
       id: string;
-      recipient_name: string;
-      recipient_email: string;
-      amount_owed: number;
+      amount: number;
       currency: string;
-      email_subject: string | null;
-      custom_message: string | null;
       payment_link: string | null;
-      unsubscribe_token: string;
-      unsubscribed: boolean;
+      clients: { name: string; email: string } | null;
     }>();
 
-  if (error) {
-    redirectToDashboard({ error: "An unexpected database error occurred." });
-  }
-
-  if (!reminder) {
-    redirectToDashboard({ error: "Reminder not found." });
-  }
-
-  if (reminder.unsubscribed) {
-    redirectToDashboard({
-      error: "Cannot send a test email for an unsubscribed reminder.",
-    });
-  }
+  if (error) redirectToDashboard({ error: "An unexpected database error occurred." });
+  if (!invoice || !invoice.clients) redirectToDashboard({ error: "Invoice not found." });
 
   try {
     await sendReminderEmail({
       userId: user.id,
       senderName: user.user_metadata?.full_name || "Someone",
       senderEmail: user.email ?? "",
-      recipientEmail: reminder.recipient_email,
-      recipientName: reminder.recipient_name,
-      emailSubject: reminder.email_subject,
-      customMessage: reminder.custom_message,
-      paymentLink: reminder.payment_link,
-      unsubscribeToken: reminder.unsubscribe_token,
+      recipientEmail: invoice!.clients!.email,
+      recipientName: invoice!.clients!.name,
+      emailSubject: null,
+      customMessage: null,
+      paymentLink: invoice!.payment_link,
+      unsubscribeToken: "",
     });
-    logger.action({
-      action_name: "send_test_reminder",
-      reminder_id: reminderId,
-      user_id: user.id,
-      success: true,
-    });
+    logger.action({ action_name: "send_test_reminder", reminder_id: invoiceId, user_id: user.id, success: true });
   } catch (sendError) {
     logger.error({
       message: "Error sending test email",
@@ -490,9 +357,7 @@ export async function sendTestReminderEmail(reminderId: string) {
       user_id: user.id,
       error: sendError instanceof Error ? sendError.message : "Unknown error",
     });
-    redirectToDashboard({
-      error: getErrorMessage(sendError, "Unable to send test email."),
-    });
+    redirectToDashboard({ error: getErrorMessage(sendError, "Unable to send test email.") });
   }
 
   redirectToDashboard({ success: "Test email sent." });

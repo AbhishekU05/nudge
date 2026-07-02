@@ -1,465 +1,215 @@
--- Duely Supabase schema
--- Canonical schema for a fresh database. Existing databases should apply the
--- numbered migrations in supabase/migrations/.
+-- ==========================================
+-- ENUM TYPES
+-- ==========================================
+CREATE TYPE subscription_status AS ENUM ('pending', 'active', 'on_hold', 'paused', 'canceled', 'failed', 'past_due', 'expired');
+CREATE TYPE org_member_role AS ENUM ('owner', 'admin', 'member');
+CREATE TYPE invoice_status AS ENUM ('outstanding', 'promised', 'partial', 'paid', 'overdue', 'written_off');
+CREATE TYPE crm_event_type AS ENUM ('followup', 'note', 'reminder_sent', 'status_change', 'late_fee_applied');
+CREATE TYPE integration_provider AS ENUM ('xero', 'quickbooks');
+CREATE TYPE sync_direction AS ENUM ('bidirectional', 'import_only', 'export_only');
+CREATE TYPE pricing_plan_type AS ENUM ('monthly', 'annual', 'base_usage');
 
--- Extensions
-create extension if not exists "pgcrypto";
-
--- Helper: updated_at trigger
-create or replace function public.set_updated_at()
-returns trigger
-language plpgsql
-as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
-
--- User-owned billing, referral, and email-provider metadata.
-create table if not exists public.profiles (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-
-  razorpay_customer_id text,
-  razorpay_subscription_id text,
-  razorpay_subscription_status text,
-  razorpay_renews_at timestamptz,
-
-  referral_source text,
-  google_access_token text,
-  google_refresh_token text,
-  gmail_connected_email text,
-  gmail_oauth_state text,
-  is_admin boolean default false not null,
-  timezone text default 'UTC',
-  weekly_digest_enabled boolean default true
+-- 1. Organizations (Workspaces, Billing, Domain Auto-join)
+CREATE TABLE organizations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  domain TEXT UNIQUE, 
+  dodo_customer_id TEXT,
+  dodo_subscription_id TEXT,
+  dodo_subscription_status subscription_status,
+  plan_type pricing_plan_type, 
+  credits_balance INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 
-drop trigger if exists profiles_set_updated_at on public.profiles;
-create trigger profiles_set_updated_at
-before update on public.profiles
-for each row execute function public.set_updated_at();
-
--- Customer balance records plus optional reminder automation state.
-create table if not exists public.customers (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-
-  recipient_name text not null,
-  recipient_email text not null,
-  amount_owed numeric(12,2) not null check (amount_owed > 0),
-  amount_paid numeric(12,2) not null default 0 check (amount_paid >= 0),
-  currency text not null default 'USD',
-  due_date date,
-
-  workflow_status text not null default 'outstanding'
-    check (workflow_status in (
-      'outstanding',
-      'promised',
-      'partial',
-      'paid',
-      'overdue',
-      'written_off'
-    )),
-
-  promised_date date,
-  promise_notes text,
-  internal_notes text,
-
-  custom_message text,
-  payment_link text,
-  client_paid_at timestamptz,
-
-  reminder_frequency_days int not null default 7 check (reminder_frequency_days >= 1),
-  next_send_at timestamptz not null,
-  last_sent_at timestamptz,
-  active boolean not null default false,
-  unsubscribed boolean not null default false,
-  unsubscribe_token uuid not null default gen_random_uuid(),
-
-  stripe_invoice_id text,
-  xero_invoice_id text,
-
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+-- 2. Organization Members (Links users to teams)
+CREATE TABLE organization_members (
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role org_member_role NOT NULL DEFAULT 'member',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY (organization_id, user_id)
 );
 
-create index if not exists customers_user_id_idx
-  on public.customers(user_id);
-
-create index if not exists customers_user_created_idx
-  on public.customers(user_id, created_at desc);
-
-create index if not exists customers_user_email_idx
-  on public.customers(user_id, recipient_email);
-
-create index if not exists customers_user_status_idx
-  on public.customers(user_id, workflow_status)
-  where unsubscribed = false;
-
-create index if not exists customers_next_send_at_idx
-  on public.customers(next_send_at)
-  where active = true and unsubscribed = false;
-
-create unique index if not exists customers_unsubscribe_token_idx
-  on public.customers(unsubscribe_token);
-
-create index if not exists customers_stripe_invoice_id_idx
-  on public.customers(stripe_invoice_id)
-  where stripe_invoice_id is not null;
-
-create unique index if not exists customers_user_xero_invoice_id_idx
-  on public.customers(user_id, xero_invoice_id)
-;
-
-drop trigger if exists customers_set_updated_at on public.customers;
-create trigger customers_set_updated_at
-before update on public.customers
-for each row execute function public.set_updated_at();
-
--- Unified customer timeline. Replaces separate payment_logs and followup_logs.
-create table if not exists public.customer_events (
-  id uuid primary key default gen_random_uuid(),
-  customer_id uuid not null references public.customers(id) on delete cascade,
-  user_id uuid not null references auth.users(id) on delete cascade,
-  event_type text not null check (event_type in ('payment', 'followup', 'late_fee')),
-  event_date date not null default current_date,
-
-  amount numeric(12,2) check (amount is null or amount > 0),
-  currency text,
-  payment_source text check (
-    payment_source is null or payment_source in ('user', 'customer', 'adjustment')
-  ),
-
-  followup_method text check (
-    followup_method is null or followup_method in ('email', 'call', 'whatsapp', 'other')
-  ),
-  followup_outcome text check (
-    followup_outcome is null or followup_outcome in (
-      'no_response',
-      'promise_made',
-      'partial_payment',
-      'paid_in_full'
-    )
-  ),
-  note text,
-
-  created_at timestamptz not null default now(),
-
-  constraint customer_events_shape check (
-    (
-      event_type = 'payment'
-      and amount is not null
-      and currency is not null
-      and payment_source is not null
-      and followup_method is null
-      and followup_outcome is null
-    )
-    or
-    (
-      event_type = 'followup'
-      and amount is null
-      and currency is null
-      and payment_source is null
-      and followup_method is not null
-      and followup_outcome is not null
-    )
-  )
+-- 3. Profiles (User-specific settings)
+CREATE TABLE profiles (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name TEXT,
+  google_access_token TEXT,
+  google_refresh_token TEXT,
+  gmail_connected_email TEXT,
+  timezone TEXT DEFAULT 'UTC',
+  weekly_digest_enabled BOOLEAN DEFAULT true,
+  referral_source TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 
-create index if not exists customer_events_customer_created_idx
-  on public.customer_events(customer_id, created_at desc);
-
-create index if not exists customer_events_user_created_idx
-  on public.customer_events(user_id, created_at desc);
-
-create index if not exists customer_events_user_type_created_idx
-  on public.customer_events(user_id, event_type, created_at desc);
-
--- Simple usage events for rate limiting and abuse monitoring.
-create table if not exists public.usage_events (
-  id bigserial primary key,
-  user_id uuid not null references auth.users(id) on delete cascade,
-  event_type text not null,
-  created_at timestamptz not null default now()
+-- 4. Clients (Belong to Organization)
+CREATE TABLE clients (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  company_name TEXT,
+  xero_id TEXT, -- Foreign ID for sync mapping
+  quickbooks_id TEXT, -- Foreign ID for sync mapping
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 
-create index if not exists usage_events_user_type_created_idx
-  on public.usage_events(user_id, event_type, created_at desc);
-
--- Stripe Connect/manual webhook configuration.
-create table if not exists public.stripe_connections (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  stripe_account_id text unique,
-  access_token text,
-  webhook_secret text,
-  created_at timestamptz not null default now()
+-- 5. Invoices (Belong to Organization)
+CREATE TABLE invoices (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+  amount NUMERIC(12,2) NOT NULL CHECK (amount > 0),
+  currency TEXT DEFAULT 'USD',
+  due_date DATE,
+  status invoice_status DEFAULT 'outstanding',
+  payment_link TEXT,
+  reminders_enabled BOOLEAN DEFAULT true, -- Explicitly dictates if background job reminders fire
+  reminder_frequency_days INT DEFAULT 7,
+  next_send_at TIMESTAMPTZ,
+  xero_id TEXT, -- Foreign ID for sync mapping
+  quickbooks_id TEXT, -- Foreign ID for sync mapping
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 
-create index if not exists stripe_connections_webhook_configured_idx
-  on public.stripe_connections(user_id)
-  where webhook_secret is not null;
-
--- Third-party data sync integrations.
-create table if not exists public.integrations (
-  user_id uuid not null references auth.users(id) on delete cascade,
-  provider text not null check (provider in ('xero')),
-  access_token text not null,
-  refresh_token text not null,
-  expires_at timestamptz not null,
-  tenant_id text not null,
-  last_synced_at timestamptz,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  primary key (user_id, provider)
+-- 6. Payments (Financial Source of Truth)
+CREATE TABLE payments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE, -- Denormalized for RLS performance
+  invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+  -- client_id is intentionally omitted; derivable via invoice to prevent sync issues
+  amount NUMERIC(12,2) NOT NULL CHECK (amount > 0),
+  currency TEXT DEFAULT 'USD',
+  payment_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  payment_method TEXT,
+  reference_id TEXT, -- External gateway reference
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
-create index if not exists integrations_provider_idx
-  on public.integrations(provider);
-
-create index if not exists integrations_provider_last_synced_idx
-  on public.integrations(provider, last_synced_at);
-
-drop trigger if exists integrations_set_updated_at on public.integrations;
-create trigger integrations_set_updated_at
-before update on public.integrations
-for each row execute function public.set_updated_at();
-
--- Landing-page lead capture.
-create table if not exists public.leads (
-  id uuid primary key default gen_random_uuid(),
-  email text not null unique,
-  created_at timestamptz not null default now()
+-- 7. Events (Audit Trail & CRM Timeline)
+CREATE TABLE events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  invoice_id UUID REFERENCES invoices(id) ON DELETE CASCADE,
+  client_id UUID REFERENCES clients(id) ON DELETE CASCADE,
+  event_type crm_event_type NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
-create index if not exists leads_created_at_idx
-  on public.leads(created_at desc);
-
--- Row Level Security
-alter table public.profiles enable row level security;
-alter table public.customers enable row level security;
-alter table public.customer_events enable row level security;
-alter table public.usage_events enable row level security;
-alter table public.stripe_connections enable row level security;
-alter table public.integrations enable row level security;
-alter table public.leads enable row level security;
-
--- Profiles policies
-drop policy if exists "profiles_select_own" on public.profiles;
-create policy "profiles_select_own"
-on public.profiles
-for select
-using (auth.uid() = user_id);
-
-drop policy if exists "profiles_insert_own" on public.profiles;
-create policy "profiles_insert_own"
-on public.profiles
-for insert
-with check (auth.uid() = user_id);
-
-drop policy if exists "profiles_update_own" on public.profiles;
-create policy "profiles_update_own"
-on public.profiles
-for update
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
-
--- Customer policies
-drop policy if exists "customers_select_own" on public.customers;
-create policy "customers_select_own"
-on public.customers
-for select
-using (auth.uid() = user_id);
-
-drop policy if exists "customers_insert_own" on public.customers;
-create policy "customers_insert_own"
-on public.customers
-for insert
-with check (auth.uid() = user_id);
-
-drop policy if exists "customers_update_own" on public.customers;
-create policy "customers_update_own"
-on public.customers
-for update
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
-
-drop policy if exists "customers_delete_own" on public.customers;
-create policy "customers_delete_own"
-on public.customers
-for delete
-using (auth.uid() = user_id);
-
--- Customer event policies
-drop policy if exists "customer_events_select_own" on public.customer_events;
-create policy "customer_events_select_own"
-on public.customer_events
-for select
-using (auth.uid() = user_id);
-
-drop policy if exists "customer_events_insert_own" on public.customer_events;
-create policy "customer_events_insert_own"
-on public.customer_events
-for insert
-with check (auth.uid() = user_id);
-
--- Usage event policies
-drop policy if exists "usage_events_select_own" on public.usage_events;
-create policy "usage_events_select_own"
-on public.usage_events
-for select
-using (auth.uid() = user_id);
-
-drop policy if exists "usage_events_insert_own" on public.usage_events;
-create policy "usage_events_insert_own"
-on public.usage_events
-for insert
-with check (auth.uid() = user_id);
-
--- Stripe connection policies
-drop policy if exists "stripe_connections_select_own" on public.stripe_connections;
-create policy "stripe_connections_select_own"
-on public.stripe_connections
-for select
-using (auth.uid() = user_id);
-
-drop policy if exists "stripe_connections_insert_own" on public.stripe_connections;
-create policy "stripe_connections_insert_own"
-on public.stripe_connections
-for insert
-with check (auth.uid() = user_id);
-
-drop policy if exists "stripe_connections_update_own" on public.stripe_connections;
-create policy "stripe_connections_update_own"
-on public.stripe_connections
-for update
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
-
--- Integration policies
-drop policy if exists "integrations_select_own" on public.integrations;
-create policy "integrations_select_own"
-on public.integrations
-for select
-using (auth.uid() = user_id);
-
-drop policy if exists "integrations_insert_own" on public.integrations;
-create policy "integrations_insert_own"
-on public.integrations
-for insert
-with check (auth.uid() = user_id);
-
-drop policy if exists "integrations_update_own" on public.integrations;
-create policy "integrations_update_own"
-on public.integrations
-for update
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
-
-drop policy if exists "integrations_delete_own" on public.integrations;
-create policy "integrations_delete_own"
-on public.integrations
-for delete
-using (auth.uid() = user_id);
-
--- Lead policies. Inserts are public; reads are service-role only by absence of
--- a select policy.
-drop policy if exists "leads_insert_anon" on public.leads;
-create policy "leads_insert_anon"
-on public.leads
-for insert
-with check (true);
-
-drop policy if exists "leads_select_admin" on public.leads;
-
--- Auto-create profile rows on signup.
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  insert into public.profiles (user_id, referral_source)
-  values (
-    new.id,
-    new.raw_user_meta_data->>'referral_source'
-  )
-  on conflict (user_id) do nothing;
-  return new;
-end;
-$$;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-after insert on auth.users
-for each row execute procedure public.handle_new_user();
--- Part 1: Invoice Groups
-create table if not exists public.groups (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users(id) on delete cascade not null,
-  name text not null,
-  description text,
-  color text,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+-- 8. Integrations (Xero, QuickBooks)
+CREATE TABLE integrations (
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  provider integration_provider NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  access_token TEXT NOT NULL, -- To be encrypted at rest using pgcrypto or App Layer
+  refresh_token TEXT NOT NULL, -- To be encrypted at rest using pgcrypto or App Layer
+  expires_at TIMESTAMPTZ NOT NULL,
+  tenant_id TEXT NOT NULL,
+  last_synced_at TIMESTAMPTZ,
+  sync_direction sync_direction DEFAULT 'bidirectional',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY (organization_id, provider)
 );
 
-alter table public.groups enable row level security;
-create policy "groups_select_own" on public.groups for select using (auth.uid() = user_id);
-create policy "groups_insert_own" on public.groups for insert with check (auth.uid() = user_id);
-create policy "groups_update_own" on public.groups for update using (auth.uid() = user_id);
-create policy "groups_delete_own" on public.groups for delete using (auth.uid() = user_id);
-
--- Customer Groups Junction
-create table if not exists public.customer_groups (
-  group_id uuid references public.groups(id) on delete cascade not null,
-  customer_id uuid references public.clients(id) on delete cascade not null,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  primary key (group_id, customer_id)
+-- 9. Usage Events (Rate limiting and tracking credits)
+CREATE TABLE usage_events (
+  id BIGSERIAL PRIMARY KEY,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  event_type TEXT NOT NULL,
+  credits_used INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
-alter table public.customer_groups enable row level security;
-create policy "customer_groups_select_own" on public.customer_groups for select 
-  using (exists (select 1 from public.groups where id = group_id and user_id = auth.uid()));
-create policy "customer_groups_insert_own" on public.customer_groups for insert 
-  with check (exists (select 1 from public.groups where id = group_id and user_id = auth.uid()));
-create policy "customer_groups_delete_own" on public.customer_groups for delete 
-  using (exists (select 1 from public.groups where id = group_id and user_id = auth.uid()));
-
-
--- Part 2: Late Fees
-create table if not exists public.late_fee_policies (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users(id) on delete cascade not null,
-  name text not null,
-  fee_type text not null check (fee_type in ('flat', 'percentage')),
-  fee_value numeric(10,2) not null default 0,
-  grace_period_days integer not null default 0,
-  frequency text not null check (frequency in ('once', 'weekly', 'monthly')),
-  apply_to text not null check (apply_to in ('existing_invoice', 'new_invoice')),
-  excluded_group_ids uuid[] default array[]::uuid[],
-  active boolean default true not null,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+-- 10. Leads (Landing page email capture)
+CREATE TABLE leads (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL UNIQUE,
+  referral_source TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
-alter table public.late_fee_policies enable row level security;
-create policy "late_fee_policies_select_own" on public.late_fee_policies for select using (auth.uid() = user_id);
-create policy "late_fee_policies_insert_own" on public.late_fee_policies for insert with check (auth.uid() = user_id);
-create policy "late_fee_policies_update_own" on public.late_fee_policies for update using (auth.uid() = user_id);
-create policy "late_fee_policies_delete_own" on public.late_fee_policies for delete using (auth.uid() = user_id);
-
-create table if not exists public.applied_late_fees (
-  id uuid default gen_random_uuid() primary key,
-  invoice_id uuid references public.invoices(id) on delete cascade not null,
-  policy_id uuid references public.late_fee_policies(id) on delete set null,
-  amount numeric(10,2) not null,
-  applied_at timestamp with time zone default timezone('utc'::text, now()) not null
+-- 11. Webhook Events (Idempotency for Dodo Payments)
+CREATE TABLE webhook_events (
+  id TEXT PRIMARY KEY, -- The Dodo Payments webhook event ID
+  type TEXT NOT NULL,
+  processed_at TIMESTAMPTZ DEFAULT now()
 );
 
-alter table public.applied_late_fees enable row level security;
-create policy "applied_late_fees_select_own" on public.applied_late_fees for select 
-  using (exists (select 1 from public.invoices where id = invoice_id and user_id = auth.uid()));
-create policy "applied_late_fees_insert_own" on public.applied_late_fees for insert 
-  with check (exists (select 1 from public.invoices where id = invoice_id and user_id = auth.uid()));
+-- ==========================================
+-- INDEXES
+-- ==========================================
+CREATE INDEX idx_org_members_user_id ON organization_members(user_id);
+CREATE INDEX idx_clients_org_id ON clients(organization_id);
+
+-- Minimum Required Indexes
+CREATE INDEX idx_invoices_org_id ON invoices(organization_id);
+CREATE INDEX idx_invoices_status ON invoices(status);
+CREATE INDEX idx_invoices_next_send_at ON invoices(next_send_at);
+CREATE INDEX idx_events_invoice_id ON events(invoice_id);
+
+-- Additional Helpful Indexes
+CREATE INDEX idx_invoices_client_id ON invoices(client_id);
+-- Partial index to heavily optimize the daily background jobs searching for due emails
+CREATE INDEX idx_invoices_due_reminders ON invoices(next_send_at) WHERE reminders_enabled = true AND status = 'outstanding';
+
+CREATE INDEX idx_payments_org_id ON payments(organization_id);
+CREATE INDEX idx_payments_invoice_id ON payments(invoice_id);
+CREATE INDEX idx_events_org_id ON events(organization_id);
+
+-- ==========================================
+-- ROW LEVEL SECURITY (RLS)
+-- ==========================================
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE organization_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE integrations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE usage_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
+
+-- Helper function to check org membership securely
+CREATE OR REPLACE FUNCTION public.is_org_member(org_id UUID) RETURNS BOOLEAN AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.organization_members 
+    WHERE organization_id = org_id AND user_id = auth.uid()
+  );
+$$ LANGUAGE sql SECURITY DEFINER;
+
+-- Profiles: Users can only see and edit their own profile
+CREATE POLICY "Users can manage their own profile" ON profiles
+  FOR ALL USING (auth.uid() = user_id);
+
+-- Organizations: Users can view orgs they belong to
+CREATE POLICY "Users can view their organizations" ON organizations
+  FOR SELECT USING (public.is_org_member(id));
+
+-- Organization Members: Users can see members of their orgs
+CREATE POLICY "Users can view members of their organizations" ON organization_members
+  FOR SELECT USING (public.is_org_member(organization_id));
+
+-- Core Tables (Clients, Invoices, Payments, Events, Integrations): Access restricted to org members
+CREATE POLICY "Org members can manage clients" ON clients FOR ALL USING (public.is_org_member(organization_id));
+CREATE POLICY "Org members can manage invoices" ON invoices FOR ALL USING (public.is_org_member(organization_id));
+CREATE POLICY "Org members can manage payments" ON payments FOR ALL USING (public.is_org_member(organization_id));
+CREATE POLICY "Org members can manage events" ON events FOR ALL USING (public.is_org_member(organization_id));
+CREATE POLICY "Org members can manage integrations" ON integrations FOR ALL USING (public.is_org_member(organization_id));
+
+-- Leads: Public inserts allowed, reads restricted to service role only (admin dashboards)
+CREATE POLICY "Anyone can insert leads" ON leads FOR INSERT WITH CHECK (true);
+-- No SELECT policy created; relies entirely on server-side service role bypass to view leads.
+
+-- Webhooks: Only server service role can access
+ALTER TABLE webhook_events ENABLE ROW LEVEL SECURITY;
+-- No public policies created; relies entirely on server-side service role bypass.

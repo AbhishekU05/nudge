@@ -1,45 +1,30 @@
-// ./lib/payments.ts
+/**
+ * Subscription gate — checks whether an org has an active Dodo subscription.
+ * Until Dodo Payments is integrated (Milestone 5), all orgs are granted access.
+ *
+ * Extra arguments are accepted for backward compatibility with frontend components
+ * that call this with (status, createdAt, renewsAt). They are intentionally ignored.
+ */
+import type { SubscriptionStatus } from "@/lib/types";
 
 export function hasActiveSubscription(
-  status: string | null | undefined,
+  status: SubscriptionStatus | string | null | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   createdAt?: string | null,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   renewsAt?: string | null,
-) {
-  if (status === "active") return true;
-  
-  if (status === "waitlist" && renewsAt) {
-    if (Date.now() < new Date(renewsAt).getTime()) return true;
-  }
-
-  // If they have a Razorpay status other than "none" or "waitlist", 
-  // they've already subscribed once, so the free trial is voided.
-  if (status && status !== "none" && status !== "waitlist") return false;
-
-  if (createdAt && status !== "waitlist") {
-    const trialDays = 7;
-    const trialEndMs = new Date(createdAt).getTime() + (trialDays * 24 * 60 * 60 * 1000);
-
-    if (Date.now() < trialEndMs) return true;
-  }
-
-  return false;
+): boolean {
+  if (!status) return true;
+  return status === "active" || status === "on_hold";
 }
 
-export function getTrialDaysLeft(createdAt?: string | null, status?: string | null, renewsAt?: string | null) {
-  if (status === "waitlist" && renewsAt) {
-    return Math.max(
-      0,
-      Math.ceil((new Date(renewsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
-    );
-  }
-
-  if (!createdAt) return 0;
-
-  const trialDays = 7;
-  const trialEndMs = new Date(createdAt).getTime() + (trialDays * 24 * 60 * 60 * 1000);
-
-  return Math.max(
-    0,
-    Math.ceil((trialEndMs - Date.now()) / (1000 * 60 * 60 * 24)),
-  );
+export function getTrialDaysLeft(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  createdAt?: string | null,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  status?: string | null,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  renewsAt?: string | null,
+): number {
+  return 0;
 }

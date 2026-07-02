@@ -100,11 +100,6 @@ export default async function IntegrationsPage({
     .eq("provider", "quickbooks")
     .maybeSingle<IntegrationRow>();
 
-  const { data: stripeConnection } = await supabase
-    .from("stripe_connections")
-    .select("stripe_account_id, webhook_secret")
-    .eq("user_id", user.id)
-    .maybeSingle<{ stripe_account_id: string | null; webhook_secret: string | null }>();
 
   const isConnectedXero = Boolean(xero);
   const isConnectedQuickBooks = Boolean(quickbooks);
