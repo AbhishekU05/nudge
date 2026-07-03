@@ -85,7 +85,7 @@ export async function startSubscriptionCheckout(formData?: FormData) {
     }
   } catch (err) {
     console.error("Fatal error in startSubscriptionCheckout:", err);
-    return { error: err instanceof Error ? `Server Error: ${err.message}` : "Fatal unknown error occurred." };
+    return { error: "Server Error: Unable to process checkout." };
   }
 }
 

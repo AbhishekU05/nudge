@@ -319,7 +319,7 @@ export async function updateProfileName(formData: FormData) {
   });
 
   if (authError) {
-    redirect(`/dashboard?error=${encodeURIComponent(authError.message)}`);
+    redirect(`/dashboard?error=${encodeURIComponent("Server Error: Unable to update profile")}`);
   }
 
   const { error: profileError } = await supabase
@@ -328,7 +328,7 @@ export async function updateProfileName(formData: FormData) {
     .eq("user_id", user.id);
 
   if (profileError) {
-    redirect(`/dashboard?error=${encodeURIComponent(profileError.message)}`);
+    redirect(`/dashboard?error=${encodeURIComponent("Server Error: Unable to update profile")}`);
   }
 
   redirect("/dashboard?success=Profile+updated.");

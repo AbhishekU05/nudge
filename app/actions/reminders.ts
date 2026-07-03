@@ -59,8 +59,7 @@ function normalizePaymentLink(paymentLink: string): string | null {
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
-  if (error instanceof Error && error.message.trim().length > 0) return error.message;
-  return fallback;
+  return fallback || "Server Error";
 }
 
 function redirectToNewReminder(error: string): never {

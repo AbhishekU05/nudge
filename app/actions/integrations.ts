@@ -152,7 +152,7 @@ export async function syncIntegrationNow(provider: "xero" | "quickbooks") {
     revalidatePath("/customers");
     return { success: true, message: `Synced ${result.imported} imported, ${result.updated} updated.` };
   } catch (error) {
-    return { success: false, message: error instanceof Error ? error.message : `Unable to sync ${provider}.` };
+    return { success: false, message: `Server Error: Unable to sync ${provider}.` };
   }
 }
 
