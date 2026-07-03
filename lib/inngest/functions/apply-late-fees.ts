@@ -6,7 +6,7 @@ import { createXeroLateFeeInvoice } from "@/lib/xero-write";
 import { hasActiveSubscription } from "@/lib/payments";
 
 export const applyLateFees = inngest.createFunction(
-  { id: "apply-late-fees", triggers: [{ cron: "0 0 * * *" }] }, // Daily at midnight
+  { id: "apply-late-fees", triggers: [{ cron: "0 0 * * *" }] },
   async ({ step }) => {
     const supabase = createSupabaseAdminClient();
 

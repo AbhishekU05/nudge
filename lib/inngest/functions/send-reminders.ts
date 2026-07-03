@@ -81,7 +81,7 @@ function processTemplate(template: Template, vars: Record<string, string>) {
 }
 
 export const sendReminders = inngest.createFunction(
-  { id: "send-reminders", triggers: [{ cron: "0 * * * *" }] }, // Hourly
+  { id: "send-reminders", triggers: [{ cron: "0 * * * *" }] },
   async ({ step }) => {
     const requestId = crypto.randomUUID();
     logger.cron({ job_name: "send_reminders", status: "start", request_id: requestId });

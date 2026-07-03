@@ -2,7 +2,7 @@ import { inngest } from "@/lib/inngest/client";
 import { sendWeeklyDigestEmails } from "@/lib/email/send-digest";
 
 export const sendDigest = inngest.createFunction(
-  { id: "send-digest", triggers: [{ cron: "0 8 * * 1" }] }, // Monday at 8am
+  { id: "send-digest", triggers: [{ cron: "0 8 * * 1" }] },
   async ({ step }) => {
     const result = await sendWeeklyDigestEmails();
     if (!result.success) {
