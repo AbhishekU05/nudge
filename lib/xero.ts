@@ -32,7 +32,7 @@ type XeroStatePayload = {
 };
 
 export type XeroIntegrationRow = {
-  user_id: string;
+  organization_id: string;
   provider: "xero";
   access_token: string;
   refresh_token: string;
@@ -198,7 +198,7 @@ export async function getValidXeroClient(integration: XeroIntegrationRow) {
       expires_at: updatedIntegration.expires_at,
       refresh_token: updatedIntegration.refresh_token,
     })
-    .eq("user_id", integration.user_id)
+    .eq("organization_id", integration.organization_id)
     .eq("provider", XERO_PROVIDER);
 
   if (error) {
@@ -237,7 +237,7 @@ export async function completeXeroOAuthCallback(callbackUrl: string, state: stri
     throw new Error(error.message);
   }
 
-  return syncXeroInvoicesForUser(statePayload.userId);
+  return syncXeroInvoicesForOrg(statePayload.userId); // Needs to resolve to org id later if called from outside
 }
 
 function normalizeEmail(email: string | null | undefined) {
@@ -274,12 +274,12 @@ function getInvoiceTotal(invoice: Invoice) {
   return Math.round((amountDue + amountPaid) * 100) / 100;
 }
 
-async function getXeroIntegration(userId: string) {
+async function getXeroIntegration(organizationId: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("integrations")
     .select("*")
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .eq("provider", XERO_PROVIDER)
     .maybeSingle<XeroIntegrationRow>();
 
@@ -323,14 +323,14 @@ async function fetchAllXeroInvoices(xero: XeroClient, tenantId: string) {
   return invoices;
 }
 
-async function loadExistingXeroCustomers(userId: string, invoiceIds: string[]) {
+async function loadExistingXeroCustomers(organizationId: string, invoiceIds: string[]) {
   if (invoiceIds.length === 0) return new Map<string, ExistingCustomerRow>();
 
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("invoices")
-    .select("id, customer_id, recipient_email, recipient_name, xero_invoice_id, amount_paid, internal_notes")
-    .eq("user_id", userId)
+    .select("id, client_id, recipient_email, recipient_name, xero_invoice_id, amount_paid, internal_notes")
+    .eq("organization_id", organizationId)
     .in("xero_invoice_id", invoiceIds)
     .returns<ExistingCustomerRow[]>();
 
@@ -341,8 +341,8 @@ async function loadExistingXeroCustomers(userId: string, invoiceIds: string[]) {
   return new Map((data ?? []).map((row) => [row.xero_invoice_id ?? "", row]));
 }
 
-export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncResult> {
-  const integration = await getXeroIntegration(userId);
+export async function syncXeroInvoicesForOrg(organizationId: string): Promise<XeroSyncResult> {
+  const integration = await getXeroIntegration(organizationId);
   if (!integration) {
     throw new Error("Xero is not connected.");
   }
@@ -352,9 +352,9 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
   const invoiceIds = invoices
     .map((invoice) => invoice.invoiceID)
     .filter((invoiceId): invoiceId is string => Boolean(invoiceId));
-  const existingByInvoiceId = await loadExistingXeroCustomers(userId, invoiceIds);
+  const existingByInvoiceId = await loadExistingXeroCustomers(organizationId, invoiceIds);
   const supabase = createSupabaseAdminClient();
-  const { data: clientsData } = await supabase.from("clients").select("id, name, email").eq("user_id", userId);
+  const { data: clientsData } = await supabase.from("clients").select("id, name, email").eq("organization_id", organizationId);
   const clientsMap = new Map<string, { id: string }>();
   for (const client of clientsData || []) {
     if (client.email) clientsMap.set(client.email.toLowerCase(), client);
@@ -416,7 +416,7 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
         .from("invoices")
         .update(payload)
         .eq("id", existing.id)
-        .eq("user_id", userId);
+        .eq("organization_id", organizationId);
 
       if (error) {
         throw new Error(error.message);
@@ -431,8 +431,8 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
       if (newlyPaid > 0) {
         newPaymentLogs.push({
           invoice_id: existing.id,
-          customer_id: existing.customer_id ?? null,
-          user_id: userId,
+          client_id: existing.customer_id ?? null,
+          organization_id: organizationId,
           event_type: "payment",
           event_date: paymentDate,
           amount: newlyPaid,
@@ -454,7 +454,7 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
       const { data: client, error: clientError } = await supabase
         .from("clients")
         .insert({ 
-          user_id: userId, 
+          organization_id: organizationId, 
           name: contactName,
           email: email,
           next_send_at: computeFirstReminderSendAt() 
@@ -473,10 +473,10 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
 
     const { data: newCustomer, error } = await supabase.from("invoices").insert({
       ...payload,
-      customer_id: clientRecord.id,
+      client_id: clientRecord.id,
       custom_message: null,
       payment_link: null,
-      user_id: userId,
+      organization_id: organizationId,
     }).select("id").single();
 
 
@@ -487,8 +487,8 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
     if (newlyPaid > 0 && newCustomer) {
       newPaymentLogs.push({
         invoice_id: newCustomer.id,
-        customer_id: clientRecord.id,
-        user_id: userId,
+        client_id: clientRecord.id,
+        organization_id: organizationId,
         event_type: "payment",
         event_date: paymentDate,
         amount: newlyPaid,
@@ -501,13 +501,13 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
   }
 
   if (newPaymentLogs.length > 0) {
-    const { error: logsError } = await supabase.from("customer_events").insert(newPaymentLogs);
+    const { error: logsError } = await supabase.from("events").insert(newPaymentLogs);
     if (logsError) {
       logger.error({
         message: "Failed to insert payment logs from Xero sync",
-        context: "syncXeroInvoicesForUser",
+        context: "syncXeroInvoicesForOrg",
         error: logsError.message,
-        user_id: userId,
+        organization_id: organizationId,
       });
     }
   }
@@ -515,7 +515,7 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
   const { error: syncError } = await supabase
     .from("integrations")
     .update({ last_synced_at: new Date().toISOString() })
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .eq("provider", XERO_PROVIDER);
 
   if (syncError) {
@@ -526,18 +526,18 @@ export async function syncXeroInvoicesForUser(userId: string): Promise<XeroSyncR
     service: "Xero",
     action: "sync_invoices",
     success: true,
-    user_id: userId,
+    organization_id: organizationId,
   });
 
   return result;
 }
 
-export async function getXeroBankAccounts(userId: string) {
+export async function getXeroBankAccounts(organizationId: string) {
   const supabase = createSupabaseAdminClient();
   const { data: integration } = await supabase
     .from("integrations")
     .select("*")
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .eq("provider", "xero")
     .maybeSingle<XeroIntegrationRow>();
 
@@ -566,8 +566,8 @@ export async function getXeroBankAccounts(userId: string) {
   }
 }
 
-export async function revokeXeroIntegration(userId: string) {
-  const integration = await getXeroIntegration(userId);
+export async function revokeXeroIntegration(organizationId: string) {
+  const integration = await getXeroIntegration(organizationId);
   if (!integration) return;
 
   try {
@@ -583,7 +583,7 @@ export async function revokeXeroIntegration(userId: string) {
       service: "Xero",
       action: "revoke_token",
       success: false,
-      user_id: userId,
+      organization_id: organizationId,
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }

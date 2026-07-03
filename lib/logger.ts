@@ -5,6 +5,7 @@ interface BaseLogData {
   timestamp?: string;
   request_id?: string;
   user_id?: string;
+  organization_id?: string;
   [key: string]: unknown;
 }
 
@@ -54,7 +55,7 @@ export const logger = {
     this.log(level, { category: "cron", ...data });
   },
 
-  external(data: { service: string; action: string; success: boolean; latency?: number; error?: string; request_id?: string; user_id?: string }) {
+  external(data: { service: string; action: string; success: boolean; latency?: number; error?: string; request_id?: string; user_id?: string; organization_id?: string }) {
     const level = data.success ? "info" : "error";
     this.log(level, { category: "external", ...data });
   }

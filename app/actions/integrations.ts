@@ -5,8 +5,8 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { buildPathWithQuery } from "@/lib/paths";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { revokeXeroIntegration, syncXeroInvoicesForUser } from "@/lib/xero";
-import { revokeQuickBooksIntegration, syncQuickBooksInvoicesForUser } from "@/lib/quickbooks";
+import { revokeXeroIntegration, syncXeroInvoicesForOrg } from "@/lib/xero";
+import { revokeQuickBooksIntegration, syncQuickBooksInvoicesForOrg } from "@/lib/quickbooks";
 
 function redirectToIntegrations(params: { error?: string; success?: string }): never {
   redirect(buildPathWithQuery("/settings/integrations", params));
@@ -27,9 +27,9 @@ export async function syncXeroNow() {
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) redirectToIntegrations({ error: "No organization found." });
 
-  let result: Awaited<ReturnType<typeof syncXeroInvoicesForUser>>;
+  let result: Awaited<ReturnType<typeof syncXeroInvoicesForOrg>>;
   try {
-    result = await syncXeroInvoicesForUser(organizationId!);
+    result = await syncXeroInvoicesForOrg(organizationId!);
   } catch (error) {
     redirectToIntegrations({
       error: error instanceof Error ? error.message : "Unable to sync Xero.",
@@ -71,9 +71,9 @@ export async function syncQuickBooksNow() {
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) redirectToIntegrations({ error: "No organization found." });
 
-  let result: Awaited<ReturnType<typeof syncQuickBooksInvoicesForUser>>;
+  let result: Awaited<ReturnType<typeof syncQuickBooksInvoicesForOrg>>;
   try {
-    result = await syncQuickBooksInvoicesForUser(organizationId!);
+    result = await syncQuickBooksInvoicesForOrg(organizationId!);
   } catch (error) {
     redirectToIntegrations({
       error: error instanceof Error ? error.message : "Unable to sync QuickBooks.",
@@ -144,9 +144,9 @@ export async function syncIntegrationNow(provider: "xero" | "quickbooks") {
   try {
     let result;
     if (provider === "xero") {
-      result = await syncXeroInvoicesForUser(organizationId);
+      result = await syncXeroInvoicesForOrg(organizationId);
     } else {
-      result = await syncQuickBooksInvoicesForUser(organizationId);
+      result = await syncQuickBooksInvoicesForOrg(organizationId);
     }
     revalidatePath("/dashboard");
     revalidatePath("/customers");

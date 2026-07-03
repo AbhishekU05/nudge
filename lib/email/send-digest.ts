@@ -73,18 +73,27 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
     const userEmail = userMap[userId];
     if (!userEmail) continue;
 
+    // Fetch user's organizations
+    const { data: orgMembers } = await supabase
+      .from("organization_members")
+      .select("organization_id")
+      .eq("user_id", userId);
+      
+    const orgIds = orgMembers?.map(m => m.organization_id) || [];
+    if (orgIds.length === 0) continue;
+
     // Fetch invoices
     const { data: invoices, error: invError } = await supabase
       .from("invoices")
       .select("*")
-      .eq("user_id", userId);
+      .in("organization_id", orgIds);
 
     if (invError || !invoices) continue;
 
     const { data: events } = await supabase
-      .from("customer_events")
+      .from("events")
       .select("*, invoices(recipient_name)")
-      .eq("user_id", userId);
+      .in("organization_id", orgIds);
 
     // Group invoices by currency
     const invoicesByCurrency = invoices.reduce((acc, inv) => {
@@ -235,6 +244,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
         const monthKey = date.toLocaleString('default', { month: 'short', year: 'numeric' });
         const eMonth = date.getMonth();
         const eYear = date.getFullYear();
+        const clientId = e.client_id || e.customer_id;
 
         if (e.event_type === "payment" && e.amount) {
           if (collectionsByMonth[monthKey] !== undefined) {
@@ -245,12 +255,12 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           } else if (eMonth === lastMonth && eYear === lastMonthYear) {
             revenueLastMonth += Number(e.amount);
           }
-          if (followupsPerCustomer[e.customer_id] > 0) {
+          if (followupsPerCustomer[clientId] > 0) {
             customersWithFollowupsAndPaid++;
-            followupsBeforePaymentCount += followupsPerCustomer[e.customer_id];
+            followupsBeforePaymentCount += followupsPerCustomer[clientId];
           }
-          if (customersWithPromises.has(e.customer_id)) {
-            customersWithPromisesKept.add(e.customer_id);
+          if (customersWithPromises.has(clientId)) {
+            customersWithPromisesKept.add(clientId);
           }
           
           if (date >= sevenDaysAgo) {
@@ -265,9 +275,9 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           if (followupsByMonth[monthKey] !== undefined) {
             followupsByMonth[monthKey] += 1;
           }
-          followupsPerCustomer[e.customer_id] = (followupsPerCustomer[e.customer_id] || 0) + 1;
+          followupsPerCustomer[clientId] = (followupsPerCustomer[clientId] || 0) + 1;
           if (e.followup_outcome === "promise_made") {
-            customersWithPromises.add(e.customer_id);
+            customersWithPromises.add(clientId);
           }
         }
       });

@@ -22,7 +22,7 @@ type QuickBooksStatePayload = {
 };
 
 export type QuickBooksIntegrationRow = {
-  user_id: string;
+  organization_id: string;
   provider: "quickbooks";
   access_token: string;
   refresh_token: string;
@@ -183,7 +183,7 @@ async function getValidQuickBooksTokens(integration: QuickBooksIntegrationRow) {
       expires_at: updatedIntegration.expires_at,
       refresh_token: updatedIntegration.refresh_token,
     })
-    .eq("user_id", integration.user_id)
+    .eq("organization_id", integration.organization_id)
     .eq("provider", QUICKBOOKS_PROVIDER);
 
   if (error) {
@@ -220,19 +220,19 @@ export async function completeQuickBooksOAuthCallback(code: string, realmId: str
     throw new Error(error.message);
   }
 
-  return syncQuickBooksInvoicesForUser(statePayload.userId);
+  return syncQuickBooksInvoicesForOrg(statePayload.userId); // Will need to resolve to organization_id later if needed
 }
 
 function normalizeEmail(email: string | null | undefined) {
   return email?.trim().toLowerCase() || null;
 }
 
-async function getQuickBooksIntegration(userId: string) {
+async function getQuickBooksIntegration(organizationId: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("integrations")
     .select("*")
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .eq("provider", QUICKBOOKS_PROVIDER)
     .maybeSingle<QuickBooksIntegrationRow>();
 
@@ -304,14 +304,14 @@ async function fetchQuickBooksCustomers(accessToken: string, realmId: string, cu
   return new Map(customers.map((c: any) => [c.Id, c]));
 }
 
-async function loadExistingQuickBooksCustomers(userId: string, invoiceIds: string[]) {
+async function loadExistingQuickBooksCustomers(organizationId: string, invoiceIds: string[]) {
   if (invoiceIds.length === 0) return new Map<string, ExistingCustomerRow>();
 
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("invoices")
-    .select("id, customer_id, recipient_email, recipient_name, quickbooks_invoice_id, amount_paid, internal_notes")
-    .eq("user_id", userId)
+    .select("id, client_id, recipient_email, recipient_name, quickbooks_invoice_id, amount_paid, internal_notes")
+    .eq("organization_id", organizationId)
     .in("quickbooks_invoice_id", invoiceIds)
     .returns<ExistingCustomerRow[]>();
 
@@ -322,8 +322,8 @@ async function loadExistingQuickBooksCustomers(userId: string, invoiceIds: strin
   return new Map((data ?? []).map((row) => [row.quickbooks_invoice_id ?? "", row]));
 }
 
-export async function syncQuickBooksInvoicesForUser(userId: string): Promise<QuickBooksSyncResult> {
-  const integration = await getQuickBooksIntegration(userId);
+export async function syncQuickBooksInvoicesForOrg(organizationId: string): Promise<QuickBooksSyncResult> {
+  const integration = await getQuickBooksIntegration(organizationId);
   if (!integration || !integration.realm_id) {
     throw new Error("QuickBooks is not connected.");
   }
@@ -335,9 +335,9 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
   const qbCustomers = await fetchQuickBooksCustomers(validIntegration.access_token, integration.realm_id, customerIds);
 
   const invoiceIds = invoices.map((invoice: any) => invoice.Id).filter(Boolean);
-  const existingByInvoiceId = await loadExistingQuickBooksCustomers(userId, invoiceIds);
+  const existingByInvoiceId = await loadExistingQuickBooksCustomers(organizationId, invoiceIds);
   const supabase = createSupabaseAdminClient();
-  const { data: clientsData } = await supabase.from("clients").select("id, name, email").eq("user_id", userId);
+  const { data: clientsData } = await supabase.from("clients").select("id, name, email").eq("organization_id", organizationId);
   const clientsMap = new Map<string, { id: string }>();
   for (const client of clientsData || []) {
     if (client.email) clientsMap.set(client.email.toLowerCase(), client);
@@ -403,7 +403,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
         .from("invoices")
         .update(payload)
         .eq("id", existing.id)
-        .eq("user_id", userId);
+        .eq("organization_id", organizationId);
 
       if (error) {
         throw new Error(error.message);
@@ -418,13 +418,13 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
       if (newlyPaid > 0) {
         newPaymentLogs.push({
           invoice_id: existing.id,
-          customer_id: existing.customer_id ?? null,
-          user_id: userId,
+          client_id: existing.customer_id ?? null,
+          organization_id: organizationId,
           event_type: "payment",
           event_date: paymentDate,
           amount: newlyPaid,
           currency: payload.currency,
-          payment_source: "user",
+          payment_source: "user", // Keep matching PaymentSourceBadge format if required
         });
       }
 
@@ -440,7 +440,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
       const { data: client, error: clientError } = await supabase
         .from("clients")
         .insert({ 
-          user_id: userId, 
+          organization_id: organizationId, 
           name: contactName,
           email: email,
           next_send_at: computeFirstReminderSendAt() 
@@ -459,10 +459,10 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
 
     const { data: newCustomer, error } = await supabase.from("invoices").insert({
       ...payload,
-      customer_id: clientRecord.id,
+      client_id: clientRecord.id,
       custom_message: null,
       payment_link: null,
-      user_id: userId,
+      organization_id: organizationId,
     }).select("id").single();
 
 
@@ -473,8 +473,8 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
     if (newlyPaid > 0 && newCustomer) {
       newPaymentLogs.push({
         invoice_id: newCustomer.id,
-        customer_id: clientRecord.id,
-        user_id: userId,
+        client_id: clientRecord.id,
+        organization_id: organizationId,
         event_type: "payment",
         event_date: paymentDate,
         amount: newlyPaid,
@@ -487,13 +487,13 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
   }
 
   if (newPaymentLogs.length > 0) {
-    const { error: logsError } = await supabase.from("customer_events").insert(newPaymentLogs);
+    const { error: logsError } = await supabase.from("events").insert(newPaymentLogs); // Assuming customer_events is now events based on previous edits
     if (logsError) {
       logger.error({
         message: "Failed to insert payment logs from QuickBooks sync",
-        context: "syncQuickBooksInvoicesForUser",
+        context: "syncQuickBooksInvoicesForOrg",
         error: logsError.message,
-        user_id: userId,
+        organization_id: organizationId,
       });
     }
   }
@@ -501,7 +501,7 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
   const { error: syncError } = await supabase
     .from("integrations")
     .update({ last_synced_at: new Date().toISOString() })
-    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
     .eq("provider", QUICKBOOKS_PROVIDER);
 
   if (syncError) {
@@ -512,14 +512,14 @@ export async function syncQuickBooksInvoicesForUser(userId: string): Promise<Qui
     service: "QuickBooks",
     action: "sync_invoices",
     success: true,
-    user_id: userId,
+    organization_id: organizationId,
   });
 
   return result;
 }
 
-export async function getQuickBooksBankAccounts(userId: string) {
-  const integration = await getQuickBooksIntegration(userId);
+export async function getQuickBooksBankAccounts(organizationId: string) {
+  const integration = await getQuickBooksIntegration(organizationId);
   if (!integration || !integration.realm_id) return [];
 
   const { access_token } = await getValidQuickBooksTokens(integration);
@@ -554,8 +554,8 @@ export async function getQuickBooksBankAccounts(userId: string) {
   }
 }
 
-export async function revokeQuickBooksIntegration(userId: string) {
-  const integration = await getQuickBooksIntegration(userId);
+export async function revokeQuickBooksIntegration(organizationId: string) {
+  const integration = await getQuickBooksIntegration(organizationId);
   if (!integration) return;
 
   try {
@@ -583,7 +583,7 @@ export async function revokeQuickBooksIntegration(userId: string) {
       service: "QuickBooks",
       action: "revoke_token",
       success: false,
-      user_id: userId,
+      organization_id: organizationId,
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }
