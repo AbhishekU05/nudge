@@ -114,7 +114,7 @@ export default async function BillingPage({
         ) : null}
       </div>
 
-      {org?.domain === null && (
+      {!org?.domain && (
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 text-sm leading-6 text-amber-200 shadow-sm">
           <div className="flex items-start gap-3">
             <ShieldCheck className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
