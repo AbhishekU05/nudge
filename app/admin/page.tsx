@@ -7,11 +7,12 @@ export default async function AdminDashboard() {
   const { createSupabaseAdminClient } = await import("@/lib/supabase/admin");
   const supabase = createSupabaseAdminClient();
 
-  const [{ count: orgCount }, { count: usersCount }, { count: webhooksCount }] = await Promise.all([
+  const [{ count: orgCount }, { count: webhooksCount }, { data: { users } }] = await Promise.all([
     supabase.from("organizations").select("*", { count: "exact", head: true }),
-    supabase.from("profiles").select("*", { count: "exact", head: true }),
     supabase.from("webhook_events").select("*", { count: "exact", head: true }),
+    supabase.auth.admin.listUsers()
   ]);
+  const usersCount = users?.length || 0;
 
   const stats = [
     { name: "Total Organizations", value: orgCount || 0, icon: Users, href: "/admin/organizations" },
