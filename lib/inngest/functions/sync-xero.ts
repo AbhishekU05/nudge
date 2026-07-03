@@ -9,7 +9,7 @@ export const syncXero = inngest.createFunction(
     const supabase = createSupabaseAdminClient();
     const { data: integrations, error } = await supabase
       .from("integrations")
-      .select("organization_id")
+      .select("organization_id, organizations!inner(dodo_subscription_status, created_at)")
       .eq("provider", "xero");
 
     if (error) {
@@ -22,8 +22,14 @@ export const syncXero = inngest.createFunction(
       throw new Error(error.message);
     }
 
+    const { isAutomationAndIntegrationAllowed } = await import("@/lib/payments");
+
     const results = [];
     for (const integration of integrations || []) {
+      const org = Array.isArray(integration.organizations) ? integration.organizations[0] : integration.organizations;
+      if (!isAutomationAndIntegrationAllowed((org as any)?.dodo_subscription_status, (org as any)?.created_at)) {
+        continue;
+      }
       try {
         const result = await syncXeroInvoicesForOrg(integration.organization_id);
         results.push({ organizationId: integration.organization_id, success: true, ...result });

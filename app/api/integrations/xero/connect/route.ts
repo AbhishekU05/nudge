@@ -25,6 +25,18 @@ export async function GET() {
     return NextResponse.redirect(url);
   }
 
+  // Paywall check
+  const { data: member } = await supabase.from("organization_members").select("organization_id").eq("user_id", user.id).single();
+  if (member) {
+    const { data: org } = await supabase.from("organizations").select("dodo_subscription_status, created_at").eq("id", member.organization_id).single();
+    if (org) {
+      const { isAutomationAndIntegrationAllowed } = await import("@/lib/payments");
+      if (!isAutomationAndIntegrationAllowed(org.dodo_subscription_status, org.created_at)) {
+        return redirectToSettings("error", "You must upgrade to a paid subscription to use integrations.");
+      }
+    }
+  }
+
   try {
     const consentUrl = await buildXeroConsentUrl(user.id);
     console.log("XERO CONSENT URL GENERATED:", consentUrl);

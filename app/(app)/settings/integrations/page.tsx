@@ -86,17 +86,31 @@ export default async function IntegrationsPage({
   );
   const gmailEmail = gmailProfile?.gmail_connected_email ?? null;
 
+  // Find org id
+  const { data: member } = await supabase.from("organization_members").select("organization_id").eq("user_id", user.id).single();
+  const orgId = member?.organization_id;
+
+  // Paywall check
+  const { isAutomationAndIntegrationAllowed } = await import("@/lib/payments");
+  let isAllowed = true;
+  if (orgId) {
+    const { data: org } = await supabase.from("organizations").select("dodo_subscription_status, created_at").eq("id", orgId).single();
+    if (org) {
+      isAllowed = isAutomationAndIntegrationAllowed(org.dodo_subscription_status, org.created_at);
+    }
+  }
+
   const { data: xero } = await supabase
     .from("integrations")
     .select("tenant_id,last_synced_at,expires_at")
-    .eq("user_id", user.id)
+    .eq("organization_id", orgId)
     .eq("provider", "xero")
     .maybeSingle<IntegrationRow>();
 
   const { data: quickbooks } = await supabase
     .from("integrations")
     .select("realm_id,last_synced_at,expires_at")
-    .eq("user_id", user.id)
+    .eq("organization_id", orgId)
     .eq("provider", "quickbooks")
     .maybeSingle<IntegrationRow>();
 
@@ -104,6 +118,29 @@ export default async function IntegrationsPage({
   const isConnectedXero = Boolean(xero);
   const isConnectedQuickBooks = Boolean(quickbooks);
   const hasAccountingIntegration = isConnectedXero || isConnectedQuickBooks;
+
+  if (!isAllowed) {
+    return (
+      <div className="mx-auto max-w-4xl space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold text-zinc-50">Integrations</h2>
+          <p className="mt-1 text-sm text-zinc-400">Connect to external services.</p>
+        </div>
+        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-6 text-center">
+          <h3 className="text-lg font-medium text-rose-400 mb-2">Feature Locked</h3>
+          <p className="text-sm text-zinc-300 mb-4">
+            Upgrade to a paid subscription to connect integrations such as Xero, QuickBooks, and Gmail.
+          </p>
+          <a 
+            href="/settings/billing" 
+            className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-600"
+          >
+            Upgrade Plan
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">

@@ -44,6 +44,34 @@ export default async function AutomatePage() {
   const totalAutomations = clients.length + invoices.length;
   const draftList = drafts || [];
 
+  const { isAutomationAndIntegrationAllowed } = await import("@/lib/payments");
+  let isAllowed = true;
+  const { data: member } = await supabase.from("organization_members").select("organization_id").eq("user_id", user.id).single();
+  if (member) {
+    const { data: org } = await supabase.from("organizations").select("dodo_subscription_status, created_at").eq("id", member.organization_id).single();
+    if (org) {
+      isAllowed = isAutomationAndIntegrationAllowed(org.dodo_subscription_status, org.created_at);
+    }
+  }
+
+  if (!isAllowed) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center">
+        <Container className="py-8 sm:py-10 max-w-lg text-center">
+          <Zap className="h-12 w-12 text-zinc-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-50 mb-2">Automations Disabled</h1>
+          <p className="text-zinc-400 mb-6">You must upgrade to a paid subscription to use automated payment reminders.</p>
+          <Link 
+            href="/settings/billing"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 transition-colors"
+          >
+            Upgrade Plan
+          </Link>
+        </Container>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">

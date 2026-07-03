@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { inngest } from "@/lib/inngest/client";
 import { sendGmail, hasGmailTokens } from "@/lib/gmail";
 import { getResendClient } from "@/lib/resend";
-import { hasActiveSubscription } from "@/lib/payments";
+import { isAutomationAndIntegrationAllowed } from "@/lib/payments";
 import { computeRecurringReminderSendAt } from "@/lib/reminder-schedule";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
@@ -154,13 +154,13 @@ export const sendReminders = inngest.createFunction(
 
     const orgIds = [...new Set(entities.map((e) => e.organization_id))];
 
-    // Fetch subscriptions
+    // Fetch subscriptions and created_at
     const { data: orgs } = await supabase
       .from("organizations")
-      .select("id,dodo_subscription_status")
+      .select("id,dodo_subscription_status,created_at")
       .in("id", orgIds);
 
-    const orgSubMap = new Map((orgs ?? []).map((o) => [o.id, o.dodo_subscription_status]));
+    const orgSubMap = new Map((orgs ?? []).map((o) => [o.id, { status: o.dodo_subscription_status, createdAt: o.created_at }]));
 
     // Fetch org admins
     const authUsersMap = new Map<string, { email: string | null; name: string, user_id: string }>();
@@ -191,9 +191,9 @@ export const sendReminders = inngest.createFunction(
     let failed = 0;
 
     for (const entity of entities) {
-      const subscriptionStatus = orgSubMap.get(entity.organization_id) ?? null;
+      const orgInfo = orgSubMap.get(entity.organization_id) ?? { status: null, createdAt: null };
 
-      if (!hasActiveSubscription(subscriptionStatus)) {
+      if (!isAutomationAndIntegrationAllowed(orgInfo.status, orgInfo.createdAt)) {
         await supabase.from(entity.type === "client" ? "clients" : "invoices").update({ active: false }).eq("id", entity.id);
         continue;
       }

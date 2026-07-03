@@ -709,9 +709,11 @@ function NotesTab({ customer }: { customer: CustomerRecord }) {
 function AutomationTab({
   customer,
   isDevelopment,
+  isAllowed,
 }: {
   customer: CustomerRecord;
   isDevelopment: boolean;
+  isAllowed?: boolean;
 }) {
   return (
     <AutomationSettings 
@@ -722,6 +724,7 @@ function AutomationTab({
       reminderType={customer.reminder_type}
       reminderTemplates={customer.reminder_templates || []}
       targetEmail={customer.recipient_email}
+      isAllowed={isAllowed}
     />
   );
 }
@@ -853,11 +856,13 @@ export function CustomerDetails({
   group,
   initialTab = "timeline",
   isDevelopment,
+  isAllowed = true,
 }: {
   customer: CustomerRecord | null;
   group?: GroupRecord | null;
   initialTab?: Tab;
   isDevelopment: boolean;
+  isAllowed?: boolean;
 }) {
   const [tab, setTab] = useState<Tab>(initialTab);
 
@@ -998,7 +1003,7 @@ export function CustomerDetails({
             {tab === "promise" && <PromiseTab customer={customer} />}
             {tab === "followup" && <FollowUpTab customer={customer} />}
             {tab === "notes" && <NotesTab customer={customer} />}
-            {tab === "automation" && <AutomationTab customer={customer} isDevelopment={isDevelopment} />}
+            {tab === "automation" && <AutomationTab customer={customer} isDevelopment={isDevelopment} isAllowed={isAllowed} />}
           </div>
 
           {/* Danger zone — Sidebar / Bottom */}

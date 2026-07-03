@@ -43,6 +43,14 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
     
   const group = customerGroupData?.groups as unknown as GroupRecord | undefined;
 
+  const { isAutomationAndIntegrationAllowed } = await import("@/lib/payments");
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("dodo_subscription_status, created_at")
+    .eq("id", client.organization_id)
+    .single();
+  const isAllowed = org ? isAutomationAndIntegrationAllowed(org.dodo_subscription_status, org.created_at) : false;
+
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
@@ -159,6 +167,7 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                 reminderType={client.reminder_type}
                 reminderTemplates={client.reminder_templates || []}
                 targetEmail={client.email}
+                isAllowed={isAllowed}
               />
             </section>
           </div>

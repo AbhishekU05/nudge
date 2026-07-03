@@ -31,6 +31,7 @@ interface AutomationSettingsProps {
   reminderType: "recurring" | "sequence";
   reminderTemplates: Template[];
   targetEmail?: string | null;
+  isAllowed?: boolean;
 }
 
 export function AutomationSettings({
@@ -41,6 +42,7 @@ export function AutomationSettings({
   reminderType,
   reminderTemplates,
   targetEmail,
+  isAllowed = true,
 }: AutomationSettingsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [type, setType] = useState<"recurring" | "sequence">(reminderType || "recurring");
@@ -145,18 +147,35 @@ export function AutomationSettings({
           <p className="mt-1 text-xs text-zinc-500 max-w-[200px]">
             Send automated emails on a schedule or via a sequence.
           </p>
-          <Button 
-            className="mt-4 gap-2" 
-            variant="secondary" 
-            onClick={() => setIsEditing(true)}
-          >
-            <PlayCircle className="h-4 w-4" />
-            Enable Automation
+          {!isAllowed ? (
+            <p className="mt-4 text-sm text-rose-400 font-medium bg-rose-500/10 px-3 py-1.5 rounded-md">
+              Upgrade to a paid subscription to enable automations.
+            </p>
+          ) : (
+            <Button 
+              className="mt-4 gap-2" 
+              variant="secondary" 
+              onClick={() => setIsEditing(true)}
+            >
+              <PlayCircle className="h-4 w-4" />
+              Enable Automation
+            </Button>
+          )}
+        </div>
+      )}
+
+      {(active || isEditing) && !isAllowed && (
+        <div className="mb-6 p-4 rounded-xl border border-rose-500/20 bg-rose-500/10 flex flex-col items-center text-center">
+          <p className="text-sm font-medium text-rose-400 mb-2">
+            Automations are paused. Upgrade to a paid subscription to resume sending reminders.
+          </p>
+          <Button variant="secondary" size="sm" onClick={handlePause}>
+            Pause Automation
           </Button>
         </div>
       )}
 
-      {(active || isEditing) && (
+      {(active || isEditing) && isAllowed && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">

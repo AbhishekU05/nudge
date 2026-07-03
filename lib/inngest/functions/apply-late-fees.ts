@@ -3,7 +3,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getRemainingBalance } from "@/lib/types";
 import { sendGmail } from "@/lib/gmail";
 import { createXeroLateFeeInvoice } from "@/lib/xero-write";
-import { hasActiveSubscription } from "@/lib/payments";
+import { isAutomationAndIntegrationAllowed } from "@/lib/payments";
 
 export const applyLateFees = inngest.createFunction(
   { id: "apply-late-fees", triggers: [{ cron: "0 * * * *" }] }, // Hourly
@@ -26,11 +26,11 @@ export const applyLateFees = inngest.createFunction(
       // 2. Check subscription
       const { data: org } = await supabase
         .from("organizations")
-        .select("dodo_subscription_status")
+        .select("dodo_subscription_status, created_at")
         .eq("id", policy.organization_id)
         .single();
 
-      if (!hasActiveSubscription(org?.dodo_subscription_status)) {
+      if (!isAutomationAndIntegrationAllowed(org?.dodo_subscription_status, org?.created_at)) {
         continue;
       }
 
