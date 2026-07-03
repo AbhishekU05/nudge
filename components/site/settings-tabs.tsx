@@ -4,13 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export function SettingsTabs() {
+export function SettingsTabs({ hasSubscription }: { hasSubscription?: boolean }) {
   const pathname = usePathname();
 
   const tabs = [
     { name: "General", href: "/settings/general" },
     { name: "Late Fees", href: "/settings/late-fees" },
     { name: "Integrations", href: "/settings/integrations" },
+    ...(hasSubscription ? [{ name: "Organization", href: "/settings/organization" }] : []),
     { name: "Feedback", href: "/settings/feedback" },
     { name: "Billing", href: "/settings/billing" },
   ];
