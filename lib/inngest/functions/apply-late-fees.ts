@@ -135,14 +135,28 @@ export const applyLateFees = inngest.createFunction(
           // Update local DB
           await supabase
             .from("invoices")
-            .update({ amount_owed: newAmount, amount: newAmount })
+            .update({ amount: newAmount }) // Note: we dropped amount_owed in new schema
             .eq("id", invoice.id);
+            
+          // Write to Xero - Update existing invoice
+          if (invoice.xero_id || invoice.xero_invoice_id) {
+            try {
+              const { updateXeroInvoiceWithLateFee } = await import("@/lib/xero-write");
+              await updateXeroInvoiceWithLateFee(
+                policy.organization_id,
+                invoice.xero_id || invoice.xero_invoice_id,
+                feeAmount
+              );
+            } catch (e) {
+              console.error("Failed to update invoice in Xero with late fee", e);
+            }
+          }
         } else {
           // new_invoice - Write to Xero
           if (invoice.xero_id || invoice.xero_invoice_id) {
             try {
               await createXeroLateFeeInvoice(
-                adminUserId,
+                policy.organization_id,
                 invoice.invoice_number || invoice.id,
                 feeAmount,
                 invoice.clients.name,
