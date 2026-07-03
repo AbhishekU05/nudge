@@ -22,7 +22,7 @@ export default async function PortalPage(props: {
   // Fetch client by unsubscribe_token
   const { data: client, error: clientError } = await supabase
     .from("clients")
-    .select("id, name, user_id")
+    .select("id, name, organization_id")
     .eq("unsubscribe_token", token)
     .single();
 
@@ -35,7 +35,7 @@ export default async function PortalPage(props: {
   const { data: invoices, error: invoicesError } = await supabase
     .from("invoices")
     .select("*")
-    .eq("customer_id", client.id)
+    .eq("client_id", client.id)
     .order("due_date", { ascending: true });
 
   if (invoicesError || !invoices) {
@@ -43,20 +43,19 @@ export default async function PortalPage(props: {
     return notFound();
   }
 
-  // Fetch agency name (user profile)
-  const { data: userProfile } = await supabase
-    .from("profiles")
-    .select("company_name, first_name, last_name")
-    .eq("id", client.user_id)
+  // Fetch agency name (organization profile)
+  const { data: organization } = await supabase
+    .from("organizations")
+    .select("name")
+    .eq("id", client.organization_id)
     .single();
 
-  const agencyName = userProfile?.company_name || 
-    (userProfile?.first_name ? `${userProfile.first_name} ${userProfile.last_name || ""}` : "Your Agency");
+  const agencyName = organization?.name || "Your Agency";
 
   // Dynamically fetch bank accounts from connected integrations
   const [xeroBanks, qbBanks] = await Promise.all([
-    getXeroBankAccounts(client.user_id),
-    getQuickBooksBankAccounts(client.user_id)
+    getXeroBankAccounts(client.organization_id),
+    getQuickBooksBankAccounts(client.organization_id)
   ]);
   
   const bankAccounts = [...(xeroBanks || []), ...(qbBanks || [])];
