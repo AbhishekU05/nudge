@@ -17,6 +17,28 @@ const ContentSecurityPolicy = `
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  async rewrites() {
+    return [
+      // Affonso first-party proxy — routes /r/* through our domain so ad blockers
+      // cannot distinguish affiliate tracking from first-party requests.
+      {
+        source: '/r/pixel.js',
+        destination: 'https://cdn.affonso.io/js/pixel.min.js',
+      },
+      {
+        source: '/r/psl.min.js',
+        destination: 'https://cdn.affonso.io/js/psl.min.js',
+      },
+      {
+        source: '/r/track',
+        destination: 'https://api.affonso.io/v1/track',
+      },
+      {
+        source: '/r/signups',
+        destination: 'https://api.affonso.io/v1/signups',
+      },
+    ];
+  },
   async headers() {
     return [
       {

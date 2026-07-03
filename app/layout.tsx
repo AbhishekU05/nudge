@@ -70,16 +70,15 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "wzuugmsshn");
           `}
         </Script>
-        {/* Affonso affiliate tracking pixel */}
-        {process.env.NEXT_PUBLIC_AFFONSO_PROGRAM_ID && (
-          <Script
-            id="affonso-pixel"
-            strategy="afterInteractive"
-            src="https://cdn.affonso.io/js/pixel.min.js"
-            data-affonso={process.env.NEXT_PUBLIC_AFFONSO_PROGRAM_ID}
-            data-cookie_duration="60"
-          />
-        )}
+        {/* Affonso affiliate tracking — first-party mode via /r proxy (ad-blocker resistant) */}
+        <Script
+          id="affonso-pixel"
+          strategy="afterInteractive"
+          src="/r/pixel.js"
+          data-affonso="cmr3tysca000xltgmzylwzqz7"
+          data-cookie_duration="30"
+          data-api-base="/r"
+        />
       </body>
     </html>
   );
