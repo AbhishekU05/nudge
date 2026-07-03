@@ -38,7 +38,6 @@ function getBillingMessage(error?: string) {
   return error;
 }
 
-// main function for billing page
 export default async function BillingPage({
   searchParams,
 }: {
@@ -62,12 +61,32 @@ export default async function BillingPage({
     org = null;
   }
 
-  const status = org?.dodo_subscription_status ?? "none";
-  // We don't have renews_at from Dodo stored yet, so we just say Active
-  const renewsAt = status === "active" ? "Active" : null;
+  const rawStatus = org?.dodo_subscription_status ?? "none";
   const billingMessage = getBillingMessage(error);
 
-  // TODO: fix wording
+  const createdDate = new Date(createdAt);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - createdDate.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const trialDaysLeft = Math.max(0, 7 - diffDays);
+  
+  let displayStatus = "";
+  let renewsText = "Not scheduled";
+  let renewsLabel = "Renews";
+
+  if (rawStatus === "active" || rawStatus === "on_hold") {
+    displayStatus = org?.plan_type === "annual" ? "Annual Active" : "Monthly Active";
+    renewsText = "Active"; // We don't have renewsAt stored natively yet
+  } else if (trialDaysLeft > 0) {
+    displayStatus = "Trial";
+    renewsLabel = "Trial ends";
+    const trialEndDate = new Date(createdDate);
+    trialEndDate.setDate(trialEndDate.getDate() + 7);
+    renewsText = trialEndDate.toLocaleDateString();
+  } else {
+    displayStatus = "Inactive";
+  }
+
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
@@ -75,181 +94,153 @@ export default async function BillingPage({
         <p className="mt-2 text-sm text-zinc-400">Manage your workspace subscription and payment details.</p>
       </div>
 
+      <div className="space-y-3">
+        {success ? (
+          <p className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+            {success === "true" || success === "" ? "Payment successful. Your plan will update shortly." : success}
+          </p>
+        ) : null}
+
+        {canceled ? (
+          <p className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-zinc-400">
+            Checkout canceled. No changes made.
+          </p>
+        ) : null}
+
+        {billingMessage ? (
+          <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {billingMessage}
+          </p>
+        ) : null}
+      </div>
+
+      {org?.domain === null && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 text-sm leading-6 text-amber-200 shadow-sm">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <strong className="block font-semibold text-amber-100 text-base mb-1">Personal Email Detected</strong>
+              Because you signed up with a personal email address, this is an isolated solo workspace. You will not be able to invite or collaborate with team members for free on this workspace. 
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Plan Status above cards */}
+      <Card className="border-white/10 bg-white/[0.03] max-w-4xl">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-2xl">
+            <CreditCard className="h-5 w-5 text-primary" />
+            Plan status
+          </CardTitle>
+          <CardDescription>
+            Current access and renewal details for your workspace.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+              <p className="text-xs text-zinc-600">Status</p>
+              <p className="mt-2 text-sm font-semibold capitalize text-zinc-100">
+                {displayStatus}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+              <p className="text-xs text-zinc-600">{renewsLabel}</p>
+              <p className="mt-2 text-sm font-semibold text-zinc-100">
+                {renewsText}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <section className="grid gap-6 sm:grid-cols-2 lg:max-w-4xl">
-        <div className="rounded-3xl border border-white/10 bg-black/25 p-6 backdrop-blur">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">
-            Monthly Plan
+        {/* Monthly Card (Landing Page style) */}
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-8 flex flex-col">
+          <p className="text-sm font-semibold uppercase tracking-widest text-zinc-500">
+            Monthly
           </p>
-          <p className="mt-4 text-3xl font-semibold tracking-tight text-zinc-50">
-            $29 <span className="text-sm font-normal text-zinc-500">/ mo</span>
+          <p className="mt-4 flex items-end gap-2 text-4xl font-bold text-zinc-50">
+            $29 <span className="text-base font-medium text-zinc-500 mb-1">/ month</span>
           </p>
-          <p className="mt-2 text-sm leading-6 text-zinc-500">
-            Customer pipeline, payment logs, follow-up drafting, and full automation controls.
-          </p>
+          <p className="mt-1 text-sm text-zinc-500">for your entire team &mdash; cancel any time</p>
+          <ul className="mt-8 space-y-3 text-sm text-zinc-400 flex-1">
+            <li className="font-medium text-zinc-300 mb-1">Everything included:</li>
+            {[
+              "Unlimited team members",
+              "Unlimited clients & invoices",
+              "Automated reminders & sequences",
+              "Xero & QuickBooks sync",
+              "Client portal & payment logging",
+              "Activity timeline & CSV exports",
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-2">
+                <span className="text-indigo-400">✓</span> {item}
+              </li>
+            ))}
+          </ul>
           <div className="mt-8">
-            {status === "active" && org?.plan_type === "monthly" ? (
+            {rawStatus === "active" && org?.plan_type === "monthly" ? (
               <form action={cancelSubscription}>
-                <Button variant="secondary" type="submit" className="w-full text-red-400 hover:text-red-300">
+                <Button variant="secondary" type="submit" className="w-full text-red-400 hover:text-red-300 h-12">
                   Cancel subscription
                 </Button>
               </form>
             ) : (
               <form action={startSubscriptionCheckout}>
                 <input type="hidden" name="plan" value="monthly" />
-                <Button type="submit" className="w-full">
-                  <Zap className="h-3.5 w-3.5 mr-2" />
-                  {status === "active" ? "Switch to Monthly" : "Subscribe Monthly"}
+                <Button type="submit" className="w-full h-12 bg-white/10 hover:bg-white/20 text-zinc-100">
+                  {rawStatus === "active" ? "Switch to Monthly" : "Subscribe Monthly"}
                 </Button>
               </form>
             )}
           </div>
         </div>
 
-        <div className="rounded-3xl border border-emerald-500/30 bg-emerald-950/20 p-6 backdrop-blur relative overflow-hidden">
+        {/* Annual Card (Landing Page style) */}
+        <div className="relative rounded-xl border border-emerald-500/40 bg-emerald-500/[0.06] p-8 overflow-hidden flex flex-col">
           <div className="absolute top-0 right-0 bg-emerald-500 text-emerald-950 text-[10px] font-bold px-3 py-1.5 rounded-bl-lg uppercase tracking-wider">
             2 Months Free
           </div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400/80">
-            Annual Plan
+          <p className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
+            Annual
           </p>
-          <p className="mt-4 text-3xl font-semibold tracking-tight text-zinc-50">
-            $290 <span className="text-sm font-normal text-zinc-400">/ yr</span>
+          <p className="mt-4 flex items-end gap-2 text-4xl font-bold text-zinc-50">
+            $290 <span className="text-base font-medium text-emerald-500/60 mb-1">/ year</span>
           </p>
-          <p className="mt-2 text-sm leading-6 text-emerald-100/50">
-            Everything in Monthly, plus 2 months free and priority support.
-          </p>
+          <p className="mt-1 text-sm text-emerald-500/60">for your entire team &mdash; save $58</p>
+          <ul className="mt-8 space-y-3 text-sm text-zinc-400 flex-1">
+            <li className="font-medium text-emerald-300/80 mb-1">Everything in Monthly, plus:</li>
+            {[
+              "Unlimited team members",
+              "Priority support",
+              "2 months free",
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-2">
+                <span className="text-emerald-400">✓</span> {item}
+              </li>
+            ))}
+          </ul>
           <div className="mt-8">
-            {status === "active" && org?.plan_type === "annual" ? (
+            {rawStatus === "active" && org?.plan_type === "annual" ? (
               <form action={cancelSubscription}>
-                <Button variant="secondary" type="submit" className="w-full text-red-400 hover:text-red-300">
+                <Button variant="secondary" type="submit" className="w-full text-red-400 hover:text-red-300 h-12">
                   Cancel subscription
                 </Button>
               </form>
             ) : (
               <form action={startSubscriptionCheckout}>
                 <input type="hidden" name="plan" value="annual" />
-                <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white">
-                  <Sparkles className="h-3.5 w-3.5 mr-2" />
-                  {status === "active" ? "Upgrade to Annual" : "Subscribe Annual"}
+                <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white h-12">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {rawStatus === "active" ? "Upgrade to Annual" : "Subscribe Annual"}
                 </Button>
               </form>
             )}
           </div>
         </div>
       </section>
-
-            <div className="space-y-3">
-              {success ? (
-                <p className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-                  {success === "true" || success === "" ? "Payment successful. Your plan will update shortly." : success}
-                </p>
-              ) : null}
-
-              {canceled ? (
-                <p className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-zinc-400">
-                  Checkout canceled. No changes made.
-                </p>
-              ) : null}
-
-              {billingMessage ? (
-                <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                  {billingMessage}
-                </p>
-              ) : null}
-            </div>
-
-            {org?.domain === null && (
-              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 text-sm leading-6 text-amber-200 shadow-sm">
-                <div className="flex items-start gap-3">
-                  <ShieldCheck className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="block font-semibold text-amber-100 text-base mb-1">Personal Email Detected</strong>
-                    Because you signed up with a personal email address, this is an isolated solo workspace. You will not be able to invite or collaborate with team members for free on this workspace. 
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-              <section className="space-y-6">
-                <Card className="border-white/10 bg-white/[0.03]">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-2xl">
-                      <CreditCard className="h-5 w-5 text-primary" />
-                      Plan status
-                    </CardTitle>
-                    <CardDescription>
-                      Current access and renewal details for your workspace.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                        <p className="text-xs text-zinc-600">Status</p>
-                        <p className="mt-2 text-sm font-semibold capitalize text-zinc-100">
-                          {status}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                        <p className="text-xs text-zinc-600">Renews</p>
-                        <p className="mt-2 text-sm font-semibold text-zinc-100">
-                          {renewsAt ?? "Not scheduled"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {[
-                        "Track customers and balances",
-                        "Log exact payment history",
-                        "Draft follow-up messages",
-                        "Enable reminder automation",
-                      ].map((item) => (
-                        <div
-                          key={item}
-                          className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2.5 text-sm text-zinc-300"
-                        >
-                          <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-              </section>
-
-              <aside className="space-y-4">
-                <Card className="bg-white/[0.025]">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <ShieldCheck className="h-4 w-4 text-primary" />
-                      Reminder guardrails
-                    </CardTitle>
-                    <CardDescription>
-                      Professional by default, protective by design.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-sm leading-6 text-zinc-500">
-                    Emails are sent no more than once every 24 hours, and every
-                    message includes a clean one-click unsubscribe link.
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white/[0.025]">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Clock3 className="h-4 w-4 text-amber-300" />
-                      Billing timing
-                    </CardTitle>
-                    <CardDescription>
-                      Checkout and cancellation changes may take a moment to
-                      sync from Dodo Payments.
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              </aside>
-            </div>
     </div>
   );
 }
