@@ -14,11 +14,10 @@ export default async function AnalyticsPage(props: {
   const supabase = await createSupabaseServerClient();
 
   const [customersRes, eventsRes] = await Promise.all([
-    supabase.from("invoices").select("*").eq("user_id", user.id),
+    supabase.from("invoices").select("*"),
     supabase
       .from("customer_events")
       .select("*")
-      .eq("user_id", user.id)
       .order("created_at", { ascending: true }),
   ]);
 

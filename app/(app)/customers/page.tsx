@@ -23,7 +23,6 @@ export default async function CustomersPage({
   const { data: clients } = await supabase
     .from("clients")
     .select("*")
-    .eq("user_id", user.id)
     .order("name", { ascending: true })
     .returns<ClientRecord[]>();
 
@@ -31,14 +30,12 @@ export default async function CustomersPage({
   const { data: invoices } = await supabase
     .from("invoices")
     .select("*")
-    .eq("user_id", user.id)
     .returns<InvoiceRecord[]>();
 
   // Fetch groups
   const { data: groupsData } = await supabase
     .from("groups")
     .select("*")
-    .eq("user_id", user.id)
     .order("name", { ascending: true })
     .returns<GroupRecord[]>();
 

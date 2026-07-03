@@ -105,7 +105,6 @@ export default async function CustomersPage({
       supabase
         .from("customer_events")
         .select("*")
-        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .returns<CustomerEvent[]>(),
       supabase
@@ -134,8 +133,7 @@ export default async function CustomersPage({
         .select("*"),
       supabase
         .from("groups")
-        .select("*")
-        .eq("user_id", user.id),
+        .select("*"),
     ]);
     
     customers = customersRes.data;

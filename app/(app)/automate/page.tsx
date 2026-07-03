@@ -19,7 +19,6 @@ export default async function AutomatePage() {
   const { data: drafts } = await supabase
     .from("email_drafts")
     .select("*, clients(name, email)")
-    .eq("user_id", user.id)
     .eq("status", "draft")
     .order("created_at", { ascending: false });
 
@@ -27,7 +26,6 @@ export default async function AutomatePage() {
   const { data: clientsData } = await supabase
     .from("clients")
     .select("id, name, email, reminder_type, reminder_frequency_days, next_send_at, auto_approve, active, sequence_index")
-    .eq("user_id", user.id)
     .eq("active", true)
     .order("next_send_at", { ascending: true });
 
@@ -35,7 +33,6 @@ export default async function AutomatePage() {
   const { data: invoicesData } = await supabase
     .from("invoices")
     .select("id, recipient_name, recipient_email, invoice_number, reminder_type, reminder_frequency_days, next_send_at, auto_approve, active, sequence_index")
-    .eq("user_id", user.id)
     .eq("active", true)
     .order("next_send_at", { ascending: true });
 

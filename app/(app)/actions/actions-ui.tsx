@@ -45,8 +45,6 @@ export function ActionCard({ task }: { task: ActionTask }) {
     icon = <Info className="h-5 w-5 text-purple-400" />;
   }
 
-  const currency = "USD";
-
   return (
     <div className={`p-6 sm:p-8 rounded-2xl border transition-all duration-300 flex flex-col sm:flex-row items-start gap-6 ${borderClass} ${bgClass} group`}>
       <div className={`mt-1 shrink-0 p-3 rounded-full bg-black/40 ${textClass}`}>
@@ -93,7 +91,7 @@ export function ActionCard({ task }: { task: ActionTask }) {
           {task.totalOwed > 0 && (
             <div className="text-left sm:text-right">
               <div className="text-sm font-medium text-zinc-400 mb-0.5">At Risk</div>
-              <div className="text-2xl font-bold text-zinc-100">{formatCurrency(task.totalOwed, currency)}</div>
+              <div className="text-2xl font-bold text-zinc-100">{formatCurrency(task.totalOwed, task.currency || "USD")}</div>
             </div>
           )}
           {task.maxDaysOverdue > 0 && (

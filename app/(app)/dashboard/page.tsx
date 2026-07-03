@@ -27,11 +27,11 @@ export default async function DashboardPage(props: {
   const supabase = await createSupabaseServerClient();
 
   const [customersRes, eventsRes, draftsRes, activeClientsRes, activeInvoicesRes] = await Promise.all([
-    supabase.from("invoices").select("*").eq("user_id", user.id),
-    supabase.from("customer_events").select("*, clients(name), invoices(recipient_name)").eq("user_id", user.id).order("created_at", { ascending: false }),
-    supabase.from("email_drafts").select("*").eq("user_id", user.id).eq("status", "draft").order("created_at", { ascending: false }).limit(5),
-    supabase.from("clients").select("id, name, next_send_at").eq("user_id", user.id).eq("active", true).order("next_send_at", { ascending: true }).limit(5),
-    supabase.from("invoices").select("id, recipient_name, next_send_at").eq("user_id", user.id).eq("active", true).order("next_send_at", { ascending: true }).limit(5)
+    supabase.from("invoices").select("*"),
+    supabase.from("customer_events").select("*, clients(name), invoices(recipient_name)").order("created_at", { ascending: false }),
+    supabase.from("email_drafts").select("*").eq("status", "draft").order("created_at", { ascending: false }).limit(5),
+    supabase.from("clients").select("id, name, next_send_at").eq("active", true).order("next_send_at", { ascending: true }).limit(5),
+    supabase.from("invoices").select("id, recipient_name, next_send_at").eq("active", true).order("next_send_at", { ascending: true }).limit(5)
   ]);
 
   const allCustomers = (customersRes.data || []) as CustomerRecord[];

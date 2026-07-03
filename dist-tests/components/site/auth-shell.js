@@ -1,0 +1,12 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AuthShell = AuthShell;
+const jsx_runtime_1 = require("react/jsx-runtime");
+const image_1 = __importDefault(require("next/image"));
+const link_1 = __importDefault(require("next/link"));
+function AuthShell({ title, description, children, }) {
+    return ((0, jsx_runtime_1.jsxs)("div", { className: "flex min-h-screen w-full items-center justify-center bg-zinc-950 selection:bg-indigo-500/30 p-6 sm:p-12", children: [(0, jsx_runtime_1.jsxs)("div", { className: "pointer-events-none fixed inset-0 z-0", children: [(0, jsx_runtime_1.jsx)("div", { className: "absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-full bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.10),transparent_50%)] animate-pulse", style: { animationDuration: "8s" } }), (0, jsx_runtime_1.jsx)("div", { className: "absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-[80%] bg-[radial-gradient(circle_at_bottom,rgba(168,85,247,0.07),transparent_40%)]" })] }), (0, jsx_runtime_1.jsxs)("div", { className: "relative z-10 w-full max-w-sm xl:max-w-md animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out", children: [(0, jsx_runtime_1.jsx)("div", { className: "mb-8 flex items-center gap-2.5", children: (0, jsx_runtime_1.jsxs)(link_1.default, { href: "/", className: "inline-flex items-center gap-2.5 transition-opacity hover:opacity-70", children: [(0, jsx_runtime_1.jsx)(image_1.default, { src: "/logo.svg", alt: "Duely", width: 22, height: 24, priority: true }), (0, jsx_runtime_1.jsx)("span", { className: "text-lg font-bold tracking-tight text-zinc-50", children: "Duely" })] }) }), (0, jsx_runtime_1.jsxs)("div", { className: "mb-8", children: [(0, jsx_runtime_1.jsx)("h1", { className: "text-2xl font-semibold tracking-tight text-white", children: title }), (0, jsx_runtime_1.jsx)("p", { className: "mt-1.5 text-sm text-zinc-400", children: description })] }), (0, jsx_runtime_1.jsxs)("div", { className: "rounded-2xl border border-white/5 bg-zinc-900/40 p-6 sm:p-8 backdrop-blur-xl shadow-2xl relative", children: [(0, jsx_runtime_1.jsx)("div", { className: "absolute -inset-1 -z-10 rounded-[1.5rem] bg-gradient-to-b from-indigo-500/10 to-transparent opacity-50 blur-xl" }), children] })] })] }));
+}

@@ -11,6 +11,7 @@ const CURRENCIES = [
   { value: "CAD", label: "CAD ($)" },
   { value: "AUD", label: "AUD ($)" },
   { value: "JPY", label: "JPY (¥)" },
+  { value: "PHP", label: "PHP (₱)" },
 ];
 
 function getDefaultCurrency() {

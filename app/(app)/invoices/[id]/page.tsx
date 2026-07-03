@@ -22,7 +22,6 @@ export default async function CustomerPage(props: {
     .from("invoices")
     .select("*")
     .eq("id", id)
-    .eq("user_id", user.id)
     .maybeSingle();
 
   if (error || !customerData) {

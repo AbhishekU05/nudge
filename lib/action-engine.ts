@@ -22,6 +22,7 @@ export type ActionTask = {
   totalOwed: number;
   maxDaysOverdue: number;
   isCooldown: boolean;
+  currency: string;
 };
 
 // Evaluate a single client's invoices
@@ -112,7 +113,8 @@ export function evaluateClient(
       contextText: "Hidden due to active dispute.",
       totalOwed: clientTotalOwed,
       maxDaysOverdue,
-      isCooldown: true
+      isCooldown: true,
+      currency: activeInvoices[0]?.currency || "USD"
     };
   }
 
@@ -198,7 +200,8 @@ export function evaluateClient(
     contextText,
     totalOwed: clientTotalOwed,
     maxDaysOverdue,
-    isCooldown
+    isCooldown,
+    currency: activeInvoices[0]?.currency || "USD"
   };
 }
 
@@ -239,7 +242,8 @@ export function generateActionPlan(clients: ClientRecord[], allInvoices: Invoice
       contextText: "You have 5+ clients mildly overdue right now. Turn on 'Global Gentle Reminders' to handle these early nudges for you.",
       totalOwed: 0,
       maxDaysOverdue: 0,
-      isCooldown: false
+      isCooldown: false,
+      currency: "USD"
     });
   }
 

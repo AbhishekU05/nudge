@@ -32,12 +32,10 @@ export default async function AppLayout({
       supabase
         .from("groups")
         .select("*, customer_groups(count)")
-        .eq("user_id", user.id)
         .order("name", { ascending: true }),
       supabase
         .from("clients")
         .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
     ]);
       
     if (profileRes.data?.razorpay_subscription_status) {

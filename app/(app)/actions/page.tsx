@@ -21,9 +21,9 @@ export default async function ActionsPage() {
   const supabase = await createSupabaseServerClient();
 
   const [clientsRes, invoicesRes, eventsRes] = await Promise.all([
-    supabase.from("clients").select("*").eq("user_id", user.id),
-    supabase.from("invoices").select("*").eq("user_id", user.id),
-    supabase.from("customer_events").select("*").eq("user_id", user.id).eq("event_type", "followup"),
+    supabase.from("clients").select("*"),
+    supabase.from("invoices").select("*"),
+    supabase.from("customer_events").select("*").eq("event_type", "followup"),
   ]);
 
   const clients = (clientsRes.data || []) as ClientRecord[];

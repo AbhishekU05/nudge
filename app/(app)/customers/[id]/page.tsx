@@ -19,7 +19,6 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
     .from("clients")
     .select("*")
     .eq("id", id)
-    .eq("user_id", user.id)
     .maybeSingle<ClientRecord>();
 
   if (!client) {

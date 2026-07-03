@@ -11,12 +11,10 @@ export default async function LateFeesSettingsPage() {
     supabase
       .from("late_fee_policies")
       .select("*")
-      .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
     supabase
       .from("groups")
       .select("*")
-      .eq("user_id", user.id)
       .order("name", { ascending: true })
   ]);
 

@@ -49,7 +49,6 @@ export default async function NewCustomerPage({
   const { data: clients } = await supabase
     .from("clients")
     .select("id, name, email")
-    .eq("user_id", user.id)
     .order("name");
 
   const hasSubscription = hasActiveSubscription(

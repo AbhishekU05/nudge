@@ -1,0 +1,22 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.default = Page;
+const jsx_runtime_1 = require("react/jsx-runtime");
+const seo_index_template_1 = __importDefault(require("@/components/site/seo-index-template"));
+const seo_data_1 = require("@/lib/seo-data");
+exports.metadata = {
+    title: "Duely by Location | Duely",
+    description: "Explore how businesses around the world use Duely to get paid faster.",
+};
+function Page() {
+    const links = Object.keys(seo_data_1.locations).map(key => ({
+        href: `/location/${key}`,
+        label: seo_data_1.locations[key].title,
+        description: seo_data_1.locations[key].metaDescription
+    }));
+    return ((0, jsx_runtime_1.jsx)(seo_index_template_1.default, { title: "Duely by Location", description: "Explore how businesses around the world use Duely to get paid faster.", links: links }));
+}
