@@ -22,6 +22,7 @@ import { CheckoutButton } from "./checkout-button";
 import { requireUser } from "@/lib/auth";
 import { getOrganizationBillingForUser } from "@/lib/organization-billing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 // display billing message
 // TODO: fix wording
@@ -51,7 +52,8 @@ export default async function BillingPage({
   let createdAt = new Date().toISOString();
   
   try {
-    org = await getOrganizationBillingForUser(supabase, user.id);
+    const supabaseAdmin = createSupabaseAdminClient();
+    org = await getOrganizationBillingForUser(supabaseAdmin, user.id);
     const { data: profile } = await supabase
       .from("profiles")
       .select("created_at")

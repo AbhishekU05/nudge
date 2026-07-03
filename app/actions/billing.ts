@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { getOrganizationBillingForUser, canManageOrganizationBilling } from "@/lib/organization-billing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getDodoClient, getDodoProductId } from "@/lib/dodo";
 import type { PricingPlanType } from "@/lib/types";
 import { logger } from "@/lib/logger";
@@ -15,8 +16,8 @@ import { logger } from "@/lib/logger";
 export async function startSubscriptionCheckout(formData?: FormData) {
   try {
     const user = await requireUser();
-    const supabase = await createSupabaseServerClient();
-    const org = await getOrganizationBillingForUser(supabase, user.id);
+    const supabaseAdmin = createSupabaseAdminClient();
+    const org = await getOrganizationBillingForUser(supabaseAdmin, user.id);
 
     if (!org) {
       return { error: "No organization found." };
@@ -90,8 +91,8 @@ export async function startSubscriptionCheckout(formData?: FormData) {
 
 export async function cancelSubscription() {
   const user = await requireUser();
-  const supabase = await createSupabaseServerClient();
-  const org = await getOrganizationBillingForUser(supabase, user.id);
+  const supabaseAdmin = createSupabaseAdminClient();
+  const org = await getOrganizationBillingForUser(supabaseAdmin, user.id);
 
   if (!org) {
     return { error: "No organization found." };
@@ -121,8 +122,8 @@ export async function cancelSubscription() {
 
 export async function manageSubscription() {
   const user = await requireUser();
-  const supabase = await createSupabaseServerClient();
-  const org = await getOrganizationBillingForUser(supabase, user.id);
+  const supabaseAdmin = createSupabaseAdminClient();
+  const org = await getOrganizationBillingForUser(supabaseAdmin, user.id);
 
   if (!org) {
     redirect("/settings/billing?error=No+organization+found.");
