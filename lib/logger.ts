@@ -1,4 +1,8 @@
-import * as Sentry from "@sentry/nextjs";
+import { Logtail } from "@logtail/node";
+
+const logtail = process.env.LOGTAIL_SOURCE_TOKEN 
+  ? new Logtail(process.env.LOGTAIL_SOURCE_TOKEN) 
+  : null;
 
 type LogLevel = "info" | "warn" | "error";
 
@@ -29,27 +33,16 @@ export const logger = {
     if (level === "error") {
       console.error(logString);
       
-      // Send error to Sentry
-      Sentry.withScope((scope) => {
-        if (data.user_id) scope.setUser({ id: data.user_id });
-        if (data.organization_id) scope.setTag("organization_id", data.organization_id);
-        if (data.request_id) scope.setTag("request_id", data.request_id);
-        if (data.category) scope.setTag("category", data.category);
-        
-        scope.setExtras(payload);
-        
-        const message = data.message || data.error || data.action || "Unknown Error";
-        const err = new Error(String(message));
-        if (typeof data.stack === 'string') {
-          err.stack = data.stack;
-        }
-        
-        Sentry.captureException(err);
-      });
+      // Send error to BetterStack
+      if (logtail) {
+        logtail.error(String(payload.message || payload.error || "Unknown Error"), payload);
+      }
     } else if (level === "warn") {
       console.warn(logString);
+      if (logtail) logtail.warn(String(payload.message || "Warning"), payload);
     } else {
       console.log(logString);
+      if (logtail) logtail.info(String(payload.message || "Info"), payload);
     }
   },
 

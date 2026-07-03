@@ -52,16 +52,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-import { withSentryConfig } from "@sentry/nextjs";
-
-export default withSentryConfig(nextConfig, {
-  org: "duely",
-  project: "duely",
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  reactComponentAnnotation: {
-    enabled: true,
-  },
-  disableLogger: true,
-  automaticVercelMonitors: true,
-});
+export default nextConfig;
