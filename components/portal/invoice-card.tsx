@@ -1,90 +1,122 @@
-import { getDaysOverdue } from "@/lib/types";
 import { PromiseButton } from "./promise-button";
 
-export function InvoiceCard({ 
-  invoice, 
+export function InvoiceCard({
+  invoice,
   token,
-  type
-}: { 
-  invoice: any; 
+  type,
+  fmt,
+}: {
+  invoice: any;
   token: string;
-  type: "overdue" | "due_soon" | "outstanding" | "paid"
+  type: "overdue" | "due_soon" | "outstanding" | "paid";
+  fmt: (amount: number, currency: string) => string;
 }) {
-  const balance = Math.max(0, Number(invoice.amount_owed) - Number(invoice.amount_paid));
-  const overdueDays = invoice.due_date ? getDaysOverdue(invoice) : null;
-  
-  // Calculate days until due if not overdue
-  let daysUntilDue = null;
-  if (!overdueDays && invoice.due_date) {
-    const [year, month, day] = invoice.due_date.split("-").map(Number);
-    const due = new Date(year, month - 1, day);
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    daysUntilDue = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  }
+  const { amount_owed, amount_paid, balance, currency, invoice_number, due_date, payment_link, daysOverdue, daysUntilDue } = invoice;
+
+  // Partial payment: has some payment but not fully paid
+  const hasPartialPayment = amount_paid > 0 && !invoice.isPaid;
+  const paidPercent = amount_owed > 0 ? Math.min(100, (amount_paid / amount_owed) * 100) : 0;
+
+  const dueDateLabel = due_date
+    ? new Date(
+        ...(due_date.split("-").map(Number) as [number, number, number]).map(
+          (v, i) => (i === 1 ? v - 1 : v)
+        ) as [number, number, number]
+      ).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : null;
 
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-sm">
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <h3 className="font-medium text-lg">
-            {invoice.invoice_number ? `Invoice ${invoice.invoice_number}` : "Invoice"}
-          </h3>
-          
-          {type === "overdue" && overdueDays !== null && (
-            <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-200 dark:border-red-500/20">
-              {overdueDays} days overdue
-            </span>
-          )}
-          
-          {type === "due_soon" && daysUntilDue !== null && (
-            <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20">
-              Due in {daysUntilDue} days
-            </span>
-          )}
-          
-          {type === "paid" && (
-            <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 border border-green-200 dark:border-green-500/20">
-              Paid
-            </span>
+    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 sm:p-6 flex flex-col gap-4 shadow-sm">
+      {/* Top row: invoice label + urgency badge */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-base">
+              {invoice_number ? `Invoice #${invoice_number}` : "Invoice"}
+            </h3>
+
+            {type === "overdue" && daysOverdue != null && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-200 dark:border-red-500/20">
+                {daysOverdue}d overdue
+              </span>
+            )}
+            {type === "due_soon" && daysUntilDue != null && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20">
+                Due in {daysUntilDue}d
+              </span>
+            )}
+            {type === "paid" && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
+                Paid
+              </span>
+            )}
+            {hasPartialPayment && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20">
+                Partial
+              </span>
+            )}
+          </div>
+
+          {dueDateLabel && (
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              {type === "paid" ? "Cleared" : "Due"}: {dueDateLabel}
+            </p>
           )}
         </div>
-        
-        <p className="text-zinc-500 dark:text-zinc-400 text-sm">
-          {type === "paid" && invoice.client_paid_at ? (
-            `Paid: ${new Date(invoice.client_paid_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}`
-          ) : (
-            `Due: ${invoice.due_date ? new Date(invoice.due_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : "No due date"}`
+
+        {/* Amount */}
+        <div className="text-right shrink-0">
+          <p className="text-lg font-bold tabular-nums">
+            {fmt(type === "paid" ? amount_paid || amount_owed : balance, currency)}
+          </p>
+          {hasPartialPayment && (
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 tabular-nums">
+              of {fmt(amount_owed, currency)}
+            </p>
           )}
-        </p>
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-end gap-4 sm:gap-6 sm:w-2/3">
-        <p className="text-xl font-semibold">
-          {new Intl.NumberFormat("en-US", { style: "currency", currency: invoice.currency }).format(type === "paid" ? (Number(invoice.amount_paid) > 0 ? Number(invoice.amount_paid) : Number(invoice.amount_owed)) : balance)}
-        </p>
-        
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          {type !== "paid" && (
-            <PromiseButton 
-              invoiceId={invoice.id} 
-              token={token} 
-              existingPromiseDate={invoice.promised_date} 
+      {/* Partial payment progress bar */}
+      {hasPartialPayment && (
+        <div className="flex flex-col gap-1.5">
+          <div className="w-full h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-emerald-500 rounded-full transition-all"
+              style={{ width: `${paidPercent}%` }}
             />
-          )}
+          </div>
+          <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+            <span>{fmt(amount_paid, currency)} paid</span>
+            <span>{fmt(balance, currency)} remaining</span>
+          </div>
+        </div>
+      )}
 
-          {type !== "paid" && invoice.payment_link && (
-            <a 
-              href={invoice.payment_link} 
-              target="_blank" 
+      {/* Actions */}
+      {type !== "paid" && (
+        <div className="flex items-center gap-3 flex-wrap pt-1">
+          <PromiseButton
+            invoiceId={invoice.id}
+            token={token}
+            existingPromiseDate={invoice.promised_date ?? null}
+          />
+          {payment_link && (
+            <a
+              href={payment_link}
+              target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-transparent font-medium tracking-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 px-4 text-sm bg-zinc-900 text-zinc-50 hover:bg-zinc-900/90 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/90 flex-1 sm:flex-none"
+              className="inline-flex items-center justify-center gap-2 rounded-lg font-medium tracking-tight transition-colors h-9 px-4 text-sm bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               Pay Now
             </a>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }
