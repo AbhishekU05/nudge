@@ -39,14 +39,13 @@ export type QuickBooksSyncResult = {
   updated: number;
 };
 
-type ExistingCustomerRow = {
+type ExistingInvoiceRow = {
   id: string;
-  customer_id?: string | null;
-  recipient_email: string;
-  recipient_name: string;
-  quickbooks_invoice_id: string | null;
-  amount_paid?: number;
-  internal_notes?: string | null;
+  client_id: string;
+  quickbooks_id: string;
+  amount: number;
+  status: string;
+  updated_at: string;
 };
 
 function getQuickBooksClientId() {
@@ -204,27 +203,40 @@ export async function completeQuickBooksOAuthCallback(code: string, realmId: str
   const tokenData = await fetchTokens(params);
 
   const supabase = createSupabaseAdminClient();
+
+  // Find org id
+  const { data: member } = await supabase.from("organization_members").select("organization_id").eq("user_id", statePayload.userId).single();
+  if (!member) throw new Error("User has no organization");
+
   const { error } = await supabase.from("integrations").upsert(
     {
-      user_id: statePayload.userId,
+      organization_id: member.organization_id,
       provider: QUICKBOOKS_PROVIDER,
       access_token: tokenData.access_token,
       refresh_token: tokenData.refresh_token,
       expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString(),
       realm_id: realmId,
     },
-    { onConflict: "user_id,provider" },
+    { onConflict: "organization_id,provider" },
   );
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return syncQuickBooksInvoicesForOrg(statePayload.userId); // Will need to resolve to organization_id later if needed
+  return syncQuickBooksInvoicesForOrg(member.organization_id);
 }
 
 function normalizeEmail(email: string | null | undefined) {
   return email?.trim().toLowerCase() || null;
+}
+
+function toIsoDate(value: Date | string | null | undefined) {
+  if (!value) return null;
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString().slice(0, 10);
 }
 
 async function getQuickBooksIntegration(organizationId: string) {
@@ -304,22 +316,21 @@ async function fetchQuickBooksCustomers(accessToken: string, realmId: string, cu
   return new Map(customers.map((c: any) => [c.Id, c]));
 }
 
-async function loadExistingQuickBooksCustomers(organizationId: string, invoiceIds: string[]) {
-  if (invoiceIds.length === 0) return new Map<string, ExistingCustomerRow>();
+async function loadExistingQuickBooksInvoices(organizationId: string, invoiceIds: string[]) {
+  if (invoiceIds.length === 0) return new Map<string, ExistingInvoiceRow>();
 
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("invoices")
-    .select("id, client_id, recipient_email, recipient_name, quickbooks_invoice_id, amount_paid, internal_notes")
+    .select("id, client_id, quickbooks_id, amount, status, updated_at")
     .eq("organization_id", organizationId)
-    .in("quickbooks_invoice_id", invoiceIds)
-    .returns<ExistingCustomerRow[]>();
+    .in("quickbooks_id", invoiceIds);
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return new Map((data ?? []).map((row) => [row.quickbooks_invoice_id ?? "", row]));
+  return new Map((data ?? []).map((row) => [row.quickbooks_id ?? "", row as ExistingInvoiceRow]));
 }
 
 export async function syncQuickBooksInvoicesForOrg(organizationId: string): Promise<QuickBooksSyncResult> {
@@ -335,7 +346,7 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
   const qbCustomers = await fetchQuickBooksCustomers(validIntegration.access_token, integration.realm_id, customerIds);
 
   const invoiceIds = invoices.map((invoice: any) => invoice.Id).filter(Boolean);
-  const existingByInvoiceId = await loadExistingQuickBooksCustomers(organizationId, invoiceIds);
+  const existingByInvoiceId = await loadExistingQuickBooksInvoices(organizationId, invoiceIds);
   const supabase = createSupabaseAdminClient();
   const { data: clientsData } = await supabase.from("clients").select("id, name, email").eq("organization_id", organizationId);
   const clientsMap = new Map<string, { id: string }>();
@@ -351,7 +362,7 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
     totalInvoices: invoices.length,
     updated: 0,
   };
-  const newPaymentLogs: any[] = [];
+  const newPayments: any[] = [];
 
   for (const invoice of invoices) {
     const invoiceId = invoice.Id;
@@ -360,10 +371,12 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
       continue;
     }
 
-    const existing = existingByInvoiceId.get(invoiceId);
+    const qbCustomer = qbCustomers.get(invoice.CustomerRef?.value);
+    const contactName = qbCustomer?.DisplayName || invoice.CustomerRef?.name?.trim() || "QuickBooks customer";
+    const email = normalizeEmail(invoice.BillEmail?.Address || qbCustomer?.PrimaryEmailAddr?.Address) || "";
 
-    const amountPaid = Number(invoice.TotalAmt ?? 0) - Number(invoice.Balance ?? invoice.TotalAmt ?? 0);
     const totalAmount = Number(invoice.TotalAmt ?? 0);
+    const amountPaid = totalAmount - Number(invoice.Balance ?? invoice.TotalAmt ?? 0);
     const isPaid = totalAmount > 0 && Number(invoice.Balance ?? totalAmount) <= 0;
     
     let status = "outstanding";
@@ -371,70 +384,18 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
     else if (amountPaid > 0 && amountPaid < totalAmount) status = "partial";
     else if (invoice.DueDate && new Date(invoice.DueDate) < new Date()) status = "overdue";
 
-    const contactName = invoice.CustomerRef?.name?.trim() || "QuickBooks customer";
-    const email = normalizeEmail(invoice.BillEmail?.Address) ?? existing?.recipient_email ?? "";
-    const existingAmountPaid = existing ? Number(existing.amount_paid || 0) : 0;
-    const newlyPaid = amountPaid - existingAmountPaid;
-    const qbNotes = invoice.DocNumber ? `QB Doc: ${invoice.DocNumber}` : null;
-    
     const paymentDateStr = invoice.MetaData?.LastUpdatedTime || new Date().toISOString();
     const paymentDate = new Date(paymentDateStr).toISOString().slice(0, 10);
+    
+    const qbUpdatedDate = invoice.MetaData?.LastUpdatedTime ? new Date(invoice.MetaData.LastUpdatedTime) : new Date(0);
 
     if (totalAmount <= 0) {
       result.skipped += 1;
       continue;
     }
 
-    const payload = {
-      amount_owed: totalAmount,
-      amount_paid: isPaid ? totalAmount : amountPaid,
-      currency: String(invoice.CurrencyRef?.value ?? "USD"),
-      due_date: invoice.DueDate || null,
-      recipient_email: email,
-      recipient_name: contactName,
-      workflow_status: status,
-      quickbooks_invoice_id: invoiceId,
-      invoice_number: invoice.DocNumber || `INV-${invoiceId.substring(0, 8)}`,
-      internal_notes: existing?.internal_notes || qbNotes,
-    };
-
-    if (existing) {
-      const { error } = await supabase
-        .from("invoices")
-        .update(payload)
-        .eq("id", existing.id)
-        .eq("organization_id", organizationId);
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (isPaid) {
-        result.markedPaid += 1;
-      } else {
-        result.updated += 1;
-      }
-
-      if (newlyPaid > 0) {
-        newPaymentLogs.push({
-          invoice_id: existing.id,
-          client_id: existing.customer_id ?? null,
-          organization_id: organizationId,
-          event_type: "payment",
-          event_date: paymentDate,
-          amount: newlyPaid,
-          currency: payload.currency,
-          payment_source: "user", // Keep matching PaymentSourceBadge format if required
-        });
-      }
-
-      continue;
-    }
-
     let clientRecord = email ? clientsMap.get(email.toLowerCase()) : undefined;
-    if (!clientRecord) {
-      clientRecord = clientsMap.get(contactName.toLowerCase());
-    }
+    if (!clientRecord) clientRecord = clientsMap.get(contactName.toLowerCase());
 
     if (!clientRecord) {
       const { data: client, error: clientError } = await supabase
@@ -442,59 +403,87 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
         .insert({ 
           organization_id: organizationId, 
           name: contactName,
-          email: email,
-          next_send_at: computeFirstReminderSendAt() 
+          email: email
         })
         .select("id")
         .single();
 
-      if (clientError) {
-        throw new Error(clientError.message);
-      }
+      if (clientError) throw new Error(clientError.message);
       
       clientRecord = { id: client.id };
       if (email) clientsMap.set(email.toLowerCase(), clientRecord);
       clientsMap.set(contactName.toLowerCase(), clientRecord);
     }
 
-    const { data: newCustomer, error } = await supabase.from("invoices").insert({
-      ...payload,
-      client_id: clientRecord.id,
-      custom_message: null,
-      payment_link: null,
+    const payload = {
       organization_id: organizationId,
-    }).select("id").single();
+      client_id: clientRecord.id,
+      amount: totalAmount,
+      currency: String(invoice.CurrencyRef?.value ?? "USD"),
+      due_date: toIsoDate(invoice.DueDate),
+      status: status,
+      quickbooks_id: invoiceId,
+      updated_at: new Date().toISOString()
+    };
 
+    const existing = existingByInvoiceId.get(invoiceId);
 
-    if (error) {
-      throw new Error(error.message);
+    if (existing) {
+      const duelyUpdatedDate = new Date(existing.updated_at || 0);
+      
+      // Dual Sync Truth check: if Duely has more recent updates, DO NOT overwrite it from QuickBooks.
+      if (duelyUpdatedDate > qbUpdatedDate) {
+         result.skipped += 1;
+         continue;
+      }
+
+      const { error } = await supabase
+        .from("invoices")
+        .update(payload)
+        .eq("id", existing.id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (status === "paid" && existing.status !== "paid") result.markedPaid += 1;
+      else result.updated += 1;
+
+      if (amountPaid > 0 && status === "paid" && existing.status !== "paid") {
+         newPayments.push({
+           organization_id: organizationId,
+           invoice_id: existing.id,
+           amount: amountPaid,
+           currency: payload.currency,
+           payment_date: paymentDate,
+           payment_method: "quickbooks_sync"
+         });
+      }
+
+      continue;
     }
 
-    if (newlyPaid > 0 && newCustomer) {
-      newPaymentLogs.push({
-        invoice_id: newCustomer.id,
-        client_id: clientRecord.id,
-        organization_id: organizationId,
-        event_type: "payment",
-        event_date: paymentDate,
-        amount: newlyPaid,
-        currency: payload.currency,
-        payment_source: "user",
-      });
+    const { data: newInvoice, error } = await supabase.from("invoices").insert(payload).select("id").single();
+    if (error) throw new Error(error.message);
+
+    if (amountPaid > 0 || status === "paid") {
+       newPayments.push({
+         organization_id: organizationId,
+         invoice_id: newInvoice.id,
+         amount: amountPaid > 0 ? amountPaid : totalAmount,
+         currency: payload.currency,
+         payment_date: paymentDate,
+         payment_method: "quickbooks_sync"
+       });
     }
 
     result.imported += 1;
   }
 
-  if (newPaymentLogs.length > 0) {
-    const { error: logsError } = await supabase.from("events").insert(newPaymentLogs); // Assuming customer_events is now events based on previous edits
+  if (newPayments.length > 0) {
+    const { error: logsError } = await supabase.from("payments").insert(newPayments);
     if (logsError) {
-      logger.error({
-        message: "Failed to insert payment logs from QuickBooks sync",
-        context: "syncQuickBooksInvoicesForOrg",
-        error: logsError.message,
-        organization_id: organizationId,
-      });
+      logger.error({ message: "Failed to insert payments from QuickBooks sync", context: "syncQuickBooksInvoicesForOrg", error: logsError.message, organization_id: organizationId });
     }
   }
 
@@ -518,66 +507,24 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
   return result;
 }
 
-export async function getQuickBooksBankAccounts(organizationId: string) {
-  const integration = await getQuickBooksIntegration(organizationId);
-  if (!integration || !integration.realm_id) return [];
-
-  const { access_token } = await getValidQuickBooksTokens(integration);
-
-  const query = `select * from Account where AccountType = 'Bank'`;
-  const url = new URL(`${getApiBaseUrl()}/v3/company/${integration.realm_id}/query`);
-  url.searchParams.set("query", query);
-  url.searchParams.set("minorversion", "65");
-
-  try {
-    const response = await fetch(url.toString(), {
-      headers: {
-        "Accept": "application/json",
-        "Authorization": `Bearer ${access_token}`,
-      },
-    });
-
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    const accounts = data.QueryResponse?.Account || [];
-
-    return accounts.map((acc: any) => ({
-      provider: "quickbooks",
-      name: acc.Name,
-      accountNumber: acc.AcctNum || "N/A",
-      currency: acc.CurrencyRef?.value || "USD"
-    }));
-  } catch (error) {
-    logger.error({ message: "Failed to fetch QuickBooks bank accounts", context: "quickbooks_bank_sync", original_error: String(error) });
-    return [];
-  }
-}
-
 export async function revokeQuickBooksIntegration(organizationId: string) {
   const integration = await getQuickBooksIntegration(organizationId);
   if (!integration) return;
 
   try {
-    const validIntegration = await getValidQuickBooksTokens(integration);
     const authHeader = Buffer.from(
       `${getQuickBooksClientId()}:${getQuickBooksClientSecret()}`
     ).toString("base64");
 
-    const response = await fetch("https://developer.api.intuit.com/v2/oauth2/tokens/revoke", {
+    await fetch("https://developer.intuit.com/v2/oauth2/tokens/revoke", {
       method: "POST",
       headers: {
         "Accept": "application/json",
         "Content-Type": "application/json",
         "Authorization": `Basic ${authHeader}`,
       },
-      body: JSON.stringify({ token: validIntegration.refresh_token || validIntegration.access_token }),
+      body: JSON.stringify({ token: integration.refresh_token }),
     });
-    
-    if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text);
-    }
   } catch (error) {
     logger.external({
       service: "QuickBooks",
@@ -586,5 +533,46 @@ export async function revokeQuickBooksIntegration(organizationId: string) {
       organization_id: organizationId,
       error: error instanceof Error ? error.message : "Unknown error",
     });
+  }
+}
+
+export async function getQuickBooksBankAccounts(organizationId: string) {
+  const supabase = createSupabaseAdminClient();
+  const { data: integration } = await supabase
+    .from("integrations")
+    .select("*")
+    .eq("organization_id", organizationId)
+    .eq("provider", "quickbooks")
+    .maybeSingle<QuickBooksIntegrationRow>();
+
+  if (!integration || !integration.realm_id) return [];
+
+  try {
+    const validIntegration = await getValidQuickBooksTokens(integration);
+    const query = `select * from Account where AccountType = 'Bank'`;
+    const url = new URL(`${getApiBaseUrl()}/v3/company/${integration.realm_id}/query`);
+    url.searchParams.set("query", query);
+    url.searchParams.set("minorversion", "65");
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        "Accept": "application/json",
+        "Authorization": `Bearer ${validIntegration.access_token}`,
+      },
+    });
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    const accounts = data.QueryResponse?.Account || [];
+    return accounts.map((acc: any) => ({
+      provider: "quickbooks",
+      name: acc.Name,
+      accountNumber: acc.AcctNum || acc.Id,
+      currency: acc.CurrencyRef?.value
+    }));
+  } catch (error) {
+    logger.error({ message: "Failed to fetch QuickBooks bank accounts", context: "quickbooks_bank_sync", original_error: String(error) });
+    return [];
   }
 }

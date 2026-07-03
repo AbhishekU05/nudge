@@ -138,7 +138,7 @@ export const applyLateFees = inngest.createFunction(
             .update({ amount: newAmount }) // Note: we dropped amount_owed in new schema
             .eq("id", invoice.id);
             
-          // Write to Xero - Update existing invoice
+          // Write to Xero or QuickBooks - Update existing invoice
           if (invoice.xero_id || invoice.xero_invoice_id) {
             try {
               const { updateXeroInvoiceWithLateFee } = await import("@/lib/xero-write");
@@ -150,11 +150,23 @@ export const applyLateFees = inngest.createFunction(
             } catch (e) {
               console.error("Failed to update invoice in Xero with late fee", e);
             }
+          } else if (invoice.quickbooks_id || invoice.quickbooks_invoice_id) {
+            try {
+              const { updateQuickBooksInvoiceWithLateFee } = await import("@/lib/quickbooks-write");
+              await updateQuickBooksInvoiceWithLateFee(
+                policy.organization_id,
+                invoice.quickbooks_id || invoice.quickbooks_invoice_id,
+                feeAmount
+              );
+            } catch (e) {
+              console.error("Failed to update invoice in QuickBooks with late fee", e);
+            }
           }
         } else {
-          // new_invoice - Write to Xero
+          // new_invoice - Write to Xero or QuickBooks
           if (invoice.xero_id || invoice.xero_invoice_id) {
             try {
+              const { createXeroLateFeeInvoice } = await import("@/lib/xero-write");
               await createXeroLateFeeInvoice(
                 policy.organization_id,
                 invoice.invoice_number || invoice.id,
@@ -163,7 +175,20 @@ export const applyLateFees = inngest.createFunction(
                 invoice.clients.email
               );
             } catch (e) {
-              console.error("Failed to write to Xero", e);
+              console.error("Failed to write new late fee invoice to Xero", e);
+            }
+          } else if (invoice.quickbooks_id || invoice.quickbooks_invoice_id) {
+            try {
+              const { createQuickBooksLateFeeInvoice } = await import("@/lib/quickbooks-write");
+              await createQuickBooksLateFeeInvoice(
+                policy.organization_id,
+                invoice.invoice_number || invoice.id,
+                feeAmount,
+                invoice.clients.name,
+                invoice.clients.email
+              );
+            } catch (e) {
+              console.error("Failed to write new late fee invoice to QuickBooks", e);
             }
           }
         }
