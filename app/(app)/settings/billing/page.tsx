@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { startSubscriptionCheckout, cancelSubscription } from "@/app/actions/billing";
+import { CheckoutButton } from "./checkout-button";
 import { requireUser } from "@/lib/auth";
 import { getOrganizationBillingForUser } from "@/lib/organization-billing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -182,18 +183,13 @@ export default async function BillingPage({
           </ul>
           <div className="mt-8">
             {rawStatus === "active" && org?.plan_type === "monthly" ? (
-              <form action={cancelSubscription}>
-                <Button variant="secondary" type="submit" className="w-full text-red-400 hover:text-red-300 h-12">
-                  Cancel subscription
-                </Button>
-              </form>
+              <CheckoutButton action={cancelSubscription} variant="cancel" className="w-full text-red-400 hover:text-red-300 h-12">
+                Cancel subscription
+              </CheckoutButton>
             ) : (
-              <form action={startSubscriptionCheckout}>
-                <input type="hidden" name="plan" value="monthly" />
-                <Button type="submit" className="w-full h-12 bg-white/10 hover:bg-white/20 text-zinc-100">
-                  {rawStatus === "active" ? "Switch to Monthly" : "Subscribe Monthly"}
-                </Button>
-              </form>
+              <CheckoutButton action={startSubscriptionCheckout} plan="monthly" variant="monthly" className="w-full h-12 bg-white/10 hover:bg-white/20 text-zinc-100">
+                {rawStatus === "active" ? "Switch to Monthly" : "Subscribe Monthly"}
+              </CheckoutButton>
             )}
           </div>
         </div>
@@ -224,19 +220,13 @@ export default async function BillingPage({
           </ul>
           <div className="mt-8">
             {rawStatus === "active" && org?.plan_type === "annual" ? (
-              <form action={cancelSubscription}>
-                <Button variant="secondary" type="submit" className="w-full text-red-400 hover:text-red-300 h-12">
-                  Cancel subscription
-                </Button>
-              </form>
+              <CheckoutButton action={cancelSubscription} variant="cancel" className="w-full text-red-400 hover:text-red-300 h-12">
+                Cancel subscription
+              </CheckoutButton>
             ) : (
-              <form action={startSubscriptionCheckout}>
-                <input type="hidden" name="plan" value="annual" />
-                <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white h-12">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  {rawStatus === "active" ? "Upgrade to Annual" : "Subscribe Annual"}
-                </Button>
-              </form>
+              <CheckoutButton action={startSubscriptionCheckout} plan="annual" variant="annual" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white h-12">
+                {rawStatus === "active" ? "Upgrade to Annual" : "Subscribe Annual"}
+              </CheckoutButton>
             )}
           </div>
         </div>

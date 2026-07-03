@@ -18,11 +18,11 @@ export async function startSubscriptionCheckout(formData?: FormData) {
   const org = await getOrganizationBillingForUser(supabase, user.id);
 
   if (!org) {
-    redirect("/settings/billing?error=No+organization+found.");
+    return { error: "No organization found." };
   }
 
   if (!canManageOrganizationBilling(org.role)) {
-    redirect("/settings/billing?error=Only+admins+can+manage+billing.");
+    return { error: "Only admins can manage billing." };
   }
 
   const plan = (formData?.get("plan") as PricingPlanType) || "monthly";
@@ -39,7 +39,7 @@ export async function startSubscriptionCheckout(formData?: FormData) {
   }
 
   if (configError || !productId || !dodo) {
-    redirect("/settings/billing?error=Payment+gateway+not+configured.");
+    return { error: "Payment gateway not configured." };
   }
 
   let session;
@@ -73,13 +73,13 @@ export async function startSubscriptionCheckout(formData?: FormData) {
   }
 
   if (checkoutError) {
-    redirect("/settings/billing?error=Unable+to+start+checkout.+Please+try+again.");
+    return { error: "Unable to start checkout. Please try again." };
   }
 
   if (session && session.checkout_url) {
-    redirect(session.checkout_url);
+    return { url: session.checkout_url };
   } else {
-    redirect("/settings/billing?error=Unable+to+start+checkout.+Invalid+response.");
+    return { error: "Unable to start checkout. Invalid response." };
   }
 }
 
@@ -89,14 +89,14 @@ export async function cancelSubscription() {
   const org = await getOrganizationBillingForUser(supabase, user.id);
 
   if (!org) {
-    redirect("/settings/billing?error=No+organization+found.");
+    return { error: "No organization found." };
   }
   if (!canManageOrganizationBilling(org.role)) {
-    redirect("/settings/billing?error=Only+admins+can+manage+billing.");
+    return { error: "Only admins can manage billing." };
   }
   
   if (!org.dodo_subscription_id) {
-    redirect("/settings/billing?error=No+active+subscription+to+cancel.");
+    return { error: "No active subscription to cancel." };
   }
 
   let dodo;
@@ -108,11 +108,10 @@ export async function cancelSubscription() {
   }
 
   if (configError || !dodo) {
-    redirect("/settings/billing?error=Payment+gateway+not+configured.");
+    return { error: "Payment gateway not configured." };
   }
 
-  // Always redirect to error for now because API cancellation requires checking Dodo SDK
-  redirect("/settings/billing?error=Cancellation+must+be+done+through+customer+portal.");
+  return { error: "Cancellation must be done through customer portal." };
 }
 
 export async function manageSubscription() {
