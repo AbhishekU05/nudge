@@ -39,7 +39,8 @@ export function CheckoutButton({
           window.location.href = result.url;
         }
       } catch (err) {
-        setErrorMsg("Something went wrong");
+        console.error("Checkout action failed:", err);
+        setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
       }
     });
   };

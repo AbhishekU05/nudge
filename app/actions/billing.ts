@@ -13,73 +13,78 @@ import type { PricingPlanType } from "@/lib/types";
 import { logger } from "@/lib/logger";
 
 export async function startSubscriptionCheckout(formData?: FormData) {
-  const user = await requireUser();
-  const supabase = await createSupabaseServerClient();
-  const org = await getOrganizationBillingForUser(supabase, user.id);
-
-  if (!org) {
-    return { error: "No organization found." };
-  }
-
-  if (!canManageOrganizationBilling(org.role)) {
-    return { error: "Only admins can manage billing." };
-  }
-
-  const plan = (formData?.get("plan") as PricingPlanType) || "monthly";
-  let productId: string | undefined;
-  let dodo;
-  let configError = false;
-  
   try {
-    productId = getDodoProductId(plan);
-    dodo = getDodoClient();
-  } catch (error) {
-    logger.error({ message: "Dodo config error", context: "billing:checkout", error: error instanceof Error ? error.message : "Unknown error" });
-    configError = true;
-  }
+    const user = await requireUser();
+    const supabase = await createSupabaseServerClient();
+    const org = await getOrganizationBillingForUser(supabase, user.id);
 
-  if (configError || !productId || !dodo) {
-    return { error: "Payment gateway not configured." };
-  }
-
-  let session;
-  let checkoutError = false;
-  
-  try {
-    let baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000";
-    if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
-      baseUrl = `https://${baseUrl}`;
+    if (!org) {
+      return { error: "No organization found." };
     }
+
+    if (!canManageOrganizationBilling(org.role)) {
+      return { error: "Only admins can manage billing." };
+    }
+
+    const plan = (formData?.get("plan") as PricingPlanType) || "monthly";
+    let productId: string | undefined;
+    let dodo;
+    let configError = false;
     
-    session = await dodo.checkoutSessions.create({
-      product_cart: [{ product_id: productId, quantity: 1 }],
-      return_url: `${baseUrl}/settings/billing?success=true`,
-      metadata: {
-        organization_id: org.id,
-        plan_type: plan,
-      },
-      customer: {
-        email: user.email!,
-        name: user.user_metadata?.full_name || "Customer",
+    try {
+      productId = getDodoProductId(plan);
+      dodo = getDodoClient();
+    } catch (error) {
+      logger.error({ message: "Dodo config error", context: "billing:checkout", error: error instanceof Error ? error.message : "Unknown error" });
+      configError = true;
+    }
+
+    if (configError || !productId || !dodo) {
+      return { error: "Payment gateway not configured." };
+    }
+
+    let session;
+    let checkoutError = false;
+    
+    try {
+      let baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000";
+      if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+        baseUrl = `https://${baseUrl}`;
       }
-    });
-  } catch (error) {
-    logger.error({ 
-      message: error instanceof Error ? error.message : "Failed to create checkout session", 
-      context: "billing:checkout", 
-      organization_id: org.id 
-    });
-    checkoutError = true;
-  }
+      
+      session = await dodo.checkoutSessions.create({
+        product_cart: [{ product_id: productId, quantity: 1 }],
+        return_url: `${baseUrl}/settings/billing?success=true`,
+        metadata: {
+          organization_id: org.id,
+          plan_type: plan,
+        },
+        customer: {
+          email: user.email!,
+          name: user.user_metadata?.full_name || "Customer",
+        }
+      });
+    } catch (error) {
+      logger.error({ 
+        message: error instanceof Error ? error.message : "Failed to create checkout session", 
+        context: "billing:checkout", 
+        organization_id: org.id 
+      });
+      checkoutError = true;
+    }
 
-  if (checkoutError) {
-    return { error: "Unable to start checkout. Please try again." };
-  }
+    if (checkoutError) {
+      return { error: "Unable to start checkout. Please try again." };
+    }
 
-  if (session && session.checkout_url) {
-    return { url: session.checkout_url };
-  } else {
-    return { error: "Unable to start checkout. Invalid response." };
+    if (session && session.checkout_url) {
+      return { url: session.checkout_url };
+    } else {
+      return { error: "Unable to start checkout. Invalid response." };
+    }
+  } catch (err) {
+    console.error("Fatal error in startSubscriptionCheckout:", err);
+    return { error: err instanceof Error ? `Server Error: ${err.message}` : "Fatal unknown error occurred." };
   }
 }
 
