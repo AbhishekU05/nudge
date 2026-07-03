@@ -27,14 +27,16 @@ export async function startSubscriptionCheckout(formData?: FormData) {
 
   const plan = (formData?.get("plan") as PricingPlanType) || "monthly";
   let productId: string;
+  let dodo;
+  
   try {
     productId = getDodoProductId(plan);
+    dodo = getDodoClient();
   } catch (error) {
-    logger.error({ message: "Unsupported plan type", context: "billing:checkout", plan });
-    redirect("/settings/billing?error=Unsupported+plan.");
+    logger.error({ message: "Dodo config error", context: "billing:checkout", error });
+    redirect("/settings/billing?error=Payment+gateway+not+configured.");
   }
 
-  const dodo = getDodoClient();
   let session;
   
   try {
@@ -86,7 +88,12 @@ export async function cancelSubscription() {
     redirect("/settings/billing?error=No+active+subscription+to+cancel.");
   }
 
-  const dodo = getDodoClient();
+  let dodo;
+  try {
+    dodo = getDodoClient();
+  } catch (error) {
+    redirect("/settings/billing?error=Payment+gateway+not+configured.");
+  }
 
   try {
     // Assuming subscriptions API has a cancel or update method to cancel
@@ -116,8 +123,14 @@ export async function manageSubscription() {
     redirect("/settings/billing?error=No+billing+history+found.");
   }
 
+  let dodo;
   try {
-    const dodo = getDodoClient();
+    dodo = getDodoClient();
+  } catch (error) {
+    redirect("/settings/billing?error=Payment+gateway+not+configured.");
+  }
+
+  try {
     // Usually customer portals are retrieved via dodo.customerPortal.create({ customer_id: ... })
     // If we don't know the SDK method, we'll redirect to an error for now
     redirect("/settings/billing?error=Customer+portal+not+yet+supported.");
