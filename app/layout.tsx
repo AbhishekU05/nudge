@@ -70,6 +70,16 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "wzuugmsshn");
           `}
         </Script>
+        {/* Affonso affiliate tracking pixel */}
+        {process.env.NEXT_PUBLIC_AFFONSO_PROGRAM_ID && (
+          <Script
+            id="affonso-pixel"
+            strategy="afterInteractive"
+            src="https://cdn.affonso.io/js/pixel.min.js"
+            data-affonso={process.env.NEXT_PUBLIC_AFFONSO_PROGRAM_ID}
+            data-cookie_duration="60"
+          />
+        )}
       </body>
     </html>
   );

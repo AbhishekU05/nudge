@@ -30,6 +30,20 @@ export function CheckoutButton({
     startTransition(async () => {
       const formData = new FormData();
       if (plan) formData.append("plan", plan);
+
+      // Read Affonso referral cookie set by the tracking pixel and pass it
+      // to the server action so it gets stored in Dodo checkout metadata.
+      try {
+        const affonsoReferral = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("affonso_referral="))
+          ?.split("=")[1];
+        if (affonsoReferral) {
+          formData.append("affonso_referral", decodeURIComponent(affonsoReferral));
+        }
+      } catch {
+        // Cookie reading failed — not critical, proceed without it
+      }
       
       try {
         const result = await action(formData);

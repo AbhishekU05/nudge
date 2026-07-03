@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { UnwrapWebhookEvent } from "dodopayments/resources";
 
+import { logger } from "@/lib/logger";
 import type { PricingPlanType, SubscriptionStatus } from "@/lib/types";
 
 type ProcessResult = {
@@ -109,6 +110,46 @@ async function findOrganizationId(
   return null;
 }
 
+/**
+ * Fire a server-side conversion event to Affonso when a subscription first activates.
+ * Uses the affonso_referral cookie value stored by the pixel on the client, which
+ * Dodo should pass through in the checkout metadata (key: "affonso_referral").
+ * Falls back gracefully — never throws, so billing is never blocked.
+ */
+async function trackAffonsoConversion(params: {
+  eventId: string;
+  email: string;
+  referral: string | null | undefined;
+  amountCents: number;
+  currency: string;
+}): Promise<void> {
+  const apiKey = process.env.AFFONSO_API_KEY;
+  if (!apiKey || !params.referral) return;
+
+  try {
+    const res = await fetch("https://api.affonso.io/v1/conversions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        referral: params.referral,
+        email: params.email,
+        event_id: params.eventId, // idempotency key
+        revenue: params.amountCents / 100,
+        currency: params.currency.toUpperCase(),
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      logger.error({ message: `Affonso conversion failed: ${res.status} ${body}`, context: "affonso:conversion" });
+    }
+  } catch (err) {
+    logger.error({ message: `Affonso conversion error: ${String(err)}`, context: "affonso:conversion" });
+  }
+}
+
 async function processSubscriptionEvent(
   supabase: SupabaseClient,
   event: SubscriptionEvent,
@@ -143,6 +184,20 @@ async function processSubscriptionEvent(
 
   if (error) {
     throw new Error(`Unable to update organization subscription: ${error.message}`);
+  }
+
+  // Track affiliate conversion on first activation only
+  if (event.type === "subscription.active") {
+    const meta = subscription.metadata as Record<string, string> | undefined;
+    await trackAffonsoConversion({
+      eventId: subscription.subscription_id,
+      email: subscription.customer.email,
+      referral: meta?.["affonso_referral"] ?? null,
+      amountCents: typeof subscription.recurring_pre_tax_amount === "number"
+        ? subscription.recurring_pre_tax_amount
+        : 0,
+      currency: subscription.currency ?? "USD",
+    });
   }
 
   return organizationId;

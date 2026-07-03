@@ -53,12 +53,15 @@ export async function startSubscriptionCheckout(formData?: FormData) {
         baseUrl = `https://${baseUrl}`;
       }
       
+      const affonsoReferral = formData?.get("affonso_referral") as string | null;
+
       session = await dodo.checkoutSessions.create({
         product_cart: [{ product_id: productId, quantity: 1 }],
         return_url: `${baseUrl}/settings/billing?success=true`,
         metadata: {
           organization_id: org.id,
           plan_type: plan,
+          ...(affonsoReferral ? { affonso_referral: affonsoReferral } : {}),
         },
         customer: {
           email: user.email!,
