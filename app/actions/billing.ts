@@ -26,7 +26,7 @@ export async function startSubscriptionCheckout(formData?: FormData) {
   }
 
   const plan = (formData?.get("plan") as PricingPlanType) || "monthly";
-  let productId: string;
+  let productId: string | undefined;
   let dodo;
   let configError = false;
   
