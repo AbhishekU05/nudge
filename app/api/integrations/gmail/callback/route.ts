@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { getRequiredEnv } from "@/lib/env";
@@ -49,21 +50,15 @@ export async function GET(request: NextRequest) {
   const adminSupabase = createSupabaseAdminClient();
 
   // Verify CSRF state
-  const { data: profile } = await adminSupabase
-    .from("profiles")
-    .select("gmail_oauth_state")
-    .eq("user_id", user.id)
-    .maybeSingle<{ gmail_oauth_state: string | null }>();
+  const cookieStore = await cookies();
+  const savedState = cookieStore.get("gmail_oauth_state")?.value;
 
-  if (!profile?.gmail_oauth_state || profile.gmail_oauth_state !== state) {
+  if (!savedState || savedState !== state) {
     return redirectToSettings("error", "Invalid Gmail OAuth state. Please try again.");
   }
 
   // Clear the state token immediately
-  await adminSupabase
-    .from("profiles")
-    .update({ gmail_oauth_state: null })
-    .eq("user_id", user.id);
+  cookieStore.delete("gmail_oauth_state");
 
   try {
     const clientId = getRequiredEnv("GOOGLE_CLIENT_ID");

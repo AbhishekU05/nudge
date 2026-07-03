@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { getRequiredEnv } from "@/lib/env";
@@ -32,13 +33,15 @@ export async function GET() {
     const appUrl = getAppUrl();
     const redirectUri = `${appUrl}/api/integrations/gmail/callback`;
 
-    // Generate a state token and persist it so the callback can verify it
+    // Generate a state token and persist it in a cookie so the callback can verify it
     const state = crypto.randomBytes(32).toString("hex");
-    const adminSupabase = createSupabaseAdminClient();
-    await adminSupabase
-      .from("profiles")
-      .update({ gmail_oauth_state: state })
-      .eq("user_id", user.id);
+    const cookieStore = await cookies();
+    cookieStore.set("gmail_oauth_state", state, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 10, // 10 minutes
+      path: "/",
+    });
 
     const params = new URLSearchParams({
       client_id: clientId,
