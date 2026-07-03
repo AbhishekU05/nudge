@@ -28,16 +28,29 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
   const { data: invoices } = await supabase
     .from("invoices")
     .select("*")
-    .eq("customer_id", id)
-    .returns<InvoiceRecord[]>();
+    .eq("client_id", id);
+    
+  const { data: payments } = await supabase
+    .from("payments")
+    .select("*");
 
-  const invoicesList = invoices || [];
+  const invoicesList = (invoices || []).map((inv: any) => {
+    const invPayments = (payments || []).filter((p: any) => p.invoice_id === inv.id);
+    const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+    return {
+      ...inv,
+      amount_owed: inv.amount,
+      amount_paid,
+      workflow_status: inv.status,
+      customer_id: inv.client_id
+    };
+  }) as InvoiceRecord[];
 
   // Fetch the assigned group if any
   const { data: customerGroupData } = await supabase
     .from("customer_groups")
     .select("groups(*)")
-    .eq("customer_id", id)
+    .eq("client_id", id)
     .maybeSingle();
     
   const group = customerGroupData?.groups as unknown as GroupRecord | undefined;

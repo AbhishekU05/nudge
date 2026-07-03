@@ -19,10 +19,10 @@ export default async function AppLayout({
   let totalCustomers = 0;
 
   try {
-    const [profileRes, integrationsRes, groupsRes, customersRes] = await Promise.all([
+    const [orgRes, integrationsRes, groupsRes, customersRes] = await Promise.all([
       supabase
-        .from("profiles")
-        .select("razorpay_subscription_status")
+        .from("organization_members")
+        .select("organizations(dodo_subscription_status)")
         .eq("user_id", user.id)
         .maybeSingle(),
       supabase
@@ -38,8 +38,9 @@ export default async function AppLayout({
         .select("id", { count: "exact", head: true })
     ]);
       
-    if (profileRes.data?.razorpay_subscription_status) {
-      subscriptionStatus = profileRes.data.razorpay_subscription_status;
+    const org = orgRes.data?.organizations as any;
+    if (org?.dodo_subscription_status) {
+      subscriptionStatus = org.dodo_subscription_status;
     }
 
     if (integrationsRes.data) {

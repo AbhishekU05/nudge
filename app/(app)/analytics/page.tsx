@@ -13,15 +13,22 @@ export default async function AnalyticsPage(props: {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const [customersRes, eventsRes] = await Promise.all([
+  const [invoicesRes, eventsRes, paymentsRes] = await Promise.all([
     supabase.from("invoices").select("*"),
-    supabase
-      .from("customer_events")
-      .select("*")
-      .order("created_at", { ascending: true }),
+    supabase.from("events").select("*").order("created_at", { ascending: true }),
+    supabase.from("payments").select("*").order("created_at", { ascending: true })
   ]);
 
-  const allCustomers = (customersRes.data || []) as CustomerRecord[];
+  const allCustomers = (invoicesRes.data || []).map((inv: any) => {
+    const invPayments = (paymentsRes.data || []).filter((p: any) => p.invoice_id === inv.id);
+    const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+    return {
+      ...inv,
+      amount_owed: inv.amount,
+      amount_paid,
+      workflow_status: inv.status
+    };
+  }) as CustomerRecord[];
   
   // Handle currencies
   const uniqueCurrencies = Array.from(new Set(allCustomers.map(c => c.currency || 'USD'))).sort();
@@ -29,7 +36,31 @@ export default async function AnalyticsPage(props: {
   const customers = allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
 
   const customerIds = new Set(customers.map(c => c.id));
-  const events = ((eventsRes.data || []) as CustomerEvent[]).filter(e => e.customer_id && customerIds.has(e.customer_id));
+  
+  const mappedEvents = [
+    ...(eventsRes.data || []).map((e: any) => ({
+      id: e.id,
+      invoice_id: e.invoice_id,
+      customer_id: e.invoice_id, // Analytics maps customer_id to invoice_id under the hood for grouping
+      event_type: e.event_type,
+      event_date: e.created_at,
+      created_at: e.created_at,
+      amount: null,
+      currency: null
+    })),
+    ...(paymentsRes.data || []).map((p: any) => ({
+      id: p.id,
+      invoice_id: p.invoice_id,
+      customer_id: p.invoice_id, // Analytics groups by invoice
+      event_type: "payment",
+      event_date: p.payment_date || p.created_at,
+      created_at: p.created_at,
+      amount: p.amount,
+      currency: p.currency
+    }))
+  ];
+
+  const events = mappedEvents.filter(e => e.customer_id && customerIds.has(e.customer_id)) as unknown as CustomerEvent[];
 
   return (
     <div className="flex min-h-screen flex-col">

@@ -96,36 +96,32 @@ export default async function CustomersPage({
   let activeGroup = null;
 
   try {
-    const [customersRes, eventsRes, profileRes, xeroRes, qbRes, customerGroupsRes, groupsRes] = await Promise.all([
+    const [invoicesRes, eventsRes, paymentsRes, orgMembersRes, xeroRes, qbRes, customerGroupsRes, groupsRes] = await Promise.all([
       supabase
         .from("invoices")
         .select("*")
-        .order("created_at", { ascending: false })
-        .returns<CustomerRow[]>(),
+        .order("created_at", { ascending: false }),
       supabase
-        .from("customer_events")
+        .from("events")
         .select("*")
-        .order("created_at", { ascending: false })
-        .returns<CustomerEvent[]>(),
+        .order("created_at", { ascending: false }),
       supabase
-        .from("profiles")
-        .select("razorpay_subscription_status, razorpay_renews_at, created_at")
+        .from("payments")
+        .select("*")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("organization_members")
+        .select("organizations(dodo_subscription_status, dodo_renews_at, created_at)")
         .eq("user_id", user.id)
-        .maybeSingle<{
-          razorpay_subscription_status: string | null;
-          razorpay_renews_at: string | null;
-          created_at: string;
-        }>(),
+        .maybeSingle(),
       supabase
         .from("integrations")
         .select("provider")
-        .eq("user_id", user.id)
         .eq("provider", "xero")
         .maybeSingle<{ provider: string }>(),
       supabase
         .from("integrations")
         .select("provider")
-        .eq("user_id", user.id)
         .eq("provider", "quickbooks")
         .maybeSingle<{ provider: string }>(),
       supabase
@@ -135,10 +131,58 @@ export default async function CustomersPage({
         .from("groups")
         .select("*"),
     ]);
+
+    const mappedEvents = [
+      ...(eventsRes.data || []).map((e: any) => ({
+        id: e.id,
+        invoice_id: e.invoice_id,
+        customer_id: e.invoice_id || e.client_id,
+        user_id: e.user_id || "",
+        event_type: e.event_type,
+        event_date: e.created_at,
+        created_at: e.created_at,
+        amount: null,
+        currency: null,
+        payment_source: null,
+        followup_method: null,
+        followup_outcome: null,
+        note: e.description || null,
+      })),
+      ...(paymentsRes.data || []).map((p: any) => ({
+        id: p.id,
+        invoice_id: p.invoice_id,
+        customer_id: p.invoice_id,
+        user_id: p.user_id || "",
+        event_type: "payment",
+        event_date: p.payment_date || p.created_at,
+        created_at: p.created_at,
+        amount: p.amount,
+        currency: p.currency,
+        payment_source: p.payment_source || null,
+        followup_method: null,
+        followup_outcome: null,
+        note: null,
+      }))
+    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     
-    customers = customersRes.data;
-    customerEvents = eventsRes.data;
-    profile = profileRes.data;
+    customers = (invoicesRes.data || []).map((inv: any) => {
+      const invPayments = (paymentsRes.data || []).filter((p: any) => p.invoice_id === inv.id);
+      const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+      return {
+        ...inv,
+        amount_owed: inv.amount,
+        amount_paid,
+        workflow_status: inv.status,
+        customer_id: inv.client_id
+      };
+    }) as CustomerRow[];
+
+    customerEvents = mappedEvents;
+    profile = orgMembersRes.data?.organizations ? {
+      razorpay_subscription_status: (orgMembersRes.data.organizations as any).dodo_subscription_status,
+      razorpay_renews_at: (orgMembersRes.data.organizations as any).dodo_renews_at,
+      created_at: (orgMembersRes.data.organizations as any).created_at
+    } : null;
     xeroIntegration = xeroRes.data;
     quickbooksIntegration = qbRes.data;
 

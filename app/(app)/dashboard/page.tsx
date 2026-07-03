@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Users, AlertCircle, ArrowRight, Activity, Percent, Clock, Send, Info, Mail, Zap, FileText } from "lucide-react";
-import { getDaysOverdue, type CustomerRecord } from "@/lib/types";
+import { getDaysOverdue, type CustomerRecord, type CustomerEvent } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 
 function formatCurrency(value: number, currency: string = "USD") {
@@ -26,22 +26,69 @@ export default async function DashboardPage(props: {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const [customersRes, eventsRes, draftsRes, activeClientsRes, activeInvoicesRes] = await Promise.all([
+  const [customersRes, eventsRes, draftsRes, activeClientsRes, activeInvoicesRes, paymentsRes] = await Promise.all([
     supabase.from("invoices").select("*"),
-    supabase.from("customer_events").select("*, clients(name), invoices(recipient_name)").order("created_at", { ascending: false }),
+    supabase.from("events").select("*, clients(name), invoices(recipient_name)").order("created_at", { ascending: false }),
     supabase.from("email_drafts").select("*").eq("status", "draft").order("created_at", { ascending: false }).limit(5),
     supabase.from("clients").select("id, name, next_send_at").eq("active", true).order("next_send_at", { ascending: true }).limit(5),
-    supabase.from("invoices").select("id, recipient_name, next_send_at").eq("active", true).order("next_send_at", { ascending: true }).limit(5)
+    supabase.from("invoices").select("id, recipient_name, next_send_at").eq("active", true).order("next_send_at", { ascending: true }).limit(5),
+    supabase.from("payments").select("*, invoices(recipient_name, clients(name))").order("created_at", { ascending: false })
   ]);
 
-  const allCustomers = (customersRes.data || []) as CustomerRecord[];
+  const allCustomers = (customersRes.data || []).map((inv: any) => {
+    const invPayments = (paymentsRes.data || []).filter((p: any) => p.invoice_id === inv.id);
+    const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+    return {
+      ...inv,
+      amount_owed: inv.amount,
+      amount_paid,
+      workflow_status: inv.status
+    };
+  }) as CustomerRecord[];
   
   // Handle currencies
   const uniqueCurrencies = Array.from(new Set(allCustomers.map(c => c.currency || 'USD'))).sort();
   const selectedCurrency = searchParams?.currency || (uniqueCurrencies.includes('USD') ? 'USD' : uniqueCurrencies[0] || 'USD');
   const customers = allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
 
-  const events = (eventsRes.data || []).filter((e: any) => !e.currency || e.currency === selectedCurrency);
+  const mappedEvents = [
+    ...(eventsRes.data || []).map((e: any) => ({
+      id: e.id,
+      invoice_id: e.invoice_id,
+      customer_id: e.invoice_id || e.client_id, 
+      user_id: e.user_id || "",
+      event_type: e.event_type,
+      event_date: e.created_at,
+      created_at: e.created_at,
+      amount: null,
+      currency: null,
+      payment_source: null,
+      followup_method: null,
+      followup_outcome: null,
+      note: e.description || null,
+      clients: e.clients,
+      invoices: e.invoices
+    })),
+    ...(paymentsRes.data || []).map((p: any) => ({
+      id: p.id,
+      invoice_id: p.invoice_id,
+      customer_id: p.invoice_id, 
+      user_id: p.user_id || "",
+      event_type: "payment",
+      event_date: p.payment_date || p.created_at,
+      created_at: p.created_at,
+      amount: p.amount,
+      currency: p.currency,
+      payment_source: p.payment_source || null,
+      followup_method: null,
+      followup_outcome: null,
+      note: null,
+      clients: p.invoices?.clients,
+      invoices: p.invoices
+    }))
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const events = mappedEvents.filter((e: any) => !e.currency || e.currency === selectedCurrency) as any[];
   const recentEvents = events.slice(0, 5);
 
   const pendingDrafts = draftsRes.data || [];

@@ -44,7 +44,22 @@ export default async function CustomersPage({
     .from("customer_groups")
     .select("*");
 
-  const invoicesList = invoices || [];
+  const { data: payments } = await supabase
+    .from("payments")
+    .select("*");
+    
+  const invoicesList = (invoices || []).map((inv: any) => {
+    const invPayments = (payments || []).filter((p: any) => p.invoice_id === inv.id);
+    const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+    return {
+      ...inv,
+      amount_owed: inv.amount,
+      amount_paid,
+      workflow_status: inv.status,
+      customer_id: inv.client_id
+    };
+  });
+
   const groupsList = groupsData || [];
   const customerGroupsList = customerGroupsData || [];
 
@@ -57,11 +72,11 @@ export default async function CustomersPage({
   }
 
   const clientsWithData = clientsList.map((client) => {
-    const clientInvoices = invoicesList.filter(i => i.customer_id === client.id || (i.recipient_name === client.name));
+    const clientInvoices = invoicesList.filter(i => i.client_id === client.id || i.customer_id === client.id);
     
     const totalOwed = clientInvoices.reduce((sum, inv) => {
       if (inv.workflow_status === "paid" || inv.workflow_status === "written_off") return sum;
-      return sum + getRemainingBalance(inv);
+      return sum + getRemainingBalance(inv as any);
     }, 0);
 
     const currency = clientInvoices[0]?.currency || "USD";

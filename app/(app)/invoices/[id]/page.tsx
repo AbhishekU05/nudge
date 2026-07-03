@@ -28,13 +28,13 @@ export default async function CustomerPage(props: {
     notFound();
   }
 
-  // Fetch group if customer_id exists
+  // Fetch group if client_id exists
   let group: GroupRecord | undefined = undefined;
-  if (customerData.customer_id) {
+  if (customerData.client_id) {
     const { data: groupData } = await supabase
       .from("customer_groups")
       .select("groups(*)")
-      .eq("customer_id", customerData.customer_id)
+      .eq("customer_id", customerData.client_id)
       .maybeSingle();
       
     if (groupData?.groups) {
@@ -42,47 +42,50 @@ export default async function CustomerPage(props: {
     }
   }
 
-  // Fetch events for this customer
+  // Fetch events for this invoice
   const { data: eventsData } = await supabase
-    .from("customer_events")
+    .from("events")
     .select("*")
     .eq("invoice_id", id)
     .order("created_at", { ascending: false });
 
-  const payment_history: PaymentLog[] = [];
-  const followup_history: FollowUpLog[] = [];
+  const { data: paymentsData } = await supabase
+    .from("payments")
+    .select("*")
+    .eq("invoice_id", id)
+    .order("created_at", { ascending: false });
 
-  for (const event of eventsData ?? []) {
-    if (event.event_type === "payment") {
-      payment_history.push({
-        id: event.id,
-        invoice_id: event.invoice_id,
-        customer_id: event.customer_id,
-        user_id: event.user_id,
-        amount: Number(event.amount),
-        currency: event.currency ?? "USD",
-        source: (event.payment_source as any) || "user",
-        created_at: event.created_at,
-      });
-    } else if (event.event_type === "followup") {
-      followup_history.push({
-        id: event.id,
-        invoice_id: event.invoice_id,
-        customer_id: event.customer_id,
-        user_id: event.user_id,
-        method: event.followup_method as any,
-        outcome: event.followup_outcome as any,
-        note: event.note,
-        followup_date: event.event_date,
-        created_at: event.created_at,
-      });
-    }
-  }
+  const payment_history: PaymentLog[] = (paymentsData ?? []).map((p: any) => ({
+    id: p.id,
+    invoice_id: p.invoice_id,
+    customer_id: p.invoice_id,
+    user_id: p.user_id || "",
+    amount: Number(p.amount),
+    currency: p.currency ?? "USD",
+    source: p.payment_source || "user",
+    created_at: p.created_at,
+  }));
+
+  const followup_history: FollowUpLog[] = (eventsData ?? []).map((e: any) => ({
+    id: e.id,
+    invoice_id: e.invoice_id,
+    customer_id: e.invoice_id,
+    user_id: e.user_id || "",
+    method: e.followup_method || "other",
+    outcome: e.followup_outcome || "no_response",
+    note: e.description || null,
+    followup_date: e.created_at,
+    created_at: e.created_at,
+  }));
+
+  const amount_paid = payment_history.reduce((sum, p) => sum + p.amount, 0);
 
   const customerRecord: CustomerRecord = {
     ...customerData,
-    amount_owed: Number(customerData.amount_owed),
-    amount_paid: Number(customerData.amount_paid),
+    amount_owed: Number(customerData.amount),
+    amount_paid,
+    workflow_status: customerData.status,
+    customer_id: customerData.client_id,
     payment_history,
     followup_history,
   };

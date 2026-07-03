@@ -32,8 +32,8 @@ export default async function AutomatePage() {
   // Fetch active invoices
   const { data: invoicesData } = await supabase
     .from("invoices")
-    .select("id, recipient_name, recipient_email, invoice_number, reminder_type, reminder_frequency_days, next_send_at, auto_approve, active, sequence_index")
-    .eq("active", true)
+    .select("id, recipient_name, recipient_email, invoice_number, reminder_type, next_send_at, auto_approve, reminders_enabled, sequence_index")
+    .eq("reminders_enabled", true)
     .order("next_send_at", { ascending: true });
 
   const clients = clientsData || [];
