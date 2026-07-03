@@ -28,20 +28,24 @@ export async function startSubscriptionCheckout(formData?: FormData) {
   const plan = (formData?.get("plan") as PricingPlanType) || "monthly";
   let productId: string;
   let dodo;
+  let configError = false;
   
   try {
     productId = getDodoProductId(plan);
     dodo = getDodoClient();
   } catch (error) {
-    logger.error({ message: "Dodo config error", context: "billing:checkout", error });
+    logger.error({ message: "Dodo config error", context: "billing:checkout", error: error instanceof Error ? error.message : "Unknown error" });
+    configError = true;
+  }
+
+  if (configError || !productId || !dodo) {
     redirect("/settings/billing?error=Payment+gateway+not+configured.");
   }
 
   let session;
+  let checkoutError = false;
   
   try {
-    // Determine the base URL for the return_url
-    // Fallback to a hardcoded string or NEXT_PUBLIC_SITE_URL
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     
     session = await dodo.checkoutSessions.create({
@@ -62,6 +66,10 @@ export async function startSubscriptionCheckout(formData?: FormData) {
       context: "billing:checkout", 
       organization_id: org.id 
     });
+    checkoutError = true;
+  }
+
+  if (checkoutError) {
     redirect("/settings/billing?error=Unable+to+start+checkout.+Please+try+again.");
   }
 
@@ -89,25 +97,19 @@ export async function cancelSubscription() {
   }
 
   let dodo;
+  let configError = false;
   try {
     dodo = getDodoClient();
   } catch (error) {
+    configError = true;
+  }
+
+  if (configError || !dodo) {
     redirect("/settings/billing?error=Payment+gateway+not+configured.");
   }
 
-  try {
-    // Assuming subscriptions API has a cancel or update method to cancel
-    // We will attempt to call patch to change status to cancelled?
-    // Wait, let's see if there's a customer portal instead
-    redirect("/settings/billing?error=Cancellation+must+be+done+through+customer+portal.");
-  } catch (error) {
-    logger.error({ 
-      message: "Cancellation error", 
-      context: "billing:cancel", 
-      error 
-    });
-    redirect("/settings/billing?error=Unable+to+cancel+subscription.");
-  }
+  // Always redirect to error for now because API cancellation requires checking Dodo SDK
+  redirect("/settings/billing?error=Cancellation+must+be+done+through+customer+portal.");
 }
 
 export async function manageSubscription() {
@@ -124,19 +126,18 @@ export async function manageSubscription() {
   }
 
   let dodo;
+  let configError = false;
   try {
     dodo = getDodoClient();
   } catch (error) {
+    configError = true;
+  }
+
+  if (configError || !dodo) {
     redirect("/settings/billing?error=Payment+gateway+not+configured.");
   }
 
-  try {
-    // Usually customer portals are retrieved via dodo.customerPortal.create({ customer_id: ... })
-    // If we don't know the SDK method, we'll redirect to an error for now
-    redirect("/settings/billing?error=Customer+portal+not+yet+supported.");
-  } catch (error) {
-    redirect("/settings/billing?error=Unable+to+open+portal.");
-  }
+  redirect("/settings/billing?error=Customer+portal+not+yet+supported.");
 }
 
 export async function joinWaitlist() {
