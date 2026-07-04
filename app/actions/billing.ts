@@ -48,7 +48,7 @@ export async function startSubscriptionCheckout(formData?: FormData) {
     let checkoutError = false;
     
     try {
-      let baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000";
+      let baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000";
       if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
         baseUrl = `https://${baseUrl}`;
       }
