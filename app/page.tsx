@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://duely.in/og-image.png",
+        url: "https://duely.in/og-image.png?v=2",
         width: 1200,
         height: 630,
       },
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     title: "Collect what you're owed, keep the relationship",
     description:
       "Track outstanding invoices, payment promises, partial payments, and follow-ups.",
-    images: ["https://duely.in/og-image.png"],
+    images: ["https://duely.in/og-image.png?v=2"],
   },
 };
 
