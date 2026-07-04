@@ -1,8 +1,10 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { Users, CreditCard, Activity, AlertCircle } from "lucide-react";
+import { Users, CreditCard, Activity, AlertCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { wipeMyTestData } from "@/app/actions/admin";
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard(props: { searchParams?: Promise<{ success?: string }> }) {
+  const searchParams = await props.searchParams;
   // Use admin client to bypass RLS in the admin dashboard
   const { createSupabaseAdminClient } = await import("@/lib/supabase/admin");
   const supabase = createSupabaseAdminClient();
@@ -23,6 +25,11 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-6">
+      {searchParams?.success && (
+        <div className="p-4 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg text-sm">
+          {searchParams.success}
+        </div>
+      )}
       <h2 className="text-2xl font-bold text-gray-900">Platform Overview</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -54,6 +61,21 @@ export default async function AdminDashboard() {
             View Webhook Logs
           </Link>
         </div>
+      </div>
+
+      <div className="mt-8 border border-red-200 bg-red-50/30 rounded-xl shadow-sm p-6">
+        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-red-700">
+          <Trash2 size={20} />
+          Danger Zone
+        </h3>
+        <p className="text-red-600/80 text-sm mb-4">
+          Need to reset your workspace? This will instantly and permanently wipe all customers, invoices, payments, and events belonging to <strong>your organization only</strong>. It will not affect other users.
+        </p>
+        <form action={wipeMyTestData}>
+          <button type="submit" className="text-sm bg-red-600 text-white px-4 py-2 rounded font-medium hover:bg-red-700 transition-colors">
+            Wipe My Test Data
+          </button>
+        </form>
       </div>
     </div>
   );
