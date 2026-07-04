@@ -30,6 +30,11 @@ export async function GET(request: Request) {
 
   try {
     const result = await completeXeroOAuthCallback(request.url, state);
+    if ('requiresTenantSelection' in result && result.requiresTenantSelection) {
+      const url = new URL("/settings/integrations/xero/tenant", getAppUrl());
+      return NextResponse.redirect(url);
+    }
+    
     const url = new URL("/settings/integrations/xero/bank", getAppUrl());
     url.searchParams.set("success", `Xero connected. Imported ${result.imported} invoices and updated ${result.updated + result.markedPaid}.`);
     revalidatePath("/settings/integrations");

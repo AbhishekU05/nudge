@@ -66,6 +66,39 @@ export async function disconnectXero() {
   redirectToIntegrations({ success: "Xero disconnected." });
 }
 
+export async function selectXeroTenant(formData: FormData) {
+  const user = await requireUser();
+  const organizationId = await getOrganizationId(user.id);
+  if (!organizationId) redirectToIntegrations({ error: "No organization found." });
+
+  const tenantId = formData.get("tenantId")?.toString();
+  if (!tenantId) redirectToIntegrations({ error: "No tenant selected." });
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("integrations")
+    .update({ tenant_id: tenantId })
+    .eq("organization_id", organizationId)
+    .eq("provider", "xero");
+
+  if (error) {
+    redirectToIntegrations({ error: "Unable to select Xero tenant." });
+  }
+
+  let result: Awaited<ReturnType<typeof syncXeroInvoicesForOrg>>;
+  try {
+    result = await syncXeroInvoicesForOrg(organizationId!);
+  } catch (syncError) {
+    redirectToIntegrations({
+      error: syncError instanceof Error ? syncError.message : "Tenant selected, but unable to sync Xero.",
+    });
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/settings/integrations");
+  redirect(`/settings/integrations/xero/bank?success=Xero connected. Imported ${result!.imported} invoices and updated ${result!.updated + result!.markedPaid}.`);
+}
+
 export async function syncQuickBooksNow() {
   const user = await requireUser();
   const organizationId = await getOrganizationId(user.id);

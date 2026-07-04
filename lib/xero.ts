@@ -151,8 +151,10 @@ export async function completeXeroOAuthCallback(callbackUrl: string, state: stri
   const tokenSet = await xero.apiCallback(callbackUrl);
   const tokenValues = requireTokenValues(tokenSet);
   const tenants = await xero.updateTenants(false);
-  const tenantId = tenants[0]?.tenantId as string | undefined;
-  if (!tenantId) throw new Error("No Xero organisation was connected.");
+  if (tenants.length === 0) throw new Error("No Xero organisation was connected.");
+
+  const isMultiTenant = tenants.length > 1;
+  const tenantId = isMultiTenant ? "PENDING_SELECTION" : tenants[0].tenantId as string;
 
   // For connecting, the auth.userId is actually passed in statePayload.userId. We should map it to organization_id.
   const supabase = createSupabaseAdminClient();
@@ -167,7 +169,21 @@ export async function completeXeroOAuthCallback(callbackUrl: string, state: stri
   );
 
   if (error) throw new Error(error.message);
+  
+  if (isMultiTenant) {
+    return { imported: 0, updated: 0, markedPaid: 0, requiresTenantSelection: true };
+  }
+  
   return syncXeroInvoicesForOrg(member.organization_id);
+}
+
+export async function getAvailableXeroTenants(organizationId: string) {
+  const integration = await getXeroIntegration(organizationId);
+  if (!integration) throw new Error("Xero is not connected.");
+
+  const { xero } = await getValidXeroClient(integration);
+  const tenants = await xero.updateTenants(false);
+  return tenants;
 }
 
 function normalizeEmail(email: string | null | undefined) {
@@ -230,6 +246,7 @@ async function loadExistingXeroInvoices(organizationId: string, invoiceIds: stri
 export async function syncXeroInvoicesForOrg(organizationId: string): Promise<XeroSyncResult> {
   const integration = await getXeroIntegration(organizationId);
   if (!integration) throw new Error("Xero is not connected.");
+  if (integration.tenant_id === "PENDING_SELECTION") throw new Error("Please select a Xero tenant first.");
 
   const { xero } = await getValidXeroClient(integration);
   const invoices = await fetchAllXeroInvoices(xero, integration.tenant_id);

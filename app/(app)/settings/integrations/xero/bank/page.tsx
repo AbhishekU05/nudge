@@ -13,10 +13,20 @@ export default async function XeroBankSelectionPage() {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
+  const { data: member } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!member) {
+    redirect("/settings/integrations");
+  }
+
   const { data: integration, error } = await supabase
     .from("integrations")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("organization_id", member.organization_id)
     .eq("provider", "xero")
     .maybeSingle();
 
@@ -61,7 +71,7 @@ export default async function XeroBankSelectionPage() {
     await supabaseAction
       .from("integrations")
       .update({ bank_account_id: accountId, bank_account_name: accountName })
-      .eq("user_id", user.id)
+      .eq("organization_id", member.organization_id)
       .eq("provider", "xero");
       
     redirect("/settings/integrations");
