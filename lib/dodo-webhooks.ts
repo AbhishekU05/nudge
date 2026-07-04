@@ -69,8 +69,16 @@ function getPlanType(
     return metadata.plan_type;
   }
 
-  if (process.env.DODO_PAYMENTS_MONTHLY_PRODUCT_ID === productId) return "monthly";
-  if (process.env.DODO_PAYMENTS_ANNUAL_PRODUCT_ID === productId) return "annual";
+  if (
+    process.env.DODO_PAYMENTS_MONTHLY_PRODUCT_ID === productId ||
+    process.env.DODO_PAYMENTS_TEST_MONTHLY_PRODUCT_ID === productId
+  ) return "monthly";
+  
+  if (
+    process.env.DODO_PAYMENTS_ANNUAL_PRODUCT_ID === productId ||
+    process.env.DODO_PAYMENTS_TEST_ANNUAL_PRODUCT_ID === productId
+  ) return "annual";
+  
   return null;
 }
 
