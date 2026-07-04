@@ -294,7 +294,11 @@ export async function login(formData: FormData) {
 // logs out user
 export async function logout() {
   const supabase = await createSupabaseServerClient();
-  await supabase.auth.signOut();
+  try {
+    await supabase.auth.signOut();
+  } catch (error) {
+    // Ignore error if already signed out or session invalid
+  }
   redirect("/login");
 }
 

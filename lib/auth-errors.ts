@@ -7,7 +7,9 @@ export function getEmailLinkErrorMessage(description?: string | null) {
 
   const normalized = description.replace(/\+/g, " ").trim().toLowerCase();
 
-  // If it specifically says expired or invalid, we can optionally provide a slightly better message
-  // but since the user requested "Something went wrong" for all errors, we will just return the fallback.
+  if (normalized.includes("expired") || normalized.includes("invalid")) {
+    return "Your confirmation link has expired. Please log in or sign up again to receive a new link.";
+  }
+
   return fallback;
 }

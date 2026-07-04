@@ -18,7 +18,7 @@ function getAuthErrorRedirectPath(message: string, nextPath: string) {
   }
 
   return buildPathWithQuery("/login", {
-    error: message,
+    error: getEmailLinkErrorMessage(message),
     next: nextPath !== "/dashboard" ? nextPath : null,
   });
 }
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
 
   if (authError) {
     return NextResponse.redirect(
-      new URL(getAuthErrorRedirectPath("Something went wrong. Please try again.", nextPath), url.origin),
+      new URL(getAuthErrorRedirectPath(authError, nextPath), url.origin),
     );
   }
 
