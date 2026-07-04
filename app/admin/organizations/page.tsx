@@ -7,13 +7,20 @@ import { inngest } from "@/lib/inngest/client";
 export default async function AdminOrganizations() {
   const supabase = createSupabaseAdminClient();
 
-  const { data: orgs, error } = await supabase
-    .from("organizations")
-    .select(`
-      *,
-      integrations(provider, is_active, last_synced_at)
-    `)
-    .order("created_at", { ascending: false });
+  const [orgsRes, usersRes] = await Promise.all([
+    supabase
+      .from("organizations")
+      .select(`
+        *,
+        integrations(provider, is_active, last_synced_at),
+        organization_members(user_id, role)
+      `)
+      .order("created_at", { ascending: false }),
+    supabase.auth.admin.listUsers()
+  ]);
+
+  const { data: orgs, error } = orgsRes;
+  const users = usersRes.data?.users || [];
 
   if (error) {
     return <div className="text-red-500">Error loading organizations: {error.message}</div>;
@@ -48,8 +55,8 @@ export default async function AdminOrganizations() {
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
               <tr>
-                <th className="px-6 py-4">Organization</th>
-                <th className="px-6 py-4">Domain</th>
+                <th className="px-6 py-4">Organization & Domain</th>
+                <th className="px-6 py-4">Members (Emails)</th>
                 <th className="px-6 py-4">Subscription</th>
                 <th className="px-6 py-4">Integrations</th>
                 <th className="px-6 py-4 text-right">Actions</th>
@@ -60,14 +67,27 @@ export default async function AdminOrganizations() {
                 <tr key={org.id} className="hover:bg-gray-50/50">
                   <td className="px-6 py-4">
                     <div className="font-medium text-gray-900">{org.name}</div>
-                    <div className="text-gray-500 text-xs font-mono mt-1">{org.id}</div>
+                    {org.domain ? (
+                      <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs w-fit mt-2">{org.domain}</div>
+                    ) : (
+                      <div className="text-gray-400 italic text-xs mt-2">No domain setup</div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
-                    {org.domain ? (
-                      <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">{org.domain}</span>
-                    ) : (
-                      <span className="text-gray-400 italic">None</span>
-                    )}
+                    <div className="flex flex-col gap-1">
+                      {org.organization_members?.map((member: any) => {
+                        const user = users.find(u => u.id === member.user_id);
+                        return user?.email ? (
+                          <span key={member.user_id} className="text-sm text-gray-700 flex items-center gap-2">
+                            {user.email} 
+                            <span className="text-[10px] bg-gray-200 px-1.5 py-0.5 rounded text-gray-600 uppercase">{member.role}</span>
+                          </span>
+                        ) : null;
+                      })}
+                      {(!org.organization_members || org.organization_members.length === 0) && (
+                        <span className="text-xs text-gray-400 italic">No members found</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1">
