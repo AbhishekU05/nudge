@@ -13,6 +13,7 @@ export function SettingsTabs({ hasSubscription }: { hasSubscription?: boolean })
     { name: "Integrations", href: "/settings/integrations" },
     ...(hasSubscription ? [{ name: "Organization", href: "/settings/organization" }] : []),
     { name: "Feedback", href: "/settings/feedback" },
+    { name: "Referrals", href: "/settings/referrals" },
     { name: "Billing", href: "/settings/billing" },
   ];
 

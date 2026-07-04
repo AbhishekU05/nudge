@@ -23,9 +23,12 @@ function getDodoEnvironment(): DodoEnvironment {
 
 export function getDodoClient(): DodoPayments {
   if (!client) {
+    const env = getDodoEnvironment();
     client = new DodoPayments({
-      bearerToken: getRequiredEnv("DODO_PAYMENTS_API_KEY"),
-      environment: getDodoEnvironment(),
+      bearerToken: env === "test_mode" 
+        ? getRequiredEnv("DODO_PAYMENTS_TEST_API_KEY") 
+        : getRequiredEnv("DODO_PAYMENTS_API_KEY"),
+      environment: env,
     });
   }
 
@@ -33,17 +36,27 @@ export function getDodoClient(): DodoPayments {
 }
 
 export function getDodoProductId(plan: PricingPlanType): string {
+  const env = getDodoEnvironment();
+  const isTest = env === "test_mode";
+
   if (plan === "monthly") {
-    return getRequiredEnv("DODO_PAYMENTS_MONTHLY_PRODUCT_ID");
+    return isTest
+      ? getRequiredEnv("DODO_PAYMENTS_TEST_MONTHLY_PRODUCT_ID")
+      : getRequiredEnv("DODO_PAYMENTS_MONTHLY_PRODUCT_ID");
   }
 
   if (plan === "annual") {
-    return getRequiredEnv("DODO_PAYMENTS_ANNUAL_PRODUCT_ID");
+    return isTest
+      ? getRequiredEnv("DODO_PAYMENTS_TEST_ANNUAL_PRODUCT_ID")
+      : getRequiredEnv("DODO_PAYMENTS_ANNUAL_PRODUCT_ID");
   }
 
   throw new Error(`Unsupported checkout plan: ${plan}`);
 }
 
 export function getDodoWebhookKey(): string {
-  return getRequiredEnv("DODO_PAYMENTS_WEBHOOK_KEY");
+  const env = getDodoEnvironment();
+  return env === "test_mode"
+    ? getRequiredEnv("DODO_PAYMENTS_TEST_WEBHOOK_KEY")
+    : getRequiredEnv("DODO_PAYMENTS_WEBHOOK_KEY");
 }

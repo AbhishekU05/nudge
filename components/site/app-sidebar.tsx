@@ -19,6 +19,7 @@ import {
   FileText,
   Mail,
   Zap,
+  Gift,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GroupRecord } from "@/lib/types";
@@ -53,6 +54,7 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks, g
   ];
 
   const bottomItems = [
+    { name: "Referrals", href: "/settings/referrals", icon: Gift },
     { 
       name: subscriptionStatus === "active" ? "Plan: Active" : "Billing & Plan", 
       href: "/settings/billing", 
