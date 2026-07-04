@@ -44,14 +44,14 @@ export default async function PaymentReceivedPage({
   // Fetch the balance so we can set amount_paid and log the customer signal.
   const { data: reminder } = await supabase
     .from("invoices")
-    .select("amount_owed, amount_paid, currency, user_id, customer_id")
+    .select("amount, amount_paid, currency, organization_id, client_id")
     .eq("unsubscribe_token", token)
     .maybeSingle<{
-      amount_owed: number;
+      amount: number;
       amount_paid: number | null;
       currency: string;
-      user_id: string;
-      customer_id: string;
+      organization_id: string;
+      client_id: string;
     }>();
 
   // client_paid_at is set ONLY via this path (customer self-reporting).
@@ -61,8 +61,8 @@ export default async function PaymentReceivedPage({
     .from("invoices")
     .update({
       client_paid_at: new Date().toISOString(),
-      workflow_status: "paid",
-      amount_paid: reminder?.amount_owed ?? 0,
+      status: "paid",
+      amount_paid: reminder?.amount ?? 0,
       active: false,
     })
     .eq("unsubscribe_token", token)
@@ -74,19 +74,24 @@ export default async function PaymentReceivedPage({
   if (succeeded && reminder && data) {
     const remaining = Math.max(
       0,
-      Number(reminder.amount_owed) - Number(reminder.amount_paid),
+      Number(reminder.amount) - Number(reminder.amount_paid),
     );
 
     if (remaining > 0) {
-      await supabase.from("customer_events").insert({
+      await supabase.from("payments").insert({
+        organization_id: reminder.organization_id,
         invoice_id: data.id,
-        customer_id: reminder.customer_id,
-        user_id: reminder.user_id,
-        event_type: "payment",
-        event_date: new Date().toISOString().slice(0, 10),
         amount: remaining,
         currency: reminder.currency,
-        payment_source: "customer",
+        payment_date: new Date().toISOString().slice(0, 10),
+        payment_method: "customer_reported",
+      });
+      await supabase.from("events").insert({
+        organization_id: reminder.organization_id,
+        invoice_id: data.id,
+        client_id: reminder.client_id,
+        event_type: "payment",
+        description: "Customer reported the invoice as paid.",
       });
     }
   }

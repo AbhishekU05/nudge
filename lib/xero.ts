@@ -235,6 +235,18 @@ async function fetchAllXeroInvoices(xero: XeroClient, tenantId: string) {
   return invoices;
 }
 
+async function fetchAllXeroPayments(xero: XeroClient, tenantId: string) {
+  const payments: any[] = [];
+  let page = 1;
+  while (true) {
+    const response = await xero.accountingApi.getPayments(tenantId, undefined, 'Status=="AUTHORISED"', "UpdatedDateUTC DESC", page);
+    payments.push(...(response.body.payments ?? []));
+    if ((response.body.payments?.length || 0) < 100) break;
+    page += 1;
+  }
+  return payments;
+}
+
 async function loadExistingXeroInvoices(organizationId: string, invoiceIds: string[]) {
   if (invoiceIds.length === 0) return new Map<string, ExistingInvoiceRow>();
   const supabase = createSupabaseAdminClient();
@@ -262,7 +274,6 @@ export async function syncXeroInvoicesForOrg(organizationId: string): Promise<Xe
   }
 
   const result: XeroSyncResult = { imported: 0, markedPaid: 0, skipped: 0, totalInvoices: invoices.length, updated: 0 };
-  const newPayments: any[] = [];
 
   for (const invoice of invoices) {
     const invoiceId = invoice.invoiceID;
@@ -313,44 +324,61 @@ export async function syncXeroInvoicesForOrg(organizationId: string): Promise<Xe
       
       if (status === "paid" && existing.status !== "paid") result.markedPaid += 1;
       else result.updated += 1;
-
-      // Extract new payments logic (naive calculation based on amount paid in Xero)
-      const amountPaid = Number(invoice.amountPaid || 0);
-      if (amountPaid > 0 && status === "paid" && existing.status !== "paid") {
-         newPayments.push({
-           organization_id: organizationId,
-           invoice_id: existing.id,
-           amount: amountPaid,
-           currency: payload.currency,
-           payment_date: toIsoDate(invoice.fullyPaidOnDate) || new Date().toISOString().substring(0, 10),
-           payment_method: "xero_sync"
-         });
-      }
       continue;
     }
 
     const { data: newInvoice, error } = await supabase.from("invoices").insert(payload).select("id").single();
     if (error) throw new Error(error.message);
 
-    const amountPaid = Number(invoice.amountPaid || 0);
-    if (amountPaid > 0 || status === "paid") {
-       newPayments.push({
-         organization_id: organizationId,
-         invoice_id: newInvoice.id,
-         amount: amountPaid > 0 ? amountPaid : amountOwed,
-         currency: payload.currency,
-         payment_date: toIsoDate(invoice.fullyPaidOnDate) || new Date().toISOString().substring(0, 10),
-         payment_method: "xero_sync"
-       });
-    }
-
     result.imported += 1;
   }
 
-  if (newPayments.length > 0) {
-    const { error: logsError } = await supabase.from("payments").insert(newPayments);
-    if (logsError) {
-      logger.error({ message: "Failed to insert payments from Xero sync", context: "syncXeroInvoicesForOrg", error: logsError.message, organization_id: organizationId });
+  // Fetch and insert actual payments
+  const xeroPayments = await fetchAllXeroPayments(xero, integration.tenant_id);
+  const paymentIds = xeroPayments.map(p => p.paymentID).filter(Boolean);
+  
+  if (paymentIds.length > 0) {
+    const { data: existingPayments } = await supabase
+      .from("payments")
+      .select("reference_id")
+      .eq("organization_id", organizationId)
+      .in("reference_id", paymentIds);
+      
+    const existingPaymentIds = new Set(existingPayments?.map(p => p.reference_id) || []);
+    
+    // We need to map xero_invoice_id to duely invoice_id
+    const { data: allInvoices } = await supabase
+      .from("invoices")
+      .select("id, xero_id")
+      .eq("organization_id", organizationId);
+      
+    const xeroIdToDuelyId = new Map(allInvoices?.map(inv => [inv.xero_id, inv.id]) || []);
+    const newPayments = [];
+    
+    for (const p of xeroPayments) {
+      if (existingPaymentIds.has(p.paymentID)) continue;
+      
+      const duelyInvoiceId = xeroIdToDuelyId.get(p.invoice?.invoiceID);
+      if (!duelyInvoiceId) continue; // Payment for an invoice we don't have
+      
+      if (!p.amount || p.amount <= 0) continue;
+      
+      newPayments.push({
+        organization_id: organizationId,
+        invoice_id: duelyInvoiceId,
+        amount: p.amount,
+        currency: p.invoice?.currencyCode || "USD",
+        payment_date: toIsoDate(p.date) || new Date().toISOString().substring(0, 10),
+        payment_method: "xero_sync",
+        reference_id: p.paymentID
+      });
+    }
+    
+    if (newPayments.length > 0) {
+      const { error: logsError } = await supabase.from("payments").insert(newPayments);
+      if (logsError) {
+        logger.error({ message: "Failed to insert exact payments from Xero", context: "syncXeroInvoicesForOrg", error: logsError.message, organization_id: organizationId });
+      }
     }
   }
 

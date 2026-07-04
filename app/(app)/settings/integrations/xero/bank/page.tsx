@@ -71,7 +71,7 @@ export default async function XeroBankSelectionPage() {
     await supabaseAction
       .from("integrations")
       .update({ bank_account_id: accountId, bank_account_name: accountName })
-      .eq("organization_id", member.organization_id)
+      .eq("organization_id", member!.organization_id)
       .eq("provider", "xero");
       
     redirect("/settings/integrations");

@@ -292,6 +292,44 @@ async function fetchAllQuickBooksInvoices(accessToken: string, realmId: string) 
   return invoices;
 }
 
+async function fetchAllQuickBooksPayments(accessToken: string, realmId: string) {
+  const payments: any[] = [];
+  let startPosition = 1;
+  const maxResults = 1000;
+
+  while (true) {
+    const query = `select * from Payment STARTPOSITION ${startPosition} MAXRESULTS ${maxResults}`;
+    
+    const url = new URL(`${getApiBaseUrl()}/v3/company/${realmId}/query`);
+    url.searchParams.set("query", query);
+    url.searchParams.set("minorversion", "65");
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        "Accept": "application/json",
+        "Authorization": `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Failed to fetch QuickBooks payments: ${text}`);
+    }
+
+    const data = await response.json();
+    const batch = data.QueryResponse?.Payment || [];
+    payments.push(...batch);
+
+    if (batch.length < maxResults) {
+      break;
+    }
+    startPosition += maxResults;
+  }
+
+  return payments;
+}
+
+
 async function fetchQuickBooksCustomers(accessToken: string, realmId: string, customerIds: string[]) {
   if (customerIds.length === 0) return new Map();
 
@@ -362,7 +400,6 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
     totalInvoices: invoices.length,
     updated: 0,
   };
-  const newPayments: any[] = [];
 
   for (const invoice of invoices) {
     const invoiceId = invoice.Id;
@@ -448,42 +485,71 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
 
       if (status === "paid" && existing.status !== "paid") result.markedPaid += 1;
       else result.updated += 1;
-
-      if (amountPaid > 0 && status === "paid" && existing.status !== "paid") {
-         newPayments.push({
-           organization_id: organizationId,
-           invoice_id: existing.id,
-           amount: amountPaid,
-           currency: payload.currency,
-           payment_date: paymentDate,
-           payment_method: "quickbooks_sync"
-         });
-      }
-
       continue;
     }
 
     const { data: newInvoice, error } = await supabase.from("invoices").insert(payload).select("id").single();
     if (error) throw new Error(error.message);
-
-    if (amountPaid > 0 || status === "paid") {
-       newPayments.push({
-         organization_id: organizationId,
-         invoice_id: newInvoice.id,
-         amount: amountPaid > 0 ? amountPaid : totalAmount,
-         currency: payload.currency,
-         payment_date: paymentDate,
-         payment_method: "quickbooks_sync"
-       });
-    }
-
     result.imported += 1;
   }
 
-  if (newPayments.length > 0) {
-    const { error: logsError } = await supabase.from("payments").insert(newPayments);
-    if (logsError) {
-      logger.error({ message: "Failed to insert payments from QuickBooks sync", context: "syncQuickBooksInvoicesForOrg", error: logsError.message, organization_id: organizationId });
+  // Fetch and insert actual payments from QuickBooks
+  const qbPayments = await fetchAllQuickBooksPayments(validIntegration.access_token, validIntegration.realm_id!);
+  const paymentIds = qbPayments.map(p => p.Id).filter(Boolean);
+  
+  if (paymentIds.length > 0) {
+    const { data: existingPayments } = await supabase
+      .from("payments")
+      .select("reference_id")
+      .eq("organization_id", organizationId)
+      .in("reference_id", paymentIds);
+      
+    const existingPaymentIds = new Set(existingPayments?.map(p => p.reference_id) || []);
+    
+    // We need to map quickbooks_invoice_id to duely invoice_id
+    const { data: allInvoices } = await supabase
+      .from("invoices")
+      .select("id, quickbooks_id")
+      .eq("organization_id", organizationId);
+      
+    const qbIdToDuelyId = new Map(allInvoices?.map(inv => [inv.quickbooks_id, inv.id]) || []);
+    const newPayments = [];
+    
+    for (const p of qbPayments) {
+      if (existingPaymentIds.has(p.Id)) continue;
+      
+      const pDate = toIsoDate(p.TxnDate) || new Date().toISOString().substring(0, 10);
+      const currency = p.CurrencyRef?.value || "USD";
+      
+      if (p.Line && Array.isArray(p.Line)) {
+        for (const line of p.Line) {
+          const amount = Number(line.Amount || 0);
+          if (amount <= 0) continue;
+          
+          const linkedTxn = line.LinkedTxn?.find((txn: any) => txn.TxnType === "Invoice");
+          if (!linkedTxn || !linkedTxn.TxnId) continue;
+          
+          const duelyInvoiceId = qbIdToDuelyId.get(linkedTxn.TxnId);
+          if (!duelyInvoiceId) continue;
+          
+          newPayments.push({
+            organization_id: organizationId,
+            invoice_id: duelyInvoiceId,
+            amount: amount,
+            currency: currency,
+            payment_date: pDate,
+            payment_method: "quickbooks_sync",
+            reference_id: p.Id
+          });
+        }
+      }
+    }
+    
+    if (newPayments.length > 0) {
+      const { error: logsError } = await supabase.from("payments").insert(newPayments);
+      if (logsError) {
+        logger.error({ message: "Failed to insert exact payments from QuickBooks", context: "syncQuickBooksInvoicesForOrg", error: logsError.message, organization_id: organizationId });
+      }
     }
   }
 

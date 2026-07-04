@@ -219,7 +219,7 @@ export function generateActionPlan(clients: ClientRecord[], allInvoices: Invoice
   const tasks: ActionTask[] = [];
 
   for (const client of clients) {
-    const clientInvoices = allInvoices.filter(inv => inv.customer_id === client.id);
+    const clientInvoices = allInvoices.filter(inv => inv.client_id === client.id || inv.customer_id === client.id);
     if (clientInvoices.length > 0) {
       const task = evaluateClient(client, clientInvoices, totalUserAR);
       if (task) {

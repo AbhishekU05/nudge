@@ -8,7 +8,7 @@ export default async function ActivityPage() {
   const supabase = await createSupabaseServerClient();
 
   const { data: events, error } = await supabase
-    .from("customer_events")
+    .from("events")
     .select("*, invoices(recipient_name), clients(name)")
     .order("created_at", { ascending: false })
     .limit(100);

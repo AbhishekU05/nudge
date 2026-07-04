@@ -23,7 +23,7 @@ export default async function ActionsPage() {
   const [clientsRes, invoicesRes, eventsRes] = await Promise.all([
     supabase.from("clients").select("*"),
     supabase.from("invoices").select("*"),
-    supabase.from("customer_events").select("*").eq("event_type", "followup"),
+    supabase.from("events").select("*").eq("event_type", "followup"),
   ]);
 
   const clients = (clientsRes.data || []) as ClientRecord[];

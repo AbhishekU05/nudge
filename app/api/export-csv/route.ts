@@ -22,7 +22,7 @@ export async function GET() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
       supabase
-        .from("customer_events")
+        .from("events")
         .select("*")
         .eq("user_id", user.id)
         .eq("event_type", "followup")
