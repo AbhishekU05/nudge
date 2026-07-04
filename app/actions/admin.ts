@@ -48,3 +48,37 @@ export async function wipeMyTestData() {
   revalidatePath("/", "layout");
   redirect("/admin?success=Test+data+wiped+successfully");
 }
+
+export async function grantAdminLifetimeAccess() {
+  const adminSupabase = createSupabaseAdminClient();
+  const { data: { users }, error: usersError } = await adminSupabase.auth.admin.listUsers();
+  
+  if (usersError || !users) {
+    throw new Error("Failed to fetch users");
+  }
+
+  const adminUser = users.find(u => u.email && nudgeConfig.adminEmails.includes(u.email));
+  if (!adminUser) throw new Error("Admin not found");
+
+  const { data: member } = await adminSupabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", adminUser.id)
+    .single();
+
+  if (!member) {
+    redirect("/admin?success=Admin+has+no+organization+yet");
+  }
+
+  // Force the organization to appear as having an active annual subscription
+  await adminSupabase
+    .from("organizations")
+    .update({
+      dodo_subscription_status: "active",
+      plan_type: "annual",
+    })
+    .eq("id", member.organization_id);
+
+  revalidatePath("/", "layout");
+  redirect("/admin?success=Lifetime+access+granted+to+admin+org!");
+}

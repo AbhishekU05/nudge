@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { Users, CreditCard, Activity, AlertCircle, Trash2 } from "lucide-react";
+import { Users, CreditCard, Activity, AlertCircle, Trash2, Crown } from "lucide-react";
 import Link from "next/link";
-import { wipeMyTestData } from "@/app/actions/admin";
+import { wipeMyTestData, grantAdminLifetimeAccess } from "@/app/actions/admin";
 
 export default async function AdminDashboard(props: { searchParams?: Promise<{ success?: string }> }) {
   const searchParams = await props.searchParams;
@@ -74,6 +74,21 @@ export default async function AdminDashboard(props: { searchParams?: Promise<{ s
         <form action={wipeMyTestData}>
           <button type="submit" className="text-sm bg-red-600 text-white px-4 py-2 rounded font-medium hover:bg-red-700 transition-colors">
             Wipe My Test Data
+          </button>
+        </form>
+      </div>
+
+      <div className="mt-8 border border-indigo-200 bg-indigo-50/30 rounded-xl shadow-sm p-6">
+        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-indigo-700">
+          <Crown size={20} />
+          Admin Perks
+        </h3>
+        <p className="text-indigo-600/80 text-sm mb-4">
+          Instantly upgrade the admin organization to an active Annual Plan. This bypasses Dodo Payments entirely and unlocks all automated reminders, Xero/Quickbooks syncing, and premium features forever.
+        </p>
+        <form action={grantAdminLifetimeAccess}>
+          <button type="submit" className="text-sm bg-indigo-600 text-white px-4 py-2 rounded font-medium hover:bg-indigo-700 transition-colors">
+            Grant Lifetime Access
           </button>
         </form>
       </div>
