@@ -113,8 +113,10 @@ export async function GET(request: NextRequest) {
 
     const { error: updateError } = await adminSupabase
       .from("profiles")
-      .update(tokenUpdate)
-      .eq("user_id", user.id);
+      .upsert(
+        { user_id: user.id, ...tokenUpdate },
+        { onConflict: "user_id" }
+      );
 
     if (updateError) {
       throw updateError;

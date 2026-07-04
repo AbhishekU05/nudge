@@ -334,8 +334,7 @@ export async function updateProfileName(formData: FormData) {
 
   const { error: profileError } = await supabase
     .from("profiles")
-    .update({ full_name: fullName })
-    .eq("user_id", user.id);
+    .upsert({ user_id: user.id, full_name: fullName }, { onConflict: "user_id" });
 
   if (profileError) {
     redirect(`/dashboard?error=${encodeURIComponent("Server Error: Unable to update profile")}`);
@@ -477,8 +476,7 @@ export async function updateDigestSettings(formData: FormData) {
 
   const { error } = await supabase
     .from("profiles")
-    .update({ timezone, weekly_digest_enabled })
-    .eq("user_id", user.id);
+    .upsert({ user_id: user.id, timezone, weekly_digest_enabled }, { onConflict: "user_id" });
 
   if (error) {
     redirect(buildPathWithQuery("/settings/general", { error: "Failed to update settings" }));
@@ -503,8 +501,7 @@ export async function updateProfileInfo(formData: FormData) {
 
   const { error: profileError } = await supabase
     .from("profiles")
-    .update({ full_name: fullName })
-    .eq("user_id", user.id);
+    .upsert({ user_id: user.id, full_name: fullName }, { onConflict: "user_id" });
 
   if (profileError) {
     redirect(buildPathWithQuery("/settings/general", { error: "Failed to update profile details" }));
