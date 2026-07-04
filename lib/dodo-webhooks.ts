@@ -65,10 +65,6 @@ function getPlanType(
   metadata: Record<string, string>,
   productId: string,
 ): PricingPlanType | null {
-  if (metadata.plan_type === "monthly" || metadata.plan_type === "annual") {
-    return metadata.plan_type;
-  }
-
   if (
     process.env.DODO_PAYMENTS_MONTHLY_PRODUCT_ID === productId ||
     process.env.DODO_PAYMENTS_TEST_MONTHLY_PRODUCT_ID === productId
@@ -78,6 +74,10 @@ function getPlanType(
     process.env.DODO_PAYMENTS_ANNUAL_PRODUCT_ID === productId ||
     process.env.DODO_PAYMENTS_TEST_ANNUAL_PRODUCT_ID === productId
   ) return "annual";
+
+  if (metadata?.plan_type === "monthly" || metadata?.plan_type === "annual") {
+    return metadata.plan_type;
+  }
   
   return null;
 }
