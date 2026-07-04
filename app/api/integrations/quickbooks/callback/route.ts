@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 import { completeQuickBooksOAuthCallback } from "@/lib/quickbooks";
 import { getAppUrl } from "@/lib/email/reminder";
@@ -35,6 +36,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const result = await completeQuickBooksOAuthCallback(code, realmId, state);
+    revalidatePath("/settings/integrations");
+    revalidatePath("/dashboard");
     return redirectToSettings(
       "success",
       `QuickBooks connected successfully. ${result.imported} invoices imported, ${result.updated} updated.`,

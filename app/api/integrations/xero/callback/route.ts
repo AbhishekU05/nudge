@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 import { completeXeroOAuthCallback } from "@/lib/xero";
 import { getAppUrl } from "@/lib/email/reminder";
@@ -31,6 +32,9 @@ export async function GET(request: Request) {
     const result = await completeXeroOAuthCallback(request.url, state);
     const url = new URL("/settings/integrations/xero/bank", getAppUrl());
     url.searchParams.set("success", `Xero connected. Imported ${result.imported} invoices and updated ${result.updated + result.markedPaid}.`);
+    revalidatePath("/settings/integrations");
+    revalidatePath("/settings/integrations/xero/bank");
+    revalidatePath("/dashboard");
     return NextResponse.redirect(url);
   } catch (error) {
     logger.error({

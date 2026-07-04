@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { getRequiredEnv } from "@/lib/env";
@@ -110,10 +111,17 @@ export async function GET(request: NextRequest) {
       tokenUpdate.google_refresh_token = refreshToken;
     }
 
-    await adminSupabase
+    const { error: updateError } = await adminSupabase
       .from("profiles")
       .update(tokenUpdate)
       .eq("user_id", user.id);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    revalidatePath("/settings/integrations");
+    revalidatePath("/dashboard");
 
     logger.external({
       service: "Gmail",
