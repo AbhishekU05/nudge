@@ -85,7 +85,11 @@ async function isExistingAuthEmail(email: string) {
     if (error) return false;
 
     if (
-      data.users.some((user) => user.email?.toLowerCase() === normalizedEmail)
+      data.users.some(
+        (user) =>
+          user.email?.toLowerCase() === normalizedEmail &&
+          (user.email_confirmed_at != null || user.confirmed_at != null)
+      )
     ) {
       return true;
     }
@@ -277,6 +281,8 @@ export async function login(formData: FormData) {
       errorMessage = "Too many failed attempts. Please wait before trying again.";
     } else if (error.message.toLowerCase().includes("invalid login credentials")) {
       errorMessage = "Invalid email or password. If you don't have an account, please sign up.";
+    } else if (error.message.toLowerCase().includes("email not confirmed")) {
+      errorMessage = "Please verify your email address. You can get a new link by signing up again.";
     }
 
     redirect(
