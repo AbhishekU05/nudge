@@ -141,11 +141,11 @@ export async function manageSubscription() {
   const org = await getOrganizationBillingForUser(supabaseAdmin, user.id);
 
   if (!org) {
-    redirect("/settings/billing?error=No+organization+found.");
+    return { error: "No organization found." };
   }
   
   if (!org.dodo_customer_id) {
-    redirect("/settings/billing?error=No+billing+history+found.");
+    return { error: "No billing history found." };
   }
 
   let dodo;
@@ -157,7 +157,7 @@ export async function manageSubscription() {
   }
 
   if (configError || !dodo) {
-    redirect("/settings/billing?error=Payment+gateway+not+configured.");
+    return { error: "Payment gateway not configured." };
   }
 
   let url;
@@ -165,12 +165,14 @@ export async function manageSubscription() {
     const portal = await dodo.customers.customerPortal.create(org.dodo_customer_id!);
     url = portal.link;
   } catch (error) {
-    redirect("/settings/billing?error=Failed+to+open+billing+portal.");
+    return { error: "Failed to open billing portal." };
   }
 
   if (url) {
-    redirect(url);
+    return { url };
   }
+
+  return { error: "Failed to load customer portal." };
 }
 
 export async function joinWaitlist() {

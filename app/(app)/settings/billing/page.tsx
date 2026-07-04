@@ -17,7 +17,7 @@ import { Container } from "@/components/site/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { startSubscriptionCheckout, cancelSubscription } from "@/app/actions/billing";
+import { startSubscriptionCheckout, manageSubscription } from "@/app/actions/billing";
 import { CheckoutButton } from "./checkout-button";
 import { requireUser } from "@/lib/auth";
 import { getOrganizationBillingForUser } from "@/lib/organization-billing";
@@ -189,12 +189,12 @@ export default async function BillingPage({
           </ul>
           <div className="mt-8">
             {rawStatus === "active" && org?.plan_type === "monthly" ? (
-              <CheckoutButton action={cancelSubscription} variant="cancel" className="w-full text-red-400 hover:text-red-300 h-12">
-                Cancel subscription
+              <CheckoutButton action={manageSubscription} variant="cancel" className="w-full text-zinc-400 hover:text-zinc-300 h-12">
+                Manage subscription
               </CheckoutButton>
             ) : (
-              <CheckoutButton action={startSubscriptionCheckout} plan="monthly" variant="monthly" className="w-full h-12 bg-white/10 hover:bg-white/20 text-zinc-100">
-                {rawStatus === "active" ? "Switch to Monthly" : "Subscribe Monthly"}
+              <CheckoutButton action={rawStatus === "active" ? manageSubscription : startSubscriptionCheckout} plan="monthly" variant="monthly" className="w-full h-12 bg-white/10 hover:bg-white/20 text-zinc-100">
+                {rawStatus === "active" ? "Switch in Portal" : "Subscribe Monthly"}
               </CheckoutButton>
             )}
           </div>
@@ -226,12 +226,12 @@ export default async function BillingPage({
           </ul>
           <div className="mt-8">
             {rawStatus === "active" && org?.plan_type === "annual" ? (
-              <CheckoutButton action={cancelSubscription} variant="cancel" className="w-full text-red-400 hover:text-red-300 h-12">
-                Cancel subscription
+              <CheckoutButton action={manageSubscription} variant="cancel" className="w-full text-zinc-400 hover:text-zinc-300 h-12">
+                Manage subscription
               </CheckoutButton>
             ) : (
-              <CheckoutButton action={startSubscriptionCheckout} plan="annual" variant="annual" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white h-12">
-                {rawStatus === "active" ? "Upgrade to Annual" : "Subscribe Annual"}
+              <CheckoutButton action={rawStatus === "active" ? manageSubscription : startSubscriptionCheckout} plan="annual" variant="annual" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white h-12">
+                {rawStatus === "active" ? "Upgrade in Portal" : "Subscribe Annual"}
               </CheckoutButton>
             )}
           </div>
