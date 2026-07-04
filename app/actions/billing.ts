@@ -122,7 +122,10 @@ export async function cancelSubscription() {
 
   let url;
   try {
-    const portal = await dodo.customers.customerPortal.create(org.dodo_customer_id!);
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
+    const portal = await dodo.customers.customerPortal.create(org.dodo_customer_id!, {
+      return_url: `${baseUrl}/settings/billing`
+    });
     url = portal.link;
   } catch (error) {
     return { error: "Failed to open customer portal." };
@@ -162,7 +165,10 @@ export async function manageSubscription() {
 
   let url;
   try {
-    const portal = await dodo.customers.customerPortal.create(org.dodo_customer_id!);
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
+    const portal = await dodo.customers.customerPortal.create(org.dodo_customer_id!, {
+      return_url: `${baseUrl}/settings/billing`
+    });
     url = portal.link;
   } catch (error) {
     return { error: "Failed to open billing portal." };
