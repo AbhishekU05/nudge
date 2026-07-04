@@ -104,7 +104,7 @@ export async function cancelSubscription() {
     return { error: "Only admins can manage billing." };
   }
   
-  if (!org.dodo_subscription_id) {
+  if (!org.dodo_customer_id) {
     return { error: "No active subscription to cancel." };
   }
 
@@ -120,7 +120,19 @@ export async function cancelSubscription() {
     return { error: "Payment gateway not configured." };
   }
 
-  return { error: "Cancellation must be done through customer portal." };
+  let url;
+  try {
+    const portal = await dodo.customers.customerPortal.create(org.dodo_customer_id!);
+    url = portal.link;
+  } catch (error) {
+    return { error: "Failed to open customer portal." };
+  }
+
+  if (url) {
+    return { url };
+  }
+
+  return { error: "Failed to generate portal link." };
 }
 
 export async function manageSubscription() {
@@ -148,7 +160,17 @@ export async function manageSubscription() {
     redirect("/settings/billing?error=Payment+gateway+not+configured.");
   }
 
-  redirect("/settings/billing?error=Customer+portal+not+yet+supported.");
+  let url;
+  try {
+    const portal = await dodo.customers.customerPortal.create(org.dodo_customer_id!);
+    url = portal.link;
+  } catch (error) {
+    redirect("/settings/billing?error=Failed+to+open+billing+portal.");
+  }
+
+  if (url) {
+    redirect(url);
+  }
 }
 
 export async function joinWaitlist() {
