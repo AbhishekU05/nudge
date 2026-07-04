@@ -43,10 +43,10 @@ function getBillingMessage(error?: string) {
 export default async function BillingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ canceled?: string; error?: string; success?: string }>;
+  searchParams: Promise<{ status?: string; canceled?: string; error?: string; success?: string }>;
 }) {
   const user = await requireUser();
-  const { canceled, error, success } = await searchParams;
+  const { status, canceled, error, success } = await searchParams;
   const supabase = await createSupabaseServerClient();
   let org = null;
   let createdAt = new Date().toISOString();
@@ -98,15 +98,15 @@ export default async function BillingPage({
       </div>
 
       <div className="space-y-3">
-        {success ? (
+        {(success === "true" || status === "succeeded" || status === "active" || status === "setup") ? (
           <p className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-            {success === "true" || success === "" ? "Payment successful. Your plan will update shortly." : success}
+            Payment successful. Your plan will update shortly.
           </p>
         ) : null}
 
-        {canceled ? (
+        {(canceled === "true" || status === "cancelled" || status === "failed") ? (
           <p className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-zinc-400">
-            Checkout canceled. No changes made.
+            Checkout canceled or payment failed. No changes made.
           </p>
         ) : null}
 

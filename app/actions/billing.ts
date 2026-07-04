@@ -57,7 +57,7 @@ export async function startSubscriptionCheckout(formData?: FormData) {
 
       session = await dodo.checkoutSessions.create({
         product_cart: [{ product_id: productId, quantity: 1 }],
-        return_url: `${baseUrl}/settings/billing?success=true`,
+        return_url: `${baseUrl}/settings/billing`,
         metadata: {
           organization_id: org.id,
           plan_type: plan,
