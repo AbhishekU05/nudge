@@ -37,10 +37,6 @@ const nextConfig: NextConfig = {
         source: '/r/signups',
         destination: 'https://api.affonso.io/v1/signups',
       },
-      {
-        source: '/r/embed/:path*',
-        destination: 'https://affonso.io/embed/:path*',
-      },
     ];
   },
   async headers() {

@@ -13,6 +13,7 @@ export interface Organization {
   dodo_customer_id: string | null;
   dodo_subscription_id: string | null;
   dodo_subscription_status: SubscriptionStatus | null;
+  dodo_next_billing_date: string | null;
   plan_type: PricingPlanType | null;
   credits_balance: number;
   created_at: string;

@@ -16,6 +16,7 @@ export type OrganizationBilling = {
   dodo_customer_id: string | null;
   dodo_subscription_id: string | null;
   dodo_subscription_status: SubscriptionStatus | null;
+  dodo_next_billing_date: string | null;
   plan_type: PricingPlanType | null;
   credits_balance: number;
 };
@@ -103,7 +104,7 @@ export async function getOrganizationBillingForUser(
   const { data: organization, error: organizationError } = await supabase
     .from("organizations")
     .select(
-      "id, name, domain, dodo_customer_id, dodo_subscription_id, dodo_subscription_status, plan_type, credits_balance",
+      "id, name, domain, dodo_customer_id, dodo_subscription_id, dodo_subscription_status, dodo_next_billing_date, plan_type, credits_balance",
     )
     .eq("id", activeMembership!.organization_id)
     .single<{
@@ -113,6 +114,7 @@ export async function getOrganizationBillingForUser(
       dodo_customer_id: string | null;
       dodo_subscription_id: string | null;
       dodo_subscription_status: SubscriptionStatus | null;
+      dodo_next_billing_date: string | null;
       plan_type: PricingPlanType | null;
       credits_balance: number | null;
     }>();

@@ -54,7 +54,6 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks, g
   ];
 
   const bottomItems = [
-    { name: "Referrals", href: "/settings/referrals", icon: Gift },
     { 
       name: subscriptionStatus === "active" ? "Plan: Active" : "Billing & Plan", 
       href: "/settings/billing", 

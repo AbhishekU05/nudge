@@ -79,7 +79,11 @@ export default async function BillingPage({
 
   if (rawStatus === "active" || rawStatus === "on_hold") {
     displayStatus = org?.plan_type === "annual" ? "Annual Active" : "Monthly Active";
-    renewsText = "Active"; // We don't have renewsAt stored natively yet
+    if (org?.dodo_next_billing_date) {
+      renewsText = new Date(org.dodo_next_billing_date).toLocaleDateString();
+    } else {
+      renewsText = "Active";
+    }
   } else if (trialDaysLeft > 0) {
     displayStatus = "Trial";
     renewsLabel = "Trial ends";

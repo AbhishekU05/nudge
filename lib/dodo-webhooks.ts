@@ -172,6 +172,7 @@ async function processSubscriptionEvent(
     dodo_customer_id: subscription.customer.customer_id,
     dodo_subscription_id: subscription.subscription_id,
     dodo_subscription_status: mapDodoSubscriptionStatus(subscription.status),
+    dodo_next_billing_date: (subscription as any).next_billing_date ?? null,
     updated_at: new Date().toISOString(),
   };
 
