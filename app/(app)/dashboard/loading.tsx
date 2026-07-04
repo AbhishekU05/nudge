@@ -1,53 +1,12 @@
-/*
- * loaded quickly by browser and replaced later by actual content
- */
-import { Container } from "@/components/site/container";
+import { Loader2 } from "lucide-react";
 
-// normal rounded box
-function Skeleton({ className = "" }: { className?: string }) {
+export default function Loading() {
   return (
-    <div
-      className={`animate-pulse rounded-xl border border-white/10 bg-white/[0.04] ${className}`}
-    />
-  );
-}
-
-// creates skeleton of the dashboard using the skeleton box
-export default function DashboardLoading() {
-  return (
-    <div className="flex min-h-screen flex-col">
-      <div className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-xl">
-        <Container className="flex h-16 items-center justify-between">
-          <Skeleton className="h-7 w-28" />
-          <Skeleton className="h-8 w-44" />
-        </Container>
+    <div className="flex flex-1 h-full min-h-[50vh] w-full items-center justify-center">
+      <div className="flex flex-col items-center gap-3 text-zinc-500">
+        <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
+        <p className="text-sm font-medium">Loading...</p>
       </div>
-
-      <main id="main-content" className="flex-1">
-        <Container className="py-8 sm:py-10">
-          <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="space-y-4">
-              <Skeleton className="h-7 w-36" />
-              <Skeleton className="h-12 w-52" />
-              <Skeleton className="h-5 w-full max-w-xl" />
-            </div>
-            <Skeleton className="h-24 w-full lg:w-80" />
-          </div>
-
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
-            <div className="space-y-3 rounded-2xl border border-border bg-white/[0.035] p-6">
-              <Skeleton className="h-8 w-48" />
-              <Skeleton className="h-5 w-72" />
-              <Skeleton className="h-36" />
-              <Skeleton className="h-36" />
-            </div>
-            <div className="space-y-5">
-              <Skeleton className="h-72" />
-              <Skeleton className="h-80" />
-            </div>
-          </div>
-        </Container>
-      </main>
     </div>
   );
 }
