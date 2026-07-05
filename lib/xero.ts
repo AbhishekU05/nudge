@@ -273,7 +273,7 @@ export async function syncXeroDataPageForOrg(
   const result = { hasMore: false, imported: 0, updated: 0, nextType: syncType, nextPage: page + 1 };
 
   if (syncType === "invoices") {
-    const response = await xero.accountingApi.getInvoices(integration.tenant_id, undefined, 'Type=="ACCREC"', "UpdatedDateUTC DESC", undefined, undefined, undefined, undefined, page, false, undefined, undefined, false, 100);
+    const response = await xero.accountingApi.getInvoices(integration.tenant_id, undefined, 'Type=="ACCREC"', "UpdatedDateUTC DESC", undefined, undefined, undefined, ["AUTHORISED", "PAID", "DRAFT", "SUBMITTED"], page, false, undefined, undefined, false, 100);
     const invoices = response.body.invoices ?? [];
     result.hasMore = invoices.length >= 100;
     

@@ -147,6 +147,8 @@ export default async function CustomersPage({
         followup_method: null,
         followup_outcome: null,
         note: e.description || null,
+        clients: e.clients,
+        invoices: e.invoices
       })),
       ...(paymentsRes.data || []).map((p: any) => ({
         id: p.id,
@@ -162,6 +164,8 @@ export default async function CustomersPage({
         followup_method: null,
         followup_outcome: null,
         note: null,
+        clients: p.invoices?.clients,
+        invoices: p.invoices
       }))
     ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     

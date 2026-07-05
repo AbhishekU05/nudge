@@ -46,7 +46,9 @@ export default async function AnalyticsPage(props: {
       event_date: e.created_at,
       created_at: e.created_at,
       amount: null,
-      currency: null
+      currency: null,
+      clients: e.clients,
+      invoices: e.invoices
     })),
     ...(paymentsRes.data || []).map((p: any) => ({
       id: p.id,
@@ -56,7 +58,9 @@ export default async function AnalyticsPage(props: {
       event_date: p.payment_date || p.created_at,
       created_at: p.created_at,
       amount: p.amount,
-      currency: p.currency
+      currency: p.currency,
+      clients: p.invoices?.clients,
+      invoices: p.invoices
     }))
   ];
 
