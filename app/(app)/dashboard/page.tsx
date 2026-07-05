@@ -29,9 +29,9 @@ export default async function DashboardPage(props: {
   const [customersRes, eventsRes, draftsRes, activeClientsRes, activeInvoicesRes, paymentsRes] = await Promise.all([
     supabase.from("invoices").select("*, clients(name)"),
     supabase.from("events").select("*, clients(name), invoices(clients(name))").order("created_at", { ascending: false }),
-    supabase.from("email_drafts").select("*").eq("status", "draft").order("created_at", { ascending: false }).limit(5),
-    supabase.from("clients").select("id, name, next_send_at").eq("active", true).order("next_send_at", { ascending: true }).limit(5),
-    supabase.from("invoices").select("id, next_send_at, clients(name)").eq("active", true).order("next_send_at", { ascending: true }).limit(5),
+    Promise.resolve({ data: [] as any[] }),
+    Promise.resolve({ data: [] as any[] }),
+    Promise.resolve({ data: [] as any[] }),
     supabase.from("payments").select("*, invoices(clients(name))").order("created_at", { ascending: false })
   ]);
 

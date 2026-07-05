@@ -140,7 +140,7 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                             <tr key={inv.id} className="hover:bg-white/[0.02]">
                               <td className="px-4 py-3 font-medium text-zinc-200">
                                 <Link href={`/invoices/${inv.id}`} className="hover:underline hover:text-indigo-400">
-                                  {inv.invoice_number || inv.id.substring(0,8)}
+                                  {inv.id.substring(0,8)}
                                 </Link>
                               </td>
                               <td className="px-4 py-3">

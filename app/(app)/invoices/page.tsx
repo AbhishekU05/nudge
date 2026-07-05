@@ -111,7 +111,7 @@ export default async function CustomersPage({
         .order("created_at", { ascending: false }),
       supabase
         .from("organization_members")
-        .select("organizations(dodo_subscription_status, dodo_renews_at, created_at)")
+        .select("organizations(dodo_subscription_status, dodo_next_billing_date, created_at)")
         .eq("user_id", user.id)
         .maybeSingle(),
       supabase
@@ -184,7 +184,7 @@ export default async function CustomersPage({
     customerEvents = mappedEvents;
     profile = orgMembersRes.data?.organizations ? {
       razorpay_subscription_status: (orgMembersRes.data.organizations as any).dodo_subscription_status,
-      razorpay_renews_at: (orgMembersRes.data.organizations as any).dodo_renews_at,
+      razorpay_renews_at: (orgMembersRes.data.organizations as any).dodo_next_billing_date,
       created_at: (orgMembersRes.data.organizations as any).created_at
     } : null;
     xeroIntegration = xeroRes.data;
