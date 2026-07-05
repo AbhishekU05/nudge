@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+
 
 type EventType = "reminder_create" | "reminder_toggle" | "reminder_delete" | "feedback_submit";
 
@@ -20,25 +20,37 @@ function daysAgo(n: number) {
 }
 
 export async function enforceRateLimit(userId: string, eventType: EventType) {
-  const supabase = await createSupabaseServerClient();
+  const { createSupabaseAdminClient } = await import("@/lib/supabase/admin");
+  const adminClient = createSupabaseAdminClient();
 
-  await supabase.from("usage_events").insert({
-    user_id: userId,
-    event_type: eventType,
-  });
+  const { data: member } = await adminClient
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", userId)
+    .single();
+
+  if (member) {
+    await adminClient.from("usage_events").insert({
+      user_id: userId,
+      organization_id: member.organization_id,
+      event_type: eventType,
+    });
+  }
+
+
 
   const perMinuteSince = minutesAgo(1);
   const perDaySince = daysAgo(1);
   const limits = LIMITS[eventType];
 
   const [{ count: minuteCount }, { count: dayCount }] = await Promise.all([
-    supabase
+    adminClient
       .from("usage_events")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
       .eq("event_type", eventType)
       .gte("created_at", perMinuteSince),
-    supabase
+    adminClient
       .from("usage_events")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
