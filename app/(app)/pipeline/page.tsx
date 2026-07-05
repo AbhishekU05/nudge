@@ -26,7 +26,9 @@ export default async function PipelinePage(props: {
       amount_owed: inv.amount,
       amount_paid,
       workflow_status: inv.status,
-      customer_id: inv.client_id
+      customer_id: inv.client_id,
+      recipient_name: inv.clients?.name || "Unknown",
+      recipient_email: inv.clients?.email || "No email"
     };
   }) as CustomerRecord[];
   

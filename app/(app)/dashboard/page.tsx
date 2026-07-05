@@ -42,7 +42,9 @@ export default async function DashboardPage(props: {
       ...inv,
       amount_owed: inv.amount,
       amount_paid,
-      workflow_status: inv.status
+      workflow_status: inv.status,
+      recipient_name: inv.clients?.name || "Unknown",
+      recipient_email: inv.clients?.email || "No email"
     };
   }) as CustomerRecord[];
   

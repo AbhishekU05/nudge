@@ -7,15 +7,58 @@ export default async function ActivityPage() {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const { data: events, error } = await supabase
-    .from("events")
-    .select("*, invoices(clients(name)), clients(name)")
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const [eventsRes, paymentsRes] = await Promise.all([
+    supabase
+      .from("events")
+      .select("*, invoices(clients(name)), clients(name)")
+      .order("created_at", { ascending: false })
+      .limit(100),
+    supabase
+      .from("payments")
+      .select("*, invoices(clients(name))")
+      .order("created_at", { ascending: false })
+      .limit(100)
+  ]);
 
-  if (error) {
-    console.error("Error fetching activity events:", error);
-  }
+  if (eventsRes.error) console.error("Error fetching activity events:", eventsRes.error);
+  if (paymentsRes.error) console.error("Error fetching activity payments:", paymentsRes.error);
+
+  const mappedEvents = [
+    ...(eventsRes.data || []).map((e: any) => ({
+      id: e.id,
+      invoice_id: e.invoice_id,
+      customer_id: e.invoice_id || e.client_id, 
+      user_id: e.user_id || "",
+      event_type: e.event_type,
+      event_date: e.created_at,
+      created_at: e.created_at,
+      amount: null,
+      currency: null,
+      payment_source: null,
+      followup_method: null,
+      followup_outcome: null,
+      note: e.description || null,
+      clients: e.clients,
+      invoices: e.invoices
+    })),
+    ...(paymentsRes.data || []).map((p: any) => ({
+      id: p.id,
+      invoice_id: p.invoice_id,
+      customer_id: p.invoice_id, 
+      user_id: p.user_id || "",
+      event_type: "payment",
+      event_date: p.payment_date || p.created_at,
+      created_at: p.created_at,
+      amount: p.amount,
+      currency: p.currency,
+      payment_source: p.payment_source || null,
+      followup_method: null,
+      followup_outcome: null,
+      note: null,
+      clients: p.invoices?.clients,
+      invoices: p.invoices
+    }))
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 100);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -30,7 +73,7 @@ export default async function ActivityPage() {
             </p>
           </div>
           
-          <ActivityFeed events={events || []} />
+          <ActivityFeed events={mappedEvents || []} />
         </Container>
       </main>
     </div>

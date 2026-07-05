@@ -127,23 +127,55 @@ function tokenNeedsRefresh(expiresAt: string) {
   return new Date(expiresAt).getTime() - Date.now() <= TOKEN_REFRESH_SKEW_MS;
 }
 
+export async function forceRefreshXeroToken(integration: XeroIntegrationRow) {
+  const xero = new XeroClient();
+  try {
+    const refreshedTokenSet = await xero.refreshWithRefreshToken(getXeroClientId(), getXeroClientSecret(), integration.refresh_token);
+    const tokenValues = requireTokenValues(refreshedTokenSet);
+    const updatedIntegration: XeroIntegrationRow = { ...integration, access_token: tokenValues.accessToken, expires_at: tokenValues.expiresAt, refresh_token: tokenValues.refreshToken };
+    
+    const supabase = createSupabaseAdminClient();
+    const { error } = await supabase.from("integrations").update({ access_token: updatedIntegration.access_token, expires_at: updatedIntegration.expires_at, refresh_token: updatedIntegration.refresh_token })
+      .eq("organization_id", integration.organization_id).eq("provider", XERO_PROVIDER);
+    
+    if (error) throw new Error(error.message);
+    return { integration: updatedIntegration, xero };
+  } catch (error: any) {
+    logger.error({ message: "Failed to force refresh Xero token", context: "xero_token_refresh", original_error: error.message, organization_id: integration.organization_id });
+    throw error;
+  }
+}
+
 export async function getValidXeroClient(integration: XeroIntegrationRow) {
   if (!tokenNeedsRefresh(integration.expires_at)) {
     const xero = new XeroClient();
     xero.setTokenSet(storedTokenSet(integration));
     return { integration, xero };
   }
-  const xero = new XeroClient();
-  const refreshedTokenSet = await xero.refreshWithRefreshToken(getXeroClientId(), getXeroClientSecret(), integration.refresh_token);
-  const tokenValues = requireTokenValues(refreshedTokenSet);
-  const updatedIntegration: XeroIntegrationRow = { ...integration, access_token: tokenValues.accessToken, expires_at: tokenValues.expiresAt, refresh_token: tokenValues.refreshToken };
+  return forceRefreshXeroToken(integration);
+}
+
+export async function withXeroRetry<T>(
+  integration: XeroIntegrationRow,
+  operation: (xero: XeroClient, currentIntegration: XeroIntegrationRow) => Promise<T>
+): Promise<{ result: T; integration: XeroIntegrationRow }> {
+  let { xero, integration: currentIntegration } = await getValidXeroClient(integration);
   
-  const supabase = createSupabaseAdminClient();
-  const { error } = await supabase.from("integrations").update({ access_token: updatedIntegration.access_token, expires_at: updatedIntegration.expires_at, refresh_token: updatedIntegration.refresh_token })
-    .eq("organization_id", integration.organization_id).eq("provider", XERO_PROVIDER);
-  
-  if (error) throw new Error(error.message);
-  return { integration: updatedIntegration, xero };
+  try {
+    const result = await operation(xero, currentIntegration);
+    return { result, integration: currentIntegration };
+  } catch (error: any) {
+    if (error?.response?.statusCode === 401) {
+      logger.external({ service: "Xero", action: "token_refresh_retry", success: false, organization_id: currentIntegration.organization_id, error: "401 Unauthorized" });
+      const refreshed = await forceRefreshXeroToken(currentIntegration);
+      currentIntegration = refreshed.integration;
+      xero = refreshed.xero;
+      
+      const retryResult = await operation(xero, currentIntegration);
+      return { result: retryResult, integration: currentIntegration };
+    }
+    throw error;
+  }
 }
 
 export async function completeXeroOAuthCallback(callbackUrl: string, state: string) {
@@ -268,12 +300,18 @@ export async function syncXeroDataPageForOrg(
   if (!integration) throw new Error("Xero is not connected.");
   if (integration.tenant_id === "PENDING_SELECTION") throw new Error("Please select a Xero tenant first.");
 
-  const { xero } = await getValidXeroClient(integration);
+  let currentIntegration = integration;
+  let xero: XeroClient;
+
   const supabase = createSupabaseAdminClient();
   const result = { hasMore: false, imported: 0, updated: 0, nextType: syncType, nextPage: page + 1 };
 
   if (syncType === "invoices") {
-    const response = await xero.accountingApi.getInvoices(integration.tenant_id, undefined, 'Type=="ACCREC"', "UpdatedDateUTC DESC", undefined, undefined, undefined, ["AUTHORISED", "PAID", "DRAFT", "SUBMITTED"], page, false, undefined, undefined, false, 100);
+    const { result: response, integration: updatedInt } = await withXeroRetry(currentIntegration, async (client, intg) => {
+      return client.accountingApi.getInvoices(intg.tenant_id, undefined, 'Type=="ACCREC"', "UpdatedDateUTC DESC", undefined, undefined, undefined, ["AUTHORISED", "PAID", "DRAFT", "SUBMITTED"], page, false, undefined, undefined, false, 100);
+    });
+    currentIntegration = updatedInt;
+    
     const invoices = response.body.invoices ?? [];
     result.hasMore = invoices.length >= 100;
     
@@ -346,7 +384,11 @@ export async function syncXeroDataPageForOrg(
   } 
   
   if (syncType === "payments") {
-    const response = await xero.accountingApi.getPayments(integration.tenant_id, undefined, 'Status=="AUTHORISED"', "UpdatedDateUTC DESC", page);
+    const { result: response, integration: updatedInt } = await withXeroRetry(currentIntegration, async (client, intg) => {
+      return client.accountingApi.getPayments(intg.tenant_id, undefined, 'Status=="AUTHORISED"', "UpdatedDateUTC DESC", page);
+    });
+    currentIntegration = updatedInt;
+
     const payments = response.body.payments ?? [];
     result.hasMore = payments.length >= 100;
     
@@ -401,8 +443,9 @@ export async function getXeroBankAccounts(organizationId: string) {
   const { data: integration } = await supabase.from("integrations").select("*").eq("organization_id", organizationId).eq("provider", "xero").maybeSingle<XeroIntegrationRow>();
   if (!integration || !integration.tenant_id) return [];
   try {
-    const { xero } = await getValidXeroClient(integration);
-    const response = await xero.accountingApi.getAccounts(integration.tenant_id, undefined, 'Type=="BANK"');
+    const { result: response } = await withXeroRetry(integration, async (client, intg) => {
+      return client.accountingApi.getAccounts(intg.tenant_id, undefined, 'Type=="BANK"');
+    });
     const accounts = response.body.accounts || [];
     return accounts.filter(acc => acc.bankAccountNumber).map(acc => ({ provider: "xero", name: acc.name, accountNumber: acc.bankAccountNumber, currency: acc.currencyCode }));
   } catch (error) {

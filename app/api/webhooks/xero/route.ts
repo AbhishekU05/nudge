@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getValidXeroClient, getXeroIntegrationByTenant, fetchXeroInvoice, fetchXeroPayment, getWorkflowStatus, getInvoiceTotal, toIsoDate, normalizeEmail } from "@/lib/xero";
+import { getValidXeroClient, getXeroIntegrationByTenant, fetchXeroInvoice, fetchXeroPayment, getWorkflowStatus, getInvoiceTotal, toIsoDate, normalizeEmail, withXeroRetry } from "@/lib/xero";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
@@ -86,7 +86,9 @@ async function processEvent(event: any) {
   const { xero } = await getValidXeroClient(integration);
 
   if (eventCategory === "INVOICE") {
-    const invoice = await fetchXeroInvoice(xero, tenantId, resourceId);
+    const { result: invoice } = await withXeroRetry(integration, async (client, intg) => {
+      return fetchXeroInvoice(client, intg.tenant_id, resourceId);
+    });
     if (invoice && String(invoice.type) === "ACCREC") {
       await upsertInvoice(supabase, integration.organization_id, invoice);
       
