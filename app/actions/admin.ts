@@ -39,9 +39,9 @@ export async function wipeMyTestData() {
   // Delete all data associated with the admin's organization in reverse dependency order
   await adminSupabase.from("payments").delete().eq("organization_id", member.organization_id);
   await adminSupabase.from("events").delete().eq("organization_id", member.organization_id);
-  await adminSupabase.from("email_drafts").delete().eq("organization_id", member.organization_id);
   await adminSupabase.from("invoices").delete().eq("organization_id", member.organization_id);
-  await adminSupabase.from("customer_groups").delete().eq("organization_id", member.organization_id);
+  
+  // Note: customer_groups does not have organization_id. It will be deleted by CASCADE from clients.
   await adminSupabase.from("groups").delete().eq("organization_id", member.organization_id);
   await adminSupabase.from("clients").delete().eq("organization_id", member.organization_id);
 

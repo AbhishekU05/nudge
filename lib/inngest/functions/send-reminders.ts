@@ -37,11 +37,13 @@ async function claimEntity(params: { table: "clients" | "invoices"; id: string; 
   const leaseUntil = new Date(Date.now() + CLAIM_WINDOW_MS).toISOString();
   const supabase = createSupabaseAdminClient();
 
+  const activeCol = params.table === "invoices" ? "reminders_enabled" : "active";
+
   const { data, error } = await supabase
     .from(params.table)
     .update({ next_send_at: leaseUntil })
     .eq("id", params.id)
-    .eq("active", true)
+    .eq(activeCol, true)
     .eq("next_send_at", params.nextSendAt)
     .lte("next_send_at", params.nowIso)
     .select("id")
@@ -103,7 +105,7 @@ export const sendReminders = inngest.createFunction(
     const { data: invoicesData } = await supabase
       .from("invoices")
       .select("*, clients(unsubscribe_token)")
-      .eq("active", true)
+      .eq("reminders_enabled", true)
       .neq("status", "paid") // updated from workflow_status
       .lte("next_send_at", nowIso)
       .order("next_send_at", { ascending: true })
@@ -138,7 +140,7 @@ export const sendReminders = inngest.createFunction(
         reminder_frequency_days: i.reminder_frequency_days,
         next_send_at: i.next_send_at,
         last_sent_at: i.last_sent_at,
-        active: i.active,
+        active: i.reminders_enabled,
         auto_approve: i.auto_approve,
         invoice_number: i.invoice_number,
         amount_owed: i.amount_owed || i.amount,

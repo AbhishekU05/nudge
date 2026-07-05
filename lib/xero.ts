@@ -19,6 +19,7 @@ const XERO_SCOPES = [
   "email",
   "accounting.invoices.read",
   "accounting.contacts.read",
+  "accounting.transactions.read",
   "offline_access",
 ];
 
