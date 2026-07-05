@@ -13,16 +13,22 @@ export default async function PipelinePage(props: {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const { data, error } = await supabase
-    .from("invoices")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const [invoicesRes, paymentsRes] = await Promise.all([
+    supabase.from("invoices").select("*, clients(name, email)").order("created_at", { ascending: false }),
+    supabase.from("payments").select("*")
+  ]);
 
-  if (error) {
-    console.error("Error fetching customers for pipeline:", error);
-  }
-
-  const allCustomers = (data || []) as CustomerRecord[];
+  const allCustomers = (invoicesRes.data || []).map((inv: any) => {
+    const invPayments = (paymentsRes.data || []).filter((p: any) => p.invoice_id === inv.id);
+    const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+    return {
+      ...inv,
+      amount_owed: inv.amount,
+      amount_paid,
+      workflow_status: inv.status,
+      customer_id: inv.client_id
+    };
+  }) as CustomerRecord[];
   
   // Handle currencies
   const uniqueCurrencies = Array.from(new Set(allCustomers.map(c => c.currency || 'USD'))).sort();

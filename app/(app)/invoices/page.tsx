@@ -99,15 +99,15 @@ export default async function CustomersPage({
     const [invoicesRes, eventsRes, paymentsRes, orgMembersRes, xeroRes, qbRes, customerGroupsRes, groupsRes] = await Promise.all([
       supabase
         .from("invoices")
-        .select("*")
+        .select("*, clients(name, email)")
         .order("created_at", { ascending: false }),
       supabase
         .from("events")
-        .select("*")
+        .select("*, clients(name, email), invoices(clients(name, email))")
         .order("created_at", { ascending: false }),
       supabase
         .from("payments")
-        .select("*")
+        .select("*, invoices(clients(name, email))")
         .order("created_at", { ascending: false }),
       supabase
         .from("organization_members")
