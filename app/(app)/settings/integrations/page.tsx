@@ -2,7 +2,7 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { ArrowLeft, CheckCircle2, Mail, PlugZap, RefreshCw, Unplug, ShieldCheck, Download } from "lucide-react";
 
-import { disconnectXero, syncXeroNow, disconnectQuickBooks, syncQuickBooksNow, disconnectGmail } from "@/app/actions/integrations";
+import { disconnectXero, disconnectQuickBooks, disconnectGmail } from "@/app/actions/integrations";
 import { Container } from "@/components/site/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -273,13 +273,7 @@ export default async function IntegrationsPage({
               <CardContent className="space-y-6 p-6">
                   {isConnectedXero ? (
                   <>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                        <p className="text-xs text-zinc-600">Last synced</p>
-                        <p className="mt-2 text-sm font-semibold text-zinc-100">
-                          {formatDate(xero?.last_synced_at ?? null)}
-                        </p>
-                      </div>
+                    <div className="grid gap-3 sm:grid-cols-1">
                       <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                         <p className="text-xs text-zinc-600">Tenant ID</p>
                         <p className="mt-2 truncate font-mono text-xs text-zinc-300">
@@ -303,12 +297,7 @@ export default async function IntegrationsPage({
                     </div>
 
                     <div className="flex flex-col gap-3 sm:flex-row">
-                      <form action={syncXeroNow}>
-                        <Button type="submit" className="w-full sm:w-auto">
-                          <RefreshCw className="h-3.5 w-3.5" />
-                          Sync now
-                        </Button>
-                      </form>
+
                       <form action={disconnectXero}>
                         <Button
                           type="submit"
@@ -373,13 +362,7 @@ export default async function IntegrationsPage({
               <CardContent className="space-y-6 p-6">
                 {isConnectedQuickBooks ? (
                   <>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                        <p className="text-xs text-zinc-600">Last synced</p>
-                        <p className="mt-2 text-sm font-semibold text-zinc-100">
-                          {formatDate(quickbooks?.last_synced_at ?? null)}
-                        </p>
-                      </div>
+                    <div className="grid gap-3 sm:grid-cols-1">
                       <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                         <p className="text-xs text-zinc-600">Company ID (Realm)</p>
                         <p className="mt-2 truncate font-mono text-xs text-zinc-300">
@@ -389,12 +372,7 @@ export default async function IntegrationsPage({
                     </div>
 
                     <div className="flex flex-col gap-3 sm:flex-row">
-                      <form action={syncQuickBooksNow}>
-                        <Button type="submit" className="w-full sm:w-auto">
-                          <RefreshCw className="h-3.5 w-3.5" />
-                          Sync now
-                        </Button>
-                      </form>
+
                       <form action={disconnectQuickBooks}>
                         <Button
                           type="submit"

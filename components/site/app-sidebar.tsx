@@ -37,7 +37,7 @@ type AppSidebarProps = {
   totalCustomers?: number;
 };
 
-import { GlobalSyncButton } from "./global-sync-button";
+
 import { SidebarGroups } from "./sidebar-groups";
 
 export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks, groups = [], totalCustomers = 0 }: AppSidebarProps) {
@@ -134,11 +134,7 @@ export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks, g
 
       {/* Bottom Nav */}
       <div className="border-t border-white/10 p-2 space-y-1">
-        {(hasXero || hasQuickBooks) && (
-          <div className="mb-1">
-            <GlobalSyncButton isExpanded={isExpanded} provider={hasXero ? 'xero' : 'quickbooks'} />
-          </div>
-        )}
+
         {bottomItems.map((item) => {
           const isActive = pathname?.startsWith(item.href);
           return (
