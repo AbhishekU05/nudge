@@ -366,6 +366,7 @@ export async function syncXeroDataPageForOrg(
         due_date: toIsoDate(invoice.dueDate),
         status: status,
         xero_id: invoiceId,
+        invoice_number: invoice.invoiceNumber || null,
         updated_at: new Date().toISOString()
       };
 

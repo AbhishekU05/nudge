@@ -460,6 +460,7 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
       due_date: toIsoDate(invoice.DueDate),
       status: status,
       quickbooks_id: invoiceId,
+      invoice_number: invoice.DocNumber || null,
       updated_at: new Date().toISOString()
     };
 
