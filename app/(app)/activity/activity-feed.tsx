@@ -33,7 +33,7 @@ export function ActivityFeed({ events }: { events: any[] }) {
         <ul className="divide-y divide-white/5">
           {events.map((event) => {
             const isPayment = event.event_type === "payment";
-            const customerName = event.clients?.name || event.invoices?.recipient_name || "Unknown Customer";
+            const customerName = event.clients?.name || event.invoices?.clients?.name || "Unknown Customer";
 
             return (
               <li key={event.id} className="p-4 hover:bg-white/[0.02] transition-colors">

@@ -118,7 +118,7 @@ export function AnalyticsClient({
         totalOverdue += remaining;
         totalDaysOverdue += daysOverdue;
         offenders.push({
-          name: c.recipient_name || "Unknown",
+          name: c.clients?.name || "Unknown",
           amount: remaining,
           days: daysOverdue,
         });

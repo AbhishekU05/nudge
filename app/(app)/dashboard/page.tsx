@@ -27,12 +27,12 @@ export default async function DashboardPage(props: {
   const supabase = await createSupabaseServerClient();
 
   const [customersRes, eventsRes, draftsRes, activeClientsRes, activeInvoicesRes, paymentsRes] = await Promise.all([
-    supabase.from("invoices").select("*"),
-    supabase.from("events").select("*, clients(name), invoices(recipient_name)").order("created_at", { ascending: false }),
+    supabase.from("invoices").select("*, clients(name)"),
+    supabase.from("events").select("*, clients(name), invoices(clients(name))").order("created_at", { ascending: false }),
     supabase.from("email_drafts").select("*").eq("status", "draft").order("created_at", { ascending: false }).limit(5),
     supabase.from("clients").select("id, name, next_send_at").eq("active", true).order("next_send_at", { ascending: true }).limit(5),
-    supabase.from("invoices").select("id, recipient_name, next_send_at").eq("active", true).order("next_send_at", { ascending: true }).limit(5),
-    supabase.from("payments").select("*, invoices(recipient_name, clients(name))").order("created_at", { ascending: false })
+    supabase.from("invoices").select("id, next_send_at, clients(name)").eq("active", true).order("next_send_at", { ascending: true }).limit(5),
+    supabase.from("payments").select("*, invoices(clients(name))").order("created_at", { ascending: false })
   ]);
 
   const allCustomers = (customersRes.data || []).map((inv: any) => {
@@ -94,7 +94,7 @@ export default async function DashboardPage(props: {
   const pendingDrafts = draftsRes.data || [];
   const activeAutomations = [
     ...(activeClientsRes.data || []).map(c => ({ id: c.id, name: c.name, next_send_at: c.next_send_at, type: 'client' })),
-    ...(activeInvoicesRes.data || []).map(i => ({ id: i.id, name: i.recipient_name, next_send_at: i.next_send_at, type: 'invoice' }))
+    ...(activeInvoicesRes.data || []).map((i: any) => ({ id: i.id, name: i.clients?.name || "Unknown", next_send_at: i.next_send_at, type: 'invoice' }))
   ].sort((a, b) => new Date(a.next_send_at).getTime() - new Date(b.next_send_at).getTime()).slice(0, 5);
 
   const recentInvoices = [...customers].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5);
@@ -239,7 +239,7 @@ export default async function DashboardPage(props: {
                         className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors"
                       >
                         <div>
-                          <h3 className="font-medium text-zinc-200">{customer.recipient_name}</h3>
+                          <h3 className="font-medium text-zinc-200">{customer.clients?.name || "Unknown"}</h3>
                           <p className="text-sm text-zinc-500 mt-0.5">
                             {daysOverdue ? <span className="text-red-400">{daysOverdue} days overdue</span> : "Outstanding"}
                           </p>
@@ -276,7 +276,7 @@ export default async function DashboardPage(props: {
                 <div className="space-y-3">
                   {recentEvents.map((event) => {
                     const isPayment = event.event_type === "payment";
-                    const customerName = event.clients?.name || event.invoices?.recipient_name || "Unknown Customer";
+                    const customerName = event.clients?.name || event.invoices?.clients?.name || "Unknown Customer";
                     
                     return (
                       <Link
@@ -339,7 +339,7 @@ export default async function DashboardPage(props: {
                       className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors"
                     >
                       <div className="min-w-0">
-                        <h3 className="font-medium text-zinc-200 truncate">{inv.recipient_name}</h3>
+                        <h3 className="font-medium text-zinc-200 truncate">{inv.clients?.name || "Unknown"}</h3>
                         <p className="text-xs text-zinc-500 mt-0.5">
                           {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true })}
                         </p>

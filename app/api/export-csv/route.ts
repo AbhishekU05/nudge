@@ -18,7 +18,7 @@ export async function GET() {
     const [customersRes, eventsRes] = await Promise.all([
       supabase
         .from("invoices")
-        .select("*")
+        .select("*, clients(name, email)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -67,8 +67,8 @@ export async function GET() {
   const rows = (customers || []).map((c: any) => {
     const followup = followupsByCustomer.get(c.id);
     return [
-      c.recipient_name,
-      c.recipient_email,
+      c.clients?.name || "",
+      c.clients?.email || "",
       c.amount_owed,
       c.created_at ? new Date(c.created_at).toLocaleDateString() : "",
       c.due_date || "",

@@ -157,7 +157,7 @@ export function DashboardUI({
                     className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors"
                   >
                     <div>
-                      <h3 className="font-medium text-zinc-200">{customer.recipient_name}</h3>
+                      <h3 className="font-medium text-zinc-200">{customer.clients?.name || "Unknown"}</h3>
                       <p className="text-sm text-zinc-500 mt-0.5">
                         {daysOverdue ? <span className="text-red-400">{daysOverdue} days overdue</span> : "Outstanding"}
                       </p>
@@ -194,7 +194,7 @@ export function DashboardUI({
             <div className="space-y-3">
               {recentEvents.map((event) => {
                 const isPayment = event.event_type === "payment";
-                const customerName = event.clients?.name || event.invoices?.recipient_name || "Unknown Customer";
+                const customerName = event.clients?.name || event.invoices?.clients?.name || "Unknown Customer";
                 
                 return (
                   <Link

@@ -239,6 +239,7 @@ export type InvoiceRecord = Invoice;
 export type CustomerRecord = Invoice & {
   recipient_name?: string;
   recipient_email?: string;
+  clients?: { name?: string; email?: string };
   amount_owed?: number;
   amount_paid?: number;
   workflow_status?: InvoiceStatus;

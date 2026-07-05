@@ -9,7 +9,7 @@ export default async function ActivityPage() {
 
   const { data: events, error } = await supabase
     .from("events")
-    .select("*, invoices(recipient_name), clients(name)")
+    .select("*, invoices(clients(name)), clients(name)")
     .order("created_at", { ascending: false })
     .limit(100);
 

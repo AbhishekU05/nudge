@@ -32,7 +32,7 @@ export default async function AutomatePage() {
   // Fetch active invoices
   const { data: invoicesData } = await supabase
     .from("invoices")
-    .select("id, recipient_name, recipient_email, invoice_number, reminder_type, next_send_at, auto_approve, reminders_enabled, sequence_index")
+    .select("id, invoice_number, reminder_type, next_send_at, auto_approve, reminders_enabled, sequence_index, clients(name, email)")
     .eq("reminders_enabled", true)
     .order("next_send_at", { ascending: true });
 
@@ -151,7 +151,7 @@ export default async function AutomatePage() {
                       <p className="text-sm text-zinc-500">No active invoice automations.</p>
                     </div>
                   ) : (
-                    invoices.map(invoice => (
+                    invoices.map((invoice: any) => (
                       <Link 
                         key={invoice.id} 
                         href={`/invoices/${invoice.id}`}
@@ -159,7 +159,7 @@ export default async function AutomatePage() {
                       >
                         <div className="flex justify-between items-start mb-2">
                           <div>
-                            <span className="font-medium text-zinc-200">{invoice.recipient_name}</span>
+                            <span className="font-medium text-zinc-200">{invoice.clients?.name || "Unknown"}</span>
                             <p className="text-xs text-zinc-500 mt-0.5">{invoice.invoice_number || 'Invoice'}</p>
                           </div>
                           <Badge variant={invoice.auto_approve ? "success" : "muted"}>
