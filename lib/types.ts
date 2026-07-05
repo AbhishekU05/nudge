@@ -316,6 +316,10 @@ export function getDaysOverdue(invoice: Invoice): number | null {
   return diff > 0 ? diff : null;
 }
 
-export function isEffectivelyPaid(invoice: Invoice): boolean {
-  return invoice.status === "paid" || invoice.status === "written_off";
+export function isEffectivelyPaid(invoice: Partial<CustomerRecord>): boolean {
+  if (invoice.status === "paid" || invoice.status === "written_off") return true;
+  if (invoice.workflow_status === "paid" || invoice.workflow_status === "written_off") return true;
+  if (invoice.client_paid_at) return true;
+  if (getRemainingBalance(invoice as CustomerRecord) <= 0 && (invoice.amount_owed ?? invoice.amount ?? 0) > 0) return true;
+  return false;
 }

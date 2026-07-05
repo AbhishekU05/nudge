@@ -20,7 +20,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DollarSign, Users, AlertCircle, Clock, Info } from "lucide-react";
-import { getDaysOverdue, type CustomerRecord, type CustomerEvent } from "@/lib/types";
+import { getDaysOverdue, isEffectivelyPaid, type CustomerRecord, type CustomerEvent } from "@/lib/types";
 import { format } from "date-fns";
 
 const COLORS = ["#10b981", "#3b82f6", "#ef4444", "#f59e0b"];
@@ -51,7 +51,7 @@ export function AnalyticsClient({
     let outstandingCount = 0;
     let totalDaysOverdue = 0;
 
-    const offenders: { name: string; amount: number; days: number }[] = [];
+    const offendersMap = new Map<string, { name: string; amount: number; days: number }>();
 
     // Aging Buckets
     const agingBuckets = {
@@ -98,7 +98,7 @@ export function AnalyticsClient({
       totalCollected += paid;
       totalOutstanding += remaining;
 
-      const isPaid = remaining <= 0 || c.client_paid_at;
+      const isPaid = remaining <= 0 || isEffectivelyPaid(c);
       const daysOverdue = getDaysOverdue(c);
 
       // Best/Worst Tracking & Days to Payment
@@ -117,11 +117,14 @@ export function AnalyticsClient({
         overdueCount++;
         totalOverdue += remaining;
         totalDaysOverdue += daysOverdue;
-        offenders.push({
-          name: c.clients?.name || "Unknown",
-          amount: remaining,
-          days: daysOverdue,
-        });
+        const name = c.clients?.name || "Unknown";
+        const existing = offendersMap.get(name);
+        if (existing) {
+          existing.amount += remaining;
+          existing.days = Math.max(existing.days, daysOverdue);
+        } else {
+          offendersMap.set(name, { name, amount: remaining, days: daysOverdue });
+        }
 
         // Add to aging bucket
         if (daysOverdue <= 30) agingBuckets["1-30"] += remaining;
@@ -160,7 +163,8 @@ export function AnalyticsClient({
     const collectionRate = (totalCollected + totalOutstanding) > 0 ? (totalCollected / (totalCollected + totalOutstanding)) * 100 : 0;
     
     // Sort offenders by amount
-    const topOffenders = offenders.sort((a, b) => b.amount - a.amount).slice(0, 5);
+    const offenders = Array.from(offendersMap.values());
+    const topOffenders = [...offenders].sort((a, b) => b.amount - a.amount).slice(0, 5);
     const worstClients = [...offenders].sort((a, b) => b.days - a.days).slice(0, 3); // Highest days overdue
 
     // Event Loop for Advanced Metrics

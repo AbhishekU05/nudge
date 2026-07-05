@@ -2,7 +2,7 @@ import "server-only";
 
 import { getResendClient, getFromEmail } from "@/lib/resend";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getDaysOverdue } from "@/lib/types";
+import { getDaysOverdue, isEffectivelyPaid } from "@/lib/types";
 import { logger } from "@/lib/logger";
 import { hasGmailTokens, sendGmail } from "@/lib/gmail";
 import { render } from "@react-email/render";
@@ -158,7 +158,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
         totalOut += Math.max(0, remaining);
         totalCollected += paid;
 
-        const isPaid = remaining <= 0 || inv.client_paid_at;
+        const isPaid = remaining <= 0 || isEffectivelyPaid(inv as any);
         
         if (isPaid && inv.client_paid_at && inv.due_date) {
           paidCustomersWithDates++;
@@ -182,16 +182,28 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           else if (daysOverdue <= 90) agingBuckets["61-90"] += remaining;
           else agingBuckets["90+"] += remaining;
 
-          overdueInvoicesList.push({
-            clientName: inv.recipient_name || "Unknown",
-            amount: `${currency} ${remaining.toFixed(2)}`,
-            daysOverdue: daysOverdue,
-            lastContact: inv.last_sent_at ? new Date(inv.last_sent_at).toLocaleDateString() : undefined,
-            rawAmount: remaining
-          });
+          const clientName = inv.recipient_name || inv.clients?.name || "Unknown";
+          const existingInv = overdueInvoicesList.find(o => o.clientName === clientName);
+          
+          if (existingInv) {
+            existingInv.rawAmount += remaining;
+            existingInv.amount = `${currency} ${existingInv.rawAmount.toFixed(2)}`;
+            existingInv.daysOverdue = Math.max(existingInv.daysOverdue, daysOverdue);
+            if (inv.last_sent_at && (!existingInv.lastContact || new Date(inv.last_sent_at) > new Date(existingInv.lastContact))) {
+              existingInv.lastContact = new Date(inv.last_sent_at).toLocaleDateString();
+            }
+          } else {
+            overdueInvoicesList.push({
+              clientName: clientName,
+              amount: `${currency} ${remaining.toFixed(2)}`,
+              daysOverdue: daysOverdue,
+              lastContact: inv.last_sent_at ? new Date(inv.last_sent_at).toLocaleDateString() : undefined,
+              rawAmount: remaining
+            });
+          }
 
-          if (daysOverdue > 15 && overdueInvoicesList.length <= 5) {
-            actionItemsList.push(`Follow up with ${inv.recipient_name || "Unknown"} on ${currency} ${remaining.toFixed(2)} (${daysOverdue} days overdue)`);
+          if (daysOverdue > 15 && actionItemsList.length <= 5) {
+            actionItemsList.push(`Follow up with ${inv.recipient_name || inv.clients?.name || "Unknown"} on ${currency} ${remaining.toFixed(2)} (${daysOverdue} days overdue)`);
           }
         } else if (inv.due_date) {
           const due = new Date(inv.due_date);
@@ -295,7 +307,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       upcomingInvoicesList.sort((a, b) => a.dueInDays - b.dueInDays);
       overdueInvoicesList.sort((a, b) => b.rawAmount - a.rawAmount);
       
-      const topOffenders = overdueInvoicesList.slice(0, 5);
+      const topOffenders = overdueInvoicesList.sort((a, b) => b.rawAmount - a.rawAmount).slice(0, 5);
 
       const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, maximumFractionDigits: 0 });
 

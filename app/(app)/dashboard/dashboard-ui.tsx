@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Container } from "@/components/site/container";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Users, AlertCircle, ArrowRight, Activity, Percent, Clock, Send, Info, Mail, Zap, FileText } from "lucide-react";
-import { getDaysOverdue, CustomerRecord, CustomerEvent } from "@/lib/types";
+import { getDaysOverdue, isEffectivelyPaid, CustomerRecord, CustomerEvent } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { CollectionTrendWidget, DashboardPipelineWidget } from "@/components/site/dashboard-widgets";
 import { CurrencySelector } from "@/components/site/currency-selector";
@@ -49,7 +49,7 @@ export function DashboardUI({
     totalOutstanding += remaining;
 
     const daysOverdue = getDaysOverdue(c);
-    if (daysOverdue && remaining > 0 && !c.client_paid_at) {
+    if (daysOverdue && remaining > 0 && !isEffectivelyPaid(c)) {
       totalOverdue += remaining;
     }
   }
@@ -58,18 +58,33 @@ export function DashboardUI({
     ? (totalCollected / (totalCollected + totalOutstanding)) * 100 
     : 0;
 
-  // Get top 5 overdue/outstanding customers
-  const actionNeeded = customers
-    .filter((c) => {
-      const remaining = Math.max(0, Number(c.amount_owed) - Number(c.amount_paid));
-      return remaining > 0 && !c.client_paid_at;
-    })
-    .sort((a, b) => {
-      const aOverdue = getDaysOverdue(a) || 0;
-      const bOverdue = getDaysOverdue(b) || 0;
-      if (aOverdue !== bOverdue) return bOverdue - aOverdue; // Most overdue first
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-    })
+  const actionNeededMap = new Map<string, { id: string; name: string; remaining: number; daysOverdue: number; currency: string }>();
+  for (const c of customers) {
+    if (isEffectivelyPaid(c)) continue;
+    const daysOverdue = getDaysOverdue(c) || 0;
+    if (daysOverdue <= 0) continue; // ONLY overdue invoices
+
+    const remaining = Math.max(0, Number(c.amount_owed) - Number(c.amount_paid));
+    if (remaining <= 0) continue;
+
+    const name = c.clients?.name || "Unknown";
+    const existing = actionNeededMap.get(name);
+    if (existing) {
+      existing.remaining += remaining;
+      existing.daysOverdue = Math.max(existing.daysOverdue, daysOverdue);
+    } else {
+      actionNeededMap.set(name, {
+        id: c.client_id || c.customer_id || c.id,
+        name,
+        remaining,
+        daysOverdue,
+        currency: c.currency || "USD"
+      });
+    }
+  }
+
+  const actionNeeded = Array.from(actionNeededMap.values())
+    .sort((a, b) => b.daysOverdue - a.daysOverdue)
     .slice(0, 5);
 
   return (
@@ -148,8 +163,6 @@ export function DashboardUI({
           {actionNeeded.length > 0 ? (
             <div className="space-y-3">
               {actionNeeded.map((customer) => {
-                const remaining = Math.max(0, Number(customer.amount_owed) - Number(customer.amount_paid));
-                const daysOverdue = getDaysOverdue(customer);
                 return (
                   <Link
                     key={customer.id}
@@ -157,13 +170,13 @@ export function DashboardUI({
                     className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors"
                   >
                     <div>
-                      <h3 className="font-medium text-zinc-200">{customer.clients?.name || "Unknown"}</h3>
+                      <h3 className="font-medium text-zinc-200">{customer.name}</h3>
                       <p className="text-sm text-zinc-500 mt-0.5">
-                        {daysOverdue ? <span className="text-red-400">{daysOverdue} days overdue</span> : "Outstanding"}
+                        <span className="text-red-400">{customer.daysOverdue} days overdue</span>
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="font-medium text-zinc-200">{formatCurrency(remaining, customer.currency)}</div>
+                      <div className="font-medium text-zinc-200">{formatCurrency(customer.remaining, customer.currency)}</div>
                       <div className="text-sm text-zinc-500 mt-0.5">Remaining</div>
                     </div>
                   </Link>
