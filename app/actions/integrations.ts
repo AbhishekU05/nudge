@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { buildPathWithQuery } from "@/lib/paths";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { revokeXeroIntegration, syncXeroInvoicesForOrg } from "@/lib/xero";
+import { revokeXeroIntegration } from "@/lib/xero";
 import { revokeQuickBooksIntegration, syncQuickBooksInvoicesForOrg } from "@/lib/quickbooks";
 import { inngest } from "@/lib/inngest/client";
 

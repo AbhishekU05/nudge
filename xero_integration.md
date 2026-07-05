@@ -9,10 +9,13 @@ The Xero integration provides real-time, bidirectional sync between Xero and Due
 ## Target Architecture: Webhook-Driven Sync
 
 ### Flow 1: Initial Sync (One Time on Xero Connect)
-The only time Duely fetches the entire invoice and payment history is when the user first connects Xero.
+The only time Duely fetches the entire invoice and payment history is when the user first connects Xero. Due to Xero's pagination limits and Vercel's serverless timeouts, this is handled via a **chunked, event-driven pagination** system:
 - **Trigger**: User completes Xero OAuth and tenant selection.
-- **Action**: An Inngest background job (`xero-initial-sync`) fetches all ACCREC invoices and payments (paginated, with `ifModifiedSince = null`) and upserts them.
-- **Result**: `integrations.last_synced_at` is set, establishing the baseline.
+- **Action**: 
+  - An Inngest background job (`xero-initial-sync`) fetches Page 1 (100 records) of ACCREC invoices, upserts them, and gracefully exits.
+  - If more invoices exist, it fires an event to queue a new background task for Page 2, Page 3, etc.
+  - Once invoices are exhausted, it automatically switches to paginating payments chunk by chunk.
+- **Result**: Each chunk is isolated to a few seconds, completely avoiding serverless timeout limits. When the final payment page is processed, `integrations.last_synced_at` is set, establishing the baseline.
 
 ### Flow 2: Xero → Duely (Inbound Webhook)
 Xero fires a POST to `/api/webhooks/xero` whenever an invoice or contact changes (Xero does not natively support webhooks for Payments).

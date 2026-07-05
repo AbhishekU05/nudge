@@ -236,29 +236,9 @@ export async function getXeroIntegrationByTenant(tenantId: string) {
   return data;
 }
 
-async function fetchAllXeroInvoices(xero: XeroClient, tenantId: string) {
-  const invoices: Invoice[] = [];
-  let page = 1;
-  while (true) {
-    const response = await xero.accountingApi.getInvoices(tenantId, undefined, 'Type=="ACCREC"', "UpdatedDateUTC DESC", undefined, undefined, undefined, undefined, page, false, undefined, undefined, false, 100);
-    invoices.push(...(response.body.invoices ?? []));
-    if ((response.body.invoices?.length || 0) < 100) break;
-    page += 1;
-  }
-  return invoices;
-}
 
-async function fetchAllXeroPayments(xero: XeroClient, tenantId: string) {
-  const payments: any[] = [];
-  let page = 1;
-  while (true) {
-    const response = await xero.accountingApi.getPayments(tenantId, undefined, 'Status=="AUTHORISED"', "UpdatedDateUTC DESC", page);
-    payments.push(...(response.body.payments ?? []));
-    if ((response.body.payments?.length || 0) < 100) break;
-    page += 1;
-  }
-  return payments;
-}
+
+
 
 export async function fetchXeroInvoice(xero: XeroClient, tenantId: string, invoiceId: string) {
   const response = await xero.accountingApi.getInvoice(tenantId, invoiceId);
@@ -278,112 +258,115 @@ async function loadExistingXeroInvoices(organizationId: string, invoiceIds: stri
   return new Map((data ?? []).map((row) => [row.xero_id ?? "", row as ExistingInvoiceRow]));
 }
 
-export async function syncXeroInvoicesForOrg(organizationId: string): Promise<XeroSyncResult> {
+
+export async function syncXeroDataPageForOrg(
+  organizationId: string, 
+  syncType: "invoices" | "payments", 
+  page: number
+): Promise<{ hasMore: boolean; imported: number; updated: number; nextType?: "invoices" | "payments"; nextPage: number }> {
   const integration = await getXeroIntegration(organizationId);
   if (!integration) throw new Error("Xero is not connected.");
   if (integration.tenant_id === "PENDING_SELECTION") throw new Error("Please select a Xero tenant first.");
 
   const { xero } = await getValidXeroClient(integration);
-  const invoices = await fetchAllXeroInvoices(xero, integration.tenant_id);
-  const invoiceIds = invoices.map((invoice) => invoice.invoiceID).filter((invoiceId): invoiceId is string => Boolean(invoiceId));
-  const existingByInvoiceId = await loadExistingXeroInvoices(organizationId, invoiceIds);
   const supabase = createSupabaseAdminClient();
-  
-  const { data: clientsData } = await supabase.from("clients").select("id, name, email").eq("organization_id", organizationId);
-  const clientsMap = new Map<string, { id: string }>();
-  for (const client of clientsData || []) {
-    if (client.email) clientsMap.set(client.email.toLowerCase(), client);
-    if (client.name) clientsMap.set(client.name.toLowerCase(), client);
-  }
+  const result = { hasMore: false, imported: 0, updated: 0, nextType: syncType, nextPage: page + 1 };
 
-  const result: XeroSyncResult = { imported: 0, markedPaid: 0, skipped: 0, totalInvoices: invoices.length, updated: 0 };
-
-  for (const invoice of invoices) {
-    const invoiceId = invoice.invoiceID;
-    if (!invoiceId) { result.skipped += 1; continue; }
-
-    const contactName = invoice.contact?.name?.trim() || "Xero customer";
-    const email = normalizeEmail(invoice.contact?.emailAddress) || "";
-    const amountOwed = getInvoiceTotal(invoice);
-    if (amountOwed <= 0) { result.skipped += 1; continue; }
-
-    let clientRecord = email ? clientsMap.get(email.toLowerCase()) : undefined;
-    if (!clientRecord) clientRecord = clientsMap.get(contactName.toLowerCase());
-
-    if (!clientRecord) {
-      const { data: client, error: clientError } = await supabase.from("clients").insert({ organization_id: organizationId, name: contactName, email: email }).select("id").single();
-      if (clientError) throw new Error(clientError.message);
-      clientRecord = { id: client.id };
-      if (email) clientsMap.set(email.toLowerCase(), clientRecord);
-      clientsMap.set(contactName.toLowerCase(), clientRecord);
+  if (syncType === "invoices") {
+    const response = await xero.accountingApi.getInvoices(integration.tenant_id, undefined, 'Type=="ACCREC"', "UpdatedDateUTC DESC", undefined, undefined, undefined, undefined, page, false, undefined, undefined, false, 100);
+    const invoices = response.body.invoices ?? [];
+    result.hasMore = invoices.length >= 100;
+    
+    if (!result.hasMore) {
+      result.nextType = "payments";
+      result.nextPage = 1;
     }
 
-    const status = getWorkflowStatus(invoice);
-    const existing = existingByInvoiceId.get(invoiceId);
-    const xeroUpdatedDate = invoice.updatedDateUTC ? new Date(invoice.updatedDateUTC) : new Date(0);
+    if (invoices.length === 0) {
+      return result;
+    }
 
-    const payload = {
-      organization_id: organizationId,
-      client_id: clientRecord.id,
-      amount: amountOwed,
-      currency: String(invoice.currencyCode ?? "USD"),
-      due_date: toIsoDate(invoice.dueDate),
-      status: status,
-      xero_id: invoiceId,
-      updated_at: new Date().toISOString()
-    };
+    const invoiceIds = invoices.map((i) => i.invoiceID).filter(Boolean) as string[];
+    const existingByInvoiceId = await loadExistingXeroInvoices(organizationId, invoiceIds);
+    
+    const { data: clientsData } = await supabase.from("clients").select("id, name, email").eq("organization_id", organizationId);
+    const clientsMap = new Map<string, { id: string }>();
+    for (const client of clientsData || []) {
+      if (client.email) clientsMap.set(client.email.toLowerCase(), client);
+      if (client.name) clientsMap.set(client.name.toLowerCase(), client);
+    }
 
-    if (existing) {
-      const duelyUpdatedDate = new Date(existing.updated_at || 0);
+    for (const invoice of invoices) {
+      const invoiceId = invoice.invoiceID;
+      if (!invoiceId) continue;
       
-      // If Duely's invoice is newer, we skip overwriting from Xero to respect the Dual Sync Truth rule!
-      if (duelyUpdatedDate > xeroUpdatedDate) {
-         result.skipped += 1;
-         continue;
+      const contactName = invoice.contact?.name?.trim() || "Xero customer";
+      const email = normalizeEmail(invoice.contact?.emailAddress) || "";
+      const amountOwed = getInvoiceTotal(invoice);
+      if (amountOwed <= 0) continue;
+
+      let clientRecord = email ? clientsMap.get(email.toLowerCase()) : undefined;
+      if (!clientRecord) clientRecord = clientsMap.get(contactName.toLowerCase());
+
+      if (!clientRecord) {
+        const { data: client, error: clientError } = await supabase.from("clients").insert({ organization_id: organizationId, name: contactName, email }).select("id").single();
+        if (clientError) throw new Error(clientError.message);
+        clientRecord = { id: client.id };
+        if (email) clientsMap.set(email.toLowerCase(), clientRecord);
+        clientsMap.set(contactName.toLowerCase(), clientRecord);
       }
 
-      const { error } = await supabase.from("invoices").update(payload).eq("id", existing.id);
-      if (error) throw new Error(error.message);
-      
-      if (status === "paid" && existing.status !== "paid") result.markedPaid += 1;
-      else result.updated += 1;
-      continue;
+      const status = getWorkflowStatus(invoice);
+      const existing = existingByInvoiceId.get(invoiceId);
+      const xeroUpdatedDate = invoice.updatedDateUTC ? new Date(invoice.updatedDateUTC) : new Date(0);
+
+      const payload = {
+        organization_id: organizationId,
+        client_id: clientRecord.id,
+        amount: amountOwed,
+        currency: String(invoice.currencyCode ?? "USD"),
+        due_date: toIsoDate(invoice.dueDate),
+        status: status,
+        xero_id: invoiceId,
+        updated_at: new Date().toISOString()
+      };
+
+      if (existing) {
+        const duelyUpdatedDate = new Date(existing.updated_at || 0);
+        if (duelyUpdatedDate > xeroUpdatedDate) continue;
+        await supabase.from("invoices").update(payload).eq("id", existing.id);
+        result.updated += 1;
+      } else {
+        await supabase.from("invoices").insert(payload);
+        result.imported += 1;
+      }
+    }
+    
+    return result;
+  } 
+  
+  if (syncType === "payments") {
+    const response = await xero.accountingApi.getPayments(integration.tenant_id, undefined, 'Status=="AUTHORISED"', "UpdatedDateUTC DESC", page);
+    const payments = response.body.payments ?? [];
+    result.hasMore = payments.length >= 100;
+    
+    if (payments.length === 0) {
+      await supabase.from("integrations").update({ last_synced_at: new Date().toISOString() }).eq("organization_id", organizationId).eq("provider", XERO_PROVIDER);
+      return result;
     }
 
-    const { data: newInvoice, error } = await supabase.from("invoices").insert(payload).select("id").single();
-    if (error) throw new Error(error.message);
-
-    result.imported += 1;
-  }
-
-  // Fetch and insert actual payments
-  const xeroPayments = await fetchAllXeroPayments(xero, integration.tenant_id);
-  const paymentIds = xeroPayments.map(p => p.paymentID).filter(Boolean);
-  
-  if (paymentIds.length > 0) {
-    const { data: existingPayments } = await supabase
-      .from("payments")
-      .select("reference_id")
-      .eq("organization_id", organizationId)
-      .in("reference_id", paymentIds);
-      
+    const paymentIds = payments.map(p => p.paymentID).filter(Boolean);
+    const { data: existingPayments } = await supabase.from("payments").select("reference_id").eq("organization_id", organizationId).in("reference_id", paymentIds as string[]);
     const existingPaymentIds = new Set(existingPayments?.map(p => p.reference_id) || []);
-    
-    // We need to map xero_invoice_id to duely invoice_id
-    const { data: allInvoices } = await supabase
-      .from("invoices")
-      .select("id, xero_id")
-      .eq("organization_id", organizationId);
       
+    const { data: allInvoices } = await supabase.from("invoices").select("id, xero_id").eq("organization_id", organizationId);
     const xeroIdToDuelyId = new Map(allInvoices?.map(inv => [inv.xero_id, inv.id]) || []);
-    const newPayments = [];
     
-    for (const p of xeroPayments) {
+    const newPayments = [];
+    for (const p of payments) {
       if (existingPaymentIds.has(p.paymentID)) continue;
-      
       const duelyInvoiceId = xeroIdToDuelyId.get(p.invoice?.invoiceID);
-      if (!duelyInvoiceId) continue; // Payment for an invoice we don't have
-      
+      if (!duelyInvoiceId) continue;
       if (!p.amount || p.amount <= 0) continue;
       
       newPayments.push({
@@ -398,19 +381,20 @@ export async function syncXeroInvoicesForOrg(organizationId: string): Promise<Xe
     }
     
     if (newPayments.length > 0) {
-      const { error: logsError } = await supabase.from("payments").insert(newPayments);
-      if (logsError) {
-        logger.error({ message: "Failed to insert exact payments from Xero", context: "syncXeroInvoicesForOrg", error: logsError.message, organization_id: organizationId });
-      }
+      await supabase.from("payments").insert(newPayments);
+      result.imported += newPayments.length;
     }
+    
+    if (!result.hasMore) {
+      await supabase.from("integrations").update({ last_synced_at: new Date().toISOString() }).eq("organization_id", organizationId).eq("provider", XERO_PROVIDER);
+    }
+    
+    return result;
   }
-
-  const { error: syncError } = await supabase.from("integrations").update({ last_synced_at: new Date().toISOString() }).eq("organization_id", organizationId).eq("provider", XERO_PROVIDER);
-  if (syncError) throw new Error(syncError.message);
-
-  logger.external({ service: "Xero", action: "sync_invoices", success: true, organization_id: organizationId });
+  
   return result;
 }
+
 
 export async function getXeroBankAccounts(organizationId: string) {
   const supabase = createSupabaseAdminClient();
