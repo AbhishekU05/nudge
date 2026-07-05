@@ -17,7 +17,7 @@ export default async function GeneralSettingsPage() {
   );
 
   const supabase = await createSupabaseServerClient();
-  const { data: profile } = await supabase.from("profiles").select("timezone, weekly_digest_enabled, company_name, first_name, last_name").eq("user_id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select("timezone, weekly_digest_enabled, full_name").eq("user_id", user.id).single();
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -81,43 +81,16 @@ export default async function GeneralSettingsPage() {
         <CardContent>
           <form action={updateProfileInfo} className="space-y-4 max-w-md">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first_name" className="text-zinc-400">
-                  First Name
-                </Label>
-                <Input
-                  id="first_name"
-                  name="first_name"
-                  defaultValue={profile?.first_name || ""}
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="full_name" className="text-zinc-400">Full Name</Label>
+                <Input 
+                  id="full_name" 
+                  name="full_name" 
+                  defaultValue={profile?.full_name || ""} 
                   maxLength={100}
-                  className="bg-transparent border-white/10 focus:border-primary/50"
+                  className="bg-transparent border-white/10 focus:border-primary/50" 
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="last_name" className="text-zinc-400">
-                  Last Name
-                </Label>
-                <Input
-                  id="last_name"
-                  name="last_name"
-                  defaultValue={profile?.last_name || ""}
-                  maxLength={100}
-                  className="bg-transparent border-white/10 focus:border-primary/50"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="company_name" className="text-zinc-400">
-                Company Name
-              </Label>
-              <Input
-                id="company_name"
-                name="company_name"
-                defaultValue={profile?.company_name || ""}
-                maxLength={200}
-                className="bg-transparent border-white/10 focus:border-primary/50"
-              />
             </div>
             
             <Button type="submit">

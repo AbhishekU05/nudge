@@ -50,7 +50,7 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
   const { data: customerGroupData } = await supabase
     .from("customer_groups")
     .select("groups(*)")
-    .eq("client_id", id)
+    .eq("customer_id", id)
     .maybeSingle();
     
   const group = customerGroupData?.groups as unknown as GroupRecord | undefined;

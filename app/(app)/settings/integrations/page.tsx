@@ -21,7 +21,6 @@ type IntegrationRow = {
   expires_at: string;
   last_synced_at: string | null;
   tenant_id?: string | null;
-  realm_id?: string | null;
   bank_account_id?: string | null;
   bank_account_name?: string | null;
 };
@@ -109,7 +108,7 @@ export default async function IntegrationsPage({
 
   const { data: quickbooks } = await supabase
     .from("integrations")
-    .select("realm_id,last_synced_at,expires_at")
+    .select("tenant_id,last_synced_at,expires_at")
     .eq("organization_id", orgId)
     .eq("provider", "quickbooks")
     .maybeSingle<IntegrationRow>();
@@ -384,7 +383,7 @@ export default async function IntegrationsPage({
                       <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                         <p className="text-xs text-zinc-600">Company ID (Realm)</p>
                         <p className="mt-2 truncate font-mono text-xs text-zinc-300">
-                          {quickbooks?.realm_id}
+                          {quickbooks?.tenant_id}
                         </p>
                       </div>
                     </div>
