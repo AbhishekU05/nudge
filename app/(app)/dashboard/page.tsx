@@ -88,7 +88,7 @@ export default async function DashboardPage(props: {
       clients: p.invoices?.clients,
       invoices: p.invoices
     }))
-  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  ].sort((a, b) => new Date(b.event_date || b.created_at).getTime() - new Date(a.event_date || a.created_at).getTime());
 
   const events = mappedEvents.filter((e: any) => !e.currency || e.currency === selectedCurrency) as any[];
   const recentEvents = events.slice(0, 5);
@@ -308,7 +308,7 @@ export default async function DashboardPage(props: {
                               {isPayment ? "Payment Logged" : "Follow-up Sent"}
                             </p>
                             <time className="text-xs text-zinc-500">
-                              {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
+                              {formatDistanceToNow(new Date(event.event_date || event.created_at), { addSuffix: true })}
                             </time>
                           </div>
                           <p className="text-sm text-zinc-400 line-clamp-1">

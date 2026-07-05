@@ -49,8 +49,8 @@ export function ActivityFeed({ events }: { events: any[] }) {
                       <p className="text-sm font-medium text-zinc-200">
                         {isPayment ? "Payment Logged" : "Follow-up Sent"}
                       </p>
-                      <time dateTime={event.created_at} className="text-xs text-zinc-500">
-                        {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
+                      <time dateTime={event.event_date || event.created_at} className="text-xs text-zinc-500">
+                        {formatDistanceToNow(new Date(event.event_date || event.created_at), { addSuffix: true })}
                       </time>
                     </div>
                     

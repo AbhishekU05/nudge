@@ -219,7 +219,7 @@ export default async function CustomersPage({
         amount: Number(event.amount),
         currency: event.currency ?? "USD",
         source: event.payment_source ?? "user",
-        created_at: event.created_at,
+        created_at: event.event_date || event.created_at,
       };
       const existing = logsByCustomer.get(event.customer_id) ?? [];
       existing.push(payment);

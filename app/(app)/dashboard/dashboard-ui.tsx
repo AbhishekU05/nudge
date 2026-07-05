@@ -224,7 +224,7 @@ export function DashboardUI({
                           {isPayment ? "Payment Logged" : "Follow-up Sent"}
                         </p>
                         <time className="text-xs text-zinc-500">
-                          {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(event.event_date || event.created_at), { addSuffix: true })}
                         </time>
                       </div>
                       <p className="text-sm text-zinc-400">

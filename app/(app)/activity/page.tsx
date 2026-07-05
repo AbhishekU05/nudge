@@ -58,7 +58,7 @@ export default async function ActivityPage() {
       clients: p.invoices?.clients,
       invoices: p.invoices
     }))
-  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 100);
+  ].sort((a, b) => new Date(b.event_date || b.created_at).getTime() - new Date(a.event_date || a.created_at).getTime()).slice(0, 100);
 
   return (
     <div className="flex min-h-screen flex-col">
