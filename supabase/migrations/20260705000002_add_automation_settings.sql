@@ -1,0 +1,16 @@
+ALTER TABLE clients 
+  ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS auto_approve BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS reminder_type TEXT DEFAULT 'recurring',
+  ADD COLUMN IF NOT EXISTS reminder_templates JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS sequence_index INT DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS reminder_frequency_days INT DEFAULT 7,
+  ADD COLUMN IF NOT EXISTS next_send_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS last_sent_at TIMESTAMPTZ;
+
+ALTER TABLE invoices
+  ADD COLUMN IF NOT EXISTS auto_approve BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS reminder_type TEXT DEFAULT 'recurring',
+  ADD COLUMN IF NOT EXISTS reminder_templates JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS sequence_index INT DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS last_sent_at TIMESTAMPTZ;

@@ -1,0 +1,1 @@
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS unsubscribed BOOLEAN DEFAULT false;
