@@ -7,6 +7,7 @@ import { buildPathWithQuery } from "@/lib/paths";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { revokeXeroIntegration, syncXeroInvoicesForOrg } from "@/lib/xero";
 import { revokeQuickBooksIntegration, syncQuickBooksInvoicesForOrg } from "@/lib/quickbooks";
+import { inngest } from "@/lib/inngest/client";
 
 function redirectToIntegrations(params: { error?: string; success?: string }): never {
   redirect(buildPathWithQuery("/settings/integrations", params));
@@ -27,19 +28,21 @@ export async function syncXeroNow() {
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) redirectToIntegrations({ error: "No organization found." });
 
-  let result: Awaited<ReturnType<typeof syncXeroInvoicesForOrg>>;
   try {
-    result = await syncXeroInvoicesForOrg(organizationId!);
+    await inngest.send({
+      name: "xero/integration.connected",
+      data: { organization_id: organizationId },
+    });
   } catch (error) {
     redirectToIntegrations({
-      error: error instanceof Error ? error.message : "Unable to sync Xero.",
+      error: error instanceof Error ? error.message : "Unable to trigger Xero sync.",
     });
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/settings/integrations");
   redirectToIntegrations({
-    success: `Xero sync complete. Imported ${result!.imported}, updated ${result!.updated}, marked paid ${result!.markedPaid}.`,
+    success: `Xero sync started in the background. Your invoices will appear shortly.`,
   });
 }
 
@@ -85,18 +88,20 @@ export async function selectXeroTenant(formData: FormData) {
     redirectToIntegrations({ error: "Unable to select Xero tenant." });
   }
 
-  let result: Awaited<ReturnType<typeof syncXeroInvoicesForOrg>>;
   try {
-    result = await syncXeroInvoicesForOrg(organizationId!);
+    await inngest.send({
+      name: "xero/integration.connected",
+      data: { organization_id: organizationId },
+    });
   } catch (syncError) {
     redirectToIntegrations({
-      error: syncError instanceof Error ? syncError.message : "Tenant selected, but unable to sync Xero.",
+      error: syncError instanceof Error ? syncError.message : "Tenant selected, but unable to trigger Xero sync.",
     });
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/settings/integrations");
-  redirect(`/settings/integrations/xero/bank?success=Xero connected. Imported ${result!.imported} invoices and updated ${result!.updated + result!.markedPaid}.`);
+  redirect(`/settings/integrations/xero/bank?success=Xero connected. Initial sync started in the background.`);
 }
 
 export async function syncQuickBooksNow() {
@@ -177,13 +182,14 @@ export async function syncIntegrationNow(provider: "xero" | "quickbooks") {
   try {
     let result;
     if (provider === "xero") {
-      result = await syncXeroInvoicesForOrg(organizationId);
+      await inngest.send({ name: "xero/integration.connected", data: { organization_id: organizationId } });
+      result = { imported: 0, updated: 0 }; // Background job
     } else {
       result = await syncQuickBooksInvoicesForOrg(organizationId);
     }
     revalidatePath("/dashboard");
     revalidatePath("/customers");
-    return { success: true, message: `Synced ${result.imported} imported, ${result.updated} updated.` };
+    return { success: true, message: provider === "xero" ? "Sync started in background." : `Synced ${result.imported} imported, ${result.updated} updated.` };
   } catch (error) {
     return { success: false, message: `Server Error: Unable to sync ${provider}.` };
   }

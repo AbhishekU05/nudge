@@ -12,6 +12,7 @@ import { computeFirstReminderSendAt } from "@/lib/reminder-schedule";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const XERO_PROVIDER = "xero";
+import { inngest } from "@/lib/inngest/client";
 const XERO_SCOPES = [
   "openid",
   "profile",
@@ -174,7 +175,12 @@ export async function completeXeroOAuthCallback(callbackUrl: string, state: stri
     return { imported: 0, updated: 0, markedPaid: 0, requiresTenantSelection: true };
   }
   
-  return syncXeroInvoicesForOrg(member.organization_id);
+  await inngest.send({
+    name: "xero/integration.connected",
+    data: { organization_id: member.organization_id },
+  });
+  
+  return { imported: 0, updated: 0, markedPaid: 0, requiresTenantSelection: false };
 }
 
 export async function getAvailableXeroTenants(organizationId: string) {
@@ -186,11 +192,11 @@ export async function getAvailableXeroTenants(organizationId: string) {
   return tenants;
 }
 
-function normalizeEmail(email: string | null | undefined) {
+export function normalizeEmail(email: string | null | undefined) {
   return email?.trim().toLowerCase() || null;
 }
 
-function toIsoDate(value: Date | string | null | undefined) {
+export function toIsoDate(value: Date | string | null | undefined) {
   if (!value) return null;
   if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
   const parsed = new Date(value);
@@ -198,7 +204,7 @@ function toIsoDate(value: Date | string | null | undefined) {
   return parsed.toISOString().slice(0, 10);
 }
 
-function getWorkflowStatus(invoice: Invoice) {
+export function getWorkflowStatus(invoice: Invoice) {
   const amountDue = Number(invoice.amountDue ?? 0);
   const amountPaid = Number(invoice.amountPaid ?? 0);
   const dueDate = toIsoDate(invoice.dueDate);
@@ -208,7 +214,7 @@ function getWorkflowStatus(invoice: Invoice) {
   return "outstanding";
 }
 
-function getInvoiceTotal(invoice: Invoice) {
+export function getInvoiceTotal(invoice: Invoice) {
   const total = Number(invoice.total ?? 0);
   if (total > 0) return Math.round(total * 100) / 100;
   const amountDue = Number(invoice.amountDue ?? 0);
@@ -216,9 +222,16 @@ function getInvoiceTotal(invoice: Invoice) {
   return Math.round((amountDue + amountPaid) * 100) / 100;
 }
 
-async function getXeroIntegration(organizationId: string) {
+export async function getXeroIntegration(organizationId: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase.from("integrations").select("*").eq("organization_id", organizationId).eq("provider", XERO_PROVIDER).maybeSingle<XeroIntegrationRow>();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function getXeroIntegrationByTenant(tenantId: string) {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.from("integrations").select("*").eq("tenant_id", tenantId).eq("provider", XERO_PROVIDER).maybeSingle<XeroIntegrationRow>();
   if (error) throw new Error(error.message);
   return data;
 }
@@ -245,6 +258,16 @@ async function fetchAllXeroPayments(xero: XeroClient, tenantId: string) {
     page += 1;
   }
   return payments;
+}
+
+export async function fetchXeroInvoice(xero: XeroClient, tenantId: string, invoiceId: string) {
+  const response = await xero.accountingApi.getInvoice(tenantId, invoiceId);
+  return response.body.invoices?.[0];
+}
+
+export async function fetchXeroPayment(xero: XeroClient, tenantId: string, paymentId: string) {
+  const response = await xero.accountingApi.getPayment(tenantId, paymentId);
+  return response.body.payments?.[0];
 }
 
 async function loadExistingXeroInvoices(organizationId: string, invoiceIds: string[]) {
