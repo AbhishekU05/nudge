@@ -462,7 +462,10 @@ export async function getXeroBankAccounts(organizationId: string) {
       return client.accountingApi.getAccounts(intg.tenant_id, undefined, 'Type=="BANK"');
     });
     const accounts = response.body.accounts || [];
-    return accounts.filter(acc => acc.bankAccountNumber).map(acc => ({ provider: "xero", name: acc.name, accountNumber: acc.bankAccountNumber, currency: acc.currencyCode }));
+    const defaultAccountId = integration.xero_default_account_id;
+    return accounts
+      .filter(acc => acc.bankAccountNumber && (!defaultAccountId || acc.accountID === defaultAccountId))
+      .map(acc => ({ provider: "xero", name: acc.name, accountNumber: acc.bankAccountNumber, currency: acc.currencyCode }));
   } catch (error) {
     logger.error({ message: "Failed to fetch Xero bank accounts", context: "xero_bank_sync", original_error: String(error) });
     return [];

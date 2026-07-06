@@ -664,12 +664,15 @@ export async function getQuickBooksBankAccounts(organizationId: string) {
 
     const data = await response.json();
     const accounts = data.QueryResponse?.Account || [];
-    return accounts.map((acc: any) => ({
-      provider: "quickbooks",
-      name: acc.Name,
-      accountNumber: acc.AcctNum || acc.Id,
-      currency: acc.CurrencyRef?.value
-    }));
+    const defaultAccountId = integration.quickbooks_default_account_id;
+    return accounts
+      .filter((acc: any) => !defaultAccountId || acc.Id === defaultAccountId)
+      .map((acc: any) => ({
+        provider: "quickbooks",
+        name: acc.Name,
+        accountNumber: acc.AcctNum || acc.Id,
+        currency: acc.CurrencyRef?.value
+      }));
   } catch (error) {
     logger.error({ message: "Failed to fetch QuickBooks bank accounts", context: "quickbooks_bank_sync", original_error: String(error) });
     return [];
