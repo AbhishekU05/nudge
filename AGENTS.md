@@ -15,4 +15,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
     and a lint check (`npm run lint` or equivalent) to ensure no type errors, 
     lint errors, or broken pages were introduced by your changes.
 
+    # Xero Integration Stability
+    The Xero integration (OAuth flow, webhooks, payment pushing, syncing) is fully functional and stable. 
+    DO NOT modify, refactor, or touch any Xero integration code (e.g., `lib/xero.ts`, `app/api/webhooks/xero/route.ts`, `lib/integrations-push.ts`, Xero settings pages) unless explicitly requested by the user to fix or change a specific part of it. If a specific fix is requested, ONLY modify the exact necessary parts for that fix and do not touch anything else in the integration.
+
 <!-- END:nextjs-agent-rules -->
