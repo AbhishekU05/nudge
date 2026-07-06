@@ -1,4 +1,3 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Users, CreditCard, Activity, AlertCircle, Trash2, Crown } from "lucide-react";
 import Link from "next/link";
 import { wipeMyTestData, grantAdminLifetimeAccess } from "@/app/actions/admin";

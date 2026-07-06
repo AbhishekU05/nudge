@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getValidXeroClient, getXeroIntegrationByTenant, fetchXeroInvoice, fetchXeroPayment, getWorkflowStatus, getInvoiceTotal, toIsoDate, normalizeEmail, withXeroRetry } from "@/lib/xero";
+import { getValidXeroClient, getXeroIntegrationByTenant, fetchXeroInvoice, getWorkflowStatus, getInvoiceTotal, toIsoDate, normalizeEmail, withXeroRetry } from "@/lib/xero";
 import { logger } from "@/lib/logger";
+import type { Invoice as XeroInvoice } from "xero-node";
 
 export async function POST(req: Request) {
   const rawBody = await req.text();
@@ -49,7 +50,13 @@ export async function POST(req: Request) {
   return NextResponse.json({ success: true });
 }
 
-async function processEvent(event: any) {
+async function processEvent(event: {
+  eventId: string;
+  tenantId: string;
+  resourceId: string;
+  eventCategory: string;
+  eventType: string;
+}) {
   const supabase = createSupabaseAdminClient();
   const eventId = event.eventId;
   
@@ -83,13 +90,13 @@ async function processEvent(event: any) {
     return;
   }
 
-  const { xero } = await getValidXeroClient(integration);
+  await getValidXeroClient(integration);
 
   if (eventCategory === "INVOICE") {
     const { result: invoice } = await withXeroRetry(integration, async (client, intg) => {
       return fetchXeroInvoice(client, intg.tenant_id, resourceId);
     });
-    if (invoice && String(invoice.type) === "ACCREC") {
+    if (invoice && invoice.invoiceID && String(invoice.type) === "ACCREC") {
       await upsertInvoice(supabase, integration.organization_id, invoice);
       
       // Xero doesn't send PAYMENT webhooks natively. Payments trigger an INVOICE update.
@@ -98,11 +105,13 @@ async function processEvent(event: any) {
         for (const payment of invoice.payments) {
           // invoice.payments typically contains simplified payment objects.
           // We can upsert them directly since they have paymentID, amount, and date.
-          const enrichedPayment = {
-            ...payment,
-            invoice: { invoiceID: invoice.invoiceID, currencyCode: invoice.currencyCode }
-          };
-          await upsertPayment(supabase, integration.organization_id, enrichedPayment);
+          if (payment.paymentID) {
+            const enrichedPayment = {
+              ...payment,
+              invoice: { invoiceID: invoice.invoiceID, currencyCode: invoice.currencyCode as string | undefined }
+            };
+            await upsertPayment(supabase, integration.organization_id, enrichedPayment as unknown as Parameters<typeof upsertPayment>[2]);
+          }
         }
       }
     }
@@ -116,7 +125,11 @@ async function processEvent(event: any) {
     .eq("provider", "xero");
 }
 
-async function upsertInvoice(supabase: any, organizationId: string, invoice: any) {
+async function upsertInvoice(
+  supabase: ReturnType<typeof import("@/lib/supabase/admin").createSupabaseAdminClient>,
+  organizationId: string,
+  invoice: XeroInvoice
+) {
   const amountOwed = getInvoiceTotal(invoice);
   
   // Find or create client
@@ -185,7 +198,16 @@ async function upsertInvoice(supabase: any, organizationId: string, invoice: any
   }
 }
 
-async function upsertPayment(supabase: any, organizationId: string, payment: any) {
+async function upsertPayment(
+  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  organizationId: string,
+  payment: {
+    paymentID: string;
+    amount?: number;
+    date?: string;
+    invoice?: { invoiceID: string; currencyCode?: string };
+  }
+) {
   // Check if payment already exists
   const { data: existingPayment } = await supabase
     .from("payments")

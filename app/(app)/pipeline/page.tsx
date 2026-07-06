@@ -10,7 +10,7 @@ export default async function PipelinePage(props: {
   searchParams?: Promise<{ currency?: string }>;
 }) {
   const searchParams = await props.searchParams;
-  const user = await requireUser();
+  await requireUser();
   const supabase = await createSupabaseServerClient();
 
   const [invoicesRes, paymentsRes] = await Promise.all([
@@ -18,17 +18,18 @@ export default async function PipelinePage(props: {
     supabase.from("payments").select("*")
   ]);
 
-  const allCustomers = (invoicesRes.data || []).map((inv: any) => {
-    const invPayments = (paymentsRes.data || []).filter((p: any) => p.invoice_id === inv.id);
-    const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+  const allCustomers = (invoicesRes.data || []).map((inv: Record<string, string | number | boolean | null | undefined | Record<string, unknown>>) => {
+    const invPayments = (paymentsRes.data || []).filter((p: Record<string, unknown>) => p.invoice_id === inv.id);
+    const amount_paid = invPayments.reduce((sum: number, p: Record<string, unknown>) => sum + Number(p.amount || 0), 0);
+    const clients = inv.clients as { name?: string; email?: string } | undefined;
     return {
       ...inv,
       amount_owed: inv.amount,
       amount_paid,
       workflow_status: inv.status,
       customer_id: inv.client_id,
-      recipient_name: inv.clients?.name || "Unknown",
-      recipient_email: inv.clients?.email || "No email"
+      recipient_name: clients?.name || "Unknown",
+      recipient_email: clients?.email || "No email"
     };
   }) as CustomerRecord[];
   

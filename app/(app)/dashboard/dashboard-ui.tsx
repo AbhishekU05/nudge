@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Container } from "@/components/site/container";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Users, AlertCircle, ArrowRight, Activity, Percent, Clock, Send, Info, Mail, Zap, FileText } from "lucide-react";
+import { DollarSign, Users, AlertCircle, ArrowRight, Activity, Percent, Send, Info, FileText } from "lucide-react";
 import { getDaysOverdue, isEffectivelyPaid, CustomerRecord, CustomerEvent } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { CollectionTrendWidget, DashboardPipelineWidget } from "@/components/site/dashboard-widgets";
@@ -21,18 +21,12 @@ export function DashboardUI({
   customers,
   events,
   recentEvents,
-  recentInvoices,
-  activeAutomations,
-  pendingDrafts,
   uniqueCurrencies,
   selectedCurrency,
 }: {
   customers: CustomerRecord[];
   events: CustomerEvent[];
-  recentEvents: any[];
-  recentInvoices: any[];
-  activeAutomations: any[];
-  pendingDrafts: any[];
+  recentEvents: (CustomerEvent & { clients?: { name?: string }, invoices?: { clients?: { name?: string } } })[];
   uniqueCurrencies: string[];
   selectedCurrency: string;
 }) {
@@ -186,7 +180,7 @@ export function DashboardUI({
           ) : (
             <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-8 text-center h-[300px] flex flex-col justify-center">
               <Users className="mx-auto h-8 w-8 text-zinc-500 mb-3" />
-              <h3 className="text-sm font-medium text-zinc-200">You're all caught up</h3>
+              <h3 className="text-sm font-medium text-zinc-200">You&apos;re all caught up</h3>
               <p className="text-sm text-zinc-500 mt-1">No customers currently need your attention.</p>
             </div>
           )}
@@ -229,7 +223,7 @@ export function DashboardUI({
                       </div>
                       <p className="text-sm text-zinc-400">
                         {isPayment 
-                          ? `Recorded ${formatCurrency(Number(event.amount), event.currency)} from ${customerName}`
+                          ? `Recorded ${formatCurrency(Number(event.amount), event.currency || "USD")} from ${customerName}`
                           : `Sent an automated follow-up to ${customerName}`
                         }
                       </p>

@@ -4,7 +4,7 @@
  * Automation is a separate, optional step (/reminders/new?customer_id=...).
  */
 import Link from "next/link";
-import { ArrowLeft, UserPlus, Zap } from "lucide-react";
+import { ArrowLeft, UserPlus } from "lucide-react";
 
 import { createCustomer } from "@/app/actions/customers";
 import { Container } from "@/components/site/container";

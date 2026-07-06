@@ -7,7 +7,6 @@ const react_1 = require("react");
 function LocalTime({ value, fallback = "Not sent yet", }) {
     const [mounted, setMounted] = (0, react_1.useState)(false);
     (0, react_1.useEffect)(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
     if (!value) {

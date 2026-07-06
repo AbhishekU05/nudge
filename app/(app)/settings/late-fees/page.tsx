@@ -43,7 +43,7 @@ export default async function LateFeesSettingsPage() {
         <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-6 text-center">
           <h3 className="text-lg font-medium text-rose-400 mb-2">Feature Locked</h3>
           <p className="text-sm text-zinc-300 mb-4">
-            Upgrade to a paid subscription to automate late fees and ensure you get paid what you're owed.
+            Upgrade to a paid subscription to automate late fees and ensure you get paid what you&apos;re owed.
           </p>
           <a 
             href="/settings/billing" 

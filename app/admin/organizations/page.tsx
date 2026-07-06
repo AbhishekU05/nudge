@@ -75,7 +75,7 @@ export default async function AdminOrganizations() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1">
-                      {org.organization_members?.map((member: any) => {
+                      {org.organization_members?.map((member: { user_id: string; role: string }) => {
                         const user = users.find(u => u.id === member.user_id);
                         return user?.email ? (
                           <span key={member.user_id} className="text-sm text-gray-700 flex items-center gap-2">
@@ -102,7 +102,7 @@ export default async function AdminOrganizations() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-2">
-                      {org.integrations?.map((int: any) => (
+                      {org.integrations?.map((int: { provider: string; is_active: boolean; last_synced_at: string | null }) => (
                         <div key={int.provider} className="flex items-center gap-2 text-xs">
                           <span className={`w-2 h-2 rounded-full ${int.is_active ? "bg-green-500" : "bg-red-500"}`}></span>
                           <span className="capitalize font-medium">{int.provider}</span>
@@ -117,7 +117,7 @@ export default async function AdminOrganizations() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {org.integrations?.map((int: any) => int.is_active && (
+                    {org.integrations?.map((int: { provider: string; is_active: boolean }) => int.is_active && (
                       <form key={int.provider} action={forceSync} className="inline-block ml-2">
                         <input type="hidden" name="orgId" value={org.id} />
                         <input type="hidden" name="provider" value={int.provider} />

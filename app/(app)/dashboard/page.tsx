@@ -23,28 +23,28 @@ export default async function DashboardPage(props: {
   searchParams?: Promise<{ currency?: string }>;
 }) {
   const searchParams = await props.searchParams;
-  const user = await requireUser();
+  await requireUser();
   const supabase = await createSupabaseServerClient();
 
   const [customersRes, eventsRes, draftsRes, activeClientsRes, activeInvoicesRes, paymentsRes] = await Promise.all([
     supabase.from("invoices").select("*, clients(name)"),
     supabase.from("events").select("*, clients(name), invoices(clients(name))").order("created_at", { ascending: false }),
-    Promise.resolve({ data: [] as any[] }),
-    Promise.resolve({ data: [] as any[] }),
-    Promise.resolve({ data: [] as any[] }),
+    Promise.resolve({ data: [] as Record<string, unknown>[] }),
+    Promise.resolve({ data: [] as Record<string, unknown>[] }),
+    Promise.resolve({ data: [] as Record<string, unknown>[] }),
     supabase.from("payments").select("*, invoices(clients(name))").order("created_at", { ascending: false })
   ]);
 
-  const allCustomers = (customersRes.data || []).map((inv: any) => {
-    const invPayments = (paymentsRes.data || []).filter((p: any) => p.invoice_id === inv.id);
-    const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+  const allCustomers = (customersRes.data || []).map((inv: Record<string, string | number | boolean | null | undefined | Record<string, unknown>>) => {
+    const invPayments = (paymentsRes.data || []).filter((p: Record<string, unknown>) => p.invoice_id === inv.id);
+    const amount_paid = invPayments.reduce((sum: number, p: Record<string, unknown>) => sum + Number(p.amount || 0), 0);
     return {
       ...inv,
       amount_owed: inv.amount,
       amount_paid,
       workflow_status: inv.status,
-      recipient_name: inv.clients?.name || "Unknown",
-      recipient_email: inv.clients?.email || "No email"
+      recipient_name: (inv.clients as { name?: string })?.name || "Unknown",
+      recipient_email: (inv.clients as { email?: string })?.email || "No email"
     };
   }) as CustomerRecord[];
   
@@ -54,49 +54,54 @@ export default async function DashboardPage(props: {
   const customers = allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
 
   const mappedEvents = [
-    ...(eventsRes.data || []).map((e: any) => ({
-      id: e.id,
-      invoice_id: e.invoice_id,
-      customer_id: e.invoice_id || e.client_id, 
-      user_id: e.user_id || "",
-      event_type: e.event_type,
-      event_date: e.created_at,
-      created_at: e.created_at,
+    ...(eventsRes.data || []).map((e: Record<string, string | null | number | undefined | Record<string, unknown>>) => ({
+      id: String(e.id),
+      invoice_id: String(e.invoice_id),
+      customer_id: String(e.invoice_id || e.client_id), 
+      user_id: String(e.user_id || ""),
+      event_type: String(e.event_type),
+      event_date: String(e.created_at),
+      created_at: String(e.created_at),
       amount: null,
       currency: null,
       payment_source: null,
       followup_method: null,
       followup_outcome: null,
-      note: e.description || null,
+      note: String(e.description || ""),
       clients: e.clients,
       invoices: e.invoices
     })),
-    ...(paymentsRes.data || []).map((p: any) => ({
-      id: p.id,
-      invoice_id: p.invoice_id,
-      customer_id: p.invoice_id, 
-      user_id: p.user_id || "",
+    ...(paymentsRes.data || []).map((p: Record<string, string | null | number | undefined | Record<string, unknown>>) => {
+      const inv = p.invoices as { clients?: Record<string, unknown> } | undefined;
+      return {
+      id: String(p.id),
+      invoice_id: String(p.invoice_id),
+      customer_id: String(p.invoice_id), 
+      user_id: String(p.user_id || ""),
       event_type: "payment",
-      event_date: p.payment_date || p.created_at,
-      created_at: p.created_at,
+      event_date: String(p.payment_date || p.created_at),
+      created_at: String(p.created_at),
       amount: p.amount,
       currency: p.currency,
       payment_source: p.payment_source || null,
       followup_method: null,
       followup_outcome: null,
       note: null,
-      clients: p.invoices?.clients,
+      clients: inv?.clients,
       invoices: p.invoices
-    }))
+    }})
   ].sort((a, b) => new Date(b.event_date || b.created_at).getTime() - new Date(a.event_date || a.created_at).getTime());
 
-  const events = mappedEvents.filter((e: any) => !e.currency || e.currency === selectedCurrency) as any[];
+  const events = mappedEvents.filter((e: Record<string, unknown>) => !e.currency || e.currency === selectedCurrency) as CustomerEvent[];
   const recentEvents = events.slice(0, 5);
 
   const pendingDrafts = draftsRes.data || [];
   const activeAutomations = [
-    ...(activeClientsRes.data || []).map(c => ({ id: c.id, name: c.name, next_send_at: c.next_send_at, type: 'client' })),
-    ...(activeInvoicesRes.data || []).map((i: any) => ({ id: i.id, name: i.clients?.name || "Unknown", next_send_at: i.next_send_at, type: 'invoice' }))
+    ...(activeClientsRes.data || []).map((c: Record<string, unknown>) => ({ id: String(c.id), name: String(c.name), next_send_at: String(c.next_send_at), type: 'client' })),
+    ...(activeInvoicesRes.data || []).map((i: Record<string, unknown>) => {
+      const clients = i.clients as { name?: string } | undefined;
+      return { id: String(i.id), name: clients?.name || "Unknown", next_send_at: String(i.next_send_at), type: 'invoice' }
+    })
   ].sort((a, b) => new Date(a.next_send_at).getTime() - new Date(b.next_send_at).getTime()).slice(0, 5);
 
   const recentInvoices = [...customers].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5);
@@ -291,7 +296,8 @@ export default async function DashboardPage(props: {
                 <div className="space-y-3">
                   {recentEvents.map((event) => {
                     const isPayment = event.event_type === "payment";
-                    const customerName = event.clients?.name || event.invoices?.clients?.name || "Unknown Customer";
+                    const ev = event as CustomerEvent & { clients?: { name?: string }, invoices?: { clients?: { name?: string } } };
+                    const customerName = ev.clients?.name || ev.invoices?.clients?.name || "Unknown Customer";
                     
                     return (
                       <Link
@@ -385,7 +391,9 @@ export default async function DashboardPage(props: {
 
               {pendingDrafts.length > 0 ? (
                 <div className="space-y-3">
-                  {pendingDrafts.map((draft: any) => (
+                  {pendingDrafts.map((draftRaw) => {
+                    const draft = draftRaw as { id: string; subject?: string; to_email?: string };
+                    return (
                     <Link
                       key={draft.id}
                       href={`/drafts`}
@@ -396,7 +404,7 @@ export default async function DashboardPage(props: {
                         To: {draft.to_email}
                       </p>
                     </Link>
-                  ))}
+                  )})}
                 </div>
               ) : (
                 <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center flex flex-col justify-center h-[200px]">
@@ -418,7 +426,9 @@ export default async function DashboardPage(props: {
 
               {activeAutomations.length > 0 ? (
                 <div className="space-y-3">
-                  {activeAutomations.map((auto: any) => (
+                  {activeAutomations.map((autoRaw) => {
+                    const auto = autoRaw as { id: string; type: string; name?: string; next_send_at?: string };
+                    return (
                     <Link
                       key={`${auto.type}-${auto.id}`}
                       href={`/customers/${auto.id}`}
@@ -437,7 +447,7 @@ export default async function DashboardPage(props: {
                         </div>
                       </div>
                     </Link>
-                  ))}
+                  )})}
                 </div>
               ) : (
                 <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center flex flex-col justify-center h-[200px]">

@@ -1,5 +1,6 @@
 import "server-only";
-import { getValidXeroClient } from "./xero";
+import { Invoice } from "xero-node";
+import { getValidXeroClient, XeroIntegrationRow } from "./xero";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function createXeroLateFeeInvoice(
@@ -13,12 +14,12 @@ export async function createXeroLateFeeInvoice(
   const { data: integration } = await supabase.from("integrations").select("*").eq("organization_id", organizationId).eq("provider", "xero").single();
   
   if (!integration) return null;
-  const { xero } = await getValidXeroClient(integration as any);
+  const { xero } = await getValidXeroClient(integration as XeroIntegrationRow);
   const tenantId = integration.tenant_id;
   if (!tenantId) return null;
 
-  const newInvoice = {
-    type: "ACCREC" as any,
+  const newInvoice: Invoice = {
+    type: Invoice.TypeEnum.ACCREC,
     contact: {
       name: contactName,
       emailAddress: email
@@ -33,7 +34,7 @@ export async function createXeroLateFeeInvoice(
         accountCode: "200"
       }
     ],
-    status: "AUTHORISED" as any
+    status: Invoice.StatusEnum.AUTHORISED
   };
 
   const response = await xero.accountingApi.createInvoices(tenantId, { invoices: [newInvoice] });
@@ -49,7 +50,7 @@ export async function updateXeroInvoiceWithLateFee(
   const { data: integration } = await supabase.from("integrations").select("*").eq("organization_id", organizationId).eq("provider", "xero").single();
   
   if (!integration) return null;
-  const { xero } = await getValidXeroClient(integration as any);
+  const { xero } = await getValidXeroClient(integration as XeroIntegrationRow);
   const tenantId = integration.tenant_id;
   if (!tenantId) return null;
 

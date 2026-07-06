@@ -96,7 +96,7 @@ export default async function CustomerPage(props: {
     .select("dodo_subscription_status, created_at")
     .eq("id", customerData.organization_id)
     .single();
-  const isAllowed = org ? isAutomationAndIntegrationAllowed(org.dodo_subscription_status, org.created_at) : false;
+  const _isAllowed = org ? isAutomationAndIntegrationAllowed(org.dodo_subscription_status, org.created_at) : false;
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -111,9 +111,7 @@ export default async function CustomerPage(props: {
         <CustomerDetails 
           customer={customerRecord} 
           group={group} 
-          isAllowed={isAllowed}
           initialTab={(tab as any) || "payment"} 
-          isDevelopment={process.env.NODE_ENV === "development"} 
         />
       </Container>
     </div>

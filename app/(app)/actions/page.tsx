@@ -1,23 +1,13 @@
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Container } from "@/components/site/container";
-import { generateActionPlan, ActionTask } from "@/lib/action-engine";
-import { Zap, AlertCircle, AlertTriangle, Coffee, Info, CheckCircle2, ArrowRight } from "lucide-react";
-import { ClientRecord, InvoiceRecord, getDaysOverdue, getRemainingBalance } from "@/lib/types";
-import Link from "next/link";
-
-function formatCurrency(value: number, currency: string = "USD") {
-  return new Intl.NumberFormat(undefined, {
-    currency,
-    style: "currency",
-    maximumFractionDigits: 0,
-  }).format(Number(value));
-}
+import { generateActionPlan } from "@/lib/action-engine";
+import { ClientRecord, InvoiceRecord, getDaysOverdue, getRemainingBalance, FollowUpLog } from "@/lib/types";
 
 import { ActionsUI } from "./actions-ui";
 
 export default async function ActionsPage() {
-  const user = await requireUser();
+  await requireUser();
   const supabase = await createSupabaseServerClient();
 
   const [clientsRes, invoicesRes, eventsRes] = await Promise.all([
@@ -35,11 +25,11 @@ export default async function ActionsPage() {
     if (!inv.followup_history) {
       inv.followup_history = [];
     }
-    const invEvents = events.filter((e: any) => e.invoice_id === inv.id);
+    const invEvents = events.filter((e: { invoice_id?: string; [key: string]: unknown }) => e.invoice_id === inv.id);
     for (const e of invEvents) {
       inv.followup_history.push({
-        ...e,
-        followup_date: e.event_date || e.created_at
+        ...(e as unknown as FollowUpLog),
+        followup_date: (e as unknown as { event_date?: string; created_at: string }).event_date || (e as unknown as { event_date?: string; created_at: string }).created_at
       });
     }
   }

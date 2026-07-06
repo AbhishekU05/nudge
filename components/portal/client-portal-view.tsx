@@ -4,13 +4,15 @@ import { useState } from "react";
 import { InvoiceCard } from "@/components/portal/invoice-card";
 import Link from "next/link";
 
+import { PortalInvoice } from "@/components/portal/invoice-card";
+
 type CurrencyGroup = [
   string,
   {
-    outstanding: any[];
-    overdue: any[];
-    dueSoon: any[];
-    paid: any[];
+    outstanding: PortalInvoice[];
+    overdue: PortalInvoice[];
+    dueSoon: PortalInvoice[];
+    paid: PortalInvoice[];
     totalOutstanding: number;
   }
 ];
@@ -24,7 +26,7 @@ export function ClientPortalView({
 }: {
   client: { name: string; id: string };
   agencyName: string;
-  bankAccounts: any[];
+  bankAccounts: { name: string; currency?: string; accountNumber: string; provider?: string }[];
   currencyGroups: CurrencyGroup[];
   token?: string;
 }) {
@@ -182,7 +184,7 @@ export function ClientPortalView({
                   Payment History
                 </h2>
                 <div className="flex flex-col gap-3">
-                  {activeGroup.paid.map((inv: any) => (
+                  {activeGroup.paid.map((inv: PortalInvoice) => (
                     <div key={inv.id} className="opacity-60 hover:opacity-100 transition-opacity">
                       <InvoiceCard invoice={inv} token={token || ""} type="paid" fmt={fmt} />
                     </div>
@@ -220,7 +222,7 @@ function InvoiceSection({
 }: {
   title: string;
   titleClass: string;
-  invoices: any[];
+  invoices: PortalInvoice[];
   type: "overdue" | "due_soon" | "outstanding" | "paid";
   token?: string;
   fmt: (amount: number, currency: string) => string;

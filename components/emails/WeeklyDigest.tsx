@@ -35,10 +35,10 @@ export interface CurrencyDigest {
   forecastChartUrl: string;
   followupActivityChartUrl: string;
 
-  upcomingInvoices: any[];
-  overdueInvoices: any[];
-  promisesThisWeek: any[];
-  paymentsReceived: any[];
+  upcomingInvoices: { clientName: string; amount: string; dueInDays: number | string }[];
+  overdueInvoices: { clientName: string; amount: string; daysOverdue: number | string }[];
+  promisesThisWeek: { clientName: string; amount: string; dueDate: string }[];
+  paymentsReceived: { clientName: string; amount: string; date: string }[];
   actionItems: string[];
 }
 

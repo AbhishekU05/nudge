@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 import { getRequiredEnv } from "@/lib/env";
 import { getAppUrl } from "@/lib/email/reminder";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

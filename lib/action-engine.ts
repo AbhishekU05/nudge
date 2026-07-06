@@ -141,7 +141,7 @@ export function evaluateClient(
   }
 
   // Edge Case: Automations
-  let isAutoPilot = client.active; // True if enrolled in automation
+  const isAutoPilot = client.active; // True if enrolled in automation
   
   // Cooldown Logic
   let isCooldown = false;

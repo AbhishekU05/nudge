@@ -12,7 +12,7 @@ export type SEOPageData = {
   slug?: string;
   longContent?: {
     type: 'competitor' | 'industry' | 'integration' | 'location' | 'use-case';
-    data: any;
+    data: Record<string, unknown>;
   };
 };
 

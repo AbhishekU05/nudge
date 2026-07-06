@@ -29,6 +29,7 @@ import { mockClients, mockInvoices, mockEvents, mockGroups, mockCustomers } from
 import { generateActionPlan } from "@/lib/action-engine";
 
 import { LocalTime } from "@/components/site/local-time";
+import type { CustomerRecord, CustomerEvent, ClientRecord } from "@/lib/types";
 
 export function InteractiveAppDemo() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "action-center" | "activity" | "pipeline" | "analytics" | "automate" | "customers" | "invoices">("dashboard");
@@ -97,17 +98,15 @@ export function InteractiveAppDemo() {
   }, []);
   const events = demoEvents
     .filter((event) => !selectedCustomerIds || selectedCustomerIds.has(event.customer_id))
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    .sort((a, b) => new Date(b.created_at as string).getTime() - new Date(a.created_at as string).getTime());
   const customers = [...mockInvoices]
-    .filter((invoice) => !selectedCustomerIds || selectedCustomerIds.has(invoice.customer_id))
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    .filter((invoice) => !selectedCustomerIds || selectedCustomerIds.has(invoice.customer_id as string))
+    .sort((a, b) => new Date(b.created_at as string).getTime() - new Date(a.created_at as string).getTime());
   const visibleCustomers = mockCustomers.filter(
     (customer) => !selectedCustomerIds || selectedCustomerIds.has(customer.id)
   );
   const recentEvents = [...events].slice(0, 5);
-  const recentInvoices = [...customers].slice(0, 5);
-  const pendingDrafts: Record<string, unknown>[] = [];
-  const activeAutomations: Record<string, unknown>[] = [];
+
 
   // Generate real tasks for Action Center
   // Deep copy to prevent mutating the mock data multiple times
@@ -125,7 +124,7 @@ export function InteractiveAppDemo() {
       });
     }
   }
-  const tasks = generateActionPlan(mockClients, clonedInvoices);
+  const tasks = generateActionPlan(mockClients as unknown as ClientRecord[], clonedInvoices);
 
   const selectGroup = (groupId: string) => {
     setActiveGroup((current) => current === groupId ? null : groupId);
@@ -199,7 +198,7 @@ export function InteractiveAppDemo() {
             {isExpanded && <span className="truncate whitespace-nowrap text-sm font-medium">Reset filter</span>}
           </button>
 
-          {[{ id: "global", name: "All", color: "#818cf8", customerCount: mockCustomers.length }, ...mockGroups.map((group) => ({ ...group, customerCount: groupMemberships.get(group.id)?.size ?? 0 }))].map((group) => {
+          {([{ id: "global", name: "All", color: "#818cf8", customerCount: mockCustomers.length }, ...mockGroups.map((group) => ({ ...group, customerCount: groupMemberships.get(group.id as string)?.size ?? 0 }))] as unknown as { id: string; name: string; color: string; customerCount: number }[]).map((group) => {
             const isActive = activeGroup === group.id;
             return (
               <div key={group.id} className="flex flex-col">
@@ -256,12 +255,9 @@ export function InteractiveAppDemo() {
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 [&_a]:pointer-events-none [&_a]:cursor-default [&_a]:no-underline" onClickCapture={preventDemoNavigation}>
           {activeTab === "dashboard" && (
             <DashboardUI
-              customers={customers}
-              events={events}
-              recentEvents={recentEvents}
-              recentInvoices={recentInvoices}
-              activeAutomations={activeAutomations}
-              pendingDrafts={pendingDrafts}
+              customers={customers as unknown as CustomerRecord[]}
+              events={events as unknown as CustomerEvent[]}
+              recentEvents={recentEvents as unknown as CustomerEvent[]}
               uniqueCurrencies={uniqueCurrencies}
               selectedCurrency={selectedCurrency}
             />
@@ -274,7 +270,7 @@ export function InteractiveAppDemo() {
           )}
 
           {activeTab === "pipeline" && (
-            <PipelineClient initialCustomers={customers} currency={selectedCurrency} />
+            <PipelineClient initialCustomers={customers as unknown as CustomerRecord[]} currency={selectedCurrency} />
           )}
 
           {activeTab === "analytics" && (
@@ -283,7 +279,7 @@ export function InteractiveAppDemo() {
                 <h2 className="text-2xl font-bold text-zinc-100">Analytics & Reports</h2>
                 <p className="text-zinc-400 mt-1">Deep dive into your collection metrics and cash flow performance.</p>
               </div>
-              <AnalyticsClient customers={customers} events={events} />
+              <AnalyticsClient customers={customers as unknown as CustomerRecord[]} events={events as unknown as CustomerEvent[]} />
             </div>
           )}
           {activeTab === "activity" && (
@@ -292,7 +288,7 @@ export function InteractiveAppDemo() {
                 <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Activity</h1>
                 <p className="mt-2 text-zinc-400">A timeline of events across your collections workflow.</p>
               </div>
-              <ActivityFeed events={events} />
+              <ActivityFeed events={events as unknown as CustomerEvent[]} />
             </div>
           )}
 
@@ -326,7 +322,7 @@ export function InteractiveAppDemo() {
                     </div>
 
                     <div className="space-y-4">
-                      {mockClients.map(client => (
+                      {(mockClients as unknown as { id: string; name: string; auto_approve: boolean; reminder_type: string; next_send_at: string }[]).map(client => (
                         <div 
                           key={client.id} 
                           className="block rounded-xl border border-white/10 bg-zinc-900/50 p-4 transition-colors hover:bg-white/[0.02] hover:border-white/20"
@@ -361,7 +357,7 @@ export function InteractiveAppDemo() {
                     </div>
 
                     <div className="space-y-4">
-                      {mockInvoices.map(invoice => (
+                      {(mockInvoices as unknown as { id: string; recipient_name: string; invoice_number: string; auto_approve: boolean; reminder_type: string; due_date: string }[]).map(invoice => (
                         <div 
                           key={invoice.id} 
                           className="block rounded-xl border border-white/10 bg-zinc-900/50 p-4 transition-colors hover:bg-white/[0.02] hover:border-white/20"
@@ -432,7 +428,7 @@ export function InteractiveAppDemo() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/10">
-                    {visibleCustomers.map((customer) => {
+                    {(visibleCustomers as unknown as { id: string; name: string; email: string; totalOwed: number }[]).map((customer) => {
                       const formattedTotal = new Intl.NumberFormat(undefined, {
                         style: "currency",
                         currency: "USD"
@@ -487,7 +483,7 @@ export function InteractiveAppDemo() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/10">
-                    {customers.map((invoice) => {
+                    {(customers as unknown as { id: string; recipient_name: string; invoice_number: string; amount_owed: number; amount_paid: number; workflow_status: string; due_date: string; currency: string }[]).map((invoice) => {
                       const balance = Math.max(0, Number(invoice.amount_owed) - Number(invoice.amount_paid));
                       const status = balance === 0 ? "Paid" : invoice.workflow_status === "overdue" ? "Overdue" : "Outstanding";
 

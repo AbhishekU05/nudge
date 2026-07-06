@@ -95,7 +95,6 @@ function PulseDot({ color }: { color: string }) {
 
 function ClientCard({ client, active }: { client: ClientRow; active: boolean }) {
   const cfg = STATUS_CONFIG[client.status];
-  const Icon = cfg.icon;
   const isPaid = client.status === "paid";
 
   return (

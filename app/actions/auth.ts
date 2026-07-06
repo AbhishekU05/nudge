@@ -302,7 +302,7 @@ export async function logout() {
   const supabase = await createSupabaseServerClient();
   try {
     await supabase.auth.signOut();
-  } catch (error) {
+  } catch {
     // Ignore error if already signed out or session invalid
   }
   redirect("/login");

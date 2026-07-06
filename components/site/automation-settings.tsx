@@ -89,7 +89,7 @@ export function AutomationSettings({
   };
 
   const handleSave = async (formData: FormData) => {
-    let emailToUse = targetEmail?.trim() || emailInput.trim();
+    const emailToUse = targetEmail?.trim() || emailInput.trim();
     if (!emailToUse) {
       alert("Automation save cancelled. An email address is required.");
       return;
@@ -359,7 +359,7 @@ export function AutomationSettings({
             <div className="p-6">
               <h3 className="text-lg font-medium text-white mb-2">Email Address Required</h3>
               <p className="text-sm text-zinc-400 mb-6">
-                This automation requires an email address. Please enter the recipient's email address below to continue.
+                This automation requires an email address. Please enter the recipient&apos;s email address below to continue.
               </p>
               <Input 
                 type="email" 

@@ -22,7 +22,6 @@ function SiteHeader() {
     const pathname = (0, navigation_1.usePathname)();
     // Close menu when route changes
     (0, react_1.useEffect)(() => {
-        // eslint-disable-next-line
         setIsOpen(false);
     }, [pathname]);
     // Prevent scrolling when mobile menu is open

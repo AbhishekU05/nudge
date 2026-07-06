@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
-import { Plus, UserRound, X, Loader2, FileText, ArrowRight, XCircle, Globe, Users } from "lucide-react";
+import { useState, useTransition } from "react";
+import { Plus, UserRound, X, Loader2, FileText, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createGroup } from "@/app/(app)/customers/actions";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { GroupRecord, ClientRecord, InvoiceRecord, getRemainingBalance } from "@/lib/types";
+import { GroupRecord } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 

@@ -1,12 +1,27 @@
 import { PromiseButton } from "./promise-button";
 
+export interface PortalInvoice {
+  id: string;
+  amount_owed: number;
+  amount_paid: number;
+  balance: number;
+  currency: string;
+  invoice_number: string | null;
+  due_date: string | null;
+  payment_link: string | null;
+  daysOverdue?: number | null;
+  daysUntilDue?: number | null;
+  isPaid?: boolean;
+  promised_date?: string | null;
+}
+
 export function InvoiceCard({
   invoice,
   token,
   type,
   fmt,
 }: {
-  invoice: any;
+  invoice: PortalInvoice;
   token: string;
   type: "overdue" | "due_soon" | "outstanding" | "paid";
   fmt: (amount: number, currency: string) => string;

@@ -20,8 +20,8 @@ export function SiteHeader() {
 
   // Close menu when route changes
   useEffect(() => {
-    // eslint-disable-next-line
-    setIsOpen(false);
+    const timer = setTimeout(() => setIsOpen(false), 0);
+    return () => clearTimeout(timer);
   }, [pathname]);
 
   // Prevent scrolling when mobile menu is open
@@ -71,12 +71,12 @@ export function SiteHeader() {
               How it works
             </Button>
           </Link>
-          <a
+          <Link
             href="/#pricing"
             className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-zinc-100"
           >
             Pricing
-          </a>
+          </Link>
           <Link href="/login">
             <Button variant="ghost" size="sm" className="text-zinc-300 hover:text-zinc-50">
               Sign in
@@ -125,11 +125,11 @@ export function SiteHeader() {
                   How it works
                 </Button>
               </Link>
-              <a href="/#pricing" onClick={() => setIsOpen(false)}>
+              <Link href="/#pricing" onClick={() => setIsOpen(false)}>
                 <Button variant="ghost" className="w-full justify-center h-12 text-base bg-transparent text-zinc-300 border border-zinc-800 hover:bg-white/[0.04]">
                   Pricing
                 </Button>
-              </a>
+              </Link>
               <Link href="/login">
                 <Button variant="secondary" className="w-full justify-center h-12 text-base">
                   Sign in

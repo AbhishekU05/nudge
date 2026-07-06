@@ -14,11 +14,9 @@ import {
   Clock,
   MessageSquare,
   FileText,
-  Zap,
   Copy,
   Check,
   Link2,
-  AlertCircle,
   Undo2,
   Trash2,
   ReceiptText,
@@ -44,7 +42,6 @@ import {
   updateCustomerEmail,
 } from "@/app/actions/customers";
 import { FOLLOWUP_TEMPLATES } from "@/lib/followup-templates";
-import { pauseReminder, resumeReminder } from "@/app/actions/reminders";
 import { cn } from "@/lib/utils";
 import type { CustomerRecord, FollowUpTone, FollowUpMethod, FollowUpOutcome } from "@/lib/types";
 import { getRemainingBalance, getDaysOverdue } from "@/lib/types";
@@ -691,18 +688,6 @@ function NotesTab({ customer }: { customer: CustomerRecord }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Automation tab (demoted — "escalation" framing)
-// ---------------------------------------------------------------------------
-function AutomationTab({
-  customer,
-  isDevelopment,
-}: {
-  customer: CustomerRecord;
-  isDevelopment: boolean;
-}) {
-  return null;
-}
 
 // ---------------------------------------------------------------------------
 // Main drawer component
@@ -710,12 +695,10 @@ function AutomationTab({
 export function CustomerDrawer({
   customer,
   initialTab = "payment",
-  isDevelopment,
   onClose,
 }: {
   customer: CustomerRecord | null;
   initialTab?: Tab;
-  isDevelopment: boolean;
   onClose: () => void;
 }) {
   const [tab, setTab] = useState<Tab>(initialTab);

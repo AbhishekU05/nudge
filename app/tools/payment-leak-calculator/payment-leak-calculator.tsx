@@ -116,7 +116,6 @@ export function PaymentLeakCalculator() {
       }
     });
 
-    // eslint-disable-next-line
     setLeadSource({
       source: params.get("source") || undefined,
       utm_source: params.get("utm_source") || undefined,

@@ -1,13 +1,11 @@
 import { inngest } from "@/lib/inngest/client";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getRemainingBalance } from "@/lib/types";
 import { sendGmail } from "@/lib/gmail";
-import { createXeroLateFeeInvoice } from "@/lib/xero-write";
 import { isAutomationAndIntegrationAllowed } from "@/lib/payments";
 
 export const applyLateFees = inngest.createFunction(
   { id: "apply-late-fees", triggers: [{ cron: "0 * * * *" }] }, // Hourly
-  async ({ step }) => {
+  async () => {
     const supabase = createSupabaseAdminClient();
 
     // 1. Fetch active late fee policies

@@ -129,7 +129,7 @@ export function ActionsUI({ tasks, isAllUnder3Days = false }: { tasks: ActionTas
             </div>
             <h3 className="text-2xl font-medium text-zinc-100 tracking-tight">All caught up!</h3>
             <p className="text-base text-zinc-400 mt-3 max-w-md">
-              We've analyzed your accounting data. Good news! You have no fires to put out today. Relax or focus on other work.
+              We&apos;ve analyzed your accounting data. Good news! You have no fires to put out today. Relax or focus on other work.
             </p>
           </div>
         ) : (

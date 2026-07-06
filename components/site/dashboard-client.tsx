@@ -11,20 +11,16 @@ import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   CheckCircle2,
-  Clock,
   DollarSign,
   Users,
   ChevronRight,
-  Plus,
-  Zap,
-  MessageSquare,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-import { LocalTime } from "@/components/site/local-time";
+
+
 import { cn } from "@/lib/utils";
 import type { CustomerRecord } from "@/lib/types";
 import { getRemainingBalance, getDaysOverdue, isEffectivelyPaid } from "@/lib/types";
@@ -267,138 +263,7 @@ function PipelineSection({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Quick add customer card (sidebar)
-// ---------------------------------------------------------------------------
-function QuickAddCard({ hasSubscription }: { hasSubscription: boolean }) {
-  return (
-    <Card className="bg-white/[0.035]">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Plus className="h-4 w-4 text-primary" />
-          Add customer
-        </CardTitle>
-        <CardDescription>Track a new outstanding balance.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {hasSubscription ? (
-          <>
-            <p className="text-sm leading-6 text-zinc-500">
-              Enter their details, log payments, and set up automated reminders
-              whenever you&apos;re ready.
-            </p>
-            <Link href="/invoices/new" className="block">
-              <Button className="w-full gap-2">
-                <Plus className="h-3.5 w-3.5" />
-                Add customer
-              </Button>
-            </Link>
-          </>
-        ) : (
-          <>
-            <p className="text-sm leading-6 text-zinc-500">
-              Activate your plan to start tracking customers.
-            </p>
-            <Link href="/settings/billing" className="block">
-              <Button className="w-full">Open billing</Button>
-            </Link>
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
 
-// ---------------------------------------------------------------------------
-// Recent activity feed (sidebar)
-// ---------------------------------------------------------------------------
-function ActivityFeed({ customers }: { customers: CustomerRecord[] }) {
-  type ActivityItem = {
-    id: string;
-    label: string;
-    sub: string;
-    at: string;
-    tone: "success" | "warning" | "muted" | "primary";
-  };
-
-  const items: ActivityItem[] = customers
-    .flatMap((c): ActivityItem[] => {
-      const entries: ActivityItem[] = [];
-
-      if (c.client_paid_at) {
-        entries.push({
-          id: `${c.id}-paid`,
-          label: "Paid — customer confirmed",
-          sub: c.recipient_name,
-          at: c.client_paid_at,
-          tone: "success",
-        });
-      } else if (c.workflow_status === "paid") {
-        entries.push({
-          id: `${c.id}-paid`,
-          label: "Marked as paid",
-          sub: c.recipient_name,
-          at: c.updated_at,
-          tone: "success",
-        });
-      }
-      if (c.promised_date) {
-        entries.push({
-          id: `${c.id}-promised`,
-          label: "Payment promised",
-          sub: `${c.recipient_name} · ${new Date(c.promised_date).toLocaleDateString()}`,
-          at: c.updated_at,
-          tone: "primary",
-        });
-      }
-      return entries;
-    })
-    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
-    .slice(0, 7);
-
-  const dotColors = {
-    success: "bg-emerald-400",
-    warning: "bg-amber-400",
-    muted: "bg-zinc-600",
-    primary: "bg-primary",
-  };
-
-  return (
-    <Card className="bg-white/[0.025]">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-primary" />
-          Recent activity
-        </CardTitle>
-        <CardDescription>Payments, promises, and follow-ups.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {items.length > 0 ? (
-          <div className="space-y-4">
-            {items.map((item) => (
-              <div key={item.id} className="flex gap-3">
-                <span
-                  className={cn(
-                    "mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full",
-                    dotColors[item.tone],
-                  )}
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-zinc-200">{item.label}</p>
-                  <p className="mt-0.5 truncate text-sm text-zinc-500">{item.sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-5 text-center text-sm text-zinc-600">
-            Activity will appear here as you log payments and follow-ups.
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Main client component
@@ -406,16 +271,12 @@ function ActivityFeed({ customers }: { customers: CustomerRecord[] }) {
 export function DashboardClient({
   customers,
   hasSubscription,
-  isDevelopment,
   currency = "USD",
 }: {
   customers: CustomerRecord[];
   hasSubscription: boolean;
-  isDevelopment?: boolean;
   currency?: string;
 }) {
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerRecord | null>(null);
-  const [activeTab, setActiveTab] = useState<Tab>("payment");
   const router = useRouter();
 
   function handleOpen(customer: CustomerRecord, tab: Tab = "payment") {

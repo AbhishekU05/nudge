@@ -9,7 +9,6 @@
 
 import { useState } from "react";
 import {
-  X,
   CheckCircle2,
   Clock,
   MessageSquare,
@@ -18,7 +17,6 @@ import {
   Copy,
   Check,
   Link2,
-  AlertCircle,
   Undo2,
   Trash2,
   ReceiptText,
@@ -45,7 +43,6 @@ import {
   deletePaymentLog,
 } from "@/app/actions/customers";
 import { FOLLOWUP_TEMPLATES } from "@/lib/followup-templates";
-import { pauseReminder, resumeReminder } from "@/app/actions/reminders";
 import { AutomationSettings } from "@/components/site/automation-settings";
 import { cn } from "@/lib/utils";
 import type { CustomerRecord, FollowUpTone, FollowUpMethod, FollowUpOutcome, GroupRecord } from "@/lib/types";
@@ -708,11 +705,9 @@ function NotesTab({ customer }: { customer: CustomerRecord }) {
 // ---------------------------------------------------------------------------
 function AutomationTab({
   customer,
-  isDevelopment,
   isAllowed,
 }: {
   customer: CustomerRecord;
-  isDevelopment: boolean;
   isAllowed?: boolean;
 }) {
   return (
@@ -854,15 +849,11 @@ function TimelineTab({ customer }: { customer: CustomerRecord }) {
 export function CustomerDetails({
   customer,
   group,
-  initialTab = "timeline",
-  isDevelopment,
-  isAllowed = true,
+  initialTab = "payment",
 }: {
   customer: CustomerRecord | null;
   group?: GroupRecord | null;
   initialTab?: Tab;
-  isDevelopment: boolean;
-  isAllowed?: boolean;
 }) {
   const [tab, setTab] = useState<Tab>(initialTab);
 
@@ -1003,7 +994,7 @@ export function CustomerDetails({
             {tab === "promise" && <PromiseTab customer={customer} />}
             {tab === "followup" && <FollowUpTab customer={customer} />}
             {tab === "notes" && <NotesTab customer={customer} />}
-            {tab === "automation" && <AutomationTab customer={customer} isDevelopment={isDevelopment} isAllowed={isAllowed} />}
+            {tab === "automation" && <AutomationTab customer={customer} />}
           </div>
 
           {/* Danger zone — Sidebar / Bottom */}

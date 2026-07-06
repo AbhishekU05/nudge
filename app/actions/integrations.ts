@@ -190,7 +190,7 @@ export async function syncIntegrationNow(provider: "xero" | "quickbooks") {
     revalidatePath("/dashboard");
     revalidatePath("/customers");
     return { success: true, message: provider === "xero" ? "Sync started in background." : `Synced ${result.imported} imported, ${result.updated} updated.` };
-  } catch (error) {
+  } catch {
     return { success: false, message: `Server Error: Unable to sync ${provider}.` };
   }
 }

@@ -247,7 +247,6 @@ function AnalyticsClient({ customers, events, currency = "USD", }) {
             totalCustomers: customers.length,
         };
     }, [customers, events]);
-    // eslint-disable-next-line
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             return ((0, jsx_runtime_1.jsxs)("div", { className: "bg-zinc-900 border border-white/10 p-3 rounded-lg shadow-xl", children: [(0, jsx_runtime_1.jsx)("p", { className: "text-sm text-zinc-400 mb-1", children: label }), (0, jsx_runtime_1.jsx)("p", { className: "text-sm font-bold text-zinc-100", children: formatCurrency(payload[0].value, currency) })] }));

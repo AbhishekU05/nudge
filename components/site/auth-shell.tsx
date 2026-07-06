@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Zap } from "lucide-react";
+
 
 export function AuthShell({
   title,

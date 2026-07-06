@@ -17,8 +17,8 @@ export function FeedbackForm() {
         await submitFeedback(formData);
         toast.success("Feedback sent successfully! Thank you.");
         formRef.current?.reset();
-      } catch (err: any) {
-        toast.error(err.message || "Failed to send feedback.");
+      } catch (err: unknown) {
+        toast.error((err as Error).message || "Failed to send feedback.");
       }
     });
   };

@@ -10,7 +10,7 @@ export default async function AnalyticsPage(props: {
   searchParams?: Promise<{ currency?: string }>;
 }) {
   const searchParams = await props.searchParams;
-  const user = await requireUser();
+  await requireUser();
   const supabase = await createSupabaseServerClient();
 
   const [invoicesRes, eventsRes, paymentsRes] = await Promise.all([
@@ -19,9 +19,9 @@ export default async function AnalyticsPage(props: {
     supabase.from("payments").select("*").order("created_at", { ascending: true })
   ]);
 
-  const allCustomers = (invoicesRes.data || []).map((inv: any) => {
-    const invPayments = (paymentsRes.data || []).filter((p: any) => p.invoice_id === inv.id);
-    const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+  const allCustomers = (invoicesRes.data || []).map((inv: Record<string, string | number | boolean | null | undefined | Record<string, unknown>>) => {
+    const invPayments = (paymentsRes.data || []).filter((p: Record<string, unknown>) => p.invoice_id === inv.id);
+    const amount_paid = invPayments.reduce((sum: number, p: Record<string, unknown>) => sum + Number(p.amount || 0), 0);
     return {
       ...inv,
       amount_owed: inv.amount,
@@ -38,30 +38,32 @@ export default async function AnalyticsPage(props: {
   const customerIds = new Set(customers.map(c => c.id));
   
   const mappedEvents = [
-    ...(eventsRes.data || []).map((e: any) => ({
-      id: e.id,
-      invoice_id: e.invoice_id,
-      customer_id: e.invoice_id, // Analytics maps customer_id to invoice_id under the hood for grouping
-      event_type: e.event_type,
-      event_date: e.created_at,
-      created_at: e.created_at,
+    ...(eventsRes.data || []).map((e: Record<string, string | null | number | undefined | Record<string, unknown>>) => ({
+      id: String(e.id),
+      invoice_id: String(e.invoice_id),
+      customer_id: String(e.invoice_id), // Analytics maps customer_id to invoice_id under the hood for grouping
+      event_type: String(e.event_type),
+      event_date: String(e.created_at),
+      created_at: String(e.created_at),
       amount: null,
       currency: null,
       clients: e.clients,
       invoices: e.invoices
     })),
-    ...(paymentsRes.data || []).map((p: any) => ({
-      id: p.id,
-      invoice_id: p.invoice_id,
-      customer_id: p.invoice_id, // Analytics groups by invoice
+    ...(paymentsRes.data || []).map((p: Record<string, string | null | number | undefined | Record<string, unknown>>) => {
+      const inv = p.invoices as { clients?: Record<string, unknown> } | undefined;
+      return {
+      id: String(p.id),
+      invoice_id: String(p.invoice_id),
+      customer_id: String(p.invoice_id), // Analytics groups by invoice
       event_type: "payment",
-      event_date: p.payment_date || p.created_at,
-      created_at: p.created_at,
+      event_date: String(p.payment_date || p.created_at),
+      created_at: String(p.created_at),
       amount: p.amount,
       currency: p.currency,
-      clients: p.invoices?.clients,
+      clients: inv?.clients,
       invoices: p.invoices
-    }))
+    }})
   ];
 
   const events = mappedEvents.filter(e => e.customer_id && customerIds.has(e.customer_id)) as unknown as CustomerEvent[];

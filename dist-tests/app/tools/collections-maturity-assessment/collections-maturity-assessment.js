@@ -47,7 +47,6 @@ function CollectionsMaturityAssessment() {
     const categoryAnswered = CATEGORIES[currentCategory].questions.every((q) => answers[q.id] !== undefined);
     (0, react_1.useEffect)(() => {
         const params = new URLSearchParams(window.location.search);
-        // eslint-disable-next-line
         setLeadSource({
             source: params.get("source") || undefined,
             utm_source: params.get("utm_source") || undefined,

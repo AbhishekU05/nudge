@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
-import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import ReactMarkdown from "react-markdown";
@@ -261,11 +260,14 @@ export default async function ArticlePage({
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  table: ({ node, ...props }) => (
-                    <div className="overflow-x-auto w-full mb-8">
-                      <table className="w-full text-left border-collapse" {...props} />
-                    </div>
-                  )
+                  table: ({ node, ...props }) => {
+                    void node;
+                    return (
+                      <div className="overflow-x-auto w-full mb-8">
+                        <table className="w-full text-left border-collapse" {...props} />
+                      </div>
+                    );
+                  }
                 }}
               >
                 {body}

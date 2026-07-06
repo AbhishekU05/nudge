@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
-import { ArrowLeft, CheckCircle2, Mail, PlugZap, RefreshCw, Unplug, ShieldCheck, Download } from "lucide-react";
+import { CheckCircle2, Mail, PlugZap, Unplug } from "lucide-react";
 
 import { disconnectXero, disconnectQuickBooks, disconnectGmail } from "@/app/actions/integrations";
-import { Container } from "@/components/site/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,20 +14,6 @@ import {
 import { requireUser } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-
-type IntegrationRow = {
-  expires_at: string;
-  last_synced_at: string | null;
-  tenant_id?: string | null;
-  bank_account_id?: string | null;
-  bank_account_name?: string | null;
-};
-
-type GmailProfileRow = {
-  google_access_token: string | null;
-  google_refresh_token: string | null;
-  gmail_connected_email: string | null;
-};
 
 function Notice({
   children,
@@ -52,15 +36,18 @@ function Notice({
   );
 }
 
-function formatDate(value: string | null) {
-  if (!value) return "Not synced yet";
-  return new Date(value).toLocaleString(undefined, {
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+interface GmailProfileRow {
+  google_access_token: string | null;
+  google_refresh_token: string | null;
+  gmail_connected_email: string | null;
+}
+
+interface IntegrationRow {
+  tenant_id?: string;
+  last_synced_at?: string;
+  expires_at?: string;
+  bank_account_name?: string;
+  bank_account_id?: string;
 }
 
 export default async function IntegrationsPage({
@@ -101,14 +88,14 @@ export default async function IntegrationsPage({
 
   const { data: xero } = await supabase
     .from("integrations")
-    .select("tenant_id,last_synced_at,expires_at")
+    .select("tenant_id,last_synced_at,expires_at,bank_account_name,bank_account_id")
     .eq("organization_id", orgId)
     .eq("provider", "xero")
     .maybeSingle<IntegrationRow>();
 
   const { data: quickbooks } = await supabase
     .from("integrations")
-    .select("tenant_id,last_synced_at,expires_at")
+    .select("tenant_id,last_synced_at,expires_at,bank_account_name,bank_account_id")
     .eq("organization_id", orgId)
     .eq("provider", "quickbooks")
     .maybeSingle<IntegrationRow>();

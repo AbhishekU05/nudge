@@ -11,7 +11,7 @@ import { ClientRecord, InvoiceRecord, getRemainingBalance, GroupRecord } from "@
 import { CustomerAnalytics } from "./customer-analytics";
 
 export default async function CustomerProfilePage(props: { params: Promise<{ id: string }> }) {
-  const user = await requireUser();
+  await requireUser();
   const { id } = await props.params;
   const supabase = await createSupabaseServerClient();
 
@@ -34,9 +34,9 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
     .from("payments")
     .select("*");
 
-  const invoicesList = (invoices || []).map((inv: any) => {
-    const invPayments = (payments || []).filter((p: any) => p.invoice_id === inv.id);
-    const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+  const invoicesList = (invoices || []).map((inv: Record<string, string | number | boolean | null | undefined | Record<string, unknown>>) => {
+    const invPayments = (payments || []).filter((p: Record<string, unknown>) => p.invoice_id === inv.id);
+    const amount_paid = invPayments.reduce((sum: number, p: Record<string, unknown>) => sum + Number(p.amount || 0), 0);
     return {
       ...inv,
       amount_owed: inv.amount,

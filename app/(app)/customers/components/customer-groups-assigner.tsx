@@ -4,7 +4,7 @@ import { useState, useTransition, useRef, useEffect } from "react";
 import { Plus, Check, Loader2 } from "lucide-react";
 import { GroupRecord } from "@/lib/types";
 import { toggleCustomerGroup } from "../actions";
-import { cn } from "@/lib/utils";
+
 
 export function CustomerGroupsAssigner({
   customerId,

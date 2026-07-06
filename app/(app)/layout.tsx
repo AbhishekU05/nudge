@@ -1,8 +1,8 @@
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AppSidebar } from "@/components/site/app-sidebar";
-import { isAutomationAndIntegrationAllowed } from "@/lib/payments";
 import { getDisplayName, getInitials } from "@/lib/utils";
+import type { GroupRecord } from "@/lib/types";
 
 export default async function AppLayout({
   children,
@@ -13,11 +13,9 @@ export default async function AppLayout({
   const supabase = await createSupabaseServerClient();
   
   let subscriptionStatus = "none";
-  let hasXero = false;
-  let hasQuickBooks = false;
-  let isSubscribed = false;
 
-  let groups: any[] = [];
+
+  let groups: (GroupRecord & { customerCount: number })[] = [];
   let totalCustomers = 0;
 
   try {
@@ -28,13 +26,7 @@ export default async function AppLayout({
       .maybeSingle();
 
     if (orgRes.data?.organization_id) {
-      const orgId = orgRes.data.organization_id;
-      
-      const [integrationsRes, groupsRes, customersRes] = await Promise.all([
-        supabase
-          .from("integrations")
-          .select("provider")
-          .eq("organization_id", orgId),
+      const [groupsRes, customersRes] = await Promise.all([
         supabase
           .from("groups")
           .select("*, customer_groups(count)")
@@ -44,28 +36,20 @@ export default async function AppLayout({
           .select("id", { count: "exact", head: true })
       ]);
       
-      subscriptionStatus = (orgRes.data.organizations as any)?.dodo_subscription_status || "incomplete";
-      const isAllowed = isAutomationAndIntegrationAllowed(
-        subscriptionStatus,
-        new Date().toISOString()
-      );
-      isSubscribed = isAllowed;
+      subscriptionStatus = (orgRes.data.organizations as { dodo_subscription_status?: string })?.dodo_subscription_status || "incomplete";
 
-      if (integrationsRes.data) {
-        hasXero = integrationsRes.data.some((i: any) => i.provider === "xero");
-        hasQuickBooks = integrationsRes.data.some((i: any) => i.provider === "quickbooks");
-      }
+
       
       if (groupsRes.data) {
-        groups = groupsRes.data.map(g => ({
+        groups = groupsRes.data.map((g: { id: string; name: string; color?: string; customer_groups?: { count?: number }[] }) => ({
           ...g,
           customerCount: g.customer_groups?.[0]?.count ?? 0
-        }));
+        })) as (GroupRecord & { customerCount: number })[];
       }
       
       totalCustomers = customersRes.count ?? 0;
     }
-  } catch (error) {
+  } catch {
     // Graceful fallback
   }
 
@@ -85,8 +69,6 @@ export default async function AppLayout({
           initials,
         }} 
         subscriptionStatus={subscriptionStatus} 
-        hasXero={hasXero}
-        hasQuickBooks={hasQuickBooks}
         groups={groups}
         totalCustomers={totalCustomers}
       />

@@ -4,7 +4,6 @@ import { requireUser } from "@/lib/auth";
 import { enforceRateLimit } from "@/lib/abuse";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { computeFirstReminderSendAt, computeRecurringReminderSendAt } from "@/lib/reminder-schedule";
-import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
 
 async function getOrganizationId(userId: string): Promise<string | null> {
@@ -39,7 +38,7 @@ export async function saveAutomationSettings(formData: FormData) {
   try {
     const parsed = JSON.parse(formData.get("reminder_templates") as string || "[]");
     reminderTemplates = Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
+  } catch {
     reminderTemplates = [];
   }
 

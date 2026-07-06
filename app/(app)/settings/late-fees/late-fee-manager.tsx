@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Edit2, Trash2, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 import { createLateFeePolicy, updateLateFeePolicy, deleteLateFeePolicy, toggleLateFeePolicyActive } from "@/app/actions/late-fees";
 
 export function LateFeeManager({ 
@@ -19,13 +19,12 @@ export function LateFeeManager({
   const [policies, setPolicies] = useState<LateFeePolicy[]>(initialPolicies);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   async function handleToggleActive(id: string, currentActive: boolean) {
     try {
       setPolicies(policies.map(p => p.id === id ? { ...p, active: !currentActive } : p));
       await toggleLateFeePolicyActive(id, !currentActive);
-    } catch (e) {
+    } catch {
       // revert on error
       setPolicies(initialPolicies);
     }
@@ -36,7 +35,7 @@ export function LateFeeManager({
     try {
       setPolicies(policies.filter(p => p.id !== id));
       await deleteLateFeePolicy(id);
-    } catch (e) {
+    } catch {
       setPolicies(initialPolicies);
     }
   }

@@ -3,6 +3,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getXeroBankAccounts } from "@/lib/xero";
 import { getQuickBooksBankAccounts } from "@/lib/quickbooks";
 import { ClientPortalView } from "@/components/portal/client-portal-view";
+import type { PortalInvoice } from "@/components/portal/invoice-card";
 
 export const dynamic = "force-dynamic";
 
@@ -76,10 +77,10 @@ export default async function PortalPage(props: {
 
   // Group by currency, then by urgency within each currency
   const currencyMap = new Map<string, {
-    outstanding: any[];
-    overdue: any[];
-    dueSoon: any[];
-    paid: any[];
+    outstanding: PortalInvoice[];
+    overdue: PortalInvoice[];
+    dueSoon: PortalInvoice[];
+    paid: PortalInvoice[];
     totalOutstanding: number;
   }>();
 

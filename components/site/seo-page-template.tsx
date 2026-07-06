@@ -1,13 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
-import { CheckCircle2, ArrowRight, MessageSquare, Sparkles, Zap, CreditCard, User, Users, AlertTriangle, Activity, Mail, AlertCircle, Clock, DollarSign, FileText } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import type { SEOPageData } from "@/lib/seo-data";
 import { Container } from "@/components/site/container";
-import { FadeIn, Reveal, SlideUp, SlideIn } from "@/components/site/scroll-animation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { HeroActionCenter } from "@/components/site/hero-action-center";
-import { cn } from "@/lib/utils";
+import { FadeIn } from "@/components/site/scroll-animation";
 import { LandingPageBody } from "@/components/site/landing-page-body";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
@@ -30,7 +25,7 @@ export default function SEOPageTemplate({ data }: { data: SEOPageData }) {
         "description": data.metaDescription,
         "url": "https://duely.in"
       }
-    ] as any[]
+    ] as Record<string, unknown>[]
   };
 
   if (data.category && data.slug) {

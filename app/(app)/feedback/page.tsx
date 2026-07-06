@@ -1,11 +1,9 @@
-import { SiteHeader } from "@/components/site/site-header";
-import { SiteFooter } from "@/components/site/site-footer";
 /*
  * feedback page 
  */
 import Link from "next/link";
 
-import { ArrowLeft, MessageSquareText } from "lucide-react";
+import { MessageSquareText } from "lucide-react";
 
 import { submitFeedback } from "@/app/actions/feedback";
 import { Container } from "@/components/site/container";

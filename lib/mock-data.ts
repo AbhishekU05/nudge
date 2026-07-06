@@ -1,7 +1,6 @@
 // Auto-generated from real user data
-import { CustomerRecord, CustomerEvent, ClientRecord, InvoiceRecord } from "./types";
 
-export const mockClients: any[] = [
+export const mockClients: Record<string, unknown>[] = [
   {
     "id": "fa9b21ca-1b3e-4a0b-bce0-7b776b89c678",
     "user_id": "859c2442-cf2b-4f15-aa00-683e66dda8f2",
@@ -349,7 +348,7 @@ export const mockClients: any[] = [
   }
 ];
 
-export const mockInvoices: any[] = [
+export const mockInvoices: Record<string, unknown>[] = [
   {
     "id": "c494a453-6ad6-4fe5-b5dd-0752999a9b32",
     "user_id": "859c2442-cf2b-4f15-aa00-683e66dda8f2",
@@ -1416,9 +1415,9 @@ export const mockInvoices: any[] = [
   }
 ];
 
-export const mockEvents: any[] = [];
+export const mockEvents: Record<string, unknown>[] = [];
 
-export const mockGroups: any[] = [
+export const mockGroups: Record<string, unknown>[] = [
   {
     "id": "86a5d175-2ea4-46a8-8e1e-26d200ced772",
     "user_id": "859c2442-cf2b-4f15-aa00-683e66dda8f2",
@@ -1443,6 +1442,6 @@ export const mockCustomers = mockClients.map(client => ({
   email: client.email || "billing@example.com",
   status: "active",
   created_at: client.created_at,
-  totalOwed: mockInvoices.filter(i => i.customer_id === client.id).reduce((sum, i) => sum + i.amount_owed, 0),
-  totalPaid: mockInvoices.filter(i => i.customer_id === client.id).reduce((sum, i) => sum + (i.amount_paid || 0), 0)
+  totalOwed: (mockInvoices as unknown as { customer_id: string; amount_owed: number }[]).filter(i => i.customer_id === client.id).reduce((sum, i) => sum + Number(i.amount_owed), 0),
+  totalPaid: (mockInvoices as unknown as { customer_id: string; amount_paid: number }[]).filter(i => i.customer_id === client.id).reduce((sum, i) => sum + Number(i.amount_paid || 0), 0)
 }));

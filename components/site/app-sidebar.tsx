@@ -7,19 +7,15 @@ import Image from "next/image";
 import { logout } from "@/app/actions/auth";
 import {
   LayoutDashboard,
-  Users,
   Activity,
   BarChart3,
   Settings,
   CreditCard,
-  ChevronRight,
   LogOut,
   UserRound,
   KanbanSquare,
-  FileText,
   Mail,
   Zap,
-  Gift,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GroupRecord } from "@/lib/types";
@@ -31,8 +27,6 @@ type AppSidebarProps = {
     initials: string;
   };
   subscriptionStatus: string;
-  hasXero?: boolean;
-  hasQuickBooks?: boolean;
   groups?: (GroupRecord & { customerCount: number })[];
   totalCustomers?: number;
 };
@@ -40,7 +34,7 @@ type AppSidebarProps = {
 
 import { SidebarGroups } from "./sidebar-groups";
 
-export function AppSidebar({ user, subscriptionStatus, hasXero, hasQuickBooks, groups = [], totalCustomers = 0 }: AppSidebarProps) {
+export function AppSidebar({ user, subscriptionStatus, groups = [], totalCustomers = 0 }: AppSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const pathname = usePathname();
 

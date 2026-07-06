@@ -1,12 +1,10 @@
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Calculator, ClipboardList, Clock, FileText, DollarSign, Receipt, ShieldCheck } from "lucide-react";
 
 import { Container } from "@/components/site/container";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = {

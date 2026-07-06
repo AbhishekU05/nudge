@@ -92,14 +92,16 @@ export default async function AutomatePage() {
                     <p className="text-sm text-zinc-500">No active statement automations.</p>
                   </div>
                 ) : (
-                  clients.map((client: any) => (
+                  clients.map((c) => {
+                    const client = c as Record<string, string | number | boolean | null | undefined>;
+                    return (
                     <Link 
-                      key={client.id} 
+                      key={String(client.id)} 
                       href={`/customers/${client.id}`}
                       className="block rounded-xl border border-white/10 bg-zinc-900/50 p-4 transition-colors hover:bg-white/[0.02] hover:border-white/20"
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <span className="font-medium text-zinc-200">{client.name}</span>
+                        <span className="font-medium text-zinc-200">{String(client.name)}</span>
                         <Badge variant={client.auto_approve ? "success" : "muted"}>
                           {client.auto_approve ? "Auto" : "Manual Review"}
                         </Badge>
@@ -107,15 +109,15 @@ export default async function AutomatePage() {
                       <div className="grid grid-cols-2 gap-2 mt-3 text-xs border-t border-white/5 pt-3">
                         <div className="flex items-center gap-1.5 text-zinc-400">
                           <Zap className="h-3 w-3 text-amber-500/70" />
-                          <span className="capitalize">{client.reminder_type}</span>
+                          <span className="capitalize">{String(client.reminder_type)}</span>
                         </div>
                         <div className="flex items-center gap-1.5 text-zinc-400">
                           <Clock className="h-3 w-3 text-sky-500/70" />
-                          <span>Next: {client.next_send_at ? <LocalTime value={client.next_send_at} fallback="N/A" /> : "TBD"}</span>
+                          <span>Next: {client.next_send_at ? <LocalTime value={String(client.next_send_at)} fallback="N/A" /> : "TBD"}</span>
                         </div>
                       </div>
                     </Link>
-                  ))
+                  )})
                 )}
               </div>
             </div>
@@ -134,16 +136,19 @@ export default async function AutomatePage() {
                     <p className="text-sm text-zinc-500">No active invoice automations.</p>
                   </div>
                 ) : (
-                  invoices.map((invoice: any) => (
+                  invoices.map((inv) => {
+                    const invoice = inv as unknown as Record<string, string | number | boolean | null | undefined | Record<string, unknown>>;
+                    const clients = invoice.clients as { name?: string } | undefined;
+                    return (
                     <Link 
-                      key={invoice.id} 
+                      key={String(invoice.id)} 
                       href={`/invoices/${invoice.id}`}
                       className="block rounded-xl border border-white/10 bg-zinc-900/50 p-4 transition-colors hover:bg-white/[0.02] hover:border-white/20"
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <span className="font-medium text-zinc-200">{invoice.clients?.name || "Unknown Client"}</span>
-                          <p className="text-xs text-zinc-500 mt-0.5">{invoice.invoice_number || "Invoice"}</p>
+                          <span className="font-medium text-zinc-200">{clients?.name || "Unknown Client"}</span>
+                          <p className="text-xs text-zinc-500 mt-0.5">{String(invoice.invoice_number || "Invoice")}</p>
                         </div>
                         <Badge variant={invoice.auto_approve ? "success" : "muted"}>
                           {invoice.auto_approve ? "Auto" : "Manual Review"}
@@ -152,15 +157,15 @@ export default async function AutomatePage() {
                       <div className="grid grid-cols-2 gap-2 mt-3 text-xs border-t border-white/5 pt-3">
                         <div className="flex items-center gap-1.5 text-zinc-400">
                           <Zap className="h-3 w-3 text-amber-500/70" />
-                          <span className="capitalize">{invoice.reminder_type || "Recurring"}</span>
+                          <span className="capitalize">{String(invoice.reminder_type || "Recurring")}</span>
                         </div>
                         <div className="flex items-center gap-1.5 text-zinc-400">
                           <Clock className="h-3 w-3 text-sky-500/70" />
-                          <span>Next: {invoice.next_send_at ? <LocalTime value={invoice.next_send_at} fallback="N/A" /> : "TBD"}</span>
+                          <span>Next: {invoice.next_send_at ? <LocalTime value={String(invoice.next_send_at)} fallback="N/A" /> : "TBD"}</span>
                         </div>
                       </div>
                     </Link>
-                  ))
+                  )})
                 )}
               </div>
             </div>

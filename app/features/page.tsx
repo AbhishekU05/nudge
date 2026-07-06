@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Container } from "@/components/site/container";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Features — Duely",
@@ -210,18 +211,18 @@ export default function FeaturesPage() {
               Try everything free for 7 days. No card required.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <a
+              <Link
                 href="/signup"
                 className="inline-flex items-center rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-500"
               >
                 Start free trial
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/#pricing"
                 className="inline-flex items-center rounded-lg border border-white/10 px-6 py-3 text-sm font-semibold text-zinc-300 transition hover:border-white/20 hover:text-zinc-50"
               >
                 See pricing
-              </a>
+              </Link>
             </div>
           </Container>
         </section>

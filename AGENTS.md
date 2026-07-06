@@ -10,5 +10,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
   `app/actions/billing.ts`, or any other billing-related files
   unless I explicitly instruct you to override this rule.
 
+    # Strict Error Checking
+    Before completing any task, you MUST run a build (`npm run build` or equivalent) 
+    and a lint check (`npm run lint` or equivalent) to ensure no type errors, 
+    lint errors, or broken pages were introduced by your changes.
 
 <!-- END:nextjs-agent-rules -->

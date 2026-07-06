@@ -5,7 +5,7 @@ import { logger } from "@/lib/logger";
 
 export const syncQuickBooks = inngest.createFunction(
   { id: "sync-quickbooks", triggers: [{ cron: "0 * * * *" }] },
-  async ({ step }) => {
+  async () => {
     const supabase = createSupabaseAdminClient();
     const { data: integrations, error } = await supabase
       .from("integrations")
@@ -27,7 +27,8 @@ export const syncQuickBooks = inngest.createFunction(
     const results = [];
     for (const integration of integrations || []) {
       const org = Array.isArray(integration.organizations) ? integration.organizations[0] : integration.organizations;
-      if (!isAutomationAndIntegrationAllowed((org as any)?.dodo_subscription_status, (org as any)?.created_at)) {
+      const orgData = org as { dodo_subscription_status?: string | null, created_at?: string | null } | undefined;
+      if (!isAutomationAndIntegrationAllowed(orgData?.dodo_subscription_status as "active" | null | undefined, orgData?.created_at)) {
         continue;
       }
       try {

@@ -170,7 +170,7 @@ export function CustomerAnalytics({ invoices }: { invoices: InvoiceRecord[] }) {
                   ))}
                 </Pie>
                 <RechartsTooltip 
-                  formatter={(value: any) => stats.formatCurrency(Number(value) || 0)}
+                  formatter={(value: unknown) => stats.formatCurrency(Number(value) || 0)}
                   contentStyle={{ backgroundColor: '#18181b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
                 />
                 <Legend />
@@ -190,7 +190,7 @@ export function CustomerAnalytics({ invoices }: { invoices: InvoiceRecord[] }) {
                 <XAxis dataKey="month" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
                 <RechartsTooltip 
-                  formatter={(value: any) => stats.formatCurrency(Number(value) || 0)}
+                  formatter={(value: unknown) => stats.formatCurrency(Number(value) || 0)}
                   cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                   contentStyle={{ backgroundColor: '#18181b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
                 />

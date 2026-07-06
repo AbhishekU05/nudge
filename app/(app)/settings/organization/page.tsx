@@ -2,7 +2,7 @@ import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasActiveSubscription } from "@/lib/payments";
 import { redirect } from "next/navigation";
-import { Building2, Shield, Users, Mail } from "lucide-react";
+import { Building2, Users, Mail } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { OrgMemberRole } from "@/lib/types";
@@ -102,7 +102,8 @@ export default async function OrganizationSettingsPage() {
         <CardContent>
           <div className="rounded-xl border border-white/10 overflow-hidden bg-black/20">
             <div className="divide-y divide-white/5">
-              {orgMembers?.map((m: any) => {
+              {orgMembers?.map((mRaw) => {
+                const m = mRaw as { user_id: string; role?: string; profiles?: { full_name?: string; gmail_connected_email?: string } | { full_name?: string; gmail_connected_email?: string }[]; [key: string]: unknown };
                 const isCurrentUser = m.user_id === user.id;
                 const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
                 const name = profile?.full_name || "Unknown User";

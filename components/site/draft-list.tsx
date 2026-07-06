@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
-import { Mail, Check, X, Eye, ChevronRight } from "lucide-react";
+import { Mail, Check, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,16 +26,8 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
   const [isSaving, setIsSaving] = useState(false);
 
   const [isEditingDraft, setIsEditingDraft] = useState(false);
-  const [editSubject, setEditSubject] = useState("");
-  const [editBody, setEditBody] = useState("");
-
-  useEffect(() => {
-    if (selectedDraft) {
-      setEditSubject(selectedDraft.subject);
-      setEditBody(selectedDraft.body_html.replace(/<br\s*\/?>/gi, '\n'));
-      setIsEditingDraft(false);
-    }
-  }, [selectedDraft]);
+  const [editSubject, setEditSubject] = useState(drafts[0]?.subject || "");
+  const [editBody, setEditBody] = useState(drafts[0]?.body_html.replace(/<br\s*\/?>/gi, '\n') || "");
 
   if (drafts.length === 0) {
     return (
@@ -130,7 +122,12 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
           {drafts.map(draft => (
             <button
               key={draft.id}
-              onClick={() => setSelectedDraft(draft)}
+              onClick={() => {
+                setSelectedDraft(draft);
+                setEditSubject(draft.subject);
+                setEditBody(draft.body_html.replace(/<br\s*\/?>/gi, '\n'));
+                setIsEditingDraft(false);
+              }}
               className={`w-full text-left p-3 rounded-xl transition-colors ${selectedDraft?.id === draft.id ? 'bg-indigo-500/10 border border-indigo-500/20' : 'hover:bg-white/5 border border-transparent'}`}
             >
               <div className="flex justify-between items-start mb-1">

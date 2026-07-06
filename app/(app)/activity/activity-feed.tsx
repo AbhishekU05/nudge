@@ -14,7 +14,7 @@ function formatCurrency(value: number, currency: string = "USD") {
   }).format(Number(value));
 }
 
-export function ActivityFeed({ events }: { events: any[] }) {
+export function ActivityFeed({ events }: { events: Record<string, unknown>[] }) {
   if (!events || events.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 p-12 text-center bg-white/[0.01]">
@@ -31,12 +31,15 @@ export function ActivityFeed({ events }: { events: any[] }) {
     <Card className="bg-white/[0.02] border-white/10 overflow-hidden">
       <CardContent className="p-0">
         <ul className="divide-y divide-white/5">
-          {events.map((event) => {
+          {events.map((e) => {
+            const event = e as Record<string, string | number | boolean | null | undefined | Record<string, unknown>>;
             const isPayment = event.event_type === "payment";
-            const customerName = event.clients?.name || event.invoices?.clients?.name || "Unknown Customer";
+            const clients = event.clients as { name?: string } | undefined;
+            const invoices = event.invoices as { clients?: { name?: string } } | undefined;
+            const customerName = clients?.name || invoices?.clients?.name || "Unknown Customer";
 
             return (
-              <li key={event.id} className="p-4 hover:bg-white/[0.02] transition-colors">
+              <li key={String(event.id)} className="p-4 hover:bg-white/[0.02] transition-colors">
                 <div className="flex items-start gap-4">
                   {/* Icon Badge */}
                   <div className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${isPayment ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-500" : "border-blue-500/20 bg-blue-500/10 text-blue-500"}`}>
@@ -49,15 +52,15 @@ export function ActivityFeed({ events }: { events: any[] }) {
                       <p className="text-sm font-medium text-zinc-200">
                         {isPayment ? "Payment Logged" : "Follow-up Sent"}
                       </p>
-                      <time dateTime={event.event_date || event.created_at} className="text-xs text-zinc-500">
-                        {formatDistanceToNow(new Date(event.event_date || event.created_at), { addSuffix: true })}
+                      <time dateTime={String(event.event_date || event.created_at)} className="text-xs text-zinc-500">
+                        {formatDistanceToNow(new Date(String(event.event_date || event.created_at)), { addSuffix: true })}
                       </time>
                     </div>
                     
                     <p className="text-sm text-zinc-400">
                       {isPayment ? (
                         <>
-                          Recorded a payment of <span className="font-semibold text-zinc-300">{formatCurrency(event.amount || 0)}</span> from{" "}
+                          Recorded a payment of <span className="font-semibold text-zinc-300">{formatCurrency(Number(event.amount || 0))}</span> from{" "}
                           <Link href={`/customers/${event.customer_id}`} className="text-primary hover:underline">
                             {customerName}
                           </Link>
@@ -68,7 +71,7 @@ export function ActivityFeed({ events }: { events: any[] }) {
                           <Link href={`/customers/${event.customer_id}`} className="text-primary hover:underline">
                             {customerName}
                           </Link>{" "}
-                          via <span className="capitalize">{event.followup_method || "email"}</span>
+                          via <span className="capitalize">{String(event.followup_method || "email")}</span>
                         </>
                       )}
                     </p>
@@ -79,7 +82,7 @@ export function ActivityFeed({ events }: { events: any[] }) {
                         {event.payment_source && (
                           <Badge variant="muted" className="text-xs font-normal">
                             <CreditCard className="mr-1 h-3 w-3" />
-                            {event.payment_source}
+                            {String(event.payment_source)}
                           </Badge>
                         )}
                         {event.followup_method === "email" && (
@@ -102,12 +105,12 @@ export function ActivityFeed({ events }: { events: any[] }) {
                         )}
                         {event.followup_outcome && (
                           <Badge variant={event.followup_outcome === "promise_made" ? "success" : "muted"} className="text-xs font-normal capitalize">
-                            {event.followup_outcome.replace(/_/g, " ")}
+                            {String(event.followup_outcome).replace(/_/g, " ")}
                           </Badge>
                         )}
                         {event.note && (
                           <p className="text-sm italic text-zinc-500 w-full mt-1 border-l-2 border-white/10 pl-3">
-                            &quot;{event.note}&quot;
+                            &quot;{String(event.note)}&quot;
                           </p>
                         )}
                       </div>

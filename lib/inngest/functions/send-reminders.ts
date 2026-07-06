@@ -84,7 +84,7 @@ function processTemplate(template: Template, vars: Record<string, string>) {
 
 export const sendReminders = inngest.createFunction(
   { id: "send-reminders", triggers: [{ cron: "0 * * * *" }] },
-  async ({ step }) => {
+  async () => {
     const requestId = crypto.randomUUID();
     logger.cron({ job_name: "send_reminders", status: "start", request_id: requestId });
 
@@ -285,7 +285,7 @@ export const sendReminders = inngest.createFunction(
         const status = entity.auto_approve ? "sent" : "draft";
 
         // Insert into email_drafts
-        const { data: draftRecord, error: draftError } = await supabase
+        const { error: draftError } = await supabase
           .from("email_drafts")
           .insert({
             user_id: sender.user_id, // keep as user_id for Gmail sender? Or organization_id? Wait, email_drafts usually use user_id or organization_id. Let's provide both if available, or just organization_id.
@@ -301,7 +301,7 @@ export const sendReminders = inngest.createFunction(
 
         if (draftError && !draftError.message.includes("organization_id")) {
            // fallback if email_drafts hasn't been migrated yet to organization_id
-           const { error: draftErrorOld } = await supabase
+           await supabase
              .from("email_drafts")
              .insert({
                user_id: sender.user_id,
@@ -327,7 +327,7 @@ export const sendReminders = inngest.createFunction(
                 body: textBody,
                 html: false,
               });
-            } catch (e) {
+            } catch {
               const resend = getResendClient();
               await resend.emails.send({
                 from: `${sender.name} via Duely <reminders@duely.in>`,
@@ -388,7 +388,7 @@ export const sendReminders = inngest.createFunction(
           .eq("id", entity.id)
           .eq("next_send_at", leaseUntil);
 
-      } catch (e) {
+      } catch {
         failed += 1;
         await restoreClaim({ table, id: entity.id, leaseUntil, originalNextSendAt: entity.next_send_at });
       }

@@ -16,7 +16,7 @@ export default async function CustomersPage({
   const params = await searchParams;
   const groupId = params?.groupId as string | undefined;
   
-  const user = await requireUser();
+  await requireUser();
   const supabase = await createSupabaseServerClient();
 
   // Fetch clients
@@ -48,9 +48,10 @@ export default async function CustomersPage({
     .from("payments")
     .select("*");
     
-  const invoicesList = (invoices || []).map((inv: any) => {
-    const invPayments = (payments || []).filter((p: any) => p.invoice_id === inv.id);
-    const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+  const invoicesList = (invoices || []).map((invRaw) => {
+    const inv = invRaw;
+    const invPayments = (payments || []).filter((p: Record<string, unknown>) => p.invoice_id === inv.id);
+    const amount_paid = invPayments.reduce((sum: number, p: Record<string, unknown>) => sum + Number(p.amount || 0), 0);
     return {
       ...inv,
       amount_owed: inv.amount,
@@ -58,7 +59,7 @@ export default async function CustomersPage({
       workflow_status: inv.status,
       customer_id: inv.client_id
     };
-  });
+  }) as Record<string, unknown>[];
 
   const groupsList = groupsData || [];
   const customerGroupsList = customerGroupsData || [];
@@ -76,10 +77,10 @@ export default async function CustomersPage({
     
     const totalOwed = clientInvoices.reduce((sum, inv) => {
       if (inv.workflow_status === "paid" || inv.workflow_status === "written_off") return sum;
-      return sum + getRemainingBalance(inv as any);
+      return sum + getRemainingBalance(inv as unknown as import("@/lib/types").CustomerRecord);
     }, 0);
 
-    const currency = clientInvoices[0]?.currency || "USD";
+    const currency = (clientInvoices[0]?.currency as string) || "USD";
 
     return {
       ...client,
@@ -149,8 +150,8 @@ export default async function CustomersPage({
                     }).format(totalOwed);
 
                     const assignedGroupIds = customerGroupsList
-                      .filter((cg: any) => cg.customer_id === id)
-                      .map((cg: any) => cg.group_id);
+                      .filter((cg: Record<string, unknown>) => cg.customer_id === id)
+                      .map((cg: Record<string, unknown>) => cg.group_id as string);
 
                     return (
                       <tr key={id} className="hover:bg-white/[0.02] transition-colors">

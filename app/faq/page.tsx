@@ -1,9 +1,7 @@
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
-import Image from "next/image";
-import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, CheckCircle2, HelpCircle, Mail, ShieldCheck } from "lucide-react";
+import { CheckCircle2, HelpCircle, Mail, ShieldCheck } from "lucide-react";
 
 import { Container } from "@/components/site/container";
 import { Badge } from "@/components/ui/badge";
@@ -117,6 +115,7 @@ export default function FAQPage() {
           </div>
         </Container>
       </main>
+      <SiteFooter />
     </div>
   );
 }

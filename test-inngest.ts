@@ -1,2 +1,2 @@
 import { Inngest } from "inngest";
-const inngest = new Inngest({ id: "test" });
+export const inngest = new Inngest({ id: "my-app" });

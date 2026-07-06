@@ -20,7 +20,7 @@ export function SiteFooter() {
               <span className="text-lg font-semibold tracking-tight text-zinc-200">Duely</span>
             </Link>
             <p className="text-xs text-zinc-500 leading-relaxed max-w-xs">
-              Collect what you're owed, keep the relationship. The intelligent collections engine for agencies and freelancers.
+              Collect what you&apos;re owed, keep the relationship. The intelligent collections engine for agencies and freelancers.
             </p>
           </div>
 

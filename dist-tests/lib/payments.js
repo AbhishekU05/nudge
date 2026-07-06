@@ -4,20 +4,15 @@ exports.hasActiveSubscription = hasActiveSubscription;
 exports.getTrialDaysLeft = getTrialDaysLeft;
 exports.isAutomationAndIntegrationAllowed = isAutomationAndIntegrationAllowed;
 function hasActiveSubscription(status, 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 createdAt, 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 renewsAt) {
     if (!status)
         return false;
     return status === "active" || status === "on_hold";
 }
 function getTrialDaysLeft(
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 createdAt, 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 status, 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 renewsAt) {
     if (!createdAt)
         return 0;

@@ -13,7 +13,7 @@ export default async function FeedbackPage() {
       <div>
         <h2 className="text-xl font-medium text-zinc-100">Feedback</h2>
         <p className="mt-1 text-sm text-zinc-400">
-          We'd love to hear from you. Please let us know if you have any suggestions, found a bug, or need a new feature!
+          We&apos;d love to hear from you. Please let us know if you have any suggestions, found a bug, or need a new feature!
         </p>
       </div>
 

@@ -25,7 +25,7 @@ export function PromiseButton({ invoiceId, token, existingPromiseDate }: { invoi
         onClick={() => setIsOpen(true)}
         className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 font-medium tracking-tight transition-colors focus-visible:outline-none focus-visible:ring-2 h-10 px-4 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
       >
-        I'll pay by...
+        I&apos;ll pay by...
       </button>
     );
   }

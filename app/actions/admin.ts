@@ -1,15 +1,13 @@
 "use server";
 
 import { requireUser } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { nudgeConfig } from "@/nudge.config";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function wipeMyTestData() {
-  const user = await requireUser();
-  const supabase = await createSupabaseServerClient();
+  await requireUser();
 
   const adminSupabase = createSupabaseAdminClient();
   const { data: { users }, error: usersError } = await adminSupabase.auth.admin.listUsers();

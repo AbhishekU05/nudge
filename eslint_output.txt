@@ -1,0 +1,164 @@
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/actions/actions-ui.tsx
+  132:17  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/actions/page.tsx
+   4:30  warning  'ActionTask' is defined but never used      @typescript-eslint/no-unused-vars
+   5:10  warning  'Zap' is defined but never used             @typescript-eslint/no-unused-vars
+   5:15  warning  'AlertCircle' is defined but never used     @typescript-eslint/no-unused-vars
+   5:28  warning  'AlertTriangle' is defined but never used   @typescript-eslint/no-unused-vars
+   5:43  warning  'Coffee' is defined but never used          @typescript-eslint/no-unused-vars
+   5:51  warning  'Info' is defined but never used            @typescript-eslint/no-unused-vars
+   5:57  warning  'CheckCircle2' is defined but never used    @typescript-eslint/no-unused-vars
+   5:71  warning  'ArrowRight' is defined but never used      @typescript-eslint/no-unused-vars
+   7:8   warning  'Link' is defined but never used            @typescript-eslint/no-unused-vars
+   9:10  warning  'formatCurrency' is defined but never used  @typescript-eslint/no-unused-vars
+  20:9   warning  'user' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  38:41  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/activity/activity-feed.tsx
+  17:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/activity/page.tsx
+   7:9   warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  27:39  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  44:41  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/analytics/page.tsx
+  13:9   warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  22:59  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  23:61  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  24:61  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  41:39  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  53:41  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/automate/page.tsx
+   95:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/customers/[id]/customer-analytics.tsx
+  173:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  193:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/customers/[id]/page.tsx
+  14:9   warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  37:51  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  38:53  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  39:61  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/customers/components/customer-groups-assigner.tsx
+  7:10  warning  'cn' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/customers/page.tsx
+   19:9   warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   51:51  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   52:53  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   53:61  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   79:47  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  152:36  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  153:33  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/dashboard/dashboard-ui.tsx
+    4:10  warning  'Container' is defined but never used                            @typescript-eslint/no-unused-vars
+    6:73  warning  'Clock' is defined but never used                                @typescript-eslint/no-unused-vars
+    6:92  warning  'Mail' is defined but never used                                 @typescript-eslint/no-unused-vars
+    6:98  warning  'Zap' is defined but never used                                  @typescript-eslint/no-unused-vars
+   24:3   warning  'recentInvoices' is defined but never used                       @typescript-eslint/no-unused-vars
+   25:3   warning  'activeAutomations' is defined but never used                    @typescript-eslint/no-unused-vars
+   26:3   warning  'pendingDrafts' is defined but never used                        @typescript-eslint/no-unused-vars
+   32:17  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   33:19  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   34:22  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   35:18  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  189:68  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/dashboard/page.tsx
+    7:71   warning  'CustomerEvent' is defined but never used  @typescript-eslint/no-unused-vars
+   26:9    warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   32:35   error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   33:35   error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   34:35   error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   38:60   error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   39:61   error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   40:61   error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   57:39   error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   74:41   error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   93:42   error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   93:101  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   99:47   error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  388:46   error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  421:49   error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/feedback/page.tsx
+  1:10  warning  'SiteHeader' is defined but never used  @typescript-eslint/no-unused-vars
+  2:10  warning  'SiteFooter' is defined but never used  @typescript-eslint/no-unused-vars
+  8:10  warning  'ArrowLeft' is defined but never used   @typescript-eslint/no-unused-vars
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/invoices/new/page.tsx
+  7:31  warning  'Zap' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/layout.tsx
+  20:15  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  47:58  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  52:7   warning  'isSubscribed' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  55:49  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  56:55  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  68:12  warning  'error' is defined but never used                  @typescript-eslint/no-unused-vars
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/pipeline/page.tsx
+  13:9   warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  21:59  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  22:61  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  23:61  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/settings/billing/page.tsx
+   4:8   warning  'Link' is defined but never used          @typescript-eslint/no-unused-vars
+   7:3   warning  'ArrowLeft' is defined but never used     @typescript-eslint/no-unused-vars
+   8:3   warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+   9:3   warning  'Clock3' is defined but never used        @typescript-eslint/no-unused-vars
+  12:3   warning  'Sparkles' is defined but never used      @typescript-eslint/no-unused-vars
+  13:3   warning  'Zap' is defined but never used           @typescript-eslint/no-unused-vars
+  16:10  warning  'Container' is defined but never used     @typescript-eslint/no-unused-vars
+  17:10  warning  'Badge' is defined but never used         @typescript-eslint/no-unused-vars
+  18:10  warning  'Button' is defined but never used        @typescript-eslint/no-unused-vars
+  63:12  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/settings/feedback/feedback-form.tsx
+  20:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/settings/feedback/page.tsx
+  16:13  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/settings/general/page.tsx
+  8:10  warning  'Textarea' is defined but never used  @typescript-eslint/no-unused-vars
+  9:45  warning  'Landmark' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/settings/integrations/page.tsx
+   2:10  warning  'revalidatePath' is defined but never used  @typescript-eslint/no-unused-vars
+   3:10  warning  'ArrowLeft' is defined but never used       @typescript-eslint/no-unused-vars
+   3:50  warning  'RefreshCw' is defined but never used       @typescript-eslint/no-unused-vars
+   3:69  warning  'ShieldCheck' is defined but never used     @typescript-eslint/no-unused-vars
+   3:82  warning  'Download' is defined but never used        @typescript-eslint/no-unused-vars
+   6:10  warning  'Container' is defined but never used       @typescript-eslint/no-unused-vars
+  55:10  warning  'formatDate' is defined but never used      @typescript-eslint/no-unused-vars
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/settings/integrations/xero/tenant/page.tsx
+  35:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/settings/late-fees/late-fee-manager.tsx
+   9:31  warning  'CheckCircle2' is defined but never used         @typescript-eslint/no-unused-vars
+   9:45  warning  'XCircle' is defined but never used              @typescript-eslint/no-unused-vars
+  22:10  warning  'loading' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  22:19  warning  'setLoading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  28:14  warning  'e' is defined but never used                    @typescript-eslint/no-unused-vars
+  39:14  warning  'e' is defined but never used                    @typescript-eslint/no-unused-vars
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/settings/late-fees/page.tsx
+  46:98  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/media/shad0w/Data1/Abhi_Data/Data/Programming_II/Projects/email_reminder/nudge/app/(app)/settings/organization/page.tsx
+    5:21  warning  'Shield' is defined but never used        @typescript-eslint/no-unused-vars
+  105:36  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 111 problems (53 errors, 58 warnings)
+

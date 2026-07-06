@@ -5,8 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { UserRound, LogOut, Download, Mail, Landmark, Building2 } from "lucide-react";
+import { UserRound, LogOut, Download, Mail, Building2 } from "lucide-react";
 import { getDisplayName } from "@/lib/utils";
 
 export default async function GeneralSettingsPage() {

@@ -259,7 +259,7 @@ export default async function CustomersPage({
 
   const subscriptionStatus = profile?.razorpay_subscription_status ?? "none";
   const hasSubscription = hasActiveSubscription(subscriptionStatus, profile?.created_at, profile?.razorpay_renews_at);
-  const isDevelopment = process.env.NODE_ENV === "development";
+  // isDevelopment removed
 
   const renewsAt = profile?.razorpay_renews_at
     ? new Date(profile.razorpay_renews_at).toLocaleDateString()
@@ -327,7 +327,7 @@ export default async function CustomersPage({
           <DashboardClient
             customers={allCustomers}
             hasSubscription={hasSubscription}
-            isDevelopment={isDevelopment}
+            // isDevelopment removed
             currency={selectedCurrency}
           />
         </Container>

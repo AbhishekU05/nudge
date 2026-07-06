@@ -76,7 +76,6 @@ export function CollectionsMaturityAssessment() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    // eslint-disable-next-line
     setLeadSource({
       source: params.get("source") || undefined,
       utm_source: params.get("utm_source") || undefined,

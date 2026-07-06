@@ -7,23 +7,21 @@ import type { SubscriptionStatus } from "@/lib/types";
 
 export function hasActiveSubscription(
   status: SubscriptionStatus | string | null | undefined,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  createdAt?: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  renewsAt?: string | null,
+  _createdAt?: string | null,
+  _renewsAt?: string | null,
 ): boolean {
+  void _createdAt;
+  void _renewsAt;
   if (!status) return false;
   return status === "active" || status === "on_hold";
 }
 
 export function getTrialDaysLeft(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   createdAt?: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   status?: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  renewsAt?: string | null,
+  _renewsAt?: string | null,
 ): number {
+  void _renewsAt;
   if (!createdAt) return 0;
   if (status === "active" || status === "on_hold") return 0; // If subscribed, trial is over/irrelevant
   
@@ -39,8 +37,9 @@ export function getTrialDaysLeft(
 
 export function isAutomationAndIntegrationAllowed(
   status: SubscriptionStatus | string | null | undefined,
-  createdAt?: string | null
+  _createdAt?: string | null
 ): boolean {
+  void _createdAt;
   const hasSub = hasActiveSubscription(status as SubscriptionStatus);
   if (hasSub) return true; // Allowed if they have a subscription
   

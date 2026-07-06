@@ -1,12 +1,10 @@
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import Link from "next/link";
-import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { Container } from "@/components/site/container";
-import { Button } from "@/components/ui/button";
 import {
   entityDefinitions,
   getEntityBySlug,

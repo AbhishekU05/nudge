@@ -86,14 +86,12 @@ const TONE_CONFIG: Record<
 function EmailPreview({
   recipientName,
   senderName,
-  amount,
   subject,
   note,
   paymentLink,
 }: {
   recipientName: string;
   senderName: string;
-  amount: string;
   subject: string;
   note: string;
   paymentLink: string;
@@ -324,7 +322,6 @@ export function AutomationSetupForm({
         <EmailPreview
           recipientName={customer.recipient_name}
           senderName={senderName}
-          amount={amount}
           subject={subject}
           note={note}
           paymentLink={paymentLink}

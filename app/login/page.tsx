@@ -41,7 +41,7 @@ export default async function LoginPage({
             placeholder="e.g., alex@agency.com"
             required
           />
-          <p className="text-xs text-zinc-500">Use your work email to automatically join your company's workspace.</p>
+          <p className="text-xs text-zinc-500">Use your work email to automatically join your company&apos;s workspace.</p>
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">

@@ -305,7 +305,6 @@ export function AnalyticsClient({
     };
   }, [customers, events]);
 
-  // eslint-disable-next-line
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (

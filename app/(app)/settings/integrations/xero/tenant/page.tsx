@@ -32,9 +32,9 @@ export default async function XeroTenantSelectionPage() {
     redirect("/settings/integrations");
   }
 
-  let tenants: any[] = [];
+  let tenants: { tenantId: string; tenantName: string; [key: string]: unknown }[] = [];
   try {
-    tenants = await getAvailableXeroTenants(member.organization_id);
+    tenants = (await getAvailableXeroTenants(member.organization_id)) as { tenantId: string; tenantName: string; [key: string]: unknown }[];
   } catch (e) {
     logger.error({ 
       message: "Failed to fetch Xero tenants", 

@@ -2,7 +2,7 @@ import "server-only";
 
 import { getResendClient, getFromEmail } from "@/lib/resend";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getDaysOverdue, isEffectivelyPaid } from "@/lib/types";
+import { getDaysOverdue, isEffectivelyPaid, InvoiceRecord, CustomerEvent } from "@/lib/types";
 import { logger } from "@/lib/logger";
 import { hasGmailTokens, sendGmail } from "@/lib/gmail";
 import { render } from "@react-email/render";
@@ -45,7 +45,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       });
       const formatted = formatter.format(now);
       return formatted.startsWith("Mon") && (formatted.includes("08") || formatted.endsWith(" 8"));
-    } catch (e) {
+    } catch {
       return false;
     }
   });
@@ -96,20 +96,20 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       .in("organization_id", orgIds);
 
     // Group invoices by currency
-    const invoicesByCurrency = invoices.reduce((acc, inv) => {
+    const invoicesByCurrency = (invoices || []).reduce((acc, inv) => {
       const currency = inv.currency || "USD";
       if (!acc[currency]) acc[currency] = [];
-      acc[currency].push(inv);
+      acc[currency].push(inv as unknown as InvoiceRecord);
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {} as Record<string, InvoiceRecord[]>);
 
     // Group events by currency
     const eventsByCurrency = (events || []).reduce((acc, ev) => {
       const currency = ev.currency || "USD";
       if (!acc[currency]) acc[currency] = [];
-      acc[currency].push(ev);
+      acc[currency].push(ev as unknown as CustomerEvent);
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {} as Record<string, CustomerEvent[]>);
 
     const allCurrencies = Array.from(new Set([...Object.keys(invoicesByCurrency), ...Object.keys(eventsByCurrency)]));
 
@@ -137,10 +137,14 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       const lastMonth = lastMonthDate.getMonth();
       const lastMonthYear = lastMonthDate.getFullYear();
 
-      const overdueInvoicesList: any[] = [];
-      const upcomingInvoicesList: any[] = [];
-      const promisesThisWeekList: any[] = [];
-      const paymentsReceivedList: any[] = [];
+      type OverdueItem = { clientName: string; amount: string; daysOverdue: number; lastContact?: string; rawAmount: number };
+      type UpcomingItem = { clientName: string; amount: string; dueInDays: number };
+      type PromiseItem = { clientName: string; amount: string; dueDate: string };
+      type PaymentItem = { clientName: string; amount: string; date: string; currency: string };
+      const overdueInvoicesList: OverdueItem[] = [];
+      const upcomingInvoicesList: UpcomingItem[] = [];
+      const promisesThisWeekList: PromiseItem[] = [];
+      const paymentsReceivedList: PaymentItem[] = [];
       const actionItemsList: string[] = [];
 
       const agingBuckets: Record<string, number> = { "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
@@ -151,14 +155,14 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       const customersWithPromises = new Set<string>();
       const customersWithPromisesKept = new Set<string>();
 
-      currInvoices.forEach((inv: any) => {
+      currInvoices.forEach((inv: InvoiceRecord) => {
         const remaining = Number(inv.amount_owed) - Number(inv.amount_paid);
         const paid = Number(inv.amount_paid);
         
         totalOut += Math.max(0, remaining);
         totalCollected += paid;
 
-        const isPaid = remaining <= 0 || isEffectivelyPaid(inv as any);
+        const isPaid = remaining <= 0 || isEffectivelyPaid(inv);
         
         if (isPaid && inv.client_paid_at && inv.due_date) {
           paidCustomersWithDates++;
@@ -171,7 +175,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
 
         if (remaining <= 0) return;
 
-        const daysOverdue = getDaysOverdue(inv as any);
+        const daysOverdue = getDaysOverdue(inv);
         
         if (daysOverdue !== null) {
           totalOver += remaining;
@@ -182,7 +186,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           else if (daysOverdue <= 90) agingBuckets["61-90"] += remaining;
           else agingBuckets["90+"] += remaining;
 
-          const clientName = inv.recipient_name || inv.clients?.name || "Unknown";
+          const clientName = inv.recipient_name || (inv as unknown as { clients?: { name?: string } }).clients?.name || "Unknown";
           const existingInv = overdueInvoicesList.find(o => o.clientName === clientName);
           
           if (existingInv) {
@@ -203,7 +207,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           }
 
           if (daysOverdue > 15 && actionItemsList.length <= 5) {
-            actionItemsList.push(`Follow up with ${inv.recipient_name || inv.clients?.name || "Unknown"} on ${currency} ${remaining.toFixed(2)} (${daysOverdue} days overdue)`);
+            actionItemsList.push(`Follow up with ${inv.recipient_name || (inv as unknown as { clients?: { name?: string } }).clients?.name || "Unknown"} on ${currency} ${remaining.toFixed(2)} (${daysOverdue} days overdue)`);
           }
         } else if (inv.due_date) {
           const due = new Date(inv.due_date);
@@ -251,12 +255,13 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       
       const followupsPerCustomer: Record<string, number> = {};
 
-      currEvents.forEach((e: any) => {
+      type EventRecord = { created_at: string; event_type: string; amount?: number; customer_id?: string; client_id?: string; invoice_id?: string; event_date?: string; followup_outcome?: string; invoices?: { recipient_name?: string; currency?: string } };
+      currEvents.forEach((e: EventRecord) => {
         const date = new Date(e.created_at);
         const monthKey = date.toLocaleString('default', { month: 'short', year: 'numeric' });
         const eMonth = date.getMonth();
         const eYear = date.getFullYear();
-        const clientId = e.client_id || e.customer_id;
+        const clientId = e.client_id ?? e.customer_id ?? "";
 
         if (e.event_type === "payment" && e.amount) {
           if (collectionsByMonth[monthKey] !== undefined) {
@@ -267,11 +272,11 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           } else if (eMonth === lastMonth && eYear === lastMonthYear) {
             revenueLastMonth += Number(e.amount);
           }
-          if (followupsPerCustomer[clientId] > 0) {
+          if (clientId && followupsPerCustomer[clientId] > 0) {
             customersWithFollowupsAndPaid++;
             followupsBeforePaymentCount += followupsPerCustomer[clientId];
           }
-          if (customersWithPromises.has(clientId)) {
+          if (clientId && customersWithPromises.has(clientId)) {
             customersWithPromisesKept.add(clientId);
           }
           
@@ -279,7 +284,8 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
             paymentsReceivedList.push({
               clientName: e.invoices?.recipient_name || "Unknown",
               amount: `${currency} ${Number(e.amount).toFixed(2)}`,
-              date: date.toLocaleDateString()
+              date: date.toLocaleDateString(),
+              currency: e.invoices?.currency || currency
             });
           }
 
@@ -287,8 +293,10 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           if (followupsByMonth[monthKey] !== undefined) {
             followupsByMonth[monthKey] += 1;
           }
-          followupsPerCustomer[clientId] = (followupsPerCustomer[clientId] || 0) + 1;
-          if (e.followup_outcome === "promise_made") {
+          if (clientId) {
+            followupsPerCustomer[clientId] = (followupsPerCustomer[clientId] || 0) + 1;
+          }
+          if (e.followup_outcome === "promise_made" && clientId) {
             customersWithPromises.add(clientId);
           }
         }
@@ -312,7 +320,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
       const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, maximumFractionDigits: 0 });
 
       // Build charts
-      const encodeChart = (config: any) => `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(config))}&w=500&h=300&bkg=transparent&f=png&v=3`;
+      const encodeChart = (config: Record<string, unknown>) => `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(config))}&w=500&h=300&bkg=transparent&f=png&v=3`;
 
       const lightThemeColors = {
         text: '#18181b',
