@@ -1,53 +1,53 @@
 # QuickBooks Integration Architecture
 
-This document outlines the QuickBooks integration in the Duely system, including the synchronization flow, data directionality, and edge cases.
+This document outlines the QuickBooks integration in the Duely system, which utilizes a highly efficient webhook-driven event architecture mirroring our Xero setup.
 
 ## Overview
 
-The QuickBooks integration is primarily designed as a **one-way pull** from QuickBooks into Duely. QuickBooks acts as the source of truth for invoice creation and payment processing. Duely fetches these invoices, maps them to clients, tracks their status, and logs payments.
+The QuickBooks integration provides real-time, bidirectional sync between QuickBooks and Duely. Instead of pulling the entire ledger on a cron schedule, Duely listens to QuickBooks webhooks for targeted updates.
 
-Currently, **no standard financial data is pushed from Duely to QuickBooks**. Invoices or payments created locally in Duely remain exclusively in Duely. (The sole exception is automated Late Fees, detailed below).
+## Target Architecture: Webhook-Driven Sync
+
+### Flow 1: Initial Sync (One Time on QuickBooks Connect)
+When the user connects their QuickBooks account, a background Inngest job fetches the full initial batch of ACCREC invoices and payments. Once finished, it establishes a `last_synced_at` baseline.
+
+### Flow 2: QuickBooks → Duely (Inbound Webhook)
+QuickBooks fires a POST to `/api/webhooks/quickbooks` whenever an invoice, payment, or customer changes.
+
+- **Idempotency**: Handled using the `webhook_events` table to ensure duplicate events are skipped.
+- **Targeted Fetch**: When an `Invoice` or `Payment` webhook arrives, the handler makes exactly ONE API call to fetch the specific payload. 
+- **Security**: The webhook handler strictly verifies the HMAC-SHA256 signature using the `intuit-signature` header against `QUICKBOOKS_WEBHOOK_TOKEN`.
+
+### Flow 3: Duely → QuickBooks (Outbound Push)
+When a user takes an action in Duely (e.g., automated late fees or logging a manual payment):
+- **Source of Truth**: The Duely DB is updated first.
+- **Push**: Duely makes a targeted QuickBooks API call to reflect the change.
+- **Loop Prevention**: QuickBooks will naturally fire a webhook back to Duely for this change. The `updated_at` timestamps on invoices prevent Duely from overwriting its own newer data with the webhook payload.
 
 ## Data Directionality & Dual Sync Truth Rule
 
 *   **From QuickBooks to Duely:**
-    *   **Invoices:** All invoices are pulled from QuickBooks.
-    *   **Clients/Contacts:** Client names and emails are extracted from the invoices (and supplemented via a separate `Customer` query if needed) to build the local `clients` database.
-    *   **Payments:** Following the exact same architecture as Xero, Duely makes a dedicated query to the QuickBooks `Payment` API. It parses the payment `Line` items to find which specific invoices the payment was applied to, and logs precise transaction amounts and dates in the Duely `payments` table.
+    *   **Invoices:** All invoices are pulled from QuickBooks. The webhook actively pulls `InvoiceLink` (payment link) and other metadata.
+    *   **Payments:** Webhooks actively trigger targeted `fetchQuickBooksPayment` queries to log exact transaction amounts and dates in the Duely `payments` table.
 *   **From Duely to QuickBooks:**
-    *   **Late Fees Only:** Just like Xero, Duely does not create invoices or payments in QuickBooks EXCEPT when an automated Late Fee policy fires. If a late fee is triggered:
-        *   If the policy is "append to existing", Duely fetches the specific QuickBooks invoice, appends a new `Line` item (Item-based) for the fee, and pushes the update to QuickBooks.
-        *   If the policy is "create new invoice", Duely generates a completely separate QuickBooks invoice for the late fee and publishes it to the ledger.
-*   **Dual Sync Truth Rule:**
-    *   If an invoice exists in both systems, Duely compares the `updated_at` timestamps. If the Duely invoice was updated *more recently* than the QuickBooks invoice (e.g., a user manually marked an invoice as paid in Duely), the sync script **skips** overwriting the local Duely record. This ensures manual actions taken in Duely are preserved.
+    *   **Late Fees:** The automated late fee system pushes changes (either as a new LineItem on an existing invoice or a new invoice) directly to QuickBooks.
+    *   **Manual Payments:** Payments logged manually in Duely can be pushed to QuickBooks.
+*   **Dual Sync Truth Rule & Soft Deduplication:**
+    *   If an invoice exists in both systems, Duely compares the `updated_at` timestamps. If the Duely invoice was updated *more recently* than the QuickBooks invoice, the sync script **skips** overwriting the local Duely record.
+    *   **Soft-Deduplication**: When pushing a payment to QuickBooks, QuickBooks immediately fires a webhook back. To prevent an infinite loop where Duely re-logs the same payment, the webhook handler actively searches for unlinked manual payments matching the exact amount and date. If a match is found, it silently links the QuickBooks ID instead of creating a duplicate row.
 
 ## Multi-Tenancy
 
-Unlike Xero (where the API returns an array of authorized tenants for the user to select), Intuit's OAuth flow requires the user to pick exactly *one* company (tenant) on the Intuit consent screen *before* redirecting back to Duely. 
+Unlike Xero, Intuit's OAuth flow requires the user to pick exactly *one* company (tenant) on the Intuit consent screen *before* redirecting back to Duely. Therefore, Duely receives exactly one `realmId` (tenant ID) in the OAuth callback. A single Duely workspace is strictly locked 1:1 with the selected QuickBooks company.
 
-Therefore, Duely receives exactly one `realmId` (tenant ID) in the OAuth callback. There is no intermediate "Tenant Selection" UI required for QuickBooks. A single Duely workspace is strictly locked 1:1 with the selected QuickBooks company.
+The webhook handler uses the `realmId` from the webhook payload to route the event to the correct Duely organization.
 
-## Sync Logic Details
+## Token Management (Critical)
 
-### 1. Token Management
-QuickBooks OAuth tokens are strict. `access_token` usually expires in 60 minutes, while the `refresh_token` lasts around 100 days (but rotates frequently). Before querying the QuickBooks API, `lib/quickbooks.ts` checks the `expires_at` timestamp. If it is expired (or close to expiring), it automatically negotiates a new set of tokens and updates the `integrations` table.
+QuickBooks OAuth tokens are strict. Before querying the QuickBooks API, `lib/quickbooks.ts` checks the `expires_at` timestamp. If it is within 5 minutes of expiration, it automatically negotiates a new set of tokens and updates the `integrations` table.
 
-### 2. Client Identity Resolution
-When processing a QuickBooks invoice, the sync script extracts the customer's `CustomerRef`.
-*   It tries to resolve the contact's name and email by looking up the `CustomerRef` against a batch query of QuickBooks customers.
-*   It searches the local `clients` table by **email**.
-*   If no match, it falls back to searching by **name**.
-*   If still no match, it creates a **new client** in the `clients` table.
+## Strict Stability Warning
 
-### 3. Invoice Updating & Workflow Status
-*   Invoices are mapped using `quickbooks_id` (the invoice `Id` field in QuickBooks).
-*   The `status` (outstanding, paid, partial, overdue) is calculated dynamically based on `TotalAmt`, `Balance`, and `DueDate`.
+**The QuickBooks integration (OAuth flow, webhooks, payment pushing, syncing) is fully functional, loop-free, and stable.**
 
-### 4. Exact Payment Syncing
-After invoices are updated, the script queries the `Payment` endpoint to pull down all QuickBooks payment records. Because a single QuickBooks payment can pay off *multiple* invoices at once, the script parses the `Line` array of each payment, checking for `LinkedTxn` items of type `Invoice`. It maps these payments to the local invoices and records the exact date and amount in Duely. The QuickBooks internal payment `Id` is saved as `reference_id` to ensure idempotency and prevent duplicates.
-
-## Edge Cases & Pitfalls
-
-*   **MinorVersion Handling:** The QuickBooks API requires a `minorversion` query parameter for certain fields to be returned. Duely currently forces `minorversion=65` for consistency.
-*   **Stale Data:** Because Duely relies on scheduled or manual syncs (pulls), the data in Duely can be slightly stale compared to QuickBooks until the next sync runs.
-*   **Token Expiration Cascades:** If a `refresh_token` expires completely (e.g., 100 days of inactivity), the user must fully disconnect and reconnect their QuickBooks account.
+Under no circumstances should any QuickBooks integration code (e.g., `lib/quickbooks.ts`, `app/api/webhooks/quickbooks/route.ts`) be modified, refactored, or touched unless explicitly requested by the user to fix a specific bug. Any modifications must be narrowly scoped to preserve this delicate stability.

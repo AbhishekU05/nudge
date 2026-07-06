@@ -156,7 +156,7 @@ function tokenNeedsRefresh(expiresAt: string) {
   return new Date(expiresAt).getTime() - Date.now() <= TOKEN_REFRESH_SKEW_MS;
 }
 
-async function getValidQuickBooksTokens(integration: QuickBooksIntegrationRow) {
+export async function getValidQuickBooksTokens(integration: QuickBooksIntegrationRow) {
   if (!tokenNeedsRefresh(integration.expires_at)) {
     return integration;
   }
@@ -227,11 +227,11 @@ export async function completeQuickBooksOAuthCallback(code: string, realmId: str
   return syncQuickBooksInvoicesForOrg(member.organization_id);
 }
 
-function normalizeEmail(email: string | null | undefined) {
+export function normalizeEmail(email: string | null | undefined) {
   return email?.trim().toLowerCase() || null;
 }
 
-function toIsoDate(value: Date | string | null | undefined) {
+export function toIsoDate(value: Date | string | null | undefined) {
   if (!value) return null;
   if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
   const parsed = new Date(value);
@@ -239,12 +239,28 @@ function toIsoDate(value: Date | string | null | undefined) {
   return parsed.toISOString().slice(0, 10);
 }
 
-async function getQuickBooksIntegration(organizationId: string) {
+export async function getQuickBooksIntegration(organizationId: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("integrations")
     .select("*")
     .eq("organization_id", organizationId)
+    .eq("provider", QUICKBOOKS_PROVIDER)
+    .maybeSingle<QuickBooksIntegrationRow>();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+export async function getQuickBooksIntegrationByRealmId(realmId: string) {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("integrations")
+    .select("*")
+    .eq("realm_id", realmId)
     .eq("provider", QUICKBOOKS_PROVIDER)
     .maybeSingle<QuickBooksIntegrationRow>();
 
@@ -642,4 +658,46 @@ export async function getQuickBooksBankAccounts(organizationId: string) {
     logger.error({ message: "Failed to fetch QuickBooks bank accounts", context: "quickbooks_bank_sync", original_error: String(error) });
     return [];
   }
+}
+
+export async function fetchQuickBooksInvoice(accessToken: string, realmId: string, invoiceId: string) {
+  const url = new URL(`${getApiBaseUrl()}/v3/company/${realmId}/invoice/${invoiceId}`);
+  url.searchParams.set("minorversion", "65");
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) return null;
+    const text = await response.text();
+    throw new Error(`Failed to fetch QuickBooks invoice: ${text}`);
+  }
+
+  const data = await response.json();
+  return data.Invoice;
+}
+
+export async function fetchQuickBooksPayment(accessToken: string, realmId: string, paymentId: string) {
+  const url = new URL(`${getApiBaseUrl()}/v3/company/${realmId}/payment/${paymentId}`);
+  url.searchParams.set("minorversion", "65");
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) return null;
+    const text = await response.text();
+    throw new Error(`Failed to fetch QuickBooks payment: ${text}`);
+  }
+
+  const data = await response.json();
+  return data.Payment;
 }
