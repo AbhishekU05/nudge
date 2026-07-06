@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { XeroBankAccountSelect } from "@/components/site/xero-bank-account-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -312,6 +313,7 @@ function PaymentTab({ customer }: { customer: CustomerRecord }) {
                   required
                 />
               </div>
+              <XeroBankAccountSelect customerXeroId={customer.xero_id} />
               <Button type="submit" size="sm" className="w-full">
                 Record payment
               </Button>
@@ -346,8 +348,9 @@ function PaymentTab({ customer }: { customer: CustomerRecord }) {
           <Section title="Mark as fully paid">
             <form action={markFullyPaid}>
               <input type="hidden" name="customer_id" value={customer.id} />
+              <XeroBankAccountSelect customerXeroId={customer.xero_id} />
               <Button type="submit" variant="secondary" size="sm" className="w-full">
-                <CheckCircle2 className="h-3.5 w-3.5" />
+                <CheckCircle2 className="h-3.5 w-3.5 mr-2" />
                 Mark fully paid
               </Button>
             </form>

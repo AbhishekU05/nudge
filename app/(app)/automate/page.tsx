@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Zap, Clock, Receipt, Users } from "lucide-react";
 import { LocalTime } from "@/components/site/local-time";
+import { DraftList } from "@/components/site/draft-list";
 
 export const metadata = {
   title: "Automate | Duely",
@@ -45,6 +46,25 @@ export default async function AutomatePage() {
     }
   }
 
+  const { data: draftsData } = await supabase
+    .from("email_drafts")
+    .select("id, subject, body_html, created_at, clients(name, email)")
+    .eq("organization_id", member?.organization_id)
+    .eq("status", "draft")
+    .order("created_at", { ascending: false });
+    
+  const drafts = (draftsData || []).map((d) => {
+    const rawClient = d.clients as unknown;
+    const client = Array.isArray(rawClient) ? rawClient[0] : rawClient;
+    return {
+      id: d.id,
+      subject: d.subject,
+      body_html: d.body_html,
+      created_at: d.created_at,
+      clients: client as { name: string; email: string }
+    };
+  });
+
   if (!isAllowed) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
@@ -68,6 +88,10 @@ export default async function AutomatePage() {
       <main className="flex-1">
         <Container className="py-8 sm:py-10">
           
+          <div className="mb-12">
+            <DraftList initialDrafts={drafts} />
+          </div>
+
           <div className="flex items-center gap-3 mb-8">
             <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Active Automations</h1>
             <Badge variant="muted" className="bg-white/5 hover:bg-white/10">{totalAutomations} running</Badge>

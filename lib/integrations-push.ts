@@ -8,7 +8,8 @@ export async function pushPaymentToXero(
   organizationId: string,
   invoiceId: string,
   amount: number,
-  dateIso: string
+  dateIso: string,
+  bankAccountId?: string
 ) {
   try {
     const supabase = createSupabaseAdminClient();
@@ -32,25 +33,19 @@ export async function pushPaymentToXero(
       await xero.refreshToken();
     }
 
-    const accountsResponse = await xero.accountingApi.getAccounts(
-      integration.tenant_id,
-      undefined,
-      'Type=="BANK"'
-    );
-    const bankAccount = accountsResponse.body.accounts?.find(a => String(a.status) === "ACTIVE");
-    if (!bankAccount?.accountID) {
+    const finalBankAccountId = bankAccountId || integration.xero_default_account_id;
+    if (!finalBankAccountId) {
       logger.error({
-        message: "No active bank account found for Xero dual sync",
+        message: "No bank account provided and no default configured for Xero dual sync",
         context: "pushPaymentToXero",
         organization_id: organizationId,
       });
       return;
     }
-    const bankAccountId = bankAccount.accountID;
 
     await xero.accountingApi.createPayment(integration.tenant_id, {
       invoice: { invoiceID: invoiceId },
-      account: { accountID: bankAccountId },
+      account: { accountID: finalBankAccountId },
       amount: amount,
       date: dateIso,
     });

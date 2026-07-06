@@ -77,6 +77,7 @@ async function insertPayment({
   currency,
   xeroId,
   quickbooksId,
+  xeroBankAccountId,
 }: {
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
   organizationId: string;
@@ -85,6 +86,7 @@ async function insertPayment({
   currency: string;
   xeroId?: string | null;
   quickbooksId?: string | null;
+  xeroBankAccountId?: string;
 }): Promise<boolean> {
   const today = new Date().toISOString().slice(0, 10);
 
@@ -106,7 +108,7 @@ async function insertPayment({
     return false;
   }
 
-  if (xeroId) pushPaymentToXero(organizationId, xeroId, amount, today);
+  if (xeroId) pushPaymentToXero(organizationId, xeroId, amount, today, xeroBankAccountId);
   else if (quickbooksId) pushPaymentToQuickBooks(organizationId, quickbooksId, amount, today);
 
   return true;
@@ -266,6 +268,7 @@ export async function recordPartialPayment(formData: FormData) {
     currency: invoice!.currency,
     xeroId: invoice!.xero_id,
     quickbooksId: invoice!.quickbooks_id,
+    xeroBankAccountId: formData.get("xero_bank_account_id") as string | undefined,
   });
 
   if (!inserted) redirectToDashboard({ error: "Payment was recorded, but the payment history entry could not be saved." });
@@ -334,6 +337,7 @@ export async function markFullyPaid(formData: FormData) {
       currency: invoice!.currency,
       xeroId: invoice!.xero_id,
       quickbooksId: invoice!.quickbooks_id,
+      xeroBankAccountId: formData.get("xero_bank_account_id") as string | undefined,
     });
   }
 

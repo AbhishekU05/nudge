@@ -46,6 +46,8 @@ interface IntegrationRow {
   tenant_id: string;
   last_synced_at?: string;
   expires_at?: string;
+  xero_default_account_name?: string;
+  xero_default_account_id?: string;
 }
 
 export default async function IntegrationsPage({
@@ -86,7 +88,7 @@ export default async function IntegrationsPage({
 
   const { data: xero } = await supabase
     .from("integrations")
-    .select("tenant_id,last_synced_at,expires_at")
+    .select("tenant_id,last_synced_at,expires_at,xero_default_account_name,xero_default_account_id")
     .eq("organization_id", orgId)
     .eq("provider", "xero")
     .maybeSingle<IntegrationRow>();
@@ -267,8 +269,19 @@ export default async function IntegrationsPage({
                       </div>
                     </div>
 
-
-
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                      <p className="text-xs text-zinc-600">Default Bank Account (for automated payments)</p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <p className="truncate text-sm font-semibold text-zinc-100">
+                          {xero?.xero_default_account_name ? xero.xero_default_account_name : "Not configured (Automated payments will not sync to Xero)"}
+                        </p>
+                        <Link href="/settings/integrations/xero/bank">
+                          <Button variant="secondary" size="sm">
+                            {xero?.xero_default_account_id ? "Change" : "Setup"}
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
                     <div className="flex flex-col gap-3 sm:flex-row">
 
                       <form action={disconnectXero}>
