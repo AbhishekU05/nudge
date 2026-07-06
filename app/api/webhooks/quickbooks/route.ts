@@ -59,6 +59,8 @@ export async function POST(req: Request) {
 }
 
 async function processEvent(realmId: string, entity: Record<string, unknown> & { name?: string; id?: string; operation?: string; lastUpdated?: string }) {
+  if (!entity.id) return;
+
   const supabase = createSupabaseAdminClient();
   const eventId = `${realmId}_${entity.name}_${entity.id}_${entity.lastUpdated}`;
   
@@ -146,7 +148,7 @@ async function upsertInvoice(
     }).select("id").single();
     
     if (error) {
-      logger.error({ message: "Failed to create client in webhook", error: error.message, organization_id: organizationId });
+      logger.error({ message: "Failed to create client in webhook", error: error.message, organization_id: organizationId, context: "quickbooks-webhook-client-creation" });
       return;
     }
     clientRecord = newClient;
