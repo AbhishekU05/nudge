@@ -73,7 +73,7 @@ async function isSandbox() {
   return mode === "sandbox";
 }
 
-async function getApiBaseUrl() {
+export async function getApiBaseUrl() {
   const sandbox = await isSandbox();
   return sandbox
     ? "https://sandbox-quickbooks.api.intuit.com"

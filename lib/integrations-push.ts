@@ -2,7 +2,7 @@ import { XeroClient } from "xero-node";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
 import { XeroIntegrationRow } from "./xero";
-import { QuickBooksIntegrationRow } from "./quickbooks";
+import { QuickBooksIntegrationRow, getApiBaseUrl, getValidQuickBooksTokens } from "./quickbooks";
 
 export async function pushPaymentToXero(
   organizationId: string,
@@ -92,11 +92,14 @@ export async function pushPaymentToQuickBooks(
 
     if (!integration || !integration.realm_id) return;
     
-    const invoiceUrl = new URL(`https://${integration.realm_id.includes('sandbox') ? 'sandbox-quickbooks' : 'quickbooks'}.api.intuit.com/v3/company/${integration.realm_id}/invoice/${invoiceId}?minorversion=65`);
+    const validIntegration = await getValidQuickBooksTokens(integration);
+    const baseUrl = await getApiBaseUrl();
+    
+    const invoiceUrl = new URL(`${baseUrl}/v3/company/${integration.realm_id}/invoice/${invoiceId}?minorversion=65`);
     const invoiceRes = await fetch(invoiceUrl.toString(), {
       headers: {
         Accept: "application/json",
-        Authorization: `Bearer ${integration.access_token}`,
+        Authorization: `Bearer ${validIntegration.access_token}`,
       },
     });
 
@@ -105,7 +108,7 @@ export async function pushPaymentToQuickBooks(
     const customerRef = invoiceData.Invoice?.CustomerRef?.value;
     if (!customerRef) return;
 
-    const paymentUrl = new URL(`https://${integration.realm_id.includes('sandbox') ? 'sandbox-quickbooks' : 'quickbooks'}.api.intuit.com/v3/company/${integration.realm_id}/payment?minorversion=65`);
+    const paymentUrl = new URL(`${baseUrl}/v3/company/${integration.realm_id}/payment?minorversion=65`);
     
     const paymentPayload = {
       TotalAmt: amount,
@@ -124,7 +127,7 @@ export async function pushPaymentToQuickBooks(
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `Bearer ${integration.access_token}`,
+        Authorization: `Bearer ${validIntegration.access_token}`,
       },
       body: JSON.stringify(paymentPayload),
     });
