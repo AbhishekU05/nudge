@@ -234,12 +234,31 @@ async function upsertPayment(
 
   if (!payment.amount || payment.amount <= 0) return;
 
+  const paymentDate = toIsoDate(payment.date) || new Date().toISOString().substring(0, 10);
+
+  // Soft-deduplication: check if a manual payment for the same amount and date exists without a reference_id
+  const { data: softMatchedPayment } = await supabase
+    .from("payments")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .eq("invoice_id", existingInvoice.id)
+    .eq("amount", payment.amount)
+    .eq("payment_date", paymentDate)
+    .is("reference_id", null)
+    .maybeSingle();
+
+  if (softMatchedPayment) {
+    // It's a manual payment we pushed, just update its reference_id
+    await supabase.from("payments").update({ reference_id: payment.paymentID, payment_method: "xero_sync" }).eq("id", softMatchedPayment.id);
+    return;
+  }
+
   await supabase.from("payments").insert({
     organization_id: organizationId,
     invoice_id: existingInvoice.id,
     amount: payment.amount,
     currency: payment.invoice?.currencyCode || "USD",
-    payment_date: toIsoDate(payment.date) || new Date().toISOString().substring(0, 10),
+    payment_date: paymentDate,
     payment_method: "xero_sync",
     reference_id: payment.paymentID
   });

@@ -90,26 +90,26 @@ async function insertPayment({
 }): Promise<boolean> {
   const today = new Date().toISOString().slice(0, 10);
 
-  const { error } = await supabase.from("payments").insert({
+  const { data: insertedPayment, error } = await supabase.from("payments").insert({
     organization_id: organizationId,
     invoice_id: invoiceId,
     amount,
     currency,
     payment_date: today,
     payment_method: "manual",
-  });
+  }).select("id").single();
 
-  if (error) {
+  if (error || !insertedPayment) {
     logger.error({
       message: "Database error inserting payment",
       context: "insertPayment",
-      error: error.message,
+      error: error?.message,
     });
     return false;
   }
 
-  if (xeroId) pushPaymentToXero(organizationId, xeroId, amount, today, xeroBankAccountId);
-  else if (quickbooksId) pushPaymentToQuickBooks(organizationId, quickbooksId, amount, today);
+  if (xeroId) pushPaymentToXero(organizationId, xeroId, amount, today, xeroBankAccountId, insertedPayment.id);
+  else if (quickbooksId) pushPaymentToQuickBooks(organizationId, quickbooksId, amount, today, insertedPayment.id);
 
   return true;
 }

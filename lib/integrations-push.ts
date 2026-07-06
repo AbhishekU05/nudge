@@ -9,7 +9,8 @@ export async function pushPaymentToXero(
   invoiceId: string,
   amount: number,
   dateIso: string,
-  bankAccountId?: string
+  bankAccountId?: string,
+  localPaymentId?: string
 ) {
   try {
     const supabase = createSupabaseAdminClient();
@@ -43,12 +44,17 @@ export async function pushPaymentToXero(
       return;
     }
 
-    await xero.accountingApi.createPayment(integration.tenant_id, {
+    const response = await xero.accountingApi.createPayment(integration.tenant_id, {
       invoice: { invoiceID: invoiceId },
       account: { accountID: finalBankAccountId },
       amount: amount,
       date: dateIso,
     });
+
+    const xeroPaymentId = response.body.payments?.[0]?.paymentID;
+    if (xeroPaymentId && localPaymentId) {
+      await supabase.from("payments").update({ reference_id: xeroPaymentId, payment_method: "xero_sync" }).eq("id", localPaymentId);
+    }
 
     logger.external({
       service: "Xero",
@@ -71,7 +77,8 @@ export async function pushPaymentToQuickBooks(
   organizationId: string,
   invoiceId: string,
   amount: number,
-  dateIso: string
+  dateIso: string,
+  localPaymentId?: string
 ) {
   try {
     const supabase = createSupabaseAdminClient();
@@ -124,6 +131,13 @@ export async function pushPaymentToQuickBooks(
     if (!paymentRes.ok) {
       const errorText = await paymentRes.text();
       throw new Error(`QB Payment Error: ${errorText}`);
+    }
+    
+    const paymentData = await paymentRes.json();
+    const qbPaymentId = paymentData.Payment?.Id;
+
+    if (qbPaymentId && localPaymentId) {
+      await supabase.from("payments").update({ reference_id: qbPaymentId, payment_method: "quickbooks_sync" }).eq("id", localPaymentId);
     }
 
     logger.external({
