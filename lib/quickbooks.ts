@@ -492,6 +492,7 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
       status: status,
       quickbooks_id: invoiceId,
       invoice_number: invoice.DocNumber || null,
+      payment_link: invoice.InvoiceLink || null,
       updated_at: new Date().toISOString()
     };
 
