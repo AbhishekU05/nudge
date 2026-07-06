@@ -276,7 +276,18 @@ export async function getXeroIntegrationByTenant(tenantId: string) {
 
 export async function fetchXeroInvoice(xero: XeroClient, tenantId: string, invoiceId: string) {
   const response = await xero.accountingApi.getInvoice(tenantId, invoiceId);
-  return response.body.invoices?.[0];
+  const invoice = response.body.invoices?.[0];
+  if (invoice) {
+    try {
+      const onlineRes = await xero.accountingApi.getOnlineInvoice(tenantId, invoiceId);
+      if (onlineRes.body.onlineInvoices && onlineRes.body.onlineInvoices.length > 0) {
+        (invoice as Record<string, unknown>).onlineInvoiceUrl = onlineRes.body.onlineInvoices[0].onlineInvoiceUrl;
+      }
+    } catch (e) {
+      // Ignored - online invoice might not be available
+    }
+  }
+  return invoice;
 }
 
 export async function fetchXeroPayment(xero: XeroClient, tenantId: string, paymentId: string) {
@@ -369,6 +380,7 @@ export async function syncXeroDataPageForOrg(
         status: status,
         xero_id: invoiceId,
         invoice_number: invoice.invoiceNumber || null,
+        reference: invoice.reference || null,
         updated_at: new Date().toISOString()
       };
 

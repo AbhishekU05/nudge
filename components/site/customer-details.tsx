@@ -945,6 +945,14 @@ export function CustomerDetails({
                   </span>
                 </div>
               )}
+              {customer.reference && (
+                <div>
+                  <span className="text-zinc-600">Ref </span>
+                  <span className="font-semibold text-zinc-100">
+                    {customer.reference}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -91,6 +91,7 @@ export interface Invoice {
   amount_owed: number;
   amount_paid: number;
   invoice_number: string | null;
+  reference: string | null;
   active: boolean;
   reminders_paused: boolean;
   recipient_name: string;

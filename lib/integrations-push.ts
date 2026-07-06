@@ -49,6 +49,7 @@ export async function pushPaymentToXero(
       account: { accountID: finalBankAccountId },
       amount: amount,
       date: dateIso,
+      reference: "Logged via Duely",
     });
 
     const xeroPaymentId = response.body.payments?.[0]?.paymentID;

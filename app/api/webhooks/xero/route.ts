@@ -171,6 +171,9 @@ async function upsertInvoice(
     due_date: toIsoDate(invoice.dueDate),
     status: status,
     xero_id: invoice.invoiceID,
+    invoice_number: invoice.invoiceNumber || null,
+    reference: invoice.reference || null,
+    payment_link: (invoice as Record<string, unknown>).onlineInvoiceUrl as string | null,
     updated_at: new Date().toISOString()
   };
 
