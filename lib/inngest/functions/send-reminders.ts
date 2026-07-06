@@ -187,6 +187,24 @@ export const sendReminders = inngest.createFunction(
       }
     }
 
+    // Fetch monthly email counts
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const startOfMonthIso = startOfMonth.toISOString();
+
+    const monthlyCountsMap = new Map<string, number>();
+    for (const orgId of orgIds) {
+      const { count } = await supabase
+        .from("email_drafts")
+        .select("*", { count: "exact", head: true })
+        .eq("organization_id", orgId)
+        .eq("status", "sent")
+        .gte("sent_at", startOfMonthIso);
+      
+      monthlyCountsMap.set(orgId, count || 0);
+    }
+
     let claimed = 0;
     let sent = 0;
     let drafted = 0;
@@ -212,6 +230,12 @@ export const sendReminders = inngest.createFunction(
           await supabase.from(table).update({ active: false }).eq("id", entity.id);
           failed += 1;
           continue;
+        }
+
+        const monthlySent = monthlyCountsMap.get(entity.organization_id) || 0;
+        if (entity.auto_approve && monthlySent >= 10000) {
+          entity.auto_approve = false;
+          console.warn(`Monthly email limit reached for org ${entity.organization_id}, forcing draft`);
         }
 
         // Pick template
@@ -348,6 +372,7 @@ export const sendReminders = inngest.createFunction(
             });
           }
           sent += 1;
+          monthlyCountsMap.set(entity.organization_id, monthlySent + 1);
         } else {
           drafted += 1;
         }
