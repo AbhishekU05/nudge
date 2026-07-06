@@ -29,6 +29,8 @@ export type QuickBooksIntegrationRow = {
   expires_at: string;
   realm_id: string | null;
   last_synced_at: string | null;
+  quickbooks_default_account_id?: string | null;
+  quickbooks_default_account_name?: string | null;
 };
 
 export type QuickBooksSyncResult = {

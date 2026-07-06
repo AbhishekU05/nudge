@@ -38,10 +38,9 @@ export async function GET(request: NextRequest) {
     const result = await completeQuickBooksOAuthCallback(code, realmId, state);
     revalidatePath("/settings/integrations");
     revalidatePath("/dashboard");
-    return redirectToSettings(
-      "success",
-      `QuickBooks connected successfully. ${result.imported} invoices imported, ${result.updated} updated.`,
-    );
+    const url = new URL("/settings/integrations/quickbooks/bank", getAppUrl());
+    url.searchParams.set("success", `QuickBooks connected successfully. ${result.imported} invoices imported, ${result.updated} updated.`);
+    return NextResponse.redirect(url);
   } catch (error) {
     logger.external({
       service: "QuickBooks",

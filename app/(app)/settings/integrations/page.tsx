@@ -48,6 +48,8 @@ interface IntegrationRow {
   expires_at?: string;
   xero_default_account_name?: string;
   xero_default_account_id?: string;
+  quickbooks_default_account_name?: string;
+  quickbooks_default_account_id?: string;
 }
 
 export default async function IntegrationsPage({
@@ -95,7 +97,7 @@ export default async function IntegrationsPage({
 
   const { data: quickbooks } = await supabase
     .from("integrations")
-    .select("tenant_id,last_synced_at,expires_at")
+    .select("tenant_id,last_synced_at,expires_at,quickbooks_default_account_name,quickbooks_default_account_id")
     .eq("organization_id", orgId)
     .eq("provider", "quickbooks")
     .maybeSingle<IntegrationRow>();
@@ -348,16 +350,31 @@ export default async function IntegrationsPage({
               <CardContent className="space-y-6 p-6">
                 {isConnectedQuickBooks ? (
                   <>
-                    <div className="grid gap-3 sm:grid-cols-1">
+                    <div className="grid gap-3 sm:grid-cols-2">
                       <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                         <p className="text-xs text-zinc-600">Company ID (Realm)</p>
                         <p className="mt-2 truncate font-mono text-xs text-zinc-300">
                           {quickbooks?.tenant_id}
                         </p>
                       </div>
+                      
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                        <p className="text-xs text-zinc-600">Default Bank Account</p>
+                        <p className="mt-2 truncate text-sm font-semibold text-zinc-100">
+                          {quickbooks?.quickbooks_default_account_name || "Not configured"}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="flex flex-col gap-3 sm:flex-row">
+                      <Link href="/settings/integrations/quickbooks/bank">
+                        <Button
+                          variant="secondary"
+                          className="w-full sm:w-auto text-emerald-400 hover:text-emerald-300"
+                        >
+                          Change Bank Account
+                        </Button>
+                      </Link>
 
                       <form action={disconnectQuickBooks}>
                         <Button

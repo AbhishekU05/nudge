@@ -79,6 +79,7 @@ export async function pushPaymentToQuickBooks(
   invoiceId: string,
   amount: number,
   dateIso: string,
+  bankAccountId?: string,
   localPaymentId?: string
 ) {
   try {
@@ -107,12 +108,23 @@ export async function pushPaymentToQuickBooks(
     const invoiceData = await invoiceRes.json();
     const customerRef = invoiceData.Invoice?.CustomerRef?.value;
     if (!customerRef) return;
+    
+    const finalBankAccountId = bankAccountId || integration.quickbooks_default_account_id;
+    if (!finalBankAccountId) {
+      logger.error({
+        message: "No bank account provided and no default configured for QuickBooks dual sync",
+        context: "pushPaymentToQuickBooks",
+        organization_id: organizationId,
+      });
+      return;
+    }
 
     const paymentUrl = new URL(`${baseUrl}/v3/company/${integration.realm_id}/payment?minorversion=65`);
     
     const paymentPayload = {
       TotalAmt: amount,
       CustomerRef: { value: customerRef },
+      DepositToAccountRef: { value: finalBankAccountId },
       TxnDate: dateIso,
       Line: [
         {

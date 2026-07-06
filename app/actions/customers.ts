@@ -109,7 +109,7 @@ async function insertPayment({
   }
 
   if (xeroId) pushPaymentToXero(organizationId, xeroId, amount, today, xeroBankAccountId, insertedPayment.id);
-  else if (quickbooksId) pushPaymentToQuickBooks(organizationId, quickbooksId, amount, today, insertedPayment.id);
+  else if (quickbooksId) pushPaymentToQuickBooks(organizationId, quickbooksId, amount, today, undefined, insertedPayment.id);
 
   return true;
 }

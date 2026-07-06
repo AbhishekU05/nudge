@@ -148,6 +148,35 @@ export async function disconnectQuickBooks() {
   redirectToIntegrations({ success: "QuickBooks disconnected." });
 }
 
+export async function saveQuickBooksDefaultBank(formData: FormData) {
+  const user = await requireUser();
+  const organizationId = await getOrganizationId(user.id);
+  if (!organizationId) redirectToIntegrations({ error: "No organization found." });
+
+  const bankAccountId = formData.get("bankAccountId")?.toString();
+  const bankAccountName = formData.get("bankAccountName")?.toString();
+
+  if (!bankAccountId || !bankAccountName) {
+    redirect(`/settings/integrations/quickbooks/bank?error=Invalid selection.`);
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("integrations")
+    .update({
+      quickbooks_default_account_id: bankAccountId,
+      quickbooks_default_account_name: bankAccountName,
+    })
+    .eq("organization_id", organizationId)
+    .eq("provider", "quickbooks");
+
+  if (error) {
+    redirect(`/settings/integrations/quickbooks/bank?error=Unable to save default bank.`);
+  }
+
+  redirectToIntegrations({ success: "QuickBooks default bank saved successfully." });
+}
+
 export async function disconnectGmail() {
   const user = await requireUser();
   const adminSupabase = (await import("@/lib/supabase/admin")).createSupabaseAdminClient();
