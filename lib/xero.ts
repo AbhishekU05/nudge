@@ -40,8 +40,6 @@ export type XeroIntegrationRow = {
   expires_at: string;
   tenant_id: string;
   last_synced_at: string | null;
-  bank_account_id?: string | null;
-  bank_account_name?: string | null;
 };
 
 export type XeroSyncResult = {
