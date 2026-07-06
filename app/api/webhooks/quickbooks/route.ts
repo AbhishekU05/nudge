@@ -19,9 +19,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing signature" }, { status: 401 });
   }
 
-  const webhookKey = process.env.QUICKBOOKS_WEBHOOK_TOKEN;
+  const { getQuickBooksMode } = await import("@/lib/platform-settings");
+  const mode = await getQuickBooksMode();
+  const webhookKey = mode === "sandbox" 
+    ? process.env.QUICKBOOKS_DEV_WEBHOOK_TOKEN 
+    : process.env.QUICKBOOKS_WEBHOOK_TOKEN;
+    
   if (!webhookKey) {
-    logger.error({ message: "QUICKBOOKS_WEBHOOK_TOKEN is not configured", context: "quickbooks-webhook" });
+    logger.error({ message: `QUICKBOOKS_WEBHOOK_TOKEN (${mode}) is not configured`, context: "quickbooks-webhook" });
     return NextResponse.json({ error: "Configuration error" }, { status: 500 });
   }
 
