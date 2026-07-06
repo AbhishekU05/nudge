@@ -34,12 +34,14 @@ When a user takes an action in Duely (e.g., automated late fees):
 ## Data Directionality & Dual Sync Truth Rule
 
 *   **From Xero to Duely:**
-    *   **Invoices:** All outstanding and paid invoices are tracked. The webhook fetches the exact invoice upon an `INVOICE` event.
+    *   **Invoices:** All outstanding and paid invoices are tracked. The webhook fetches the exact invoice upon an `INVOICE` event. It also actively pulls `OnlineInvoiceUrl` (payment link) and the `reference` field for display in the Duely portal.
     *   **Payments:** Exact payments are extracted from the parent invoice payload during an `INVOICE` webhook event, preventing inference errors while bypassing Xero's lack of payment webhooks.
 *   **From Duely to Xero:** 
     *   **Late Fees:** The automated late fee system pushes changes (either as a new LineItem on an existing invoice or a new invoice) directly to Xero.
-*   **Dual Sync Truth Rule:** 
+    *   **Manual Payments:** Payments logged manually in Duely are pushed directly to Xero with a custom reference of `"Logged via Duely"` for auditability.
+*   **Dual Sync Truth Rule & Soft Deduplication:** 
     *   If an invoice exists in both systems, Duely compares the `updated_at` timestamps. If the Duely invoice was updated *more recently* than the Xero invoice (e.g., a user manually marked an invoice as paid in Duely), the webhook handler **skips** overwriting the local Duely record. 
+    *   **Soft-Deduplication**: When pushing a payment to Xero, Xero immediately fires a webhook back. To prevent an infinite loop where Duely re-logs the same payment, the webhook handler actively searches for unlinked manual payments matching the exact amount and date. If a match is found, it silently links the Xero ID instead of creating a duplicate row.
 
 ## Multi-Tenancy & Advisor Mode
 
@@ -53,3 +55,9 @@ Xero accounts can have access to multiple organizations (tenants), such as an ac
 ## Token Management (Critical)
 
 Xero OAuth tokens expire. The webhook handler uses the helper `getValidXeroClient()` before every Xero API call. If the stored token is within 5 minutes of expiration, it automatically uses the refresh token to get a new access token, updates the `integrations` table, and then proceeds with the webhook event.
+
+## Strict Stability Warning
+
+**The Xero integration (OAuth flow, webhooks, payment pushing, syncing) is fully functional, loop-free, and stable.**
+
+Under no circumstances should any Xero integration code (e.g., `lib/xero.ts`, `app/api/webhooks/xero/route.ts`, `lib/integrations-push.ts`) be modified, refactored, or touched unless explicitly requested by the user to fix a specific bug. Any modifications must be narrowly scoped to preserve this delicate stability.
