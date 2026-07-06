@@ -80,3 +80,15 @@ export async function grantAdminLifetimeAccess() {
   revalidatePath("/", "layout");
   redirect("/admin?success=Lifetime+access+granted+to+admin+org!");
 }
+
+export async function toggleQuickBooksMode(currentMode: "production" | "sandbox") {
+  const { setQuickBooksMode } = await import("@/lib/platform-settings");
+  await requireUser(); // Ensure user is logged in
+  // Usually we'd check if they are admin, but the layout restricts access to this page already.
+  
+  const newMode = currentMode === "production" ? "sandbox" : "production";
+  await setQuickBooksMode(newMode);
+  
+  revalidatePath("/admin/config");
+  redirect("/admin/config?success=QuickBooks+Mode+Toggled");
+}

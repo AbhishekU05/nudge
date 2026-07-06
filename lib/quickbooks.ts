@@ -48,24 +48,34 @@ type ExistingInvoiceRow = {
   updated_at: string;
 };
 
-function getQuickBooksClientId() {
-  return getRequiredEnv("QUICKBOOKS_CLIENT_ID");
+import { getQuickBooksMode } from "@/lib/platform-settings";
+
+async function getQuickBooksClientId() {
+  const mode = await getQuickBooksMode();
+  return mode === "sandbox"
+    ? getRequiredEnv("QUICKBOOKS_DEV_CLIENT_ID")
+    : getRequiredEnv("QUICKBOOKS_CLIENT_ID");
 }
 
-function getQuickBooksClientSecret() {
-  return getRequiredEnv("QUICKBOOKS_CLIENT_SECRET");
+async function getQuickBooksClientSecret() {
+  const mode = await getQuickBooksMode();
+  return mode === "sandbox"
+    ? getRequiredEnv("QUICKBOOKS_DEV_CLIENT_SECRET")
+    : getRequiredEnv("QUICKBOOKS_CLIENT_SECRET");
 }
 
 function getQuickBooksStateSecret() {
   return process.env.QUICKBOOKS_STATE_SECRET ?? getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
 }
 
-function isSandbox() {
-  return process.env.QUICKBOOKS_ENVIRONMENT === "sandbox" || getQuickBooksClientId().startsWith("AB") === false;
+async function isSandbox() {
+  const mode = await getQuickBooksMode();
+  return mode === "sandbox";
 }
 
-function getApiBaseUrl() {
-  return isSandbox()
+async function getApiBaseUrl() {
+  const sandbox = await isSandbox();
+  return sandbox
     ? "https://sandbox-quickbooks.api.intuit.com"
     : "https://quickbooks.api.intuit.com";
 }
@@ -121,7 +131,8 @@ function verifyQuickBooksState(state: string): QuickBooksStatePayload {
 export async function buildQuickBooksConsentUrl(userId: string) {
   const state = createQuickBooksState(userId);
   const url = new URL("https://appcenter.intuit.com/connect/oauth2");
-  url.searchParams.set("client_id", getQuickBooksClientId());
+  const clientId = await getQuickBooksClientId();
+  url.searchParams.set("client_id", clientId);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("scope", QUICKBOOKS_SCOPES.join(" "));
   url.searchParams.set("redirect_uri", getQuickBooksCallbackUrl());
@@ -130,8 +141,10 @@ export async function buildQuickBooksConsentUrl(userId: string) {
 }
 
 async function fetchTokens(params: URLSearchParams) {
+  const clientId = await getQuickBooksClientId();
+  const clientSecret = await getQuickBooksClientSecret();
   const authHeader = Buffer.from(
-    `${getQuickBooksClientId()}:${getQuickBooksClientSecret()}`
+    `${clientId}:${clientSecret}`
   ).toString("base64");
 
   const response = await fetch("https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer", {
@@ -279,7 +292,7 @@ async function fetchAllQuickBooksInvoices(accessToken: string, realmId: string) 
   while (true) {
     const query = `select * from Invoice STARTPOSITION ${startPosition} MAXRESULTS ${maxResults}`;
     
-    const url = new URL(`${getApiBaseUrl()}/v3/company/${realmId}/query`);
+    const url = new URL(`${await getApiBaseUrl()}/v3/company/${realmId}/query`);
     url.searchParams.set("query", query);
     url.searchParams.set("minorversion", "65");
 
@@ -316,7 +329,7 @@ async function fetchAllQuickBooksPayments(accessToken: string, realmId: string) 
   while (true) {
     const query = `select * from Payment STARTPOSITION ${startPosition} MAXRESULTS ${maxResults}`;
     
-    const url = new URL(`${getApiBaseUrl()}/v3/company/${realmId}/query`);
+    const url = new URL(`${await getApiBaseUrl()}/v3/company/${realmId}/query`);
     url.searchParams.set("query", query);
     url.searchParams.set("minorversion", "65");
 
@@ -350,7 +363,7 @@ async function fetchQuickBooksCustomers(accessToken: string, realmId: string, cu
   if (customerIds.length === 0) return new Map();
 
   const query = `select * from Customer where Id in (${customerIds.map(id => `'${id}'`).join(",")})`;
-  const url = new URL(`${getApiBaseUrl()}/v3/company/${realmId}/query`);
+  const url = new URL(`${await getApiBaseUrl()}/v3/company/${realmId}/query`);
   url.searchParams.set("query", query);
   url.searchParams.set("minorversion", "65");
 
@@ -633,7 +646,7 @@ export async function getQuickBooksBankAccounts(organizationId: string) {
   try {
     const validIntegration = await getValidQuickBooksTokens(integration);
     const query = `select * from Account where AccountType = 'Bank'`;
-    const url = new URL(`${getApiBaseUrl()}/v3/company/${integration.realm_id}/query`);
+    const url = new URL(`${await getApiBaseUrl()}/v3/company/${integration.realm_id}/query`);
     url.searchParams.set("query", query);
     url.searchParams.set("minorversion", "65");
 
@@ -661,7 +674,7 @@ export async function getQuickBooksBankAccounts(organizationId: string) {
 }
 
 export async function fetchQuickBooksInvoice(accessToken: string, realmId: string, invoiceId: string) {
-  const url = new URL(`${getApiBaseUrl()}/v3/company/${realmId}/invoice/${invoiceId}`);
+  const url = new URL(`${await getApiBaseUrl()}/v3/company/${realmId}/invoice/${invoiceId}`);
   url.searchParams.set("minorversion", "65");
 
   const response = await fetch(url.toString(), {
@@ -682,7 +695,7 @@ export async function fetchQuickBooksInvoice(accessToken: string, realmId: strin
 }
 
 export async function fetchQuickBooksPayment(accessToken: string, realmId: string, paymentId: string) {
-  const url = new URL(`${getApiBaseUrl()}/v3/company/${realmId}/payment/${paymentId}`);
+  const url = new URL(`${await getApiBaseUrl()}/v3/company/${realmId}/payment/${paymentId}`);
   url.searchParams.set("minorversion", "65");
 
   const response = await fetch(url.toString(), {
