@@ -18,7 +18,8 @@ const XERO_SCOPES = [
   "profile",
   "email",
   "accounting.contacts.read",
-  "accounting.transactions",
+  "accounting.invoices.read",
+  "accounting.payments",
   "accounting.settings.read",
   "offline_access",
 ];
