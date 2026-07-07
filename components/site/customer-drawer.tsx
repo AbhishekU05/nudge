@@ -773,6 +773,14 @@ export function CustomerDrawer({
                   </span>
                 </div>
               )}
+              {customer.late_fees_amount && customer.late_fees_amount > 0 ? (
+                <div>
+                  <span className="text-zinc-600">Late fees </span>
+                  <span className="font-semibold text-amber-500/80">
+                    {formatCurrency(customer.late_fees_amount, customer.currency)}
+                  </span>
+                </div>
+              ) : null}
               {customer.due_date && (
                 <div>
                   <span className="text-zinc-600">Due </span>

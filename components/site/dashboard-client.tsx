@@ -179,6 +179,11 @@ function CustomerCard({
                   {formatCurrency(Number(customer.amount_paid), customer.currency)} paid
                 </p>
               )}
+              {customer.late_fees_amount && customer.late_fees_amount > 0 ? (
+                <p className="mt-0.5 text-xs text-amber-500/80">
+                  incl. {formatCurrency(customer.late_fees_amount, customer.currency)} fees
+                </p>
+              ) : null}
               {customer.due_date && (
                 <p
                   className={cn(

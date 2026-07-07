@@ -198,9 +198,10 @@ function PolicyForm({
         await createLateFeePolicy(formData);
       }
       onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      alert(`An error occurred: ${error.message || error}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      alert(`An error occurred: ${errorMessage}`);
     } finally {
       setLoading(false);
     }

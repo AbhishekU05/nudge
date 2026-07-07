@@ -175,12 +175,12 @@ export async function updateQuickBooksInvoiceWithLateFee(
     SyncToken: invoice.SyncToken,
     TxnTaxDetail: invoice.TxnTaxDetail,
     Line: [
-      ...(invoice.Line || []).filter((l: any) => l.DetailType !== "SubTotalLineDetail").map((l: any) => ({
+      ...(invoice.Line || []).filter((l: Record<string, unknown>) => l.DetailType !== "SubTotalLineDetail").map((l: Record<string, unknown>) => ({
         Id: l.Id,
         LineNum: l.LineNum,
         Amount: l.Amount,
         DetailType: l.DetailType,
-        [l.DetailType]: l[l.DetailType],
+        [l.DetailType as string]: l[l.DetailType as string],
         Description: l.Description
       })),
       newLineItem

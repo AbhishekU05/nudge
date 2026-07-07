@@ -34,7 +34,7 @@ export default async function QuickBooksBankSelectionPage() {
     redirect("/settings/integrations");
   }
 
-  let bankAccounts: any[] = [];
+  let bankAccounts: Record<string, unknown>[] = [];
   try {
     const validIntegration = await getValidQuickBooksTokens(integration);
     const baseUrl = await getApiBaseUrl();

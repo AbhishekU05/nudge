@@ -243,6 +243,7 @@ export type CustomerRecord = Invoice & {
   clients?: { name?: string; email?: string };
   amount_owed?: number;
   amount_paid?: number;
+  late_fees_amount?: number;
   workflow_status?: InvoiceStatus;
   client_paid_at?: string | null;
   promised_date?: string | null;

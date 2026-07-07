@@ -96,7 +96,7 @@ export default async function CustomersPage({
   let activeGroup = null;
 
   try {
-    const [invoicesRes, eventsRes, paymentsRes, orgMembersRes, xeroRes, qbRes, customerGroupsRes, groupsRes] = await Promise.all([
+    const [invoicesRes, eventsRes, paymentsRes, orgMembersRes, xeroRes, qbRes, customerGroupsRes, groupsRes, lateFeesRes] = await Promise.all([
       supabase
         .from("invoices")
         .select("*, clients(name, email)")
@@ -129,6 +129,9 @@ export default async function CustomersPage({
         .select("*"),
       supabase
         .from("groups")
+        .select("*"),
+      supabase
+        .from("applied_late_fees")
         .select("*"),
     ]);
 
@@ -169,13 +172,20 @@ export default async function CustomersPage({
       }))
     ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     
+    const lateFeesMap: Record<string, number> = {};
+    (lateFeesRes?.data || []).forEach((fee: any) => {
+      lateFeesMap[fee.invoice_id] = (lateFeesMap[fee.invoice_id] || 0) + Number(fee.fee_amount);
+    });
+
     customers = (invoicesRes.data || []).map((inv: any) => {
       const invPayments = (paymentsRes.data || []).filter((p: any) => p.invoice_id === inv.id);
       const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+      const late_fees_amount = lateFeesMap[inv.id] || 0;
       return {
         ...inv,
         amount_owed: inv.amount,
         amount_paid,
+        late_fees_amount,
         workflow_status: inv.status,
         customer_id: inv.client_id,
         recipient_name: inv.clients?.name || "Unknown",
