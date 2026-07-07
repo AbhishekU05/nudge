@@ -174,7 +174,7 @@ export default async function CustomersPage({
     
     const lateFeesMap: Record<string, number> = {};
     (lateFeesRes?.data || []).forEach((fee: any) => {
-      lateFeesMap[fee.invoice_id] = (lateFeesMap[fee.invoice_id] || 0) + Number(fee.fee_amount);
+      lateFeesMap[fee.invoice_id] = (lateFeesMap[fee.invoice_id] || 0) + Number(fee.amount);
     });
 
     customers = (invoicesRes.data || []).map((inv: any) => {
