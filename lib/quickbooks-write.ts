@@ -1,19 +1,7 @@
 import "server-only";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-function getQuickBooksClientId() {
-  return process.env.QUICKBOOKS_CLIENT_ID || "";
-}
-
-function isSandbox() {
-  return process.env.QUICKBOOKS_ENVIRONMENT === "sandbox" || getQuickBooksClientId().startsWith("AB") === false;
-}
-
-function getApiBaseUrl() {
-  return isSandbox()
-    ? "https://sandbox-quickbooks.api.intuit.com"
-    : "https://quickbooks.api.intuit.com";
-}
+import { getValidQuickBooksTokens, QuickBooksIntegrationRow, getApiBaseUrl } from "./quickbooks";
 
 export async function createQuickBooksLateFeeInvoice(
   organizationId: string,
@@ -23,15 +11,18 @@ export async function createQuickBooksLateFeeInvoice(
   email: string
 ) {
   const supabase = createSupabaseAdminClient();
-  const { data: integration } = await supabase.from("integrations").select("*").eq("organization_id", organizationId).eq("provider", "quickbooks").single();
+  const { data: rawIntegration } = await supabase.from("integrations").select("*").eq("organization_id", organizationId).eq("provider", "quickbooks").single();
   
-  if (!integration || !integration.realm_id) return null;
+  if (!rawIntegration || !rawIntegration.realm_id) return null;
+
+  const integration = await getValidQuickBooksTokens(rawIntegration as QuickBooksIntegrationRow);
 
   // We need to resolve the customer. For simplicity, we assume we fetch the Customer by email or name.
   // We'll create the invoice with a generic line item.
   // In a real scenario, we'd need the exact QuickBooks CustomerRef, which we might fetch here.
   const query = `select * from Customer where PrimaryEmailAddr = '${email.replace(/'/g, "''")}'`;
-  const url = new URL(`${getApiBaseUrl()}/v3/company/${integration.realm_id}/query`);
+  const baseUrl = await getApiBaseUrl();
+  const url = new URL(`${baseUrl}/v3/company/${integration.realm_id}/query`);
   url.searchParams.set("query", query);
   url.searchParams.set("minorversion", "65");
 
@@ -73,7 +64,7 @@ export async function createQuickBooksLateFeeInvoice(
     ]
   };
 
-  const createUrl = new URL(`${getApiBaseUrl()}/v3/company/${integration.realm_id}/invoice`);
+  const createUrl = new URL(`${baseUrl}/v3/company/${integration.realm_id}/invoice`);
   createUrl.searchParams.set("minorversion", "65");
 
   const createResponse = await fetch(createUrl.toString(), {
@@ -97,12 +88,15 @@ export async function updateQuickBooksInvoiceWithLateFee(
   feeAmount: number
 ) {
   const supabase = createSupabaseAdminClient();
-  const { data: integration } = await supabase.from("integrations").select("*").eq("organization_id", organizationId).eq("provider", "quickbooks").single();
+  const { data: rawIntegration } = await supabase.from("integrations").select("*").eq("organization_id", organizationId).eq("provider", "quickbooks").single();
   
-  if (!integration || !integration.realm_id) return null;
+  if (!rawIntegration || !rawIntegration.realm_id) return null;
 
+  const integration = await getValidQuickBooksTokens(rawIntegration as QuickBooksIntegrationRow);
+
+  const baseUrl = await getApiBaseUrl();
   // 1. Fetch the existing invoice from QuickBooks
-  const url = new URL(`${getApiBaseUrl()}/v3/company/${integration.realm_id}/invoice/${invoiceId}`);
+  const url = new URL(`${baseUrl}/v3/company/${integration.realm_id}/invoice/${invoiceId}`);
   url.searchParams.set("minorversion", "65");
 
   const response = await fetch(url.toString(), {
