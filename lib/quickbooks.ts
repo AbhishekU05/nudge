@@ -288,36 +288,47 @@ export async function getQuickBooksIntegrationByRealmId(realmId: string) {
 
 async function fetchAllQuickBooksInvoices(accessToken: string, realmId: string) {
   const invoices: any[] = [];
-  let startPosition = 1;
   const maxResults = 1000;
 
-  while (true) {
-    const query = `select * from Invoice STARTPOSITION ${startPosition} MAXRESULTS ${maxResults}`;
-    
-    const url = new URL(`${await getApiBaseUrl()}/v3/company/${realmId}/query`);
-    url.searchParams.set("query", query);
-    url.searchParams.set("minorversion", "65");
+  const twoYearsAgo = new Date();
+  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+  const dateStr = twoYearsAgo.toISOString().split('T')[0];
 
-    const response = await fetch(url.toString(), {
-      headers: {
-        "Accept": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
-      },
-    });
+  const queries = [
+    `select * from Invoice where Balance > '0'`,
+    `select * from Invoice where Balance = '0' and MetaData.LastUpdatedTime > '${dateStr}'`
+  ];
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Failed to fetch QuickBooks invoices: ${text}`);
+  for (const baseQuery of queries) {
+    let startPosition = 1;
+    while (true) {
+      const query = `${baseQuery} STARTPOSITION ${startPosition} MAXRESULTS ${maxResults}`;
+      
+      const url = new URL(`${await getApiBaseUrl()}/v3/company/${realmId}/query`);
+      url.searchParams.set("query", query);
+      url.searchParams.set("minorversion", "65");
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Failed to fetch QuickBooks invoices: ${text}`);
+      }
+
+      const data = await response.json();
+      const batch = data.QueryResponse?.Invoice || [];
+      invoices.push(...batch);
+
+      if (batch.length < maxResults) {
+        break;
+      }
+      startPosition += maxResults;
     }
-
-    const data = await response.json();
-    const batch = data.QueryResponse?.Invoice || [];
-    invoices.push(...batch);
-
-    if (batch.length < maxResults) {
-      break;
-    }
-    startPosition += maxResults;
   }
 
   return invoices;

@@ -321,7 +321,14 @@ export async function syncXeroDataPageForOrg(
 
   if (syncType === "invoices") {
     const { result: response, integration: updatedInt } = await withXeroRetry(currentIntegration, async (client, intg) => {
-      return client.accountingApi.getInvoices(intg.tenant_id, undefined, 'Type=="ACCREC"', "UpdatedDateUTC DESC", undefined, undefined, undefined, ["AUTHORISED", "PAID", "DRAFT", "SUBMITTED"], page, false, undefined, undefined, false, 100);
+      const twoYearsAgo = new Date();
+      twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+      const year = twoYearsAgo.getFullYear();
+      const month = String(twoYearsAgo.getMonth() + 1).padStart(2, '0');
+      const day = String(twoYearsAgo.getDate()).padStart(2, '0');
+      const whereClause = `Type=="ACCREC" AND (Status!="PAID" OR (Status=="PAID" AND Date >= DateTime(${year}, ${month}, ${day})))`;
+
+      return client.accountingApi.getInvoices(intg.tenant_id, undefined, whereClause, "UpdatedDateUTC DESC", undefined, undefined, undefined, ["AUTHORISED", "PAID", "DRAFT", "SUBMITTED"], page, false, undefined, undefined, false, 100);
     });
     currentIntegration = updatedInt;
     
