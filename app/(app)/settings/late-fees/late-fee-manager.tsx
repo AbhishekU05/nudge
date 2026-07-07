@@ -149,7 +149,7 @@ function PolicyForm({
     id => !policy?.excluded_group_ids?.includes(id)
   );
   const initialNoGroup = policy
-    ? !(policy.excluded_group_ids ?? []).includes("__no_group__")
+    ? !(policy.excluded_group_ids ?? []).includes("00000000-0000-0000-0000-000000000000")
     : true;
 
   const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(
@@ -184,9 +184,9 @@ function PolicyForm({
     try {
       const formData = new FormData(e.currentTarget);
 
-      // Compute excluded = groups NOT selected + optionally "__no_group__"
+      // Compute excluded = groups NOT selected + optionally "00000000-0000-0000-0000-000000000000"
       const excludedGroupIds = allGroupIds.filter(id => !selectedGroupIds.has(id));
-      if (!includeNoGroup) excludedGroupIds.push("__no_group__");
+      if (!includeNoGroup) excludedGroupIds.push("00000000-0000-0000-0000-000000000000");
 
       // Remove any stale excluded_group_ids from the form and inject computed ones
       formData.delete("excluded_group_ids");

@@ -55,9 +55,9 @@ export const applyLateFees = inngest.createFunction(
       const hourStr = formatter.formatToParts(new Date()).find(p => p.type === "hour")?.value;
       const isMidnight = hourStr === "24" || hourStr === "0" || hourStr === "00";
 
-      if (!isMidnight) {
-        continue; // It's not midnight in the organization's local timezone
-      }
+      // if (!isMidnight) {
+      //   continue; // It's not midnight in the organization's local timezone
+      // }
 
       // 4. Fetch invoices for this organization
       const { data: invoices, error: invoicesError } = await supabase
@@ -79,7 +79,12 @@ export const applyLateFees = inngest.createFunction(
             .eq("customer_id", invoice.client_id || invoice.customer_id);
           
           const customerGroupIds = groupLinks?.map((g) => g.group_id) || [];
-          const isExcluded = policy.excluded_group_ids.some((id: string) => customerGroupIds.includes(id));
+          let isExcluded = false;
+          if (customerGroupIds.length === 0) {
+            isExcluded = policy.excluded_group_ids.includes("00000000-0000-0000-0000-000000000000");
+          } else {
+            isExcluded = policy.excluded_group_ids.some((id: string) => customerGroupIds.includes(id));
+          }
           if (isExcluded) continue;
         }
 
