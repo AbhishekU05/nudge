@@ -2,6 +2,7 @@
 
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import fs from "fs";
 import { revalidatePath } from "next/cache";
 
 async function getOrganizationId(userId: string): Promise<string | null> {
@@ -43,7 +44,8 @@ export async function createLateFeePolicy(formData: FormData) {
 
   if (error) {
     console.error("Failed to create late fee policy", error);
-    throw new Error("Failed to create late fee policy");
+    fs.writeFileSync("scratch/error.log", JSON.stringify(error, null, 2));
+    throw new Error(`Failed to create late fee policy: ${error.message}`);
   }
 
   revalidatePath("/settings/late-fees");
@@ -72,7 +74,8 @@ export async function updateLateFeePolicy(id: string, formData: FormData) {
 
   if (error) {
     console.error("Failed to update late fee policy", error);
-    throw new Error("Failed to update late fee policy");
+    fs.writeFileSync("scratch/error.log", JSON.stringify(error, null, 2));
+    throw new Error(`Failed to update late fee policy: ${error.message}`);
   }
 
   revalidatePath("/settings/late-fees");
