@@ -28,7 +28,8 @@ export async function createLateFeePolicy(formData: FormData) {
   const grace_period_days = Number(formData.get("grace_period_days"));
   const frequency = formData.get("frequency") as "once" | "weekly" | "monthly";
   const apply_to = formData.get("apply_to") as "existing_invoice" | "new_invoice";
-  const excluded_group_ids = formData.getAll("excluded_group_ids") as string[];
+  const included_group_ids = formData.getAll("included_group_ids") as string[];
+  const auto_approve = formData.get("auto_approve") === "true";
 
   const { error } = await supabase.from("late_fee_policies").insert({
     organization_id: organizationId,
@@ -38,7 +39,8 @@ export async function createLateFeePolicy(formData: FormData) {
     grace_period_days,
     frequency,
     apply_to,
-    excluded_group_ids,
+    included_group_ids,
+    auto_approve,
     active: true,
   });
 
@@ -64,11 +66,12 @@ export async function updateLateFeePolicy(id: string, formData: FormData) {
   const grace_period_days = Number(formData.get("grace_period_days"));
   const frequency = formData.get("frequency") as "once" | "weekly" | "monthly";
   const apply_to = formData.get("apply_to") as "existing_invoice" | "new_invoice";
-  const excluded_group_ids = formData.getAll("excluded_group_ids") as string[];
+  const included_group_ids = formData.getAll("included_group_ids") as string[];
+  const auto_approve = formData.get("auto_approve") === "true";
 
   const { error } = await supabase
     .from("late_fee_policies")
-    .update({ name, fee_type, fee_value, grace_period_days, frequency, apply_to, excluded_group_ids })
+    .update({ name, fee_type, fee_value, grace_period_days, frequency, apply_to, included_group_ids, auto_approve })
     .eq("id", id)
     .eq("organization_id", organizationId);
 

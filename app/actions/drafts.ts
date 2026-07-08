@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
 import { sendGmail, hasGmailTokens } from "@/lib/gmail";
 import { getResendClient } from "@/lib/resend";
+import { inngest } from "@/lib/inngest/client";
 
 async function getOrganizationId(userId: string): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
@@ -45,17 +46,34 @@ export async function approveDraft(draftId: string, overrides?: { subject: strin
   if (!recipientEmail) return { error: "Client has no email address." };
 
   try {
-    const gmailAvailable = await hasGmailTokens(user.id);
-    if (gmailAvailable) {
-      try {
-        await sendGmail({ userId: user.id, senderName, senderEmail, to: recipientEmail, subject: finalSubject, body: finalBody, html: true });
-      } catch {
+    if (draft.action_type === "late_fee") {
+      const payload = draft.action_payload as Record<string, string | number>;
+      await inngest.send({
+        name: "invoice.apply_late_fee",
+        data: {
+          invoiceId: payload.invoice_id,
+          policyId: payload.policy_id,
+          organizationId: organizationId,
+          adminUserId: payload.admin_user_id,
+          feeAmount: payload.fee_amount,
+          subject: finalSubject,
+          body_html: finalBody
+        }
+      });
+      // The worker will send the email after applying the fee successfully
+    } else {
+      const gmailAvailable = await hasGmailTokens(user.id);
+      if (gmailAvailable) {
+        try {
+          await sendGmail({ userId: user.id, senderName, senderEmail, to: recipientEmail, subject: finalSubject, body: finalBody, html: true });
+        } catch {
+          const resend = getResendClient();
+          await resend.emails.send({ from: `${senderName} via Duely <reminders@duely.in>`, to: recipientEmail, subject: finalSubject, html: finalBody, replyTo: senderEmail || undefined });
+        }
+      } else {
         const resend = getResendClient();
         await resend.emails.send({ from: `${senderName} via Duely <reminders@duely.in>`, to: recipientEmail, subject: finalSubject, html: finalBody, replyTo: senderEmail || undefined });
       }
-    } else {
-      const resend = getResendClient();
-      await resend.emails.send({ from: `${senderName} via Duely <reminders@duely.in>`, to: recipientEmail, subject: finalSubject, html: finalBody, replyTo: senderEmail || undefined });
     }
 
     await supabase

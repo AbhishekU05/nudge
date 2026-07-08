@@ -110,12 +110,16 @@ export function LateFeeManager({
                   <span className="font-medium text-zinc-300">Applies to:</span>{" "}
                   {policy.apply_to === "existing_invoice" ? "Existing Invoices" : "New Invoices Only"}
                 </div>
-                {policy.excluded_group_ids && policy.excluded_group_ids.length > 0 && (
+                {policy.included_group_ids && policy.included_group_ids.length > 0 && (
                   <div>
-                    <span className="font-medium text-zinc-300">Excluded groups:</span>{" "}
-                    {policy.excluded_group_ids.length}
+                    <span className="font-medium text-zinc-300">Included groups:</span>{" "}
+                    {policy.included_group_ids.includes("00000000-0000-0000-0000-000000000000") ? policy.included_group_ids.length - 1 : policy.included_group_ids.length}
                   </div>
                 )}
+                <div>
+                  <span className="font-medium text-zinc-300">Approval:</span>{" "}
+                  {policy.auto_approve ? "Auto" : "Manual"}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -143,19 +147,20 @@ function PolicyForm({
 }) {
   const [loading, setLoading] = useState(false);
 
-  // "Apply to" group selection — default: all groups included (none excluded)
+  // "Apply to" group selection — default: all groups included
   const allGroupIds = groups.map(g => g.id);
-  const initialSelected = allGroupIds.filter(
-    id => !policy?.excluded_group_ids?.includes(id)
-  );
+  const initialSelected = policy?.included_group_ids
+    ? allGroupIds.filter(id => policy.included_group_ids.includes(id))
+    : allGroupIds;
   const initialNoGroup = policy
-    ? !(policy.excluded_group_ids ?? []).includes("00000000-0000-0000-0000-000000000000")
+    ? (policy.included_group_ids ?? []).includes("00000000-0000-0000-0000-000000000000")
     : true;
 
   const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(
     new Set(initialSelected)
   );
   const [includeNoGroup, setIncludeNoGroup] = useState(initialNoGroup);
+  const [autoApprove, setAutoApprove] = useState(policy ? policy.auto_approve : true);
 
   const allChecked = groups.length > 0 && selectedGroupIds.size === groups.length;
   const someChecked = selectedGroupIds.size > 0 && !allChecked;
@@ -184,13 +189,14 @@ function PolicyForm({
     try {
       const formData = new FormData(e.currentTarget);
 
-      // Compute excluded = groups NOT selected + optionally "00000000-0000-0000-0000-000000000000"
-      const excludedGroupIds = allGroupIds.filter(id => !selectedGroupIds.has(id));
-      if (!includeNoGroup) excludedGroupIds.push("00000000-0000-0000-0000-000000000000");
+      // Compute included = selected groups + optionally "00000000-0000-0000-0000-000000000000"
+      const includedGroupIds = Array.from(selectedGroupIds);
+      if (includeNoGroup) includedGroupIds.push("00000000-0000-0000-0000-000000000000");
 
-      // Remove any stale excluded_group_ids from the form and inject computed ones
-      formData.delete("excluded_group_ids");
-      excludedGroupIds.forEach(id => formData.append("excluded_group_ids", id));
+      // Remove any stale included_group_ids from the form and inject computed ones
+      formData.delete("included_group_ids");
+      includedGroupIds.forEach(id => formData.append("included_group_ids", id));
+      formData.set("auto_approve", autoApprove ? "true" : "false");
 
       if (policy) {
         await updateLateFeePolicy(policy.id, formData);
@@ -296,6 +302,23 @@ function PolicyForm({
               <option value="existing_invoice">All Applicable Invoices</option>
               <option value="new_invoice">Only New Invoices created after today</option>
             </select>
+          </div>
+
+          {/* Auto Approve Toggle */}
+          <div className="space-y-2">
+            <Label>Approval Process</Label>
+            <div className="flex items-center gap-2 rounded-md border border-white/10 bg-black/10 p-3">
+              <input
+                type="checkbox"
+                id="auto_approve"
+                checked={autoApprove}
+                onChange={e => setAutoApprove(e.target.checked)}
+                className="h-4 w-4 bg-transparent border-white/10 rounded accent-primary"
+              />
+              <Label htmlFor="auto_approve" className="text-sm font-normal cursor-pointer">
+                Auto-approve late fees <span className="text-zinc-500">(If unchecked, they go to Automate tab for review)</span>
+              </Label>
+            </div>
           </div>
 
           {/* Groups — opt-in */}

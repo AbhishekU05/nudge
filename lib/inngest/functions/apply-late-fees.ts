@@ -1,6 +1,5 @@
 import { inngest } from "@/lib/inngest/client";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { sendGmail } from "@/lib/gmail";
 import { isAutomationAndIntegrationAllowed } from "@/lib/payments";
 
 export const applyLateFees = inngest.createFunction(
@@ -71,22 +70,22 @@ export const applyLateFees = inngest.createFunction(
       for (const invoice of invoices) {
         if (!invoice.due_date) continue;
 
-        // Check Excluded Groups
-        if (policy.excluded_group_ids && policy.excluded_group_ids.length > 0) {
+        // Check Included Groups
+        let isIncluded = true;
+        if (policy.included_group_ids) {
           const { data: groupLinks } = await supabase
             .from("customer_groups")
             .select("group_id")
             .eq("customer_id", invoice.client_id || invoice.customer_id);
           
           const customerGroupIds = groupLinks?.map((g) => g.group_id) || [];
-          let isExcluded = false;
           if (customerGroupIds.length === 0) {
-            isExcluded = policy.excluded_group_ids.includes("00000000-0000-0000-0000-000000000000");
+            isIncluded = policy.included_group_ids.includes("00000000-0000-0000-0000-000000000000");
           } else {
-            isExcluded = policy.excluded_group_ids.some((id: string) => customerGroupIds.includes(id));
+            isIncluded = policy.included_group_ids.some((id: string) => customerGroupIds.includes(id));
           }
-          if (isExcluded) continue;
         }
+        if (!isIncluded) continue;
 
         // Check Grace Period
         const dueDate = new Date(invoice.due_date);
@@ -130,102 +129,40 @@ export const applyLateFees = inngest.createFunction(
         if (feeAmount <= 0) continue;
         feeAmount = Math.round(feeAmount * 100) / 100;
 
-        // Apply Fee Logic
-        let newAmount = Number(invoice.amount_owed || invoice.amount || 0);
+        // Build Email Content
+        const newAmount = Number(invoice.amount_owed || invoice.amount || 0) + feeAmount;
+        const subject = `Late Fee Applied: Invoice ${invoice.invoice_number || ""}`;
+        const textBody = `Hi ${invoice.clients.name},\n\nA late fee of ${feeAmount} ${invoice.currency} has been applied to your outstanding invoice ${invoice.invoice_number || ""}.\n\nYour new remaining balance is ${newAmount - Number(invoice.amount_paid || 0)} ${invoice.currency}. Please remit payment as soon as possible.\n\nThank you.`;
 
-        if (policy.apply_to === "existing_invoice") {
-          newAmount += feeAmount;
-          // Update local DB
-          await supabase
-            .from("invoices")
-            .update({ amount: newAmount }) // Note: we dropped amount_owed in new schema
-            .eq("id", invoice.id);
-            
-          // Write to Xero or QuickBooks - Update existing invoice
-          if (invoice.xero_id || invoice.xero_invoice_id) {
-            try {
-              const { updateXeroInvoiceWithLateFee } = await import("@/lib/xero-write");
-              await updateXeroInvoiceWithLateFee(
-                policy.organization_id,
-                invoice.xero_id || invoice.xero_invoice_id,
-                feeAmount
-              );
-            } catch (e) {
-              console.error("Failed to update invoice in Xero with late fee", e);
+        if (policy.auto_approve) {
+          // Send to Inngest to process individually
+          await inngest.send({
+            name: "invoice.apply_late_fee",
+            data: {
+              invoiceId: invoice.id,
+              policyId: policy.id,
+              organizationId: policy.organization_id,
+              adminUserId,
+              feeAmount,
+              subject,
+              body_html: textBody.replace(/\n/g, '<br>')
             }
-          } else if (invoice.quickbooks_id || invoice.quickbooks_invoice_id) {
-            try {
-              const { updateQuickBooksInvoiceWithLateFee } = await import("@/lib/quickbooks-write");
-              await updateQuickBooksInvoiceWithLateFee(
-                policy.organization_id,
-                invoice.quickbooks_id || invoice.quickbooks_invoice_id,
-                feeAmount
-              );
-            } catch (e) {
-              console.error("Failed to update invoice in QuickBooks with late fee", e);
-            }
-          }
+          });
         } else {
-          // new_invoice - Write to Xero or QuickBooks
-          if (invoice.xero_id || invoice.xero_invoice_id) {
-            try {
-              const { createXeroLateFeeInvoice } = await import("@/lib/xero-write");
-              await createXeroLateFeeInvoice(
-                policy.organization_id,
-                invoice.invoice_number || invoice.id,
-                feeAmount,
-                invoice.clients.name,
-                invoice.clients.email
-              );
-            } catch (e) {
-              console.error("Failed to write new late fee invoice to Xero", e);
+          // Put in automate tab (email_drafts)
+          await supabase.from("email_drafts").insert({
+            organization_id: policy.organization_id,
+            client_id: invoice.client_id || invoice.customer_id,
+            subject,
+            body_html: textBody.replace(/\n/g, '<br>'),
+            status: "draft",
+            action_type: "late_fee",
+            action_payload: {
+              invoice_id: invoice.id,
+              policy_id: policy.id,
+              fee_amount: feeAmount,
+              admin_user_id: adminUserId,
             }
-          } else if (invoice.quickbooks_id || invoice.quickbooks_invoice_id) {
-            try {
-              const { createQuickBooksLateFeeInvoice } = await import("@/lib/quickbooks-write");
-              await createQuickBooksLateFeeInvoice(
-                policy.organization_id,
-                invoice.invoice_number || invoice.id,
-                feeAmount,
-                invoice.clients.name,
-                invoice.clients.email
-              );
-            } catch (e) {
-              console.error("Failed to write new late fee invoice to QuickBooks", e);
-            }
-          }
-        }
-
-        // Log in applied_late_fees
-        await supabase.from("applied_late_fees").insert({
-          invoice_id: invoice.id,
-          policy_id: policy.id,
-          amount: feeAmount
-        });
-
-        // Log in events
-        await supabase.from("events").insert({
-          invoice_id: invoice.id,
-          client_id: invoice.client_id || invoice.customer_id,
-          organization_id: policy.organization_id,
-          event_type: "late_fee_applied",
-          description: `Applied late fee of ${feeAmount} ${invoice.currency} from policy: ${policy.name}`
-        });
-
-        // Send Email
-        const newBalance = newAmount - Number(invoice.amount_paid || 0);
-        if (invoice.clients.email) {
-          await sendGmail({
-            userId: adminUserId,
-            senderName: "Duely",
-            senderEmail: "notifications@duely.in",
-            to: invoice.clients.email,
-            subject: `Late Fee Applied: Invoice ${invoice.invoice_number || ""}`,
-            body: `<p>Hi ${invoice.clients.name},</p>
-            <p>A late fee of ${feeAmount} ${invoice.currency} has been applied to your outstanding invoice ${invoice.invoice_number || ""}.</p>
-            <p>Your new remaining balance is ${newBalance} ${invoice.currency}. Please remit payment as soon as possible.</p>
-            <p>Thank you.</p>`,
-            html: true
           });
         }
 

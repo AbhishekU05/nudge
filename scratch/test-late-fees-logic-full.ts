@@ -35,21 +35,22 @@ async function runLateFees() {
     for (const invoice of invoices) {
       if (!invoice.due_date) continue;
 
-      if (policy.excluded_group_ids && policy.excluded_group_ids.length > 0) {
+      let isIncluded = true;
+      if (policy.included_group_ids && policy.included_group_ids.length > 0) {
         const { data: groupLinks } = await supabase
           .from("customer_groups")
           .select("group_id")
           .eq("customer_id", invoice.client_id || invoice.customer_id);
         
         const customerGroupIds = groupLinks?.map((g: any) => g.group_id) || [];
-        let isExcluded = false;
+        
         if (customerGroupIds.length === 0) {
-          isExcluded = policy.excluded_group_ids.includes("00000000-0000-0000-0000-000000000000");
+          isIncluded = policy.included_group_ids.includes("00000000-0000-0000-0000-000000000000");
         } else {
-          isExcluded = policy.excluded_group_ids.some((id: string) => customerGroupIds.includes(id));
+          isIncluded = policy.included_group_ids.some((id: string) => customerGroupIds.includes(id));
         }
-        if (isExcluded) continue;
       }
+      if (!isIncluded) continue;
 
       const dueDate = new Date(invoice.due_date);
       const now = new Date();
