@@ -898,7 +898,7 @@ export function CustomerDetails({
                   {customer.client_paid_at ? "Customer marked paid" : "You marked paid"}
                 </Badge>
               )}
-              {daysOverdue && (
+              {daysOverdue !== null && daysOverdue > 0 && remaining > 0 && (
                 <Badge variant="danger">
                   {daysOverdue}d overdue
                 </Badge>

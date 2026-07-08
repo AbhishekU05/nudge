@@ -42,6 +42,22 @@ export default async function CustomerPage(props: {
     }
   }
 
+  // Fetch client details for name and email
+  let clientName = "Unknown Customer";
+  let clientEmail = "";
+  if (customerData.client_id) {
+    const { data: clientData } = await supabase
+      .from("clients")
+      .select("name, email")
+      .eq("id", customerData.client_id)
+      .maybeSingle();
+    
+    if (clientData) {
+      clientName = clientData.name;
+      clientEmail = clientData.email || "";
+    }
+  }
+
   // Fetch events for this invoice
   const { data: eventsData } = await supabase
     .from("events")
@@ -86,6 +102,8 @@ export default async function CustomerPage(props: {
     amount_paid,
     workflow_status: customerData.status,
     customer_id: customerData.client_id,
+    recipient_name: clientName,
+    recipient_email: clientEmail,
     payment_history,
     followup_history,
   };

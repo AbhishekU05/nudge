@@ -875,3 +875,38 @@ export async function fetchCustomerEmailJit(customerId: string) {
   }
   return { success: false };
 }
+
+export async function updateClientEmailDirect(formData: FormData) {
+  const user = await requireUser();
+
+  try {
+    await enforceRateLimit(user.id, "reminder_toggle");
+  } catch (error) {
+    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
+  }
+
+  const organizationId = await getOrganizationId(user.id);
+  if (!organizationId) redirectToDashboard({ error: "No organization found." });
+
+  const clientId = formData.get("client_id");
+  if (typeof clientId !== "string" || !clientId) redirectToDashboard({ error: "Invalid client." });
+
+  const recipientEmail = (formData.get("recipient_email") as string | null)?.trim().toLowerCase() ?? "";
+  if (recipientEmail && !isValidEmail(recipientEmail)) redirectToDashboard({ error: "Enter a valid email address." });
+
+  const supabase = await createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from("clients")
+    .update({ email: recipientEmail })
+    .eq("id", clientId)
+    .eq("organization_id", organizationId!);
+
+  if (error) {
+    logger.error({ message: "Database error updating client email", context: "updateClientEmailDirect", user_id: user.id, error: error.message });
+    redirectToDashboard({ error: "Failed to update email." });
+  }
+
+  logger.action({ action_name: "update_client_email", reminder_id: clientId, user_id: user.id, success: true });
+  revalidatePath("/", "layout");
+}

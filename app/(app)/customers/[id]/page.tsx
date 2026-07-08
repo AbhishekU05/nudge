@@ -5,9 +5,11 @@ import { Container } from "@/components/site/container";
 import { AutomationSettings } from "@/components/site/automation-settings";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ClientRecord, InvoiceRecord, getRemainingBalance, GroupRecord } from "@/lib/types";
+import { updateClientEmailDirect } from "@/app/actions/customers";
 import { CustomerAnalytics } from "./customer-analytics";
 
 export default async function CustomerProfilePage(props: { params: Promise<{ id: string }> }) {
@@ -90,7 +92,20 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                   </span>
                 )}
               </div>
-              {client.email && <p className="mt-2 text-zinc-400">{client.email}</p>}
+              <form action={updateClientEmailDirect} className="mt-1.5 flex items-center gap-2 max-w-[280px]">
+                <input type="hidden" name="client_id" value={client.id} />
+                <Input
+                  name="recipient_email"
+                  type="email"
+                  defaultValue={client.email || ""}
+                  placeholder="Add email address..."
+                  required
+                  className="h-7 text-xs bg-transparent border-white/10 hover:border-white/20 px-2 flex-1 min-w-0"
+                />
+                <Button type="submit" variant="secondary" size="sm" className="h-7 px-2.5 text-xs shrink-0">
+                  Save
+                </Button>
+              </form>
             </div>
             
             <Link 
@@ -140,7 +155,7 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                             <tr key={inv.id} className="hover:bg-white/[0.02]">
                               <td className="px-4 py-3 font-medium text-zinc-200">
                                 <Link href={`/invoices/${inv.id}`} className="hover:underline hover:text-indigo-400">
-                                  {inv.id.substring(0,8)}
+                                  {inv.invoice_number || inv.id.substring(0,8)}
                                 </Link>
                               </td>
                               <td className="px-4 py-3">
