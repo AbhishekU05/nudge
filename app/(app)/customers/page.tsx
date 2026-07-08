@@ -80,12 +80,17 @@ export default async function CustomersPage({
       return sum + getRemainingBalance(inv as unknown as import("@/lib/types").CustomerRecord);
     }, 0);
 
+    const totalPaid = clientInvoices.reduce((sum, inv) => {
+      return sum + Number(inv.amount_paid || 0);
+    }, 0);
+
     const currency = (clientInvoices[0]?.currency as string) || "USD";
 
     return {
       ...client,
       clientInvoices,
       totalOwed,
+      totalPaid,
       currency
     };
   }).sort((a, b) => b.totalOwed - a.totalOwed);
@@ -129,25 +134,29 @@ export default async function CustomersPage({
               <thead className="bg-white/[0.02] border-b border-white/10">
                 <tr>
                   <th className="px-4 py-3 font-medium text-zinc-300">Name</th>
-                  <th className="px-4 py-3 font-medium text-zinc-300">Email</th>
+                  <th className="px-4 py-3 font-medium text-zinc-300 text-right">Total Paid</th>
                   <th className="px-4 py-3 font-medium text-zinc-300 text-right">Total Owed</th>
-                  <th className="px-4 py-3 font-medium text-zinc-300 text-right">Total Invoices</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
                 {clientsWithData.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-zinc-500">
+                    <td colSpan={4} className="p-8 text-center text-zinc-500">
                       No customers found. Sync from Xero/Quickbooks or add one manually.
                     </td>
                   </tr>
                 ) : (
-                  clientsWithData.map(({ id, name, email, clientInvoices, totalOwed, currency }) => {
+                  clientsWithData.map(({ id, name, clientInvoices, totalOwed, totalPaid, currency }) => {
                     const formattedTotal = new Intl.NumberFormat(undefined, {
                       style: "currency",
                       currency
                     }).format(totalOwed);
+
+                    const formattedPaid = new Intl.NumberFormat(undefined, {
+                      style: "currency",
+                      currency
+                    }).format(totalPaid);
 
                     const assignedGroupIds = customerGroupsList
                       .filter((cg: Record<string, unknown>) => cg.customer_id === id)
@@ -163,9 +172,8 @@ export default async function CustomersPage({
                             assignedGroupIds={assignedGroupIds} 
                           />
                         </td>
-                        <td className="px-4 py-4 align-top">{email || "—"}</td>
+                        <td className="px-4 py-4 text-right align-top font-medium text-zinc-200">{formattedPaid}</td>
                         <td className="px-4 py-4 text-right align-top font-medium text-zinc-200">{formattedTotal}</td>
-                        <td className="px-4 py-4 text-right align-top">{clientInvoices.length}</td>
                         <td className="px-4 py-4 text-right align-top">
                           <Link href={`/customers/${id}`}>
                             <Button variant="ghost" size="sm" className="h-8 gap-1 text-zinc-400 hover:text-zinc-100">
