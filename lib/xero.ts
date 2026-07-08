@@ -388,7 +388,8 @@ export async function syncXeroDataPageForOrg(
         xero_id: invoiceId,
         invoice_number: invoice.invoiceNumber || null,
         reference: invoice.reference || null,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        reminders_enabled: false
       };
 
       if (existing) {

@@ -283,7 +283,7 @@ export const sendReminders = inngest.createFunction(
 
           textBody = `${processed.body}\n\nOutstanding Invoices:\n${textList}`;
           if (entity.unsubscribe_token) {
-            textBody += `\n\nView your account: https://duely.in/portal/${entity.unsubscribe_token}`;
+            textBody += `\n\nPayment Link: https://duely.in/portal/${entity.unsubscribe_token}`;
           }
 
         } else {
@@ -302,7 +302,7 @@ export const sendReminders = inngest.createFunction(
           subject = processed.subject;
           textBody = processed.body;
           if (entity.unsubscribe_token) {
-            textBody += `\n\nView your account: https://duely.in/portal/${entity.unsubscribe_token}`;
+            textBody += `\n\nPayment Link: https://duely.in/portal/${entity.unsubscribe_token}`;
           }
         }
 

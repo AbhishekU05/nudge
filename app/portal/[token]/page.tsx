@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getXeroBankAccounts } from "@/lib/xero";
+import { getXeroBankAccounts, getXeroIntegration, withXeroRetry } from "@/lib/xero";
 import { getQuickBooksBankAccounts } from "@/lib/quickbooks";
 import { ClientPortalView } from "@/components/portal/client-portal-view";
 import type { PortalInvoice } from "@/components/portal/invoice-card";
@@ -28,11 +28,33 @@ export default async function PortalPage(props: {
   // Fetch invoices for this client
   const { data: rawInvoices } = await supabase
     .from("invoices")
-    .select("id, amount, currency, due_date, status, payment_link, invoice_number, created_at")
+    .select("id, amount, currency, due_date, status, payment_link, invoice_number, created_at, xero_id")
     .eq("client_id", client.id)
     .order("due_date", { ascending: true });
 
   if (!rawInvoices) return notFound();
+
+  // Try to backfill missing Xero payment links just-in-time
+  for (const inv of rawInvoices) {
+    if (!inv.payment_link && inv.xero_id) {
+      try {
+        const integration = await getXeroIntegration(client.organization_id);
+        if (integration) {
+          const { result: response } = await withXeroRetry(integration, async (xeroClient, intg) => {
+            return await xeroClient.accountingApi.getOnlineInvoice(intg.tenant_id, inv.xero_id!);
+          });
+          if (response.body.onlineInvoices && response.body.onlineInvoices.length > 0) {
+            const url = response.body.onlineInvoices[0].onlineInvoiceUrl;
+            inv.payment_link = url;
+            // Fire and forget db update
+            supabase.from("invoices").update({ payment_link: url }).eq("id", inv.id).then();
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch missing Xero payment link", e);
+      }
+    }
+  }
 
   // Fetch all payments for these invoices to compute amount_paid per invoice
   const invoiceIds = rawInvoices.map((i) => i.id);

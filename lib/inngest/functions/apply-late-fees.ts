@@ -61,7 +61,7 @@ export const applyLateFees = inngest.createFunction(
       // 4. Fetch invoices for this organization
       const { data: invoices, error: invoicesError } = await supabase
         .from("invoices")
-        .select("*, clients!inner(id, name, email)")
+        .select("*, clients!inner(id, name, email, unsubscribe_token)")
         .eq("organization_id", policy.organization_id)
         .in("status", ["outstanding", "partial", "overdue"]); // Note: legacy used workflow_status, new uses status
 
@@ -132,7 +132,10 @@ export const applyLateFees = inngest.createFunction(
         // Build Email Content
         const newAmount = Number(invoice.amount_owed || invoice.amount || 0) + feeAmount;
         const subject = `Late Fee Applied: Invoice ${invoice.invoice_number || ""}`;
-        const textBody = `Hi ${invoice.clients.name},\n\nA late fee of ${feeAmount} ${invoice.currency} has been applied to your outstanding invoice ${invoice.invoice_number || ""}.\n\nYour new remaining balance is ${newAmount - Number(invoice.amount_paid || 0)} ${invoice.currency}. Please remit payment as soon as possible.\n\nThank you.`;
+        let textBody = `Hi ${invoice.clients.name},\n\nA late fee of ${feeAmount} ${invoice.currency} has been applied to your outstanding invoice ${invoice.invoice_number || ""}.\n\nYour new remaining balance is ${newAmount - Number(invoice.amount_paid || 0)} ${invoice.currency}. Please remit payment as soon as possible.\n\nThank you.`;
+        if (invoice.clients.unsubscribe_token) {
+          textBody += `\n\nPayment Link: https://duely.in/portal/${invoice.clients.unsubscribe_token}`;
+        }
 
         if (policy.auto_approve) {
           // Send to Inngest to process individually

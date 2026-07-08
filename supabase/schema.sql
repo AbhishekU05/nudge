@@ -69,7 +69,7 @@ CREATE TABLE invoices (
   due_date DATE,
   status invoice_status DEFAULT 'outstanding',
   payment_link TEXT,
-  reminders_enabled BOOLEAN DEFAULT true, -- Explicitly dictates if background job reminders fire
+  reminders_enabled BOOLEAN DEFAULT false, -- Explicitly dictates if background job reminders fire
   reminder_frequency_days INT DEFAULT 7,
   next_send_at TIMESTAMPTZ,
   xero_id TEXT, -- Foreign ID for sync mapping

@@ -504,7 +504,8 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
       quickbooks_id: invoiceId,
       invoice_number: invoice.DocNumber || null,
       payment_link: invoice.InvoiceLink || null,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      reminders_enabled: false
     };
 
     const existing = existingByInvoiceId.get(invoiceId);
