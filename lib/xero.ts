@@ -428,26 +428,38 @@ export async function syncXeroDataPageForOrg(
     const xeroIdToDuelyId = new Map(allInvoices?.map(inv => [inv.xero_id, inv.id]) || []);
     
     const newPayments = [];
+
     for (const p of payments) {
-      if (existingPaymentIds.has(p.paymentID)) continue;
-      const duelyInvoiceId = xeroIdToDuelyId.get(p.invoice?.invoiceID);
-      if (!duelyInvoiceId) continue;
-      if (!p.amount || p.amount <= 0) continue;
+      if (!p.paymentID || !p.invoice?.invoiceID) continue;
       
+      const referenceId = p.paymentID;
+      const invoiceId = xeroIdToDuelyId.get(p.invoice.invoiceID);
+      
+      if (!invoiceId) continue; 
+      
+      if (existingPaymentIds.has(referenceId)) {
+        continue;
+      }
+
       newPayments.push({
         organization_id: organizationId,
-        invoice_id: duelyInvoiceId,
-        amount: p.amount,
-        currency: p.invoice?.currencyCode || "USD",
-        payment_date: toIsoDate(p.date) || new Date().toISOString().substring(0, 10),
-        payment_method: "xero_sync",
-        reference_id: p.paymentID
+        invoice_id: invoiceId,
+        amount: Number(p.amount ?? 0),
+        currency: String(p.currencyRate || 'USD'),
+        payment_date: toIsoDate(p.date),
+        payment_method: "xero",
+        reference_id: referenceId,
+        notes: p.reference || "Xero sync",
       });
     }
-    
+
     if (newPayments.length > 0) {
-      await supabase.from("payments").insert(newPayments);
-      result.imported += newPayments.length;
+      const { error: insertError } = await supabase.from("payments").insert(newPayments);
+      if (insertError) {
+        logger.error({ message: "Failed to insert exact payments from Xero", context: "syncXeroDataPageForOrg", error: insertError.message, organization_id: organizationId });
+      } else {
+        result.imported += newPayments.length;
+      }
     }
     
     if (!result.hasMore) {
@@ -457,7 +469,66 @@ export async function syncXeroDataPageForOrg(
     return result;
   }
   
-  return result;
+  throw new Error("Invalid syncType");
+}
+
+export async function getXeroTotalPages(organizationId: string, syncType: "invoices" | "payments"): Promise<number> {
+  const integration = await getXeroIntegration(organizationId);
+  if (!integration) throw new Error("Xero is not connected.");
+
+  let minPage = 1;
+  let maxPage = 10000;
+  let current = 1;
+
+  async function fetchPageCount(page: number) {
+    const { result } = await withXeroRetry(integration!, async (client, intg) => {
+      if (syncType === "invoices") {
+        const twoYearsAgo = new Date();
+        twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+        const year = twoYearsAgo.getFullYear();
+        const month = String(twoYearsAgo.getMonth() + 1).padStart(2, '0');
+        const day = String(twoYearsAgo.getDate()).padStart(2, '0');
+        const whereClause = `Type=="ACCREC" AND (Status!="PAID" OR (Status=="PAID" AND Date >= DateTime(${year}, ${month}, ${day})))`;
+        return client.accountingApi.getInvoices(intg.tenant_id, undefined, whereClause, "UpdatedDateUTC DESC", undefined, undefined, undefined, ["AUTHORISED", "PAID", "DRAFT", "SUBMITTED"], page, false, undefined, undefined, false, 100);
+      } else {
+        return client.accountingApi.getPayments(intg.tenant_id, undefined, 'Status=="AUTHORISED"', "UpdatedDateUTC DESC", page);
+      }
+    });
+    if (syncType === "invoices") return (result.body as any).invoices?.length || 0;
+    return (result.body as any).payments?.length || 0;
+  }
+
+  while (true) {
+    const count = await fetchPageCount(current);
+    if (count < 100) return current;
+    minPage = current;
+    current *= 2;
+    if (current > maxPage) {
+      maxPage = current;
+    } else {
+      const nextCount = await fetchPageCount(current);
+      if (nextCount < 100) {
+        if (nextCount > 0) return current;
+        maxPage = current;
+        break;
+      }
+    }
+  }
+
+  while (minPage <= maxPage) {
+    const mid = Math.floor((minPage + maxPage) / 2);
+    const count = await fetchPageCount(mid);
+    if (count > 0 && count < 100) return mid;
+    if (count === 100) {
+      const nextCount = await fetchPageCount(mid + 1);
+      if (nextCount === 0) return mid;
+      minPage = mid + 1;
+    } else if (count === 0) {
+      maxPage = mid - 1;
+    }
+  }
+
+  return minPage;
 }
 
 

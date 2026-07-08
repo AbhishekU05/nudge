@@ -50,6 +50,9 @@ interface IntegrationRow {
   xero_default_account_id?: string;
   quickbooks_default_account_name?: string;
   quickbooks_default_account_id?: string;
+  sync_state?: string;
+  sync_pages_completed?: number;
+  sync_pages_total?: number;
 }
 
 export default async function IntegrationsPage({
@@ -90,7 +93,7 @@ export default async function IntegrationsPage({
 
   const { data: xero } = await supabase
     .from("integrations")
-    .select("tenant_id,last_synced_at,expires_at,xero_default_account_name,xero_default_account_id")
+    .select("tenant_id,last_synced_at,expires_at,xero_default_account_name,xero_default_account_id,sync_state,sync_pages_completed,sync_pages_total")
     .eq("organization_id", orgId)
     .eq("provider", "xero")
     .maybeSingle<IntegrationRow>();
@@ -270,6 +273,22 @@ export default async function IntegrationsPage({
                         </p>
                       </div>
                     </div>
+
+                    {xero?.sync_state && xero.sync_state !== 'idle' && (
+                      <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                          <p className="text-sm font-semibold text-blue-200">
+                            Syncing {xero.sync_state === 'syncing_invoices' ? 'invoices' : 'payments'}...
+                          </p>
+                        </div>
+                        <p className="mt-2 text-xs text-blue-300/70">
+                          {xero.sync_pages_total && xero.sync_pages_total > 0
+                            ? `Page ${xero.sync_pages_completed || 0} of ${xero.sync_pages_total}`
+                            : "Sync in progress, this may take a few minutes for large accounts."}
+                        </p>
+                      </div>
+                    )}
 
                     <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                       <p className="text-xs text-zinc-600">Default Bank Account (for automated payments)</p>
