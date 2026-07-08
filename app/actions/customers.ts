@@ -841,3 +841,37 @@ export async function correctAmountPaid(formData: FormData) {
       : `Amount corrected — ${paid.toFixed(2)} recorded.`,
   });
 }
+
+export async function fetchCustomerEmailJit(customerId: string) {
+  const user = await requireUser();
+  const supabase = await createSupabaseServerClient();
+  const organizationId = await getOrganizationId(user.id);
+
+  const { data: client } = await supabase
+    .from("clients")
+    .select("id, email, xero_id")
+    .eq("id", customerId)
+    .eq("organization_id", organizationId!)
+    .maybeSingle();
+
+  if (!client || client.email || !client.xero_id) return { success: false };
+
+  try {
+    const { getXeroIntegration, getValidXeroClient } = await import("@/lib/xero");
+    const integration = await getXeroIntegration(organizationId!);
+    if (!integration) return { success: false };
+
+    const { xero } = await getValidXeroClient(integration);
+    const response = await xero.accountingApi.getContact(integration.tenant_id, client.xero_id);
+    
+    const fetchedEmail = response.body.contacts?.[0]?.emailAddress;
+    if (fetchedEmail) {
+      await supabase.from("clients").update({ email: fetchedEmail }).eq("id", customerId);
+      revalidatePath("/", "layout");
+      return { success: true, email: fetchedEmail };
+    }
+  } catch (e) {
+    logger.error({ message: "Failed JIT email fetch from Xero", error: String(e), context: "fetchCustomerEmailJit" });
+  }
+  return { success: false };
+}

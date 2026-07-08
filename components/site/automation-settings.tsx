@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { saveAutomationSettings, pauseAutomation } from "@/app/actions/automation";
+import { fetchCustomerEmailJit } from "@/app/actions/customers";
 
 function SubmitButton({ children, pendingText }: { children: React.ReactNode; pendingText?: string }) {
   const { pending } = useFormStatus();
@@ -32,6 +33,7 @@ interface AutomationSettingsProps {
   reminderTemplates: Template[];
   targetEmail?: string | null;
   isAllowed?: boolean;
+  clientId?: string;
 }
 
 export function AutomationSettings({
@@ -43,9 +45,11 @@ export function AutomationSettings({
   reminderTemplates,
   targetEmail,
   isAllowed = true,
+  clientId,
 }: AutomationSettingsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [type, setType] = useState<"recurring" | "sequence">(reminderType || "recurring");
+  const [isFetchingEmail, setIsFetchingEmail] = useState(false);
   const cleanTemplates = (reminderTemplates?.length > 0 
     ? reminderTemplates 
     : [{ subject: "Reminder", body_html: "Your balance is due.", days_offset: 7 }]
@@ -65,6 +69,22 @@ export function AutomationSettings({
   const [showEmailPrompt, setShowEmailPrompt] = useState(false);
   const [emailInput, setEmailInput] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
+
+  import("react").then(React => {
+    React.useEffect(() => {
+      const idToFetch = entityType === "client" ? entityId : clientId;
+      if (!targetEmail && idToFetch) {
+        setIsFetchingEmail(true);
+        fetchCustomerEmailJit(idToFetch).then(res => {
+          if (res.success && res.email) {
+            router.refresh();
+          } else {
+            setIsFetchingEmail(false);
+          }
+        });
+      }
+    }, [targetEmail, entityType, entityId, clientId, router]);
+  });
 
   const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const hasEmail = targetEmail?.trim() || emailInput.trim();
@@ -365,8 +385,9 @@ export function AutomationSettings({
                 type="email" 
                 value={emailInput} 
                 onChange={(e) => setEmailInput(e.target.value)} 
-                placeholder="recipient@example.com"
-                className="mb-2"
+                placeholder={isFetchingEmail ? "Fetching email from integration..." : "client@example.com"}
+                required
+                disabled={isFetchingEmail}
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {

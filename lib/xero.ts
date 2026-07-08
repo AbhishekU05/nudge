@@ -349,6 +349,7 @@ export async function syncXeroDataPageForOrg(
     
     const { data: clientsData } = await supabase.from("clients").select("id, name, email").eq("organization_id", organizationId);
     const clientsMap = new Map<string, { id: string }>();
+    
     for (const client of clientsData || []) {
       if (client.email) clientsMap.set(client.email.toLowerCase(), client);
       if (client.name) clientsMap.set(client.name.toLowerCase(), client);

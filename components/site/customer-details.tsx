@@ -723,6 +723,7 @@ function AutomationTab({
       reminderTemplates={customer.reminder_templates || []}
       targetEmail={customer.recipient_email}
       isAllowed={isAllowed}
+      clientId={customer.customer_id}
     />
   );
 }
