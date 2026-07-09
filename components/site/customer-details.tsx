@@ -713,7 +713,8 @@ function AutomationTab({
   customer: CustomerRecord;
   isAllowed?: boolean;
 }) {
-  const amt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(customer.amount_owed || customer.amount || 0);
+  const balance = Math.max(0, Number(customer.amount_owed || customer.amount || 0) - Number(customer.amount_paid || 0));
+  const amt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(balance);
   
   return (
     <AutomationSettings 

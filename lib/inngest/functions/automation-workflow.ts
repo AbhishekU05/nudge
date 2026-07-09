@@ -117,16 +117,23 @@ export const automationWorkflow = inngest.createFunction(
             return { skipped: true };
           }
 
-          const totalAmountOwed = activeInvoices.reduce((sum, inv) => sum + (Number(inv.amount_owed) || Number(inv.amount) || 0), 0);
+          const totalAmountOwed = activeInvoices.reduce((sum, inv) => {
+            const balance = Math.max(0, Number(inv.amount_owed || inv.amount || 0) - Number(inv.amount_paid || 0));
+            return sum + balance;
+          }, 0);
           const currency = activeInvoices[0]?.currency || "USD";
           
+          const fmt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           let invoiceListTxt = "";
-          for (const inv of activeInvoices) { invoiceListTxt += `- Invoice #${inv.invoice_number || inv.id} (${inv.currency || "USD"} ${inv.amount_owed || inv.amount})\n`; }
+          for (const inv of activeInvoices) { 
+            const balance = Math.max(0, Number(inv.amount_owed || inv.amount || 0) - Number(inv.amount_paid || 0));
+            invoiceListTxt += `- Invoice #${inv.invoice_number || inv.id} (${inv.currency || "USD"} ${fmt.format(balance)})\n`; 
+          }
           
           const vars = {
             "first_name": (readyEntity.name || "Client").split(" ")[0],
             "company_name": readyEntity.name || "Client",
-            "amount_owed": `${totalAmountOwed}`,
+            "amount_owed": fmt.format(totalAmountOwed),
             "currency": currency,
             "invoice_count": `${activeInvoices.length}`,
             "invoice_details": invoiceListTxt.trim() || "No outstanding invoices.",
@@ -138,13 +145,15 @@ export const automationWorkflow = inngest.createFunction(
           subject = processed.subject; 
           textBody = processed.body;
         } else {
+           const balance = Math.max(0, Number(readyEntity.amount_owed || readyEntity.amount || 0) - Number(readyEntity.amount_paid || 0));
+           const fmt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
            const vars = {
              "first_name": (readyEntity.recipient_name || "Client").split(" ")[0],
              "company_name": readyEntity.recipient_name || "Client",
-             "amount_owed": `${readyEntity.amount_owed || readyEntity.amount}`,
+             "amount_owed": fmt.format(balance),
              "currency": readyEntity.currency || "USD",
              "invoice_number": readyEntity.invoice_number || readyEntity.id,
-             "invoice_details": `- Invoice #${readyEntity.invoice_number || readyEntity.id} (${readyEntity.currency || "USD"} ${readyEntity.amount_owed || readyEntity.amount})`,
+             "invoice_details": `- Invoice #${readyEntity.invoice_number || readyEntity.id} (${readyEntity.currency || "USD"} ${fmt.format(balance)})`,
              "portal_link": `${getAppUrl()}/portal/${readyEntity.id}`,
              "sender_name": sender.name,
              "sender_company": sender.company
@@ -199,7 +208,7 @@ export const automationWorkflow = inngest.createFunction(
           nextSendAtStr = computeRecurringReminderSendAt(readyEntity.reminder_frequency_days, sentOrDraftedAt);
         }
 
-        const updatePayload: Record<string, string | number> = {
+        const updatePayload: Record<string, string | number | boolean | undefined> = {
            last_sent_at: sentOrDraftedAt.toISOString(),
            sequence_index: nextSequenceIndex
         };
