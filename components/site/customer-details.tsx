@@ -713,6 +713,8 @@ function AutomationTab({
   customer: CustomerRecord;
   isAllowed?: boolean;
 }) {
+  const amt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(customer.amount_owed || customer.amount || 0);
+  
   return (
     <AutomationSettings 
       entityType="invoice"
@@ -724,6 +726,16 @@ function AutomationTab({
       targetEmail={customer.recipient_email}
       isAllowed={isAllowed}
       clientId={customer.customer_id}
+      previewData={{
+        "{{company_name}}": customer.recipient_name || "Client",
+        "{{currency}}": customer.currency || "USD",
+        "{{amount_owed}}": amt,
+        "{{invoice_details}}": `- Invoice #${customer.invoice_number || customer.id} (${customer.currency || "USD"} ${amt})`,
+        "{{portal_link}}": `https://duely.in/portal/${customer.id}`, // using id as fallback, would normally be client's token
+        "{{invoice_number}}": customer.invoice_number || customer.id,
+        "{{invoice_count}}": "1",
+        "{{sender_name}}": "You"
+      }}
     />
   );
 }

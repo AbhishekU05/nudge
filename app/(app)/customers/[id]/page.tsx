@@ -168,19 +168,38 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
               </div>
             </section>
 
-            {/* 3. Automation Settings */}
             <section>
               <h2 className="text-xl font-medium text-zinc-100 mb-6">Automation Settings</h2>
-              <AutomationSettings 
-                entityType="client"
-                entityId={client.id}
-                active={client.active}
-                autoApprove={client.auto_approve}
-                reminderType={client.reminder_type}
-                reminderTemplates={client.reminder_templates || []}
-                targetEmail={client.email}
-                isAllowed={isAllowed}
-              />
+              {(() => {
+                const activeInvoices = invoicesList.filter(inv => inv.workflow_status !== "paid" && (inv.amount_owed || inv.amount) > 0);
+                const totalAmountOwed = activeInvoices.reduce((sum, inv) => sum + (inv.amount_owed || inv.amount || 0), 0);
+                const currency = activeInvoices[0]?.currency || "USD";
+                const fmt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalAmountOwed);
+                let invoiceListTxt = "";
+                for (const inv of activeInvoices) { invoiceListTxt += `- Invoice #${inv.invoice_number || inv.id} (${inv.currency || "USD"} ${inv.amount_owed || inv.amount})\n`; }
+                
+                return (
+                  <AutomationSettings 
+                    entityType="client"
+                    entityId={client.id}
+                    active={client.active}
+                    autoApprove={client.auto_approve}
+                    reminderType={client.reminder_type}
+                    reminderTemplates={client.reminder_templates || []}
+                    targetEmail={client.email}
+                    isAllowed={isAllowed}
+                    previewData={{
+                      "{{company_name}}": client.name || "Client",
+                      "{{currency}}": currency,
+                      "{{amount_owed}}": fmt,
+                      "{{invoice_details}}": invoiceListTxt.trim() || "No outstanding invoices.",
+                      "{{portal_link}}": `https://duely.in/portal/${client.unsubscribe_token}`,
+                      "{{invoice_count}}": `${activeInvoices.length}`,
+                      "{{sender_name}}": "You"
+                    }}
+                  />
+                );
+              })()}
             </section>
           </div>
         </Container>

@@ -34,6 +34,7 @@ interface AutomationSettingsProps {
   targetEmail?: string | null;
   isAllowed?: boolean;
   clientId?: string;
+  previewData?: Record<string, string>;
 }
 
 export function AutomationSettings({
@@ -46,6 +47,7 @@ export function AutomationSettings({
   targetEmail,
   isAllowed = true,
   clientId,
+  previewData
 }: AutomationSettingsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [type, setType] = useState<"recurring" | "sequence">(reminderType || "recurring");
@@ -53,24 +55,24 @@ export function AutomationSettings({
   const [isFetchingEmail, setIsFetchingEmail] = useState(false);
   const defaultRecurring = [{
     subject: "Following up on your balance",
-    body_html: "Hi {{first_name}},\n\nI hope you're doing well.\n\nJust a quick and friendly reminder that you have a pending balance of {{currency}} {{amount_owed}}.\n\nHere are the details:\n{{invoice_details}}\n\nYou can view and pay your balance securely via your client portal here: {{portal_link}}\n\nPlease let me know if you have any questions.\n\nBest,\n{{sender_name}}",
+    body_html: "Hi {{company_name}} Team,\n\nI hope you're doing well.\n\nJust a quick and friendly reminder that you have a pending balance of {{currency}} {{amount_owed}}.\n\nHere are the details:\n{{invoice_details}}\n\nYou can view and pay your balance securely via your client portal here: {{portal_link}}\n\nPlease let me know if you have any questions.\n\nBest,\n{{sender_name}}",
     days_offset: 7
   }];
 
   const defaultSequence = [
     {
       subject: "Friendly Reminder: Payment Due",
-      body_html: "Hi {{first_name}},\n\nI hope you're doing well.\n\nThis is just a friendly reminder that you have a pending balance of {{currency}} {{amount_owed}}.\n\nHere are the details:\n{{invoice_details}}\n\nYou can easily settle this via your client portal here: {{portal_link}}\n\nThank you!\n\nBest,\n{{sender_name}}",
+      body_html: "Hi {{company_name}} Team,\n\nI hope you're doing well.\n\nThis is just a friendly reminder that you have a pending balance of {{currency}} {{amount_owed}}.\n\nHere are the details:\n{{invoice_details}}\n\nYou can easily settle this via your client portal here: {{portal_link}}\n\nThank you!\n\nBest,\n{{sender_name}}",
       days_offset: 7
     },
     {
       subject: "Following up: Overdue Balance",
-      body_html: "Hi {{first_name}},\n\nI hope you're having a good week.\n\nI'm following up regarding your outstanding balance of {{currency}} {{amount_owed}}. \n\n{{invoice_details}}\n\nPlease submit your payment via the portal at your earliest convenience: {{portal_link}}\n\nLet me know if you need any assistance.\n\nBest,\n{{sender_name}}",
+      body_html: "Hi {{company_name}} Team,\n\nI hope you're having a good week.\n\nI'm following up regarding your outstanding balance of {{currency}} {{amount_owed}}. \n\n{{invoice_details}}\n\nPlease submit your payment via the portal at your earliest convenience: {{portal_link}}\n\nLet me know if you need any assistance.\n\nBest,\n{{sender_name}}",
       days_offset: 7
     },
     {
       subject: "Action Required: Overdue Account",
-      body_html: "Hi {{first_name}},\n\nI am writing to formally request payment for your past due balance of {{currency}} {{amount_owed}}.\n\n{{invoice_details}}\n\nPlease address this immediately by paying through your portal: {{portal_link}}\n\nIf we do not receive payment, we may need to temporarily suspend services. Please let us know when we can expect this.\n\nRegards,\n{{sender_name}}",
+      body_html: "Hi {{company_name}} Team,\n\nI am writing to formally request payment for your past due balance of {{currency}} {{amount_owed}}.\n\n{{invoice_details}}\n\nPlease address this immediately by paying through your portal: {{portal_link}}\n\nIf we do not receive payment, we may need to temporarily suspend services. Please let us know when we can expect this.\n\nRegards,\n{{sender_name}}",
       days_offset: 7
     }
   ];
@@ -374,7 +376,7 @@ export function AutomationSettings({
                             placeholder="Type your plain text message here..."
                           />
                           <p className="text-[10px] text-zinc-500">
-                            Available variables: {"{{first_name}}"}, {"{{company_name}}"}, {"{{currency}}"}, {"{{amount_owed}}"}, {"{{portal_link}}"}, {"{{invoice_details}}"}
+                            Available variables: {"{{company_name}}"}, {"{{currency}}"}, {"{{amount_owed}}"}, {"{{portal_link}}"}, {"{{invoice_details}}"}
                             {entityType === "invoice" ? ", {{invoice_number}}" : ", {{invoice_count}}"}
                           </p>
                         </div>
@@ -387,8 +389,8 @@ export function AutomationSettings({
                           <p className="text-sm font-medium line-clamp-1 text-zinc-200">
                             {(() => {
                               let subject = tpl.subject || "Subject";
-                              const dummy = {
-                                "{{first_name}}": "John", "{{company_name}}": "Acme Corp", "{{currency}}": "USD", 
+                              const dummy = previewData || {
+                                "{{company_name}}": "Acme Corp", "{{currency}}": "USD", 
                                 "{{amount_owed}}": "1,250.00", "{{portal_link}}": "https://duely.in/portal/123", 
                                 "{{invoice_details}}": "- Invoice #INV-001 (USD 1,250.00)", "{{invoice_number}}": "INV-001", 
                                 "{{invoice_count}}": "1", "{{sender_name}}": "Jane Doe"
@@ -401,12 +403,12 @@ export function AutomationSettings({
                         <div className="text-sm whitespace-pre-wrap leading-relaxed overflow-y-auto max-h-[300px] flex-1">
                           {tpl.body_html.split(/(\{\{[^}]+\}\})/).map((part, i) => {
                             if (part.startsWith("{{") && part.endsWith("}}")) {
-                              const dummy = {
-                                "{{first_name}}": "John", "{{company_name}}": "Acme Corp", "{{currency}}": "USD", 
+                              const dummy = (previewData || {
+                                "{{company_name}}": "Acme Corp", "{{currency}}": "USD", 
                                 "{{amount_owed}}": "1,250.00", "{{portal_link}}": "https://duely.in/portal/123", 
                                 "{{invoice_details}}": "- Invoice #INV-001 (USD 1,250.00)", "{{invoice_number}}": "INV-001", 
                                 "{{invoice_count}}": "1", "{{sender_name}}": "Jane Doe"
-                              } as Record<string, string>;
+                              }) as Record<string, string>;
                               const value = dummy[part] || part;
                               return <span key={i} className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1 py-0.5 rounded font-medium text-xs">{value}</span>;
                             }
