@@ -197,7 +197,8 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                       "{{invoice_details}}": invoiceListTxt.trim() || "No outstanding invoices.",
                       "{{portal_link}}": `https://duely.in/portal/${client.unsubscribe_token}`,
                       "{{invoice_count}}": `${activeInvoices.length}`,
-                      "{{sender_name}}": senderName
+                      "{{sender_name}}": senderName,
+                      "{{sender_company}}": org?.name || "Our Company"
                     }}
                   />
                 );

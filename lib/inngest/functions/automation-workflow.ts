@@ -91,10 +91,13 @@ export const automationWorkflow = inngest.createFunction(
       // PREPARE AND SEND EMAIL
       const sendResult = await step.run("send-email", async () => {
         const supabase = createSupabaseAdminClient();
+        const { data: orgData } = await supabase.from("organizations").select("name").eq("id", organizationId).single();
+        const orgName = orgData?.name || "Our Company";
+        
         const { data: members } = await supabase.from("organization_members").select("user_id").eq("organization_id", organizationId).in("role", ["owner", "admin"]).limit(1);
         const adminUserId = members?.[0]?.user_id;
         
-        let sender = { name: "Someone", email: null as string | null, user_id: adminUserId };
+        let sender = { name: "Someone", email: null as string | null, user_id: adminUserId, company: orgName };
         if (adminUserId) {
             const { data: { user } } = await supabase.auth.admin.getUserById(adminUserId);
             if (user) { sender.name = user.user_metadata?.full_name || "Someone"; sender.email = user.email ?? null; }
@@ -129,7 +132,8 @@ export const automationWorkflow = inngest.createFunction(
             "invoice_count": `${activeInvoices.length}`,
             "invoice_details": invoiceListTxt.trim() || "No outstanding invoices.",
             "portal_link": `${getAppUrl()}/portal/client-${readyEntity.id}`,
-            "sender_name": sender.name
+            "sender_name": sender.name,
+            "sender_company": sender.company
           };
           const processed = processTemplate(tpl, vars);
           subject = processed.subject; 
@@ -143,7 +147,8 @@ export const automationWorkflow = inngest.createFunction(
              "invoice_number": readyEntity.invoice_number || readyEntity.id,
              "invoice_details": `- Invoice #${readyEntity.invoice_number || readyEntity.id} (${readyEntity.currency || "USD"} ${readyEntity.amount_owed || readyEntity.amount})`,
              "portal_link": `${getAppUrl()}/portal/${readyEntity.id}`,
-             "sender_name": sender.name
+             "sender_name": sender.name,
+             "sender_company": sender.company
            };
            const processed = processTemplate(tpl, vars);
            subject = processed.subject; 

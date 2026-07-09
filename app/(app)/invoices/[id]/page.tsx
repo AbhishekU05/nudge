@@ -118,6 +118,7 @@ export default async function CustomerPage(props: {
     payment_history,
     followup_history,
     sender_name: senderName,
+    sender_company: org?.name || "Our Company",
   };
 
   return (

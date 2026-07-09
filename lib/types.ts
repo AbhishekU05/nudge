@@ -263,6 +263,7 @@ export type CustomerRecord = Invoice & {
   payment_history?: PaymentLog[];
   followup_history?: FollowUpLog[];
   sender_name?: string;
+  sender_company?: string;
   /** @deprecated use client_id */
   customer_id?: string;
 };
