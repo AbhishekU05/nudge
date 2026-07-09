@@ -388,13 +388,19 @@ export const sendReminders = inngest.createFunction(
             const nextOffset = templates[nextSequenceIndex].days_offset || 7;
             nextSendAt = computeRecurringReminderSendAt(nextOffset, sentOrDraftedAt);
           } else {
+            const updatePayload: Record<string, any> = {
+              last_sent_at: sentOrDraftedAt.toISOString(),
+              sequence_index: nextSequenceIndex,
+            };
+            if (table === "invoices") {
+              updatePayload.reminders_enabled = false;
+            } else {
+              updatePayload.active = false;
+            }
+
             await supabase
               .from(table)
-              .update({
-                last_sent_at: sentOrDraftedAt.toISOString(),
-                active: false,
-                sequence_index: nextSequenceIndex,
-              })
+              .update(updatePayload)
               .eq("id", entity.id)
               .eq("next_send_at", leaseUntil);
             continue;

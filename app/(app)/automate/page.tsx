@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Zap, Clock, Receipt, Users } from "lucide-react";
 import { LocalTime } from "@/components/site/local-time";
 import { DraftList } from "@/components/site/draft-list";
+import { SentList } from "@/components/site/sent-list";
 
 export const metadata = {
   title: "Automate | Duely",
@@ -61,6 +62,26 @@ export default async function AutomatePage() {
       subject: d.subject,
       body_html: d.body_html,
       created_at: d.created_at,
+      clients: client as { name: string; email: string }
+    };
+  });
+
+  const { data: sentData } = await supabase
+    .from("email_drafts")
+    .select("id, subject, body_html, sent_at, clients(name, email)")
+    .eq("organization_id", member?.organization_id)
+    .eq("status", "sent")
+    .order("sent_at", { ascending: false })
+    .limit(30);
+
+  const sentEmails = (sentData || []).map((d) => {
+    const rawClient = d.clients as unknown;
+    const client = Array.isArray(rawClient) ? rawClient[0] : rawClient;
+    return {
+      id: d.id,
+      subject: d.subject,
+      body_html: d.body_html,
+      sent_at: d.sent_at,
       clients: client as { name: string; email: string }
     };
   });
@@ -195,6 +216,8 @@ export default async function AutomatePage() {
             </div>
             
           </div>
+          
+          <SentList sentEmails={sentEmails} />
         </Container>
       </main>
     </div>
