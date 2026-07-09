@@ -49,6 +49,7 @@ export function AutomationSettings({
 }: AutomationSettingsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [type, setType] = useState<"recurring" | "sequence">(reminderType || "recurring");
+  const [isAutoApprove, setIsAutoApprove] = useState<boolean>(autoApprove);
   const [isFetchingEmail, setIsFetchingEmail] = useState(false);
   const cleanTemplates = (reminderTemplates?.length > 0 
     ? reminderTemplates 
@@ -199,7 +200,7 @@ export function AutomationSettings({
                 <Clock className="h-4 w-4 text-zinc-500" />
                 <p className="text-xs font-medium text-zinc-400">Type</p>
               </div>
-              <p className="text-sm text-zinc-200 capitalize">{reminderType}</p>
+              <p className="text-sm text-zinc-200 capitalize">{isEditing ? type : reminderType}</p>
             </div>
             
             <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
@@ -207,7 +208,7 @@ export function AutomationSettings({
                 <ShieldCheck className="h-4 w-4 text-zinc-500" />
                 <p className="text-xs font-medium text-zinc-400">Auto Approve</p>
               </div>
-              <p className="text-sm text-zinc-200">{autoApprove ? "Yes" : "Requires Approval"}</p>
+              <p className="text-sm text-zinc-200">{(isEditing ? isAutoApprove : autoApprove) ? "Yes" : "Requires Approval"}</p>
             </div>
           </div>
 
@@ -238,7 +239,8 @@ export function AutomationSettings({
                   <select 
                     id="auto_approve" 
                     name="auto_approve" 
-                    defaultValue={autoApprove ? "true" : "false"} 
+                    value={isAutoApprove ? "true" : "false"} 
+                    onChange={(e) => setIsAutoApprove(e.target.value === "true")}
                     className="flex h-10 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   >
                     <option value="false">Queue emails for my review</option>
@@ -361,7 +363,12 @@ export function AutomationSettings({
                 <Button 
                   type="button" 
                   variant="ghost" 
-                  onClick={() => setIsEditing(false)}
+                  onClick={() => {
+                    setIsEditing(false);
+                    setType(reminderType || "recurring");
+                    setIsAutoApprove(autoApprove);
+                    setTemplates(cleanTemplates);
+                  }}
                 >
                   Cancel
                 </Button>
