@@ -10,12 +10,12 @@ export default async function ActivityPage() {
   const [eventsRes, paymentsRes] = await Promise.all([
     supabase
       .from("events")
-      .select("*, invoices(clients(name)), clients(name)")
+      .select("*, invoices(invoice_number, clients(name)), clients(name)")
       .order("created_at", { ascending: false })
       .limit(100),
     supabase
       .from("payments")
-      .select("*, invoices(clients(name))")
+      .select("*, invoices(invoice_number, clients(name))")
       .order("created_at", { ascending: false })
       .limit(100)
   ]);
@@ -27,6 +27,8 @@ export default async function ActivityPage() {
     ...(eventsRes.data || []).map((e: Record<string, string | null | number | undefined | Record<string, unknown>>) => ({
       id: String(e.id),
       invoice_id: String(e.invoice_id),
+      raw_invoice_id: e.invoice_id,
+      raw_client_id: e.client_id,
       customer_id: String(e.invoice_id || e.client_id), 
       user_id: String(e.user_id || ""),
       event_type: String(e.event_type),
@@ -46,6 +48,8 @@ export default async function ActivityPage() {
       return {
       id: String(p.id),
       invoice_id: String(p.invoice_id),
+      raw_invoice_id: p.invoice_id,
+      raw_client_id: null,
       customer_id: String(p.invoice_id), 
       user_id: String(p.user_id || ""),
       event_type: "payment",

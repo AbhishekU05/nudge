@@ -22,6 +22,7 @@ import {
   ReceiptText,
   Phone,
   History,
+  Send,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -790,13 +791,35 @@ function TimelineTab({ customer }: { customer: CustomerRecord }) {
 
   // 5. Followup History
   for (const followup of customer.followup_history ?? []) {
+    let label = `Follow-up: ${followup.method}`;
+    let icon = MessageSquare;
+    let sub = `Outcome: ${followup.outcome}${followup.note ? ` - ${followup.note}` : ''}`;
+    
+    if (followup.event_type === "note") {
+      label = "Note Added";
+      icon = FileText;
+      sub = followup.note || "";
+    } else if (followup.event_type === "reminder_sent") {
+      label = "Automated Reminder Sent";
+      icon = Send;
+      sub = "System sent reminder email";
+    } else if (followup.event_type === "status_change") {
+      label = "Status Changed";
+      icon = Zap;
+      sub = followup.note || "Invoice status updated";
+    } else if (followup.event_type === "late_fee_applied") {
+      label = "Late Fee Applied";
+      icon = Zap;
+      sub = followup.note || "Automated late fee applied";
+    }
+
     entries.push({
-      id: `${followup.id}-followup`,
-      label: `Follow-up: ${followup.method}`,
-      sub: `Outcome: ${followup.outcome}${followup.note ? ` - ${followup.note}` : ''}`,
+      id: `${followup.id}-event`,
+      label,
+      sub,
       at: followup.created_at,
       tone: "default",
-      icon: MessageSquare,
+      icon,
     });
   }
 

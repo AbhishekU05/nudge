@@ -50,7 +50,17 @@ export function ActivityFeed({ events }: { events: Record<string, unknown>[] }) 
                   <div className="flex-1 space-y-1">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                       <p className="text-sm font-medium text-zinc-200">
-                        {isPayment ? "Payment Logged" : "Follow-up Sent"}
+                        {isPayment 
+                          ? "Payment Logged" 
+                          : event.event_type === "note" 
+                            ? "Note Added"
+                            : event.event_type === "reminder_sent"
+                              ? "Automated Reminder Sent"
+                              : event.event_type === "status_change"
+                                ? "Status Changed"
+                                : event.event_type === "late_fee_applied"
+                                  ? "Late Fee Applied"
+                                  : "Follow-up Sent"}
                       </p>
                       <time dateTime={String(event.event_date || event.created_at)} className="text-xs text-zinc-500">
                         {formatDistanceToNow(new Date(String(event.event_date || event.created_at)), { addSuffix: true })}
@@ -61,14 +71,51 @@ export function ActivityFeed({ events }: { events: Record<string, unknown>[] }) 
                       {isPayment ? (
                         <>
                           Recorded a payment of <span className="font-semibold text-zinc-300">{formatCurrency(Number(event.amount || 0))}</span> from{" "}
-                          <Link href={`/customers/${event.customer_id}`} className="text-primary hover:underline">
+                          <Link href={`/${event.raw_invoice_id ? 'invoices' : 'customers'}/${event.raw_invoice_id || event.raw_client_id}`} className="text-primary hover:underline">
+                            {customerName}
+                          </Link>
+                        </>
+                      ) : event.event_type === "note" ? (
+                        <>
+                          Added an internal note for{" "}
+                          <Link href={`/${event.raw_invoice_id ? 'invoices' : 'customers'}/${event.raw_invoice_id || event.raw_client_id}`} className="text-primary hover:underline">
+                            {customerName}
+                          </Link>
+                        </>
+                      ) : event.event_type === "reminder_sent" ? (
+                        event.raw_invoice_id ? (
+                          <>
+                            System sent an automated reminder for invoice <span className="font-semibold text-zinc-300">{(event.invoices as any)?.invoice_number || "Invoice"}</span> to{" "}
+                            <Link href={`/invoices/${event.raw_invoice_id}`} className="text-primary hover:underline">
+                              {customerName}
+                            </Link>
+                          </>
+                        ) : (
+                          <>
+                            System sent an automated statement to{" "}
+                            <Link href={`/customers/${event.raw_client_id}`} className="text-primary hover:underline">
+                              {customerName}
+                            </Link>
+                          </>
+                        )
+                      ) : event.event_type === "status_change" ? (
+                        <>
+                          Invoice status updated for{" "}
+                          <Link href={`/${event.raw_invoice_id ? 'invoices' : 'customers'}/${event.raw_invoice_id || event.raw_client_id}`} className="text-primary hover:underline">
+                            {customerName}
+                          </Link>
+                        </>
+                      ) : event.event_type === "late_fee_applied" ? (
+                        <>
+                          Late fee automatically applied for{" "}
+                          <Link href={`/${event.raw_invoice_id ? 'invoices' : 'customers'}/${event.raw_invoice_id || event.raw_client_id}`} className="text-primary hover:underline">
                             {customerName}
                           </Link>
                         </>
                       ) : (
                         <>
                           Followed up with{" "}
-                          <Link href={`/customers/${event.customer_id}`} className="text-primary hover:underline">
+                          <Link href={`/${event.raw_invoice_id ? 'invoices' : 'customers'}/${event.raw_invoice_id || event.raw_client_id}`} className="text-primary hover:underline">
                             {customerName}
                           </Link>{" "}
                           via <span className="capitalize">{String(event.followup_method || "email")}</span>

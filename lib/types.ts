@@ -225,6 +225,7 @@ export type FollowUpLog = {
   note: string | null;
   outcome: FollowUpOutcome;
   created_at: string;
+  event_type?: CrmEventType;
 };
 
 /** @deprecated Use Client */

@@ -92,6 +92,7 @@ export default async function CustomerPage(props: {
     note: e.description || null,
     followup_date: e.created_at,
     created_at: e.created_at,
+    event_type: e.event_type || "followup",
   }));
 
   const amount_paid = payment_history.reduce((sum, p) => sum + p.amount, 0);
