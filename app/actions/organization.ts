@@ -55,3 +55,29 @@ export async function updateOrganizationLogo(formData: FormData) {
 
   revalidatePath("/settings/organization");
 }
+
+export async function updateOrganizationTimezone(formData: FormData) {
+  const user = await requireUser();
+  const supabase = await createSupabaseServerClient();
+  
+  const timezone = formData.get("timezone")?.toString() || "UTC";
+
+  // Verify membership
+  const { data: member } = await supabase
+    .from("organization_members")
+    .select("organization_id, role")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!member) {
+    throw new Error("Not a member of an organization");
+  }
+
+  // Update org
+  await supabase
+    .from("organizations")
+    .update({ timezone: timezone })
+    .eq("id", member.organization_id);
+
+  revalidatePath("/settings/organization");
+}

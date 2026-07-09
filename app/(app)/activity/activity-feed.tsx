@@ -85,7 +85,7 @@ export function ActivityFeed({ events }: { events: Record<string, unknown>[] }) 
                       ) : event.event_type === "reminder_sent" ? (
                         event.raw_invoice_id ? (
                           <>
-                            System sent an automated reminder for invoice <span className="font-semibold text-zinc-300">{(event.invoices as any)?.invoice_number || "Invoice"}</span> to{" "}
+                            System sent an automated reminder for invoice <span className="font-semibold text-zinc-300">{(event.invoices as { invoice_number?: string })?.invoice_number || "Invoice"}</span> to{" "}
                             <Link href={`/invoices/${event.raw_invoice_id}`} className="text-primary hover:underline">
                               {customerName}
                             </Link>

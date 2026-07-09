@@ -97,6 +97,37 @@ export default async function OrganizationSettingsPage() {
                 )}
               </dd>
             </div>
+            
+            <div className="col-span-1 sm:col-span-2 rounded-lg border border-white/5 bg-black/20 p-4">
+              <dt className="text-sm font-medium text-zinc-400 mb-2">Organization Timezone</dt>
+              <dd className="mt-1">
+                <form action={async (formData) => {
+                  "use server";
+                  const { updateOrganizationTimezone } = await import("@/app/actions/organization");
+                  await updateOrganizationTimezone(formData);
+                }} className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <select 
+                    id="timezone"
+                    name="timezone"
+                    defaultValue={org.timezone || "UTC"}
+                    className="flex h-9 w-full sm:max-w-xs rounded-md border border-white/10 bg-black/40 px-3 py-1 text-sm shadow-sm transition-colors text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <option value="America/New_York">Eastern Time (ET)</option>
+                    <option value="America/Chicago">Central Time (CT)</option>
+                    <option value="America/Denver">Mountain Time (MT)</option>
+                    <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                    <option value="Europe/London">London (GMT/BST)</option>
+                    <option value="Europe/Paris">Central European Time (CET)</option>
+                    <option value="Asia/Kolkata">India Standard Time (IST)</option>
+                    <option value="Australia/Sydney">Australian Eastern Time (AET)</option>
+                    <option value="UTC">UTC</option>
+                  </select>
+                  <button type="submit" className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+                    Save Timezone
+                  </button>
+                </form>
+              </dd>
+            </div>
           </dl>
         </CardContent>
       </Card>

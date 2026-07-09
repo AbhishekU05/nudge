@@ -81,7 +81,7 @@ export function AutomationSettings({
     ? reminderTemplates 
     : (reminderType === "sequence" ? defaultSequence : defaultRecurring);
 
-  const cleanTemplates = initialTemplates.map((tpl: any) => ({
+  const cleanTemplates = initialTemplates.map((tpl: { subject: string; body_html: string; days_offset?: number }) => ({
     ...tpl,
     body_html: tpl.body_html
       .replace(/<\/?p>/g, '\n')

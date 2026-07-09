@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { isGoogleAuthEnabled } from "@/lib/auth-providers";
 import { buildPathWithQuery, getSafeNextPath } from "@/lib/paths";
 
+import { TimezoneHiddenInput } from "@/components/site/timezone-hidden-input";
+
 export default async function SignupPage({
   searchParams,
 }: {
@@ -29,6 +31,7 @@ export default async function SignupPage({
     >
       <form action={signup} className="space-y-4">
         <input type="hidden" name="next" value={nextPath} />
+        <TimezoneHiddenInput />
         <div className="space-y-2">
           <Label htmlFor="full_name">Full name</Label>
           <Input

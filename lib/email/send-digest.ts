@@ -12,10 +12,18 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
   const supabase = createSupabaseAdminClient();
   const resend = getResendClient();
 
-  // 1. Fetch profiles
+  // 1. Fetch profiles and their org timezones
   let profilesQuery = supabase
     .from("profiles")
-    .select("user_id, timezone, weekly_digest_enabled");
+    .select(`
+      user_id, 
+      weekly_digest_enabled,
+      organization_members (
+        organizations (
+          timezone
+        )
+      )
+    `);
 
   if (targetUserId) {
     profilesQuery = profilesQuery.eq("user_id", targetUserId);
@@ -36,7 +44,8 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
     if (targetUserId) return true; // manual trigger bypasses time check
 
     try {
-      const tz = profile.timezone || "UTC";
+      const orgMember = profile.organization_members?.[0] as { organizations?: { timezone?: string } };
+      const tz = orgMember?.organizations?.timezone || "UTC";
       const formatter = new Intl.DateTimeFormat('en-US', { 
         timeZone: tz, 
         weekday: 'short', 

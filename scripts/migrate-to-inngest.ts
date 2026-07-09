@@ -24,7 +24,7 @@ async function migrate() {
       data: { entityId: inv.id, entityType: "invoice", organizationId: inv.organization_id }
     }));
     if (events.length > 0) {
-      // @ts-ignore
+      // @ts-expect-error ts compiler issue
       await inngest.send(events);
       console.log(`Dispatched ${events.length} invoice automation events.`);
     }
@@ -44,7 +44,7 @@ async function migrate() {
       data: { entityId: client.id, entityType: "client", organizationId: client.organization_id }
     }));
     if (events.length > 0) {
-      // @ts-ignore
+      // @ts-expect-error ts compiler issue
       await inngest.send(events);
       console.log(`Dispatched ${events.length} client automation events.`);
     }

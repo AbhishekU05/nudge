@@ -112,28 +112,6 @@ export default async function GeneralSettingsPage() {
         </CardHeader>
         <CardContent>
           <form action={updateDigestSettings} className="space-y-4 max-w-md">
-            <div className="space-y-2 flex flex-col">
-              <Label htmlFor="timezone" className="text-zinc-400">
-                Timezone
-              </Label>
-              <select 
-                id="timezone"
-                name="timezone"
-                defaultValue={profile?.timezone || "UTC"}
-                className="bg-black/20 text-white border border-white/10 rounded-md p-2"
-              >
-                <option value="America/New_York">Eastern Time (ET)</option>
-                <option value="America/Chicago">Central Time (CT)</option>
-                <option value="America/Denver">Mountain Time (MT)</option>
-                <option value="America/Los_Angeles">Pacific Time (PT)</option>
-                <option value="Europe/London">London (GMT/BST)</option>
-                <option value="Europe/Paris">Central European Time (CET)</option>
-                <option value="Asia/Kolkata">India Standard Time (IST)</option>
-                <option value="Australia/Sydney">Australian Eastern Time (AET)</option>
-                <option value="UTC">UTC</option>
-              </select>
-            </div>
-            
             <div className="flex items-center gap-2 mt-4">
               <input 
                 type="checkbox" 

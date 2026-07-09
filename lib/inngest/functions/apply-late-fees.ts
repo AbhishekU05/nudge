@@ -23,7 +23,7 @@ export const applyLateFees = inngest.createFunction(
       // 2. Check subscription
       const { data: org } = await supabase
         .from("organizations")
-        .select("dodo_subscription_status, created_at")
+        .select("dodo_subscription_status, created_at, timezone")
         .eq("id", policy.organization_id)
         .single();
 
@@ -42,21 +42,15 @@ export const applyLateFees = inngest.createFunction(
       const adminUserId = members?.[0]?.user_id;
       if (!adminUserId) continue;
 
-      // 3b. Fetch the admin's timezone and check if it's midnight locally
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("timezone")
-        .eq("user_id", adminUserId)
-        .single();
-      
-      const timezone = profile?.timezone || "UTC";
+      // 3b. Use the organization's timezone and check if it's midnight locally
+      const timezone = org?.timezone || "UTC";
       const formatter = new Intl.DateTimeFormat("en-US", { hour: "numeric", hour12: false, timeZone: timezone });
       const hourStr = formatter.formatToParts(new Date()).find(p => p.type === "hour")?.value;
       const isMidnight = hourStr === "24" || hourStr === "0" || hourStr === "00";
 
-      // if (!isMidnight) {
-      //   continue; // It's not midnight in the organization's local timezone
-      // }
+      if (!isMidnight) {
+        continue; // It's not midnight in the organization's local timezone
+      }
 
       // 4. Fetch invoices for this organization
       const { data: invoices, error: invoicesError } = await supabase

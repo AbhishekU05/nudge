@@ -147,7 +147,7 @@ export default async function CustomersPage({
                     </td>
                   </tr>
                 ) : (
-                  clientsWithData.map(({ id, name, clientInvoices, totalOwed, totalPaid, currency }) => {
+                  clientsWithData.map(({ id, name, totalOwed, totalPaid, currency }) => {
                     const formattedTotal = new Intl.NumberFormat(undefined, {
                       style: "currency",
                       currency

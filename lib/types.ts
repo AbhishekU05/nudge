@@ -11,6 +11,7 @@ export interface Organization {
   name: string;
   domain: string | null;
   logo_url: string | null;
+  timezone: string;
   dodo_customer_id: string | null;
   dodo_subscription_id: string | null;
   dodo_subscription_status: SubscriptionStatus | null;
@@ -34,7 +35,6 @@ export interface Profile {
   google_access_token: string | null;
   google_refresh_token: string | null;
   gmail_connected_email: string | null;
-  timezone: string;
   weekly_digest_enabled: boolean;
   created_at: string;
   updated_at: string;

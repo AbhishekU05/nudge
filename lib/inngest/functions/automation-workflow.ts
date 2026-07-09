@@ -4,7 +4,6 @@ import { getResendClient } from "@/lib/resend";
 import { isAutomationAndIntegrationAllowed } from "@/lib/payments";
 import { computeRecurringReminderSendAt } from "@/lib/reminder-schedule";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { logger } from "@/lib/logger";
 import { getAppUrl } from "@/lib/email/reminder";
 
 type Template = { subject: string; body_html: string; days_offset?: number };
@@ -34,7 +33,7 @@ export const automationWorkflow = inngest.createFunction(
     ],
   },
   async ({ event, step }) => {
-    const { entityId, entityType, organizationId } = event.data as any;
+    const { entityId, entityType, organizationId } = event.data as { entityId: string; entityType: string; organizationId: string; };
 
     let isFinished = false;
 
@@ -97,7 +96,7 @@ export const automationWorkflow = inngest.createFunction(
         const { data: members } = await supabase.from("organization_members").select("user_id").eq("organization_id", organizationId).in("role", ["owner", "admin"]).limit(1);
         const adminUserId = members?.[0]?.user_id;
         
-        let sender = { name: "Someone", email: null as string | null, user_id: adminUserId, company: orgName };
+        const sender = { name: "Someone", email: null as string | null, user_id: adminUserId, company: orgName };
         if (adminUserId) {
             const { data: { user } } = await supabase.auth.admin.getUserById(adminUserId);
             if (user) { sender.name = user.user_metadata?.full_name || "Someone"; sender.email = user.email ?? null; }
@@ -163,8 +162,7 @@ export const automationWorkflow = inngest.createFunction(
                     const resend = getResendClient();
                     await resend.emails.send({ from: `${sender.name} via Duely <reminders@duely.in>`, to: readyEntity.email, subject, text: textBody, replyTo: sender.email || undefined });
                 }
-            } catch (err) {
-                 // Throw to let Inngest native retry handle it!
+            } catch {
                  throw new Error("Failed to send email");
             }
         } else {
@@ -201,7 +199,7 @@ export const automationWorkflow = inngest.createFunction(
           nextSendAtStr = computeRecurringReminderSendAt(readyEntity.reminder_frequency_days, sentOrDraftedAt);
         }
 
-        const updatePayload: any = {
+        const updatePayload: Record<string, string | number> = {
            last_sent_at: sentOrDraftedAt.toISOString(),
            sequence_index: nextSequenceIndex
         };

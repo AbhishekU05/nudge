@@ -109,6 +109,7 @@ export async function signup(formData: FormData) {
   const password = getString(formData, "password");
   const confirmPassword = getString(formData, "confirm_password");
   const fullName = getString(formData, "full_name");
+  const timezone = getString(formData, "timezone") || "UTC";
 
   // TODO: check this redirect. redirect back to signup?
   if (password !== confirmPassword) {
@@ -193,6 +194,7 @@ export async function signup(formData: FormData) {
           .insert({
             name: `${fullName}'s Workspace`,
             domain: domain,
+            timezone: timezone,
           })
           .select("id")
           .single();
@@ -212,6 +214,7 @@ export async function signup(formData: FormData) {
         .insert({
           name: `${fullName}'s Workspace`,
           domain: null,
+          timezone: timezone,
         })
         .select("id")
         .single();
@@ -471,12 +474,11 @@ export async function updateDigestSettings(formData: FormData) {
     redirect("/login");
   }
 
-  const timezone = formData.get("timezone") as string;
   const weekly_digest_enabled = formData.get("weekly_digest_enabled") === "true";
 
   const { error } = await supabase
     .from("profiles")
-    .upsert({ user_id: user.id, timezone, weekly_digest_enabled }, { onConflict: "user_id" });
+    .upsert({ user_id: user.id, weekly_digest_enabled }, { onConflict: "user_id" });
 
   if (error) {
     redirect(buildPathWithQuery("/settings/general", { error: "Failed to update settings" }));

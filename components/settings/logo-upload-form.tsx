@@ -22,8 +22,8 @@ export function LogoUploadForm({ currentLogo }: { currentLogo: string | null }) 
     
     try {
       await updateOrganizationLogo(formData);
-    } catch (err: any) {
-      setError(err.message || "Failed to upload logo.");
+    } catch (err: unknown) {
+      setError((err as Error).message || "Failed to upload logo.");
     }
   };
 
