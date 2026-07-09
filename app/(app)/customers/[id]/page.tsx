@@ -55,13 +55,15 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
     
   const group = customerGroupData?.groups as unknown as GroupRecord | undefined;
 
+  const user = await requireUser();
   const { isAutomationAndIntegrationAllowed } = await import("@/lib/payments");
   const { data: org } = await supabase
     .from("organizations")
-    .select("dodo_subscription_status, created_at")
+    .select("name, dodo_subscription_status, created_at")
     .eq("id", client.organization_id)
     .single();
   const isAllowed = org ? isAutomationAndIntegrationAllowed(org.dodo_subscription_status, org.created_at) : false;
+  const senderName = user.user_metadata?.full_name || org?.name || "You";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -195,7 +197,7 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                       "{{invoice_details}}": invoiceListTxt.trim() || "No outstanding invoices.",
                       "{{portal_link}}": `https://duely.in/portal/${client.unsubscribe_token}`,
                       "{{invoice_count}}": `${activeInvoices.length}`,
-                      "{{sender_name}}": "You"
+                      "{{sender_name}}": senderName
                     }}
                   />
                 );

@@ -734,7 +734,7 @@ function AutomationTab({
         "{{portal_link}}": `https://duely.in/portal/${customer.id}`, // using id as fallback, would normally be client's token
         "{{invoice_number}}": customer.invoice_number || customer.id,
         "{{invoice_count}}": "1",
-        "{{sender_name}}": "You"
+        "{{sender_name}}": customer.sender_name || "You"
       }}
     />
   );

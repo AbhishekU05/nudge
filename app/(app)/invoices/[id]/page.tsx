@@ -97,6 +97,16 @@ export default async function CustomerPage(props: {
 
   const amount_paid = payment_history.reduce((sum, p) => sum + p.amount, 0);
 
+  const { isAutomationAndIntegrationAllowed } = await import("@/lib/payments");
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("name, dodo_subscription_status, created_at")
+    .eq("id", customerData.organization_id)
+    .single();
+  const _isAllowed = org ? isAutomationAndIntegrationAllowed(org.dodo_subscription_status, org.created_at) : false;
+
+  const senderName = user.user_metadata?.full_name || org?.name || "You";
+
   const customerRecord: CustomerRecord = {
     ...customerData,
     amount_owed: Number(customerData.amount),
@@ -107,15 +117,8 @@ export default async function CustomerPage(props: {
     recipient_email: clientEmail,
     payment_history,
     followup_history,
+    sender_name: senderName,
   };
-
-  const { isAutomationAndIntegrationAllowed } = await import("@/lib/payments");
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("dodo_subscription_status, created_at")
-    .eq("id", customerData.organization_id)
-    .single();
-  const _isAllowed = org ? isAutomationAndIntegrationAllowed(org.dodo_subscription_status, org.created_at) : false;
 
   return (
     <div className="flex-1 overflow-y-auto">
