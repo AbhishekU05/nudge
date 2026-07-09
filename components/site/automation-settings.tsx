@@ -70,28 +70,23 @@ export function AutomationSettings({
   const [emailInput, setEmailInput] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
 
-  import("react").then(React => {
-    React.useEffect(() => {
-      const idToFetch = entityType === "client" ? entityId : clientId;
-      if (!targetEmail && idToFetch) {
-        setIsFetchingEmail(true);
-        fetchCustomerEmailJit(idToFetch).then(res => {
-          if (res.success && res.email) {
-            router.refresh();
-          } else {
-            setIsFetchingEmail(false);
-          }
-        });
+  const handleEnableAutomation = async () => {
+    const idToFetch = entityType === "client" ? entityId : clientId;
+    if (!targetEmail && idToFetch) {
+      setIsFetchingEmail(true);
+      try {
+        const res = await fetchCustomerEmailJit(idToFetch);
+        if (res.success && res.email) {
+          router.refresh();
+        } else {
+          setShowEmailPrompt(true);
+        }
+      } catch {
+        setShowEmailPrompt(true);
       }
-    }, [targetEmail, entityType, entityId, clientId, router]);
-  });
-
-  const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    const hasEmail = targetEmail?.trim() || emailInput.trim();
-    if (!hasEmail) {
-      e.preventDefault();
-      setShowEmailPrompt(true);
+      setIsFetchingEmail(false);
     }
+    setIsEditing(true);
   };
 
   const handleAddTemplate = () => {
@@ -175,10 +170,11 @@ export function AutomationSettings({
             <Button 
               className="mt-4 gap-2" 
               variant="secondary" 
-              onClick={() => setIsEditing(true)}
+              onClick={handleEnableAutomation}
+              disabled={isFetchingEmail}
             >
               <PlayCircle className="h-4 w-4" />
-              Enable Automation
+              {isFetchingEmail ? "Fetching email..." : "Enable Automation"}
             </Button>
           )}
         </div>
@@ -219,10 +215,24 @@ export function AutomationSettings({
             <form 
               ref={formRef}
               action={handleSave}
-              onSubmit={onFormSubmit}
               className="space-y-6 rounded-xl border border-white/10 bg-black/20 p-4"
             >
               <div className="space-y-4 border-b border-white/10 pb-6">
+                {(!targetEmail || showEmailPrompt) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="new_email">Recipient Email <span className="text-red-400">*</span></Label>
+                    <Input 
+                      id="new_email"
+                      name="new_email"
+                      type="email" 
+                      placeholder="client@example.com" 
+                      required 
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      className="bg-black/40"
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="auto_approve">Approval</Label>
                   <select 
@@ -365,61 +375,12 @@ export function AutomationSettings({
                 Pause
               </Button>
               
-              <Button type="button" variant="secondary" className="gap-2" onClick={() => setIsEditing(true)}>
+              <Button type="button" variant="secondary" className="gap-2" onClick={handleEnableAutomation} disabled={isFetchingEmail}>
                 <Settings2 className="h-4 w-4" />
-                Configure
+                {isFetchingEmail ? "Loading..." : "Configure"}
               </Button>
             </div>
           )}
-        </div>
-      )}
-      {showEmailPrompt && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-xl border border-white/10 bg-zinc-900 shadow-2xl overflow-hidden">
-            <div className="p-6">
-              <h3 className="text-lg font-medium text-white mb-2">Email Address Required</h3>
-              <p className="text-sm text-zinc-400 mb-6">
-                This automation requires an email address. Please enter the recipient&apos;s email address below to continue.
-              </p>
-              <Input 
-                type="email" 
-                value={emailInput} 
-                onChange={(e) => setEmailInput(e.target.value)} 
-                placeholder={isFetchingEmail ? "Fetching email from integration..." : "client@example.com"}
-                required
-                disabled={isFetchingEmail}
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    if (!emailInput.trim()) {
-                      alert("Please enter a valid email.");
-                      return;
-                    }
-                    setShowEmailPrompt(false);
-                    setTimeout(() => formRef.current?.requestSubmit(), 50);
-                  }
-                }}
-              />
-            </div>
-            <div className="flex justify-end gap-3 bg-zinc-950/50 p-4 border-t border-white/5">
-              <Button variant="ghost" onClick={() => setShowEmailPrompt(false)}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={() => {
-                  if (!emailInput.trim()) {
-                    alert("Please enter a valid email.");
-                    return;
-                  }
-                  setShowEmailPrompt(false);
-                  setTimeout(() => formRef.current?.requestSubmit(), 50);
-                }}
-              >
-                Save & Continue
-              </Button>
-            </div>
-          </div>
         </div>
       )}
     </div>
