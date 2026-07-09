@@ -89,7 +89,7 @@ export const automationWorkflow = inngest.createFunction(
       }
 
       // PREPARE AND SEND EMAIL
-      await step.run("send-email", async () => {
+      const sendResult = await step.run("send-email", async () => {
         const supabase = createSupabaseAdminClient();
         const { data: members } = await supabase.from("organization_members").select("user_id").eq("organization_id", organizationId).in("role", ["owner", "admin"]).limit(1);
         const adminUserId = members?.[0]?.user_id;
@@ -109,6 +109,12 @@ export const automationWorkflow = inngest.createFunction(
         if (entityType === "client") {
           const { data: invoices } = await supabase.from("invoices").select("*").eq("client_id", entityId).neq("status", "paid").eq("organization_id", organizationId);
           const activeInvoices = invoices || [];
+          
+          if (activeInvoices.length === 0) {
+            await supabase.from("clients").update({ active: false }).eq("id", entityId);
+            return { skipped: true };
+          }
+
           const totalAmountOwed = activeInvoices.reduce((sum, inv) => sum + (Number(inv.amount_owed) || Number(inv.amount) || 0), 0);
           const currency = activeInvoices[0]?.currency || "USD";
           
@@ -161,7 +167,12 @@ export const automationWorkflow = inngest.createFunction(
              await supabase.from("email_drafts").insert({ organization_id: organizationId, client_id: entityType === "client" ? entityId : (readyEntity.client_id || readyEntity.customer_id), invoice_id: entityType === "invoice" ? entityId : null, recipient_email: readyEntity.email, subject, body: textBody, status: "pending" });
         }
 
+        return { skipped: false };
       });
+
+      if (sendResult?.skipped) {
+         return { status: "cancelled", reason: "Client has no active invoices. Automation disabled." };
+      }
 
       // ADVANCE SEQUENCE
       const { hasMore } = await step.run("advance-sequence", async () => {

@@ -56,7 +56,7 @@ export async function saveAutomationSettings(formData: FormData) {
     // INVOICE LEVEL AUTOMATION
     const { data: invoice, error: fetchError } = await supabase
       .from("invoices")
-      .select("next_send_at, reminders_enabled, recipient_email, clients(email)")
+      .select("next_send_at, reminders_enabled, recipient_email, due_date, clients(email)")
       .eq("id", entityId)
       .eq("organization_id", organizationId)
       .single();
@@ -71,9 +71,12 @@ export async function saveAutomationSettings(formData: FormData) {
 
     let nextSendAt = undefined;
     if (!invoice.reminders_enabled) {
-      nextSendAt = invoice.next_send_at
-        ? computeRecurringReminderSendAt(reminderFrequencyDays)
-        : computeFirstReminderSendAt();
+      if (invoice.next_send_at) {
+        nextSendAt = computeRecurringReminderSendAt(reminderFrequencyDays);
+      } else {
+        const firstOffset = reminderType === "sequence" ? (reminderTemplates[0]?.days_offset || 7) : undefined;
+        nextSendAt = computeFirstReminderSendAt(new Date(), invoice.due_date, firstOffset);
+      }
     }
 
     const { error } = await supabase

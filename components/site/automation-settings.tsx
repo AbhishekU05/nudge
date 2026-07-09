@@ -305,6 +305,11 @@ export function AutomationSettings({
               </div>
 
               <div className="space-y-6">
+                <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-md text-xs text-indigo-300">
+                  {entityType === "client" 
+                    ? "For Statement Automation, the first email is sent immediately. The timing below determines the schedule for consecutive emails."
+                    : "For Invoice Automation, the first email's send time is calculated relative to the due date. If the calculated time has already elapsed, it will be sent immediately (in 5 mins)."}
+                </div>
                 {templates.map((tpl, idx) => (
                   <div key={idx} className="space-y-3 relative p-4 rounded-lg bg-white/[0.02] border border-white/5">
                     {type === "sequence" && (
@@ -376,15 +381,34 @@ export function AutomationSettings({
                       </div>
 
                       {/* Live Preview */}
-                      <div className="bg-white rounded-lg p-5 border border-zinc-200 shadow-sm flex flex-col h-full overflow-hidden text-zinc-900 font-sans">
-                        <div className="border-b border-zinc-100 pb-3 mb-3">
-                          <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">Preview</p>
-                          <p className="text-sm font-medium line-clamp-1">{tpl.subject || "Subject"}</p>
+                      <div className="bg-black/40 rounded-lg p-5 border border-white/5 shadow-sm flex flex-col h-full overflow-hidden text-zinc-300 font-sans">
+                        <div className="border-b border-white/10 pb-3 mb-3">
+                          <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Preview</p>
+                          <p className="text-sm font-medium line-clamp-1 text-zinc-200">
+                            {(() => {
+                              let subject = tpl.subject || "Subject";
+                              const dummy = {
+                                "{{first_name}}": "John", "{{company_name}}": "Acme Corp", "{{currency}}": "USD", 
+                                "{{amount_owed}}": "1,250.00", "{{portal_link}}": "https://duely.in/portal/123", 
+                                "{{invoice_details}}": "- Invoice #INV-001 (USD 1,250.00)", "{{invoice_number}}": "INV-001", 
+                                "{{invoice_count}}": "1", "{{sender_name}}": "Jane Doe"
+                              };
+                              Object.entries(dummy).forEach(([k, v]) => { subject = subject.replace(new RegExp(k, 'g'), v); });
+                              return subject;
+                            })()}
+                          </p>
                         </div>
                         <div className="text-sm whitespace-pre-wrap leading-relaxed overflow-y-auto max-h-[300px] flex-1">
                           {tpl.body_html.split(/(\{\{[^}]+\}\})/).map((part, i) => {
                             if (part.startsWith("{{") && part.endsWith("}}")) {
-                              return <span key={i} className="bg-indigo-100 text-indigo-700 px-1 py-0.5 rounded font-medium text-xs">{part}</span>;
+                              const dummy = {
+                                "{{first_name}}": "John", "{{company_name}}": "Acme Corp", "{{currency}}": "USD", 
+                                "{{amount_owed}}": "1,250.00", "{{portal_link}}": "https://duely.in/portal/123", 
+                                "{{invoice_details}}": "- Invoice #INV-001 (USD 1,250.00)", "{{invoice_number}}": "INV-001", 
+                                "{{invoice_count}}": "1", "{{sender_name}}": "Jane Doe"
+                              } as Record<string, string>;
+                              const value = dummy[part] || part;
+                              return <span key={i} className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1 py-0.5 rounded font-medium text-xs">{value}</span>;
                             }
                             return part;
                           })}
