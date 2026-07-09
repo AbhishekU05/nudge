@@ -85,6 +85,32 @@ export default async function OrganizationSettingsPage() {
                 {org.domain ? org.domain : <span className="text-zinc-600 italic">Not set</span>}
               </dd>
             </div>
+            <div className="col-span-1 sm:col-span-2 rounded-lg border border-white/5 bg-black/20 p-4">
+              <dt className="text-sm font-medium text-zinc-400 mb-2">Company Logo URL</dt>
+              <dd className="mt-1">
+                <form action={async (formData) => {
+                  "use server";
+                  const { updateOrganizationLogo } = await import("@/app/actions/organization");
+                  await updateOrganizationLogo(formData);
+                }} className="flex items-center gap-3">
+                  <input 
+                    type="url" 
+                    name="logo_url" 
+                    placeholder="https://example.com/logo.png" 
+                    defaultValue={org.logo_url || ""}
+                    className="flex h-9 w-full sm:max-w-xs rounded-md border border-white/10 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                  <button type="submit" className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+                    Save Logo
+                  </button>
+                </form>
+                {org.logo_url && (
+                  <div className="mt-3">
+                    <img src={org.logo_url} alt="Company Logo" className="h-10 object-contain" />
+                  </div>
+                )}
+              </dd>
+            </div>
           </dl>
         </CardContent>
       </Card>

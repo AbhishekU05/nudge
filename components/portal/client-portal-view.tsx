@@ -20,12 +20,14 @@ type CurrencyGroup = [
 export function ClientPortalView({
   client,
   agencyName,
+  agencyLogoUrl,
   bankAccounts,
   currencyGroups,
   token,
 }: {
   client: { name: string; id: string };
   agencyName: string;
+  agencyLogoUrl?: string | null;
   bankAccounts: { name: string; currency?: string; accountNumber: string; provider?: string }[];
   currencyGroups: CurrencyGroup[];
   token?: string;
@@ -50,6 +52,11 @@ export function ClientPortalView({
 
         {/* Header */}
         <div className="flex flex-col gap-1">
+          {agencyLogoUrl && (
+            <div className="mb-6">
+              <img src={agencyLogoUrl} alt={agencyName} className="h-12 object-contain" />
+            </div>
+          )}
           <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
             {client.name}
           </h1>

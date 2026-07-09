@@ -10,6 +10,7 @@ export interface Organization {
   id: string;
   name: string;
   domain: string | null;
+  logo_url: string | null;
   dodo_customer_id: string | null;
   dodo_subscription_id: string | null;
   dodo_subscription_status: SubscriptionStatus | null;

@@ -81,14 +81,15 @@ export default async function PortalPage(props: {
     };
   });
 
-  // Fetch agency name
+  // Fetch agency name and logo
   const { data: organization } = await supabase
     .from("organizations")
-    .select("name")
+    .select("name, logo_url")
     .eq("id", client.organization_id)
     .single();
 
   const agencyName = organization?.name || "Your Agency";
+  const agencyLogoUrl = organization?.logo_url || null;
 
   // Dynamically fetch bank accounts — no data stored in Duely
   const [xeroBanks, qbBanks] = await Promise.all([
@@ -150,6 +151,7 @@ export default async function PortalPage(props: {
     <ClientPortalView
       client={client}
       agencyName={agencyName}
+      agencyLogoUrl={agencyLogoUrl}
       bankAccounts={bankAccounts}
       currencyGroups={sortedCurrencies}
       token={token}
