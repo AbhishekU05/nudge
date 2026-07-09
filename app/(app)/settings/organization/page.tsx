@@ -6,6 +6,7 @@ import { Building2, Users, Mail } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { OrgMemberRole } from "@/lib/types";
+import { LogoUploadForm } from "@/components/settings/logo-upload-form";
 
 export default async function OrganizationSettingsPage() {
   const user = await requireUser();
@@ -86,27 +87,12 @@ export default async function OrganizationSettingsPage() {
               </dd>
             </div>
             <div className="col-span-1 sm:col-span-2 rounded-lg border border-white/5 bg-black/20 p-4">
-              <dt className="text-sm font-medium text-zinc-400 mb-2">Company Logo URL</dt>
+              <dt className="text-sm font-medium text-zinc-400 mb-2">Company Logo (Max 500KB)</dt>
               <dd className="mt-1">
-                <form action={async (formData) => {
-                  "use server";
-                  const { updateOrganizationLogo } = await import("@/app/actions/organization");
-                  await updateOrganizationLogo(formData);
-                }} className="flex items-center gap-3">
-                  <input 
-                    type="url" 
-                    name="logo_url" 
-                    placeholder="https://example.com/logo.png" 
-                    defaultValue={org.logo_url || ""}
-                    className="flex h-9 w-full sm:max-w-xs rounded-md border border-white/10 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                  <button type="submit" className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
-                    Save Logo
-                  </button>
-                </form>
+                <LogoUploadForm currentLogo={org.logo_url} />
                 {org.logo_url && (
-                  <div className="mt-3">
-                    <img src={org.logo_url} alt="Company Logo" className="h-10 object-contain" />
+                  <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 flex items-center justify-center w-32 h-32">
+                    <img src={org.logo_url} alt="Company Logo" className="max-h-full max-w-full object-contain drop-shadow-md" />
                   </div>
                 )}
               </dd>
