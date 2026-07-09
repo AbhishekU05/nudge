@@ -50,9 +50,6 @@ export function ClientPortalView({
 
         {/* Header */}
         <div className="flex flex-col gap-1">
-          <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium uppercase tracking-wider">
-            Client Portal &bull; {agencyName}
-          </p>
           <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
             {client.name}
           </h1>
