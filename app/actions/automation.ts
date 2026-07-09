@@ -5,6 +5,7 @@ import { enforceRateLimit } from "@/lib/abuse";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { computeFirstReminderSendAt, computeRecurringReminderSendAt } from "@/lib/reminder-schedule";
 import { revalidatePath } from "next/cache";
+import { inngest } from "@/lib/inngest/client";
 
 async function getOrganizationId(userId: string): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
@@ -31,8 +32,15 @@ export async function saveAutomationSettings(formData: FormData) {
   const entityType = formData.get("entity_type") as "client" | "invoice";
   const entityId = formData.get("entity_id") as string;
   const newEmail = formData.get("new_email") as string | null;
+
+  if (newEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+    throw new Error("Please provide a valid email address.");
+  }
+
   const reminderFrequencyDays = Number(formData.get("reminder_frequency_days") ?? 7);
   const reminderType = formData.get("reminder_type") as string || "recurring";
+  const autoApproveStr = formData.get("auto_approve");
+  const autoApprove = autoApproveStr === "true";
   
   let reminderTemplates = [];
   try {
@@ -48,12 +56,18 @@ export async function saveAutomationSettings(formData: FormData) {
     // INVOICE LEVEL AUTOMATION
     const { data: invoice, error: fetchError } = await supabase
       .from("invoices")
-      .select("next_send_at, reminders_enabled")
+      .select("next_send_at, reminders_enabled, recipient_email, clients(email)")
       .eq("id", entityId)
       .eq("organization_id", organizationId)
       .single();
 
     if (fetchError || !invoice) throw new Error("Invoice not found.");
+
+    const clientData = Array.isArray(invoice.clients) ? invoice.clients[0] : invoice.clients;
+    const existingEmail = invoice.recipient_email || clientData?.email;
+    if (!newEmail && !existingEmail) {
+      throw new Error("An email address is required to enable automation.");
+    }
 
     let nextSendAt = undefined;
     if (!invoice.reminders_enabled) {
@@ -69,12 +83,19 @@ export async function saveAutomationSettings(formData: FormData) {
         reminder_frequency_days: reminderFrequencyDays,
         reminder_type: reminderType,
         reminder_templates: reminderTemplates,
+        auto_approve: autoApprove,
         ...(nextSendAt !== undefined && { next_send_at: nextSendAt }),
       })
       .eq("id", entityId)
       .eq("organization_id", organizationId);
 
     if (error) throw new Error("An unexpected error occurred while saving.");
+
+    // Fire Inngest event to start or restart the sleeping workflow
+    await inngest.send({
+      name: "automation.enabled",
+      data: { entityId, entityType: "invoice", organizationId },
+    });
 
     if (newEmail) {
       const { data: inv } = await supabase.from("invoices").select("client_id").eq("id", entityId).single();
@@ -90,12 +111,16 @@ export async function saveAutomationSettings(formData: FormData) {
     // CLIENT LEVEL AUTOMATION
     const { data: client, error: fetchError } = await supabase
       .from("clients")
-      .select("next_send_at, active")
+      .select("next_send_at, active, email")
       .eq("id", entityId)
       .eq("organization_id", organizationId)
       .single();
 
     if (fetchError || !client) throw new Error("Client not found.");
+
+    if (!newEmail && !client.email) {
+      throw new Error("An email address is required to enable automation.");
+    }
 
     let nextSendAt = undefined;
     if (!client.active) {
@@ -111,6 +136,7 @@ export async function saveAutomationSettings(formData: FormData) {
         reminder_frequency_days: reminderFrequencyDays,
         reminder_type: reminderType,
         reminder_templates: reminderTemplates,
+        auto_approve: autoApprove,
         ...(newEmail && { email: newEmail }),
         ...(nextSendAt !== undefined && { next_send_at: nextSendAt }),
       })
@@ -118,6 +144,12 @@ export async function saveAutomationSettings(formData: FormData) {
       .eq("organization_id", organizationId);
 
     if (error) throw new Error("An unexpected error occurred while saving.");
+
+    // Fire Inngest event to start or restart the sleeping workflow
+    await inngest.send({
+      name: "automation.enabled",
+      data: { entityId, entityType: "client", organizationId },
+    });
 
     revalidatePath(`/customers/${entityId}`);
     revalidatePath("/customers");
@@ -144,6 +176,12 @@ export async function pauseAutomation(entityType: "client" | "invoice", entityId
       .eq("organization_id", organizationId);
 
     if (error) throw new Error("Failed to pause automation");
+
+    await inngest.send({
+      name: "automation.disabled",
+      data: { entityId },
+    });
+
     revalidatePath(`/invoices/${entityId}`);
   } else if (entityType === "client") {
     const { error } = await supabase
@@ -156,6 +194,14 @@ export async function pauseAutomation(entityType: "client" | "invoice", entityId
       .eq("organization_id", organizationId);
 
     if (error) throw new Error("Failed to pause automation");
+
+    await inngest.send({
+      name: "automation.disabled",
+      data: { entityId, entityType: "client", organizationId },
+    });
+
     revalidatePath(`/customers/${entityId}`);
   }
+
+  return { success: true };
 }

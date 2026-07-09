@@ -194,9 +194,17 @@ async function upsertInvoice(
     }
 
     await supabase.from("invoices").update(payload).eq("id", existing.id);
+    if (status === "paid") {
+       const { inngest } = await import("@/lib/inngest/client");
+       await inngest.send({ name: "invoice.paid", data: { entityId: existing.id } });
+    }
   } else {
     if (amountOwed > 0) { // Don't insert if amount <= 0
-      await supabase.from("invoices").insert(payload);
+      const { data: newInvoice } = await supabase.from("invoices").insert(payload).select("id").single();
+      if (newInvoice && status === "paid") {
+         const { inngest } = await import("@/lib/inngest/client");
+         await inngest.send({ name: "invoice.paid", data: { entityId: newInvoice.id } });
+      }
     }
   }
 }

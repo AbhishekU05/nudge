@@ -1017,33 +1017,6 @@ export function CustomerDetails({
             {tab === "notes" && <NotesTab customer={customer} />}
             {tab === "automation" && <AutomationTab customer={customer} />}
           </div>
-
-          {/* Danger zone — Sidebar / Bottom */}
-          <div className="lg:w-64 shrink-0 space-y-4">
-            <div className="rounded-xl border border-red-500/10 bg-red-500/5 p-4">
-              <h3 className="text-sm font-semibold text-red-400 mb-2">Danger Zone</h3>
-              <p className="text-xs text-zinc-500 mb-4">
-                Permanently remove this customer and all their associated data.
-              </p>
-              <form action={deleteCustomer}>
-                <input type="hidden" name="customer_id" value={customer.id} />
-                <Button
-                  type="submit"
-                  variant="danger"
-                  size="sm"
-                  className="w-full gap-2"
-                  onClick={(e) => {
-                    if (!window.confirm(`Delete ${customer.recipient_name}? This cannot be undone.`)) {
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete customer
-                </Button>
-              </form>
-            </div>
-          </div>
         </div>
     </div>
   );

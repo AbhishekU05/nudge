@@ -13,10 +13,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { saveAutomationSettings, pauseAutomation } from "@/app/actions/automation";
 import { fetchCustomerEmailJit } from "@/app/actions/customers";
 
-function SubmitButton({ children, pendingText }: { children: React.ReactNode; pendingText?: string }) {
+function SubmitButton({ children, pendingText, isDisabled }: { children: React.ReactNode; pendingText?: string; isDisabled?: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button type="submit" disabled={pending || isDisabled}>
       {pending ? pendingText || "Saving..." : children}
     </Button>
   );
@@ -51,10 +51,35 @@ export function AutomationSettings({
   const [type, setType] = useState<"recurring" | "sequence">(reminderType || "recurring");
   const [isAutoApprove, setIsAutoApprove] = useState<boolean>(autoApprove);
   const [isFetchingEmail, setIsFetchingEmail] = useState(false);
-  const cleanTemplates = (reminderTemplates?.length > 0 
+  const defaultRecurring = [{
+    subject: "Following up on your balance",
+    body_html: "Hi {{first_name}},\n\nI hope you're doing well.\n\nJust a quick and friendly reminder that you have a pending balance of {{currency}} {{amount_owed}}.\n\nHere are the details:\n{{invoice_details}}\n\nYou can view and pay your balance securely via your client portal here: {{portal_link}}\n\nPlease let me know if you have any questions.\n\nBest,\n{{sender_name}}",
+    days_offset: 7
+  }];
+
+  const defaultSequence = [
+    {
+      subject: "Friendly Reminder: Payment Due",
+      body_html: "Hi {{first_name}},\n\nI hope you're doing well.\n\nThis is just a friendly reminder that you have a pending balance of {{currency}} {{amount_owed}}.\n\nHere are the details:\n{{invoice_details}}\n\nYou can easily settle this via your client portal here: {{portal_link}}\n\nThank you!\n\nBest,\n{{sender_name}}",
+      days_offset: 7
+    },
+    {
+      subject: "Following up: Overdue Balance",
+      body_html: "Hi {{first_name}},\n\nI hope you're having a good week.\n\nI'm following up regarding your outstanding balance of {{currency}} {{amount_owed}}. \n\n{{invoice_details}}\n\nPlease submit your payment via the portal at your earliest convenience: {{portal_link}}\n\nLet me know if you need any assistance.\n\nBest,\n{{sender_name}}",
+      days_offset: 7
+    },
+    {
+      subject: "Action Required: Overdue Account",
+      body_html: "Hi {{first_name}},\n\nI am writing to formally request payment for your past due balance of {{currency}} {{amount_owed}}.\n\n{{invoice_details}}\n\nPlease address this immediately by paying through your portal: {{portal_link}}\n\nIf we do not receive payment, we may need to temporarily suspend services. Please let us know when we can expect this.\n\nRegards,\n{{sender_name}}",
+      days_offset: 7
+    }
+  ];
+
+  const initialTemplates = reminderTemplates?.length > 0 
     ? reminderTemplates 
-    : [{ subject: "Reminder", body_html: "Your balance is due.", days_offset: 7 }]
-  ).map(tpl => ({
+    : (reminderType === "sequence" ? defaultSequence : defaultRecurring);
+
+  const cleanTemplates = initialTemplates.map((tpl: any) => ({
     ...tpl,
     body_html: tpl.body_html
       .replace(/<\/?p>/g, '\n')
@@ -257,7 +282,7 @@ export function AutomationSettings({
                         checked={type === "recurring"} 
                         onChange={() => {
                           setType("recurring");
-                          setTemplates([templates[0] || { subject: "Reminder", body_html: "", days_offset: 7 }]);
+                          setTemplates([templates[0] || defaultRecurring[0]]);
                         }} 
                       />
                       Recurring (Same email)
@@ -266,7 +291,12 @@ export function AutomationSettings({
                       <input 
                         type="radio" 
                         checked={type === "sequence"} 
-                        onChange={() => setType("sequence")} 
+                        onChange={() => {
+                          setType("sequence");
+                          if (templates.length <= 1) {
+                            setTemplates(defaultSequence);
+                          }
+                        }} 
                       />
                       Sequence (Multiple emails)
                     </label>
@@ -294,53 +324,71 @@ export function AutomationSettings({
                       </div>
                     )}
                     
-                    <div className="grid grid-cols-1 gap-4">
-                      {type === "recurring" ? (
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        {type === "recurring" ? (
+                          <div className="space-y-1.5">
+                            <Label>Send every (days)</Label>
+                            <Input 
+                              type="number" 
+                              min="1" 
+                              value={tpl.days_offset || 7} 
+                              onChange={(e) => handleUpdateTemplate(idx, "days_offset", parseInt(e.target.value))}
+                              className="bg-black/40"
+                            />
+                          </div>
+                        ) : (
+                          <div className="space-y-1.5">
+                            <Label>Send after (days)</Label>
+                            <Input 
+                              type="number" 
+                              min="1" 
+                              value={tpl.days_offset || 7} 
+                              onChange={(e) => handleUpdateTemplate(idx, "days_offset", parseInt(e.target.value))}
+                              className="bg-black/40"
+                            />
+                          </div>
+                        )}
+                        
                         <div className="space-y-1.5">
-                          <Label>Send every (days)</Label>
+                          <Label>Subject Line</Label>
                           <Input 
-                            type="number" 
-                            min="1" 
-                            value={tpl.days_offset || 7} 
-                            onChange={(e) => handleUpdateTemplate(idx, "days_offset", parseInt(e.target.value))}
+                            value={tpl.subject} 
+                            onChange={(e) => handleUpdateTemplate(idx, "subject", e.target.value)}
                             className="bg-black/40"
                           />
                         </div>
-                      ) : (
+
                         <div className="space-y-1.5">
-                          <Label>Send after (days)</Label>
-                          <Input 
-                            type="number" 
-                            min="1" 
-                            value={tpl.days_offset || 7} 
-                            onChange={(e) => handleUpdateTemplate(idx, "days_offset", parseInt(e.target.value))}
-                            className="bg-black/40"
+                          <Label>Email Message</Label>
+                          <Textarea 
+                            value={tpl.body_html} 
+                            onChange={(e) => handleUpdateTemplate(idx, "body_html", e.target.value)}
+                            rows={8}
+                            className="text-xs bg-black/40 resize-none"
+                            placeholder="Type your plain text message here..."
                           />
+                          <p className="text-[10px] text-zinc-500">
+                            Available variables: {"{{first_name}}"}, {"{{company_name}}"}, {"{{currency}}"}, {"{{amount_owed}}"}, {"{{portal_link}}"}, {"{{invoice_details}}"}
+                            {entityType === "invoice" ? ", {{invoice_number}}" : ", {{invoice_count}}"}
+                          </p>
                         </div>
-                      )}
-                      
-                      <div className="space-y-1.5">
-                        <Label>Subject Line</Label>
-                        <Input 
-                          value={tpl.subject} 
-                          onChange={(e) => handleUpdateTemplate(idx, "subject", e.target.value)}
-                          className="bg-black/40"
-                        />
                       </div>
 
-                      <div className="space-y-1.5">
-                        <Label>Email Message</Label>
-                        <Textarea 
-                          value={tpl.body_html} 
-                          onChange={(e) => handleUpdateTemplate(idx, "body_html", e.target.value)}
-                          rows={6}
-                          className="text-xs bg-black/40 resize-none"
-                          placeholder="Type your plain text message here..."
-                        />
-                        <p className="text-[10px] text-zinc-500">
-                          Available variables: {"{{first_name}}"}, {"{{company_name}}"}, {"{{amount_owed}}"}
-                          {entityType === "invoice" ? ", {{invoice_number}}" : ", {{invoice_count}}"}
-                        </p>
+                      {/* Live Preview */}
+                      <div className="bg-white rounded-lg p-5 border border-zinc-200 shadow-sm flex flex-col h-full overflow-hidden text-zinc-900 font-sans">
+                        <div className="border-b border-zinc-100 pb-3 mb-3">
+                          <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">Preview</p>
+                          <p className="text-sm font-medium line-clamp-1">{tpl.subject || "Subject"}</p>
+                        </div>
+                        <div className="text-sm whitespace-pre-wrap leading-relaxed overflow-y-auto max-h-[300px] flex-1">
+                          {tpl.body_html.split(/(\{\{[^}]+\}\})/).map((part, i) => {
+                            if (part.startsWith("{{") && part.endsWith("}}")) {
+                              return <span key={i} className="bg-indigo-100 text-indigo-700 px-1 py-0.5 rounded font-medium text-xs">{part}</span>;
+                            }
+                            return part;
+                          })}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -372,7 +420,9 @@ export function AutomationSettings({
                 >
                   Cancel
                 </Button>
-                <SubmitButton>Save Automation</SubmitButton>
+                <SubmitButton isDisabled={(!targetEmail || showEmailPrompt) && !emailInput.trim()}>
+                  Save Automation
+                </SubmitButton>
               </div>
             </form>
           ) : (

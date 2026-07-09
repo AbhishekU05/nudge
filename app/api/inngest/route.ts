@@ -2,7 +2,7 @@ import { serve } from "inngest/next";
 import { inngest } from "@/lib/inngest/client";
 import { applyLateFees } from "@/lib/inngest/functions/apply-late-fees";
 import { sendDigest } from "@/lib/inngest/functions/send-digest";
-import { sendReminders } from "@/lib/inngest/functions/send-reminders";
+import { automationWorkflow } from "@/lib/inngest/functions/automation-workflow";
 import { quickbooksInitialSync } from "@/lib/inngest/functions/quickbooks-initial-sync";
 import { processLateFee } from "@/lib/inngest/functions/process-late-fee";
 import { xeroInitialSync } from "@/lib/inngest/functions/xero-initial-sync";
@@ -17,7 +17,7 @@ export const { GET, POST, PUT } = serve({
     applyLateFees,
     processLateFee,
     sendDigest,
-    sendReminders,
+    automationWorkflow,
     quickbooksInitialSync,
     xeroInitialSync,
     xeroBatchSync,
