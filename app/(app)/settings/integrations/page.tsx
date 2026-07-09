@@ -100,7 +100,7 @@ export default async function IntegrationsPage({
 
   const { data: quickbooks } = await supabase
     .from("integrations")
-    .select("tenant_id,last_synced_at,expires_at,quickbooks_default_account_name,quickbooks_default_account_id")
+    .select("tenant_id,last_synced_at,expires_at,quickbooks_default_account_name,quickbooks_default_account_id,sync_state")
     .eq("organization_id", orgId)
     .eq("provider", "quickbooks")
     .maybeSingle<IntegrationRow>();
@@ -384,6 +384,20 @@ export default async function IntegrationsPage({
                         </p>
                       </div>
                     </div>
+
+                    {quickbooks?.sync_state && quickbooks.sync_state !== 'idle' && (
+                      <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                          <p className="text-sm font-semibold text-blue-200">
+                            Syncing data...
+                          </p>
+                        </div>
+                        <p className="mt-2 text-xs text-blue-300/70">
+                          Sync in progress, this may take a few minutes for large accounts.
+                        </p>
+                      </div>
+                    )}
 
                     <div className="flex flex-col gap-3 sm:flex-row">
                       <Link href="/settings/integrations/quickbooks/bank">

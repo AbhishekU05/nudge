@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { completeQuickBooksOAuthCallback } from "@/lib/quickbooks";
 import { getAppUrl } from "@/lib/email/reminder";
 import { logger } from "@/lib/logger";
+import { inngest } from "@/lib/inngest/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,10 +37,16 @@ export async function GET(request: NextRequest) {
 
   try {
     const result = await completeQuickBooksOAuthCallback(code, realmId, state);
+    
+    await inngest.send({
+      name: "quickbooks/integration.connected",
+      data: { organization_id: result.organizationId },
+    });
+
     revalidatePath("/settings/integrations");
     revalidatePath("/dashboard");
     const url = new URL("/settings/integrations/quickbooks/bank", getAppUrl());
-    url.searchParams.set("success", `QuickBooks connected successfully. ${result.imported} invoices imported, ${result.updated} updated.`);
+    url.searchParams.set("success", `QuickBooks connected successfully. Data is syncing in the background.`);
     return NextResponse.redirect(url);
   } catch (error) {
     logger.external({

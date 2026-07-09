@@ -9,7 +9,7 @@ The QuickBooks integration provides real-time, bidirectional sync between QuickB
 ## Target Architecture: Webhook-Driven Sync
 
 ### Flow 1: Initial Sync (One Time on QuickBooks Connect)
-When the user connects their QuickBooks account, a background Inngest job fetches the full initial batch of ACCREC invoices and payments. Once finished, it establishes a `last_synced_at` baseline.
+When the user connects their QuickBooks account, a background Inngest job (`quickbooks-initial-sync.ts`) is dispatched via the `quickbooks/integration.connected` event. It fetches the full initial batch of ACCREC invoices and payments in pages of 1,000 items. Once finished, it establishes a `last_synced_at` baseline. *Note: There are no hourly polling cron jobs used for QuickBooks; all updates post-initial-sync are strictly webhook-driven.*
 
 ### Flow 2: QuickBooks → Duely (Inbound Webhook)
 QuickBooks fires a POST to `/api/webhooks/quickbooks` whenever an invoice, payment, or customer changes.

@@ -239,7 +239,7 @@ export async function completeQuickBooksOAuthCallback(code: string, realmId: str
     throw new Error(error.message);
   }
 
-  return syncQuickBooksInvoicesForOrg(member.organization_id);
+  return { organizationId: member.organization_id };
 }
 
 export function normalizeEmail(email: string | null | undefined) {
