@@ -40,7 +40,6 @@ import {
   deleteCustomer,
   updateDueDate,
   logFollowUp,
-  updateCustomerEmail,
   deletePaymentLog,
 } from "@/app/actions/customers";
 import { FOLLOWUP_TEMPLATES } from "@/lib/followup-templates";
@@ -904,20 +903,7 @@ export function CustomerDetails({
                 </Badge>
               )}
             </div>
-            <form action={updateCustomerEmail} className="mt-1.5 flex items-center gap-2 max-w-[280px]">
-              <input type="hidden" name="customer_id" value={customer.id} />
-              <Input
-                name="recipient_email"
-                type="email"
-                defaultValue={customer.recipient_email || ""}
-                placeholder="Add email address..."
-                required
-                className="h-7 text-xs bg-transparent border-white/10 hover:border-white/20 px-2 flex-1 min-w-0"
-              />
-              <Button type="submit" variant="secondary" size="sm" className="h-7 px-2.5 text-xs shrink-0">
-                Save
-              </Button>
-            </form>
+
             <div className="mt-3 flex flex-wrap gap-4 text-sm">
               <div>
                 <span className="text-zinc-600">Total due </span>
