@@ -3,8 +3,14 @@ import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ActivityFeed } from "./activity-feed";
 
-export default async function ActivityPage() {
+export default async function ActivityPage(props: { searchParams?: Promise<{ page?: string }> }) {
   await requireUser();
+  const searchParams = await props.searchParams;
+  const page = parseInt(searchParams?.page || "1", 10);
+  const pageSize = 100;
+  
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
   const supabase = await createSupabaseServerClient();
 
   const [eventsRes, paymentsRes] = await Promise.all([
@@ -12,12 +18,12 @@ export default async function ActivityPage() {
       .from("events")
       .select("*, invoices(invoice_number, clients(name)), clients(name)")
       .order("created_at", { ascending: false })
-      .limit(100),
+      .range(from, to),
     supabase
       .from("payments")
       .select("*, invoices(invoice_number, clients(name))")
       .order("created_at", { ascending: false })
-      .limit(100)
+      .range(from, to)
   ]);
 
   if (eventsRes.error) console.error("Error fetching activity events:", eventsRes.error);
@@ -64,7 +70,9 @@ export default async function ActivityPage() {
       clients: inv?.clients,
       invoices: p.invoices
     }}),
-  ].sort((a, b) => new Date(b.event_date || b.created_at).getTime() - new Date(a.event_date || a.created_at).getTime()).slice(0, 100);
+  ].sort((a, b) => new Date(b.event_date || b.created_at).getTime() - new Date(a.event_date || a.created_at).getTime()).slice(0, pageSize);
+
+  const hasMore = (eventsRes.data?.length === pageSize) || (paymentsRes.data?.length === pageSize);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -79,7 +87,7 @@ export default async function ActivityPage() {
             </p>
           </div>
           
-          <ActivityFeed events={mappedEvents || []} />
+          <ActivityFeed events={mappedEvents || []} page={page} hasMore={hasMore} />
         </Container>
       </main>
     </div>

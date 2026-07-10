@@ -27,6 +27,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CustomerEvent, CustomerRecord, FollowUpLog, PaymentLog } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CurrencySelector } from "@/components/site/currency-selector";
+import { getDaysOverdue, isEffectivelyPaid, getRemainingBalance } from "@/lib/types";
 
 type CustomerRow = Omit<CustomerRecord, "payment_history" | "followup_history">;
 
@@ -88,184 +89,59 @@ export default async function CustomersPage({
   const monthlyPrice = await getLocalizedMonthlyPrice();
 
   const supabase = await createSupabaseServerClient();
-  let customers = null;
-  let customerEvents = null;
-  let profile = null;
-  let xeroIntegration = null;
-  let quickbooksIntegration = null;
-  let activeGroup = null;
 
-  try {
-    const [invoicesRes, eventsRes, paymentsRes, orgMembersRes, xeroRes, qbRes, customerGroupsRes, groupsRes, lateFeesRes] = await Promise.all([
-      supabase
-        .from("invoices")
-        .select("*, clients(name, email)")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("events")
-        .select("*, clients(name, email), invoices(clients(name, email))")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("payments")
-        .select("*, invoices(clients(name, email))")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("organization_members")
-        .select("organizations(dodo_subscription_status, dodo_next_billing_date, created_at)")
-        .eq("user_id", user.id)
-        .maybeSingle(),
-      supabase
-        .from("integrations")
-        .select("provider")
-        .eq("provider", "xero")
-        .maybeSingle<{ provider: string }>(),
-      supabase
-        .from("integrations")
-        .select("provider")
-        .eq("provider", "quickbooks")
-        .maybeSingle<{ provider: string }>(),
-      supabase
-        .from("customer_groups")
-        .select("*"),
-      supabase
-        .from("groups")
-        .select("*"),
-      supabase
-        .from("applied_late_fees")
-        .select("*"),
-    ]);
+  const [pipelineRes, orgMembersRes, xeroRes, qbRes, groupsRes] = await Promise.all([
+    supabase.rpc("get_invoices_pipeline", {
+      p_currency: (await searchParams as any).currency || "USD",
+      p_group_id: groupId || null,
+      p_bucket_limit: 30,
+    }),
+    supabase
+      .from("organization_members")
+      .select("role, organizations(dodo_subscription_status, dodo_next_billing_date, created_at)")
+      .eq("user_id", user.id)
+      .single(),
+    supabase.from("integration_xero").select("*").maybeSingle(),
+    supabase.from("integration_quickbooks").select("*").maybeSingle(),
+    supabase.from("groups").select("*").order("name", { ascending: true }),
+  ]);
 
-    const mappedEvents = [
-      ...(eventsRes.data || []).map((e: any) => ({
-        id: e.id,
-        invoice_id: e.invoice_id,
-        customer_id: e.invoice_id || e.client_id,
-        user_id: e.user_id || "",
-        event_type: e.event_type,
-        event_date: e.created_at,
-        created_at: e.created_at,
-        amount: null,
-        currency: null,
-        payment_source: null,
-        followup_method: null,
-        followup_outcome: null,
-        note: e.description || null,
-        clients: e.clients,
-        invoices: e.invoices
-      })),
-      ...(paymentsRes.data || []).map((p: any) => ({
-        id: p.id,
-        invoice_id: p.invoice_id,
-        customer_id: p.invoice_id,
-        user_id: p.user_id || "",
-        event_type: "payment",
-        event_date: p.payment_date || p.created_at,
-        created_at: p.created_at,
-        amount: p.amount,
-        currency: p.currency,
-        payment_source: p.payment_source || null,
-        followup_method: null,
-        followup_outcome: null,
-        note: null,
-        clients: p.invoices?.clients,
-        invoices: p.invoices
-      }))
-    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    
-    const lateFeesMap: Record<string, number> = {};
-    (lateFeesRes?.data || []).forEach((fee: any) => {
-      lateFeesMap[fee.invoice_id] = (lateFeesMap[fee.invoice_id] || 0) + Number(fee.amount);
-    });
+  if (pipelineRes.error) console.error("Pipeline RPC error:", pipelineRes.error);
 
-    customers = (invoicesRes.data || []).map((inv: any) => {
-      const invPayments = (paymentsRes.data || []).filter((p: any) => p.invoice_id === inv.id);
-      const amount_paid = invPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
-      const late_fees_amount = lateFeesMap[inv.id] || 0;
-      return {
-        ...inv,
-        amount_owed: inv.amount,
-        amount_paid,
-        late_fees_amount,
-        workflow_status: inv.status,
-        customer_id: inv.client_id,
-        recipient_name: inv.clients?.name || "Unknown",
-        recipient_email: inv.clients?.email || "No email"
-      };
-    }) as CustomerRow[];
+  const rpcData = pipelineRes.data as any;
+  const pipelines = {
+    overdue: (rpcData?.overdue?.rows || []) as CustomerRecord[],
+    outstanding: (rpcData?.outstanding?.rows || []) as CustomerRecord[],
+    paid: (rpcData?.paid?.rows || []) as CustomerRecord[],
+  };
+  const totals = rpcData?.totals || {
+    outstandingAmount: 0, overdueCount: 0, outstandingCount: 0, paidCount: 0, optedOutCount: 0,
+  };
 
-    customerEvents = mappedEvents;
-    profile = orgMembersRes.data?.organizations ? {
-      razorpay_subscription_status: (orgMembersRes.data.organizations as any).dodo_subscription_status,
-      razorpay_renews_at: (orgMembersRes.data.organizations as any).dodo_next_billing_date,
-      created_at: (orgMembersRes.data.organizations as any).created_at
-    } : null;
-    xeroIntegration = xeroRes.data;
-    quickbooksIntegration = qbRes.data;
-
-    if (groupId && customers) {
-      const customerGroupsList = customerGroupsRes.data || [];
-      const groupsList = groupsRes.data || [];
-      activeGroup = groupsList.find((g) => g.id === groupId) || null;
-      
-      const groupCustomerIds = customerGroupsList
-        .filter((cg) => cg.group_id === groupId)
-        .map((cg) => cg.customer_id);
-      customers = customers.filter((c) => groupCustomerIds.includes(c.customer_id || ""));
-    }
-  } catch (err) {
-    // Graceful fallback
-  }
-
-  const logsByCustomer = new Map<string, PaymentLog[]>();
-  const followupsByCustomer = new Map<string, FollowUpLog[]>();
-
-  for (const event of customerEvents ?? []) {
-    if (event.event_type === "payment") {
-      const payment: PaymentLog = {
-        id: event.id,
-        invoice_id: event.invoice_id,
-        customer_id: event.customer_id,
-        user_id: event.user_id,
-        amount: Number(event.amount),
-        currency: event.currency ?? "USD",
-        source: event.payment_source ?? "user",
-        created_at: event.event_date || event.created_at,
-      };
-      const existing = logsByCustomer.get(event.customer_id) ?? [];
-      existing.push(payment);
-      logsByCustomer.set(event.customer_id, existing);
-      continue;
-    }
-
-    if (event.event_type === "followup") {
-      const followup: FollowUpLog = {
-        id: event.id,
-        invoice_id: event.invoice_id,
-        customer_id: event.customer_id,
-        user_id: event.user_id,
-        followup_date: event.event_date,
-        method: event.followup_method ?? "other",
-        note: event.note,
-        outcome: event.followup_outcome ?? "no_response",
-        created_at: event.created_at,
-      };
-      const existing = followupsByCustomer.get(event.customer_id) ?? [];
-      existing.push(followup);
-      followupsByCustomer.set(event.customer_id, existing);
-    }
-  }
-
-  const _allCustomers = (customers ?? []).map((customer) => ({
-    ...customer,
-    payment_history: logsByCustomer.get(customer.id) ?? [],
-    followup_history: followupsByCustomer.get(customer.id) ?? [],
-  }));
-
-  const uniqueCurrencies = Array.from(new Set(_allCustomers.map(c => c.currency || 'USD'))).sort();
+  // Currency selector — derive from a quick distinct query or fall back to USD
+  const allCurrencies = [...new Set([
+    ...(rpcData?.overdue?.rows || []).map((r: any) => r.currency || "USD"),
+    ...(rpcData?.outstanding?.rows || []).map((r: any) => r.currency || "USD"),
+    ...(rpcData?.paid?.rows || []).map((r: any) => r.currency || "USD"),
+    "USD",
+  ])].sort() as string[];
   const searchParamsAwaited = await searchParams;
   const urlCurrency = (searchParamsAwaited as any).currency as string | undefined;
-  const selectedCurrency = urlCurrency || (uniqueCurrencies.includes('USD') ? 'USD' : uniqueCurrencies[0] || 'USD');
-  const allCustomers = _allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
+  const selectedCurrency = urlCurrency || "USD";
+  const uniqueCurrencies = allCurrencies;
+
+  // Active group label
+  let activeGroup: any = null;
+  if (groupId) {
+    activeGroup = (groupsRes.data || []).find((g: any) => g.id === groupId) || null;
+  }
+
+  const profile = orgMembersRes.data?.organizations ? {
+    razorpay_subscription_status: (orgMembersRes.data.organizations as any).dodo_subscription_status,
+    razorpay_renews_at: (orgMembersRes.data.organizations as any).dodo_next_billing_date,
+    created_at: (orgMembersRes.data.organizations as any).created_at,
+  } : null;
+
 
   const subscriptionStatus = profile?.razorpay_subscription_status ?? "none";
   const hasSubscription = hasActiveSubscription(subscriptionStatus, profile?.created_at, profile?.razorpay_renews_at);
@@ -335,9 +211,9 @@ export default async function CustomersPage({
 
           {/* Client-side pipeline + drawer */}
           <DashboardClient
-            customers={allCustomers}
+            pipelines={pipelines}
+            totals={totals}
             hasSubscription={hasSubscription}
-            // isDevelopment removed
             currency={selectedCurrency}
           />
         </Container>

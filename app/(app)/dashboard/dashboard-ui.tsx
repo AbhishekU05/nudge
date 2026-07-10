@@ -81,6 +81,22 @@ export function DashboardUI({
     .sort((a, b) => b.daysOverdue - a.daysOverdue)
     .slice(0, 5);
 
+  const overdueAll = customers.filter(c => getDaysOverdue(c) !== null && !isEffectivelyPaid(c));
+  const outstandingAll = customers.filter(c => getDaysOverdue(c) === null && !isEffectivelyPaid(c));
+  const paidAll = customers.filter(c => isEffectivelyPaid(c));
+
+  const pipelines = {
+    overdue: { invoices: overdueAll.slice(0, 10), count: overdueAll.length },
+    outstanding: { invoices: outstandingAll.slice(0, 10), count: outstandingAll.length },
+    paid: { invoices: paidAll.slice(0, 10), count: paidAll.length }
+  };
+
+  const totals = {
+    overdue: overdueAll.length,
+    outstanding: outstandingAll.length,
+    paid: paidAll.length
+  };
+
   return (
     <div>
       <div className="mb-8 flex items-center justify-between">
@@ -138,7 +154,7 @@ export function DashboardUI({
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_1fr] mb-8">
-        <DashboardPipelineWidget customers={customers} currency={selectedCurrency} />
+        <DashboardPipelineWidget pipelines={pipelines as any} totals={totals as any} currency={selectedCurrency} />
         <CollectionTrendWidget events={events} currency={selectedCurrency} />
       </div>
 

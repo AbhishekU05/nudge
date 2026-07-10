@@ -1,10 +1,12 @@
 /* eslint-disable */
 "use client";
 
-import { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CustomerEvent } from "@/lib/types";
+import { CustomerEvent, CustomerRecord, getDaysOverdue } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { AlertCircle, Calendar, ArrowRight } from "lucide-react";
 
 function CustomTooltip({ active, payload, label, currency = "USD" }: any) {
   if (active && payload && payload.length) {
@@ -25,32 +27,30 @@ function CustomTooltip({ active, payload, label, currency = "USD" }: any) {
 }
 
 export function CollectionTrendWidget({ events, currency = "USD" }: { events: CustomerEvent[], currency?: string }) {
-  const data = useMemo(() => {
-    const monthlyTotals: Record<string, number> = {};
-    const now = new Date();
+  const now = new Date();
+  const monthlyTotals: Record<string, number> = {};
 
-    // Initialize last 6 months
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+  // Initialize last 6 months
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthLabel = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    monthlyTotals[monthLabel] = 0;
+  }
+
+  (events || []).forEach((event) => {
+    if (event.event_type === "payment" && event.amount) {
+      const d = new Date(event.event_date || event.created_at);
       const monthLabel = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-      monthlyTotals[monthLabel] = 0;
-    }
-
-    events.forEach((event) => {
-      if (event.event_type === "payment" && event.amount) {
-        const d = new Date(event.event_date || event.created_at);
-        const monthLabel = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-        if (monthlyTotals[monthLabel] !== undefined) {
-          monthlyTotals[monthLabel] += Number(event.amount);
-        }
+      if (monthlyTotals[monthLabel] !== undefined) {
+        monthlyTotals[monthLabel] += Number(event.amount);
       }
-    });
+    }
+  });
 
-    return Object.entries(monthlyTotals).map(([month, amount]) => ({
-      month: month.split(" ")[0], // Only show "Jun" on the x-axis for cleanliness
-      amount,
-    }));
-  }, [events]);
+  const data = Object.entries(monthlyTotals).map(([month, amount]) => ({
+    month: month.split(" ")[0],
+    amount,
+  }));
 
   return (
     <Card className="bg-white/[0.025] border-white/10 h-full flex flex-col">
@@ -87,9 +87,7 @@ export function CollectionTrendWidget({ events, currency = "USD" }: { events: Cu
   );
 }
 
-import { WorkflowStatus, CustomerRecord, getDaysOverdue } from "@/lib/types";
-import { Calendar, AlertCircle, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { WorkflowStatus } from "@/lib/types";
 
 const COLUMNS: { id: WorkflowStatus; title: string; color: string }[] = [
   { id: "outstanding", title: "Outstanding", color: "border-blue-500/20 bg-blue-500/10 text-blue-400" },
@@ -105,12 +103,24 @@ function formatCurrency(value: number, currency: string = "USD") {
   }).format(Number(value));
 }
 
-export function DashboardPipelineWidget({ customers, currency = "USD" }: { customers: CustomerRecord[], currency?: string }) {
-  const getCustomersByStatus = (status: WorkflowStatus) => {
-    return customers
-      .filter((c) => c.workflow_status === status)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  };
+export function DashboardPipelineWidget({ 
+  pipelines, 
+  totals,
+  currency = "USD" 
+}: { 
+  pipelines: {
+    overdue: { invoices: CustomerRecord[], count: number },
+    outstanding: { invoices: CustomerRecord[], count: number },
+    paid: { invoices: CustomerRecord[], count: number }
+  },
+  totals: { overdue: number, outstanding: number, paid: number },
+  currency?: string 
+}) {
+  const columns = [
+    { id: 'outstanding', title: 'Outstanding', color: 'border-blue-500/20 bg-blue-500/10 text-blue-400' },
+    { id: 'overdue', title: 'Overdue', color: 'border-red-500/20 bg-red-500/10 text-red-400' },
+    { id: 'paid', title: 'Paid In Full', color: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' },
+  ];
 
   return (
     <Card className="bg-white/[0.025] border-white/10 h-full flex flex-col">
@@ -125,32 +135,24 @@ export function DashboardPipelineWidget({ customers, currency = "USD" }: { custo
       </CardHeader>
       <CardContent className="flex-1 overflow-x-auto pb-6">
         <div className="flex gap-4 h-full min-w-[700px]">
-          {COLUMNS.map((column) => {
-            const colCustomers = getCustomersByStatus(column.id);
-            const colTotal = colCustomers.reduce((acc, c) => {
-              const remaining = Math.max(0, Number(c.amount_owed) - Number(c.amount_paid));
-              return acc + (column.id === 'paid' ? Number(c.amount_paid) || Number(c.amount_owed) : remaining);
-            }, 0);
-            
-            // Only show top 3 to keep it compact
-            const displayCustomers = colCustomers.slice(0, 3);
+          {columns.map(column => {
+            const colData = pipelines[column.id as keyof typeof pipelines];
+            const colTotal = totals[column.id as keyof typeof totals];
 
             return (
-              <div key={column.id} className="flex flex-1 flex-col rounded-xl bg-white/[0.015] border border-white/5">
-                <div className="p-3 border-b border-white/5 flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium text-zinc-100 flex items-center gap-2 text-sm">
+              <div key={column.id} className="flex-1 min-w-[250px] bg-white/[0.01] rounded-xl border border-white/5 overflow-hidden flex flex-col">
+                <div className="p-3 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className={cn("px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md border", column.color)}>
                       {column.title}
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${column.color}`}>
-                        {colCustomers.length}
-                      </span>
-                    </h3>
-                    <p className="text-xs text-zinc-500 mt-1">{formatCurrency(colTotal, currency)}</p>
+                    </span>
+                    <span className="text-xs text-zinc-500 font-medium">{colData.count}</span>
                   </div>
+                  <p className="text-xs font-semibold text-zinc-300">{formatCurrency(colTotal, currency)}</p>
                 </div>
                 
                 <div className="p-2 space-y-2">
-                  {displayCustomers.map((customer) => {
+                  {colData.invoices.map((customer) => {
                     const remaining = Math.max(0, Number(customer.amount_owed) - Number(customer.amount_paid));
                     const displayAmount = column.id === 'paid' ? Number(customer.amount_paid) || Number(customer.amount_owed) : remaining;
                     const daysOverdue = getDaysOverdue(customer);
@@ -181,12 +183,12 @@ export function DashboardPipelineWidget({ customers, currency = "USD" }: { custo
                       </Card>
                     );
                   })}
-                  {colCustomers.length > 3 && (
+                  {colData.count > 3 && (
                     <div className="text-center pt-1">
-                      <span className="text-[10px] text-zinc-500">+{colCustomers.length - 3} more</span>
+                      <span className="text-[10px] text-zinc-500">+{colData.count - 3} more</span>
                     </div>
                   )}
-                  {colCustomers.length === 0 && (
+                  {colData.count === 0 && (
                     <div className="text-center py-4 text-xs text-zinc-600">
                       Empty
                     </div>

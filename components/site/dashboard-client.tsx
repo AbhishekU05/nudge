@@ -223,11 +223,13 @@ function CustomerCard({
 function PipelineSection({
   title,
   customers,
+  totalCount,
   onOpen,
   defaultOpen = true,
 }: {
   title: string;
   customers: CustomerRecord[];
+  totalCount: number;
   onOpen: (c: CustomerRecord, tab?: Tab) => void;
   defaultOpen?: boolean;
 }) {
@@ -251,7 +253,7 @@ function PipelineSection({
             {title}
           </span>
           <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-xs font-medium text-zinc-400">
-            {customers.length}
+            {totalCount}
           </span>
         </div>
         <ChevronRight
@@ -272,8 +274,13 @@ function PipelineSection({
               className="w-full text-zinc-400 mt-2 border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:text-zinc-200"
               onClick={() => setPage((p) => p + 1)}
             >
-              Load more ({customers.length - displayedCustomers.length} remaining)
+              Load more ({customers.length - displayedCustomers.length} remaining loaded)
             </Button>
+          )}
+          {customers.length < totalCount && displayedCustomers.length === customers.length && (
+             <div className="text-center pt-2 text-xs text-zinc-600">
+               Showing top {customers.length} of {totalCount} {title.toLowerCase()} invoices.
+             </div>
           )}
         </div>
       )}
@@ -287,11 +294,23 @@ function PipelineSection({
 // Main client component
 // ---------------------------------------------------------------------------
 export function DashboardClient({
-  customers,
+  pipelines,
+  totals,
   hasSubscription,
   currency = "USD",
 }: {
-  customers: CustomerRecord[];
+  pipelines: {
+    overdue: CustomerRecord[];
+    outstanding: CustomerRecord[];
+    paid: CustomerRecord[];
+  };
+  totals: {
+    outstandingAmount: number;
+    overdueCount: number;
+    outstandingCount: number;
+    paidCount: number;
+    optedOutCount: number;
+  };
   hasSubscription: boolean;
   currency?: string;
 }) {
@@ -301,20 +320,9 @@ export function DashboardClient({
     router.push(`/invoices/${customer.id}?tab=${tab}`);
   }
 
-  // Pipeline groupings — simplified: overdue / outstanding / paid / opted out
-  const overdue = customers.filter(
-    (c) => getDaysOverdue(c) !== null && !isEffectivelyPaid(c),
-  );
-  const outstanding = customers.filter(
-    (c) => !isEffectivelyPaid(c) && getDaysOverdue(c) === null,
-  );
-  const paid = customers.filter((c) => isEffectivelyPaid(c));
+  const { overdue, outstanding, paid } = pipelines;
   const optedOut: CustomerRecord[] = [];
-
-  // Stats
-  const totalOutstanding = customers
-    .filter((c) => !isEffectivelyPaid(c) && c.workflow_status !== "written_off")
-    .reduce((sum, c) => sum + getRemainingBalance(c), 0);
+  const totalCustomers = totals.overdueCount + totals.outstandingCount + totals.paidCount;
 
   return (
     <>
@@ -323,27 +331,27 @@ export function DashboardClient({
         <StatCard
           icon={DollarSign}
           label="Total outstanding"
-          value={customers.length > 0 ? formatCurrency(totalOutstanding, currency) : "—"}
+          value={totalCustomers > 0 ? formatCurrency(totals.outstandingAmount, currency) : "—"}
           accent="indigo"
         />
         <StatCard
           icon={AlertTriangle}
           label="Overdue"
-          value={String(overdue.length)}
-          sub={overdue.length > 0 ? "Need attention" : "All on track"}
+          value={String(totals.overdueCount)}
+          sub={totals.overdueCount > 0 ? "Need attention" : "All on track"}
           accent="red"
         />
         <StatCard
           icon={CheckCircle2}
           label="Paid"
-          value={String(paid.length)}
+          value={String(totals.paidCount)}
           accent="emerald"
         />
         <StatCard
           icon={Users}
           label="Opted out"
-          value={String(optedOut.length)}
-          sub={optedOut.length > 0 ? "Unsubscribed" : undefined}
+          value={String(totals.optedOutCount)}
+          sub={totals.optedOutCount > 0 ? "Unsubscribed" : undefined}
           accent="amber"
         />
       </div>
@@ -352,7 +360,7 @@ export function DashboardClient({
       <div className="grid gap-5">
         {/* Pipeline */}
         <section>
-          {customers.length === 0 ? (
+          {totalCustomers === 0 ? (
             <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-10 text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-500">
                 <Users className="h-5 w-5" />
@@ -373,23 +381,27 @@ export function DashboardClient({
               <PipelineSection
                 title="Overdue"
                 customers={overdue}
+                totalCount={totals.overdueCount}
                 onOpen={handleOpen}
               />
               <PipelineSection
                 title="Outstanding"
                 customers={outstanding}
+                totalCount={totals.outstandingCount}
                 onOpen={handleOpen}
               />
               <PipelineSection
                 title="Paid"
                 customers={paid}
+                totalCount={totals.paidCount}
                 onOpen={handleOpen}
                 defaultOpen={false}
               />
-              {optedOut.length > 0 && (
+              {totals.optedOutCount > 0 && (
                 <PipelineSection
                   title="Opted out"
                   customers={optedOut}
+                  totalCount={totals.optedOutCount}
                   onOpen={handleOpen}
                   defaultOpen={false}
                 />

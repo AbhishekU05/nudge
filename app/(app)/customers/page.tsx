@@ -19,90 +19,52 @@ export default async function CustomersPage({
   await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  // Fetch clients
-  const { data: clients } = await supabase
-    .from("clients")
-    .select("*")
-    .order("name", { ascending: true })
-    .returns<ClientRecord[]>();
+  const page = parseInt(params?.page as string || "1", 10);
+  const pageSize = 30;
 
-  // Fetch invoices to calculate aggregates
-  const { data: invoices } = await supabase
-    .from("invoices")
-    .select("*")
-    .returns<InvoiceRecord[]>();
-
-  // Fetch groups
+  // Fetch groups for the UI
   const { data: groupsData } = await supabase
     .from("groups")
     .select("*")
     .order("name", { ascending: true })
     .returns<GroupRecord[]>();
 
-  // Fetch customer groups
-  const { data: customerGroupsData } = await supabase
-    .from("customer_groups")
-    .select("*");
-
-  const { data: payments } = await supabase
-    .from("payments")
-    .select("*");
-    
-  const invoicesList = (invoices || []).map((invRaw) => {
-    const inv = invRaw;
-    const invPayments = (payments || []).filter((p: Record<string, unknown>) => p.invoice_id === inv.id);
-    const amount_paid = invPayments.reduce((sum: number, p: Record<string, unknown>) => sum + Number(p.amount || 0), 0);
-    return {
-      ...inv,
-      amount_owed: inv.amount,
-      amount_paid,
-      workflow_status: inv.status,
-      customer_id: inv.client_id
-    };
-  }) as Record<string, unknown>[];
-
   const groupsList = groupsData || [];
-  const customerGroupsList = customerGroupsData || [];
-
-  let clientsList = clients || [];
-  if (groupId) {
-    const groupCustomerIds = customerGroupsList
-      .filter((cg) => cg.group_id === groupId)
-      .map((cg) => cg.customer_id);
-    clientsList = clientsList.filter((c) => groupCustomerIds.includes(c.id));
-  }
-
-  const clientsWithData = clientsList.map((client) => {
-    const clientInvoices = invoicesList.filter(i => i.client_id === client.id || i.customer_id === client.id);
-    
-    const totalOwed = clientInvoices.reduce((sum, inv) => {
-      if (inv.workflow_status === "paid" || inv.workflow_status === "written_off") return sum;
-      return sum + getRemainingBalance(inv as unknown as import("@/lib/types").CustomerRecord);
-    }, 0);
-
-    const totalPaid = clientInvoices.reduce((sum, inv) => {
-      return sum + Number(inv.amount_paid || 0);
-    }, 0);
-
-    const currency = (clientInvoices[0]?.currency as string) || "USD";
-
-    return {
-      ...client,
-      clientInvoices,
-      totalOwed,
-      totalPaid,
-      currency
-    };
-  }).sort((a, b) => b.totalOwed - a.totalOwed);
-
   const activeGroup = groupId ? groupsList.find((g) => g.id === groupId) : null;
 
-  const page = parseInt(params?.page as string || "1", 10);
-  const pageSize = 30;
-  const totalCustomers = clientsWithData.length;
+  // Build the DB query using the new view
+  let query = supabase.from("customer_balances").select("*", { count: 'exact' });
+
+  if (groupId) {
+    // Filter by group
+    const { data: cgData } = await supabase.from("customer_groups").select("customer_id").eq("group_id", groupId);
+    const groupCustomerIds = cgData?.map(cg => cg.customer_id) || [];
+    if (groupCustomerIds.length > 0) {
+      query = query.in("id", groupCustomerIds);
+    } else {
+      query = query.in("id", []); // empty
+    }
+  }
+
+  // DB-level Pagination
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data: clientsData, count } = await query
+    .order("total_owed", { ascending: false })
+    .range(from, to);
+
+  const displayedClients = clientsData || [];
+  const totalCustomers = count || 0;
   const totalPages = Math.ceil(totalCustomers / pageSize);
-  
-  const displayedClients = clientsWithData.slice((page - 1) * pageSize, page * pageSize);
+
+  // Fetch only the customer groups for the displayed clients
+  const displayedClientIds = displayedClients.map(c => c.id);
+  const { data: customerGroupsData } = displayedClientIds.length > 0 
+    ? await supabase.from("customer_groups").select("*").in("customer_id", displayedClientIds)
+    : { data: [] };
+
+  const customerGroupsList = customerGroupsData || [];
 
   return (
     <div className="flex min-h-screen flex-col">

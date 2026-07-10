@@ -26,136 +26,60 @@ export default async function DashboardPage(props: {
   await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const [customersRes, eventsRes, draftsRes, activeClientsRes, activeInvoicesRes, paymentsRes] = await Promise.all([
-    supabase.from("invoices").select("*, clients(name)"),
-    supabase.from("events").select("*, clients(name), invoices(clients(name))").order("created_at", { ascending: false }),
-    Promise.resolve({ data: [] as Record<string, unknown>[] }),
-    Promise.resolve({ data: [] as Record<string, unknown>[] }),
-    Promise.resolve({ data: [] as Record<string, unknown>[] }),
-    supabase.from("payments").select("*, invoices(clients(name))").order("created_at", { ascending: false })
+  const selectedCurrency = searchParams?.currency || "USD";
+
+  const [{ data: rpcData, error: rpcError }, { data: currencyRows }] = await Promise.all([
+    supabase.rpc("get_dashboard_pipeline", { p_currency: selectedCurrency }),
+    supabase.from("invoices").select("currency").not("currency", "is", null),
   ]);
 
-  const allCustomers = (customersRes.data || []).map((inv: Record<string, string | number | boolean | null | undefined | Record<string, unknown>>) => {
-    const invPayments = (paymentsRes.data || []).filter((p: Record<string, unknown>) => p.invoice_id === inv.id);
-    const amount_paid = invPayments.reduce((sum: number, p: Record<string, unknown>) => sum + Number(p.amount || 0), 0);
-    return {
-      ...inv,
-      amount_owed: inv.amount,
-      amount_paid,
-      workflow_status: inv.status,
-      recipient_name: (inv.clients as { name?: string })?.name || "Unknown",
-      recipient_email: (inv.clients as { email?: string })?.email || "No email"
-    };
-  }) as CustomerRecord[];
-  
-  // Handle currencies
-  const uniqueCurrencies = Array.from(new Set(allCustomers.map(c => c.currency || 'USD'))).sort();
-  const selectedCurrency = searchParams?.currency || (uniqueCurrencies.includes('USD') ? 'USD' : uniqueCurrencies[0] || 'USD');
-  const customers = allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
+  if (rpcError) console.error("Dashboard RPC error:", rpcError);
 
-  const mappedEvents = [
-    ...(eventsRes.data || []).map((e: Record<string, string | null | number | undefined | Record<string, unknown>>) => ({
-      id: String(e.id),
-      invoice_id: String(e.invoice_id),
-      customer_id: String(e.invoice_id || e.client_id), 
-      user_id: String(e.user_id || ""),
-      event_type: String(e.event_type),
-      event_date: String(e.created_at),
-      created_at: String(e.created_at),
-      amount: null,
-      currency: null,
-      payment_source: null,
-      followup_method: null,
-      followup_outcome: null,
-      note: String(e.description || ""),
-      clients: e.clients,
-      invoices: e.invoices
-    })),
-    ...(paymentsRes.data || []).map((p: Record<string, string | null | number | undefined | Record<string, unknown>>) => {
-      const inv = p.invoices as { clients?: Record<string, unknown> } | undefined;
-      return {
-      id: String(p.id),
-      invoice_id: String(p.invoice_id),
-      customer_id: String(p.invoice_id), 
-      user_id: String(p.user_id || ""),
-      event_type: "payment",
-      event_date: String(p.payment_date || p.created_at),
-      created_at: String(p.created_at),
-      amount: p.amount,
-      currency: p.currency,
-      payment_source: p.payment_source || null,
-      followup_method: null,
-      followup_outcome: null,
-      note: null,
-      clients: inv?.clients,
-      invoices: p.invoices
-    }})
-  ].sort((a, b) => new Date(b.event_date || b.created_at).getTime() - new Date(a.event_date || a.created_at).getTime());
+  const uniqueCurrencies = Array.from(
+    new Set([(currencyRows || []).map((r: any) => r.currency), "USD"].flat())
+  ).sort() as string[];
 
-  const events = mappedEvents.filter((e: Record<string, unknown>) => !e.currency || e.currency === selectedCurrency) as CustomerEvent[];
-  const recentEvents = events.slice(0, 5);
+  const d = rpcData as any;
 
-  const pendingDrafts = draftsRes.data || [];
-  const activeAutomations = [
-    ...(activeClientsRes.data || []).map((c: Record<string, unknown>) => ({ id: String(c.id), name: String(c.name), next_send_at: String(c.next_send_at), type: 'client' })),
-    ...(activeInvoicesRes.data || []).map((i: Record<string, unknown>) => {
-      const clients = i.clients as { name?: string } | undefined;
-      return { id: String(i.id), name: clients?.name || "Unknown", next_send_at: String(i.next_send_at), type: 'invoice' }
-    })
-  ].sort((a, b) => new Date(a.next_send_at).getTime() - new Date(b.next_send_at).getTime()).slice(0, 5);
+  const pipelines = {
+    overdue:      { invoices: (d?.pipelines?.overdue?.rows      || []) as CustomerRecord[], count: d?.pipelines?.overdue?.count      || 0 },
+    outstanding:  { invoices: (d?.pipelines?.outstanding?.rows  || []) as CustomerRecord[], count: d?.pipelines?.outstanding?.count  || 0 },
+    paid:         { invoices: (d?.pipelines?.paid?.rows         || []) as CustomerRecord[], count: d?.pipelines?.paid?.count         || 0 },
+  };
 
-  const recentInvoices = [...customers].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5);
+  const totals = d?.totals || { overdue: 0, outstanding: 0, paid: 0 };
+  const totalCollected   = Number(d?.totals?.totalCollected   || 0);
+  const totalOutstanding = Number(d?.totals?.totalOutstanding || 0);
+  const totalOverdue     = Number(d?.totals?.totalOverdue     || 0);
+  const collectionRate   = Number(d?.totals?.collectionRate   || 0);
 
-  let totalCollected = 0;
-  let totalOutstanding = 0;
-  let totalOverdue = 0;
+  const actionNeeded: { id: string; name: string; remaining: number; daysOverdue: number; currency: string }[] =
+    d?.actionNeeded || [];
 
-  for (const c of customers) {
-    const paid = Number(c.amount_paid) || 0;
-    const owed = Number(c.amount_owed) || 0;
-    const remaining = Math.max(0, owed - paid);
+  const recentEvents: any[] = (d?.recentEvents || []).map((e: any) => ({
+    id: e.id,
+    invoice_id: e.invoice_id,
+    customer_id: e.invoice_id,
+    event_type: e.event_type,
+    event_date: e.created_at,
+    created_at: e.created_at,
+    note: e.note,
+    clients: { name: e.client_name },
+  }));
 
-    totalCollected += paid;
-    totalOutstanding += remaining;
-
-    const daysOverdue = getDaysOverdue(c);
-    if (daysOverdue && remaining > 0 && !isEffectivelyPaid(c)) {
-      totalOverdue += remaining;
-    }
-  }
-
-  const collectionRate = (totalCollected + totalOutstanding) > 0 
-    ? (totalCollected / (totalCollected + totalOutstanding)) * 100 
-    : 0;
-
-  const actionNeededMap = new Map<string, { id: string; name: string; remaining: number; daysOverdue: number; currency: string }>();
-  for (const c of customers) {
-    if (isEffectivelyPaid(c)) continue;
-    const daysOverdue = getDaysOverdue(c) || 0;
-    if (daysOverdue <= 0) continue; // ONLY overdue invoices
-
-    const remaining = Math.max(0, Number(c.amount_owed) - Number(c.amount_paid));
-    if (remaining <= 0) continue;
-
-    const name = c.clients?.name || "Unknown";
-    const existing = actionNeededMap.get(name);
-    if (existing) {
-      existing.remaining += remaining;
-      existing.daysOverdue = Math.max(existing.daysOverdue, daysOverdue);
-    } else {
-      actionNeededMap.set(name, {
-        id: c.client_id || c.customer_id || c.id,
-        name,
-        remaining,
-        daysOverdue,
-        currency: c.currency || "USD"
-      });
-    }
-  }
-
-  const actionNeeded = Array.from(actionNeededMap.values())
-    .sort((a, b) => b.daysOverdue - a.daysOverdue)
+  // Derive recent invoices from pipeline rows already returned by RPC — no extra query
+  const recentInvoices = [
+    ...pipelines.overdue.invoices,
+    ...pipelines.outstanding.invoices,
+    ...pipelines.paid.invoices,
+  ]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
+
+  const collectionTrendEvents: any[] = [];
+  const pendingDrafts: any[] = [];
+  const activeAutomations: any[] = [];
+
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -233,8 +157,8 @@ export default async function DashboardPage(props: {
           </div>
 
           <div className="grid gap-8 lg:grid-cols-[1fr_1fr] mb-8">
-            <DashboardPipelineWidget customers={customers} currency={selectedCurrency} />
-            <CollectionTrendWidget events={events} currency={selectedCurrency} />
+            <DashboardPipelineWidget pipelines={pipelines as any} totals={totals as any} currency={selectedCurrency} />
+            <CollectionTrendWidget events={collectionTrendEvents} currency={selectedCurrency} />
           </div>
 
           <div className="grid gap-8 lg:grid-cols-2">

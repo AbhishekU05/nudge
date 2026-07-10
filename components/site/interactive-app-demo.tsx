@@ -279,7 +279,44 @@ export function InteractiveAppDemo() {
                 <h2 className="text-2xl font-bold text-zinc-100">Analytics & Reports</h2>
                 <p className="text-zinc-400 mt-1">Deep dive into your collection metrics and cash flow performance.</p>
               </div>
-              <AnalyticsClient customers={customers as unknown as CustomerRecord[]} events={events as unknown as CustomerEvent[]} />
+              <AnalyticsClient data={{
+                stats: {
+                  total_collected: 48200,
+                  total_outstanding: 31500,
+                  total_overdue: 12400,
+                  overdue_count: 3,
+                  paid_count: 8,
+                  outstanding_count: 5,
+                  total_days_overdue: 87,
+                  total_invoices: 16,
+                  this_month_paid_count: 4,
+                  this_month_outstanding_count: 3,
+                  this_month_overdue_count: 2,
+                },
+                topOffenders: [
+                  { name: "Acme Corp", amount: 8400, days: 45 },
+                  { name: "Globex", amount: 4000, days: 22 },
+                ],
+                agingBuckets: { bucket_1_30: 4200, bucket_31_60: 5600, bucket_61_90: 2600, bucket_90_plus: 0 },
+                forecastBuckets: { bucket_0_30: 18000, bucket_31_60: 8500, bucket_61_90: 5000 },
+                revenue: { revenue_this_month: 12400, revenue_last_month: 9800 },
+                monthlyCollections: [
+                  { month: "Feb 2026", amount: 7200 },
+                  { month: "Mar 2026", amount: 9100 },
+                  { month: "Apr 2026", amount: 8400 },
+                  { month: "May 2026", amount: 11200 },
+                  { month: "Jun 2026", amount: 9800 },
+                  { month: "Jul 2026", amount: 12400 },
+                ],
+                monthlyFollowups: [
+                  { month: "Feb 2026", count: 12 },
+                  { month: "Mar 2026", count: 18 },
+                  { month: "Apr 2026", count: 14 },
+                  { month: "May 2026", count: 22 },
+                  { month: "Jun 2026", count: 19 },
+                  { month: "Jul 2026", count: 25 },
+                ],
+              }} currency={selectedCurrency} />
             </div>
           )}
           {activeTab === "activity" && (

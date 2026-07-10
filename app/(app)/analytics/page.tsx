@@ -2,7 +2,6 @@ import { Container } from "@/components/site/container";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AnalyticsClient } from "./analytics-client";
-import type { CustomerRecord, CustomerEvent } from "@/lib/types";
 
 import { CurrencySelector } from "@/components/site/currency-selector";
 
@@ -13,60 +12,31 @@ export default async function AnalyticsPage(props: {
   await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const [invoicesRes, eventsRes, paymentsRes] = await Promise.all([
-    supabase.from("invoices").select("*, clients(name, email)"),
-    supabase.from("events").select("*").order("created_at", { ascending: true }),
-    supabase.from("payments").select("*").order("created_at", { ascending: true })
-  ]);
+  // Fetch unique currencies for the selector — lightweight, just 1 column
+  const { data: currencyRows } = await supabase
+    .from("invoices")
+    .select("currency")
+    .not("currency", "is", null);
 
-  const allCustomers = (invoicesRes.data || []).map((inv: Record<string, string | number | boolean | null | undefined | Record<string, unknown>>) => {
-    const invPayments = (paymentsRes.data || []).filter((p: Record<string, unknown>) => p.invoice_id === inv.id);
-    const amount_paid = invPayments.reduce((sum: number, p: Record<string, unknown>) => sum + Number(p.amount || 0), 0);
-    return {
-      ...inv,
-      amount_owed: inv.amount,
-      amount_paid,
-      workflow_status: inv.status
-    };
-  }) as CustomerRecord[];
-  
-  // Handle currencies
-  const uniqueCurrencies = Array.from(new Set(allCustomers.map(c => c.currency || 'USD'))).sort();
-  const selectedCurrency = searchParams?.currency || (uniqueCurrencies.includes('USD') ? 'USD' : uniqueCurrencies[0] || 'USD');
-  const customers = allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
+  const uniqueCurrencies = Array.from(
+    new Set((currencyRows || []).map((r: any) => r.currency || "USD"))
+  ).sort() as string[];
 
-  const customerIds = new Set(customers.map(c => c.id));
-  
-  const mappedEvents = [
-    ...(eventsRes.data || []).map((e: Record<string, string | null | number | undefined | Record<string, unknown>>) => ({
-      id: String(e.id),
-      invoice_id: String(e.invoice_id),
-      customer_id: String(e.invoice_id), // Analytics maps customer_id to invoice_id under the hood for grouping
-      event_type: String(e.event_type),
-      event_date: String(e.created_at),
-      created_at: String(e.created_at),
-      amount: null,
-      currency: null,
-      clients: e.clients,
-      invoices: e.invoices
-    })),
-    ...(paymentsRes.data || []).map((p: Record<string, string | null | number | undefined | Record<string, unknown>>) => {
-      const inv = p.invoices as { clients?: Record<string, unknown> } | undefined;
-      return {
-      id: String(p.id),
-      invoice_id: String(p.invoice_id),
-      customer_id: String(p.invoice_id), // Analytics groups by invoice
-      event_type: "payment",
-      event_date: String(p.payment_date || p.created_at),
-      created_at: String(p.created_at),
-      amount: p.amount,
-      currency: p.currency,
-      clients: inv?.clients,
-      invoices: p.invoices
-    }})
-  ];
+  if (!uniqueCurrencies.includes("USD")) uniqueCurrencies.unshift("USD");
 
-  const events = mappedEvents.filter(e => e.customer_id && customerIds.has(e.customer_id)) as unknown as CustomerEvent[];
+  const selectedCurrency =
+    searchParams?.currency ||
+    (uniqueCurrencies.includes("USD") ? "USD" : uniqueCurrencies[0] || "USD");
+
+  // Single RPC call — all heavy aggregation done in Postgres
+  const { data: analyticsData, error } = await supabase.rpc(
+    "get_collection_analytics",
+    { p_currency: selectedCurrency }
+  );
+
+  if (error) {
+    console.error("Analytics RPC error:", error);
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -84,7 +54,7 @@ export default async function AnalyticsPage(props: {
             <CurrencySelector currencies={uniqueCurrencies} selected={selectedCurrency} />
           </div>
           
-          <AnalyticsClient customers={customers} events={events} currency={selectedCurrency} />
+          <AnalyticsClient data={analyticsData || null} currency={selectedCurrency} />
         </Container>
       </main>
     </div>
