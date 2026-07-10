@@ -9,9 +9,10 @@
 --    RLS policies scope every table they touch (same trust model as the rest
 --    of the app), and fix their business logic:
 --    - NULL invoice currency is treated as USD instead of being excluded.
---    - client_paid_at marks an invoice paid (matches lib/types isEffectivelyPaid).
---    - analytics forecast uses promised_date before due_date (old behavior).
 --    - payment aggregates are scoped by the *invoice's* currency consistently.
+--    - references to invoices.promised_date / invoices.client_paid_at are
+--      removed: those columns do not exist in the database (they only ever
+--      existed in the TS types), so the previous RPC bodies errored at runtime.
 -- 3. Add get_invoice_currencies() so pages can build the currency selector
 --    without downloading one row per invoice.
 -- 4. Add the activity_feed view (security_invoker) so the activity page can
@@ -62,12 +63,10 @@ BEGIN
       c.name AS client_name,
       (
         i.status IN ('paid', 'written_off')
-        OR i.client_paid_at IS NOT NULL
         OR pay.amount_paid >= i.amount
       ) AS is_paid,
       CASE
         WHEN i.status NOT IN ('paid', 'written_off')
-             AND i.client_paid_at IS NULL
              AND pay.amount_paid < i.amount
              AND i.due_date IS NOT NULL
              AND i.due_date::date < CURRENT_DATE
@@ -75,9 +74,8 @@ BEGIN
         ELSE 0
       END AS days_overdue,
       CASE
-        WHEN COALESCE(i.promised_date, i.due_date) IS NOT NULL
-             AND COALESCE(i.promised_date, i.due_date)::date >= CURRENT_DATE
-        THEN COALESCE(i.promised_date, i.due_date)::date - CURRENT_DATE
+        WHEN i.due_date IS NOT NULL AND i.due_date::date >= CURRENT_DATE
+        THEN i.due_date::date - CURRENT_DATE
         ELSE NULL
       END AS days_to_due
     FROM invoices i
@@ -207,16 +205,13 @@ BEGIN
       fees.late_fees_amount,
       i.currency,
       i.due_date,
-      i.promised_date,
       i.status          AS workflow_status,
       i.created_at,
       i.invoice_number,
-      i.client_paid_at,
       c.name            AS recipient_name,
       c.email           AS recipient_email,
       CASE
         WHEN i.status IN ('paid', 'written_off')
-             OR i.client_paid_at IS NOT NULL
              OR pay.amount_paid >= i.amount
           THEN 'paid'
         WHEN i.due_date IS NOT NULL AND i.due_date::date < CURRENT_DATE
@@ -327,16 +322,13 @@ BEGIN
       fees.late_fees_amount,
       i.currency,
       i.due_date,
-      i.promised_date,
       i.status          AS workflow_status,
       i.created_at,
       i.invoice_number,
-      i.client_paid_at,
       c.name            AS recipient_name,
       c.email           AS recipient_email,
       CASE
         WHEN i.status IN ('paid', 'written_off')
-             OR i.client_paid_at IS NOT NULL
              OR pay.amount_paid >= i.amount
           THEN 'paid'
         WHEN i.due_date IS NOT NULL AND i.due_date::date < CURRENT_DATE
@@ -496,7 +488,7 @@ SELECT
   'payment'::text,
   p.amount::numeric,
   p.currency::text,
-  p.payment_source::text,
+  p.payment_method::text,
   NULL::text,
   i.invoice_number,
   ci.name,
