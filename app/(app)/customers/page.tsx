@@ -1,4 +1,4 @@
-import { UserRound, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { UserRound, ArrowRight, ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
 import { Container } from "@/components/site/container";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,33 @@ export default async function CustomersPage({
   const defaultCurrency = orgCurrencies.includes("USD") ? "USD" : orgCurrencies[0] || "USD";
   const selectedCurrency = (params?.currency as string | undefined) || defaultCurrency;
 
+  // Sort — validated against an allowlist since it feeds straight into .order().
+  const SORTABLE_COLUMNS = ["name", "total_paid", "total_owed"] as const;
+  type SortColumn = (typeof SORTABLE_COLUMNS)[number];
+  const rawSort = params?.sort as string | undefined;
+  const sortBy: SortColumn = (SORTABLE_COLUMNS as readonly string[]).includes(rawSort || "")
+    ? (rawSort as SortColumn)
+    : "name";
+  const sortDir: "asc" | "desc" = params?.dir === "desc" ? "desc" : "asc";
+
+  // Builds a /customers URL carrying every param that should survive
+  // navigation (page, currency, group, sort), overridden by whatever's passed.
+  function buildUrl(overrides: Partial<Record<"page" | "currency" | "groupId" | "sort" | "dir", string>>) {
+    const next = new URLSearchParams();
+    const merged = {
+      page: String(page),
+      currency: selectedCurrency,
+      groupId: groupId,
+      sort: sortBy,
+      dir: sortDir,
+      ...overrides,
+    };
+    for (const [key, value] of Object.entries(merged)) {
+      if (value) next.set(key, value);
+    }
+    return `/customers?${next.toString()}`;
+  }
+
   // Fetch groups for the UI
   const { data: groupsData } = await supabase
     .from("groups")
@@ -49,7 +76,7 @@ export default async function CustomersPage({
     .from("customer_balances_by_currency")
     .select("id, name, email, company_name, created_at, organization_id, currency, total_owed, total_paid", { count: "exact" })
     .eq("currency", selectedCurrency)
-    .order("name", { ascending: true });
+    .order(sortBy, { ascending: sortDir === "asc" });
 
   if (groupId) {
     const { data: cgData } = await supabase
@@ -121,9 +148,24 @@ export default async function CustomersPage({
             <table className="w-full text-left text-sm text-zinc-400">
               <thead className="bg-white/[0.02] border-b border-white/10">
                 <tr>
-                  <th className="px-4 py-3 font-medium text-zinc-300">Name</th>
-                  <th className="px-4 py-3 font-medium text-zinc-300 text-right">Total Paid</th>
-                  <th className="px-4 py-3 font-medium text-zinc-300 text-right">Total Owed</th>
+                  <th className="px-4 py-3 font-medium text-zinc-300">
+                    <Link href={buildUrl({ sort: "name", dir: sortBy === "name" && sortDir === "asc" ? "desc" : "asc", page: "1" })} className="inline-flex items-center gap-1 hover:text-zinc-100 transition-colors">
+                      Name
+                      {sortBy === "name" && (sortDir === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />)}
+                    </Link>
+                  </th>
+                  <th className="px-4 py-3 font-medium text-zinc-300 text-right">
+                    <Link href={buildUrl({ sort: "total_paid", dir: sortBy === "total_paid" && sortDir === "asc" ? "desc" : "asc", page: "1" })} className="inline-flex items-center gap-1 justify-end hover:text-zinc-100 transition-colors">
+                      Total Paid
+                      {sortBy === "total_paid" && (sortDir === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />)}
+                    </Link>
+                  </th>
+                  <th className="px-4 py-3 font-medium text-zinc-300 text-right">
+                    <Link href={buildUrl({ sort: "total_owed", dir: sortBy === "total_owed" && sortDir === "asc" ? "desc" : "asc", page: "1" })} className="inline-flex items-center gap-1 justify-end hover:text-zinc-100 transition-colors">
+                      Total Owed
+                      {sortBy === "total_owed" && (sortDir === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />)}
+                    </Link>
+                  </th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -183,12 +225,12 @@ export default async function CustomersPage({
                 Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalCustomers)} of {totalCustomers} customers
               </div>
               <div className="flex items-center gap-2">
-                <Link href={`/customers?page=${page - 1}&currency=${selectedCurrency}${groupId ? `&groupId=${groupId}` : ''}`}>
+                <Link href={buildUrl({ page: String(page - 1) })}>
                   <Button variant="secondary" size="sm" disabled={page <= 1} className="h-8 border-white/10 bg-transparent text-zinc-300 hover:bg-white/[0.05]">
                     <ChevronLeft className="h-4 w-4 mr-1" /> Prev
                   </Button>
                 </Link>
-                <Link href={`/customers?page=${page + 1}&currency=${selectedCurrency}${groupId ? `&groupId=${groupId}` : ''}`}>
+                <Link href={buildUrl({ page: String(page + 1) })}>
                   <Button variant="secondary" size="sm" disabled={page >= totalPages} className="h-8 border-white/10 bg-transparent text-zinc-300 hover:bg-white/[0.05]">
                     Next <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
