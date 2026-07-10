@@ -9,9 +9,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
-  CheckCircle2,
-  DollarSign,
   Users,
   ChevronRight,
 } from "lucide-react";
@@ -41,59 +38,6 @@ function getInitials(name: string) {
     .join("")
     .slice(0, 2)
     .toUpperCase();
-}
-
-// ---------------------------------------------------------------------------
-// Stats bar
-// ---------------------------------------------------------------------------
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  sub,
-  accent,
-  tooltip,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  sub?: string;
-  accent?: "red" | "amber" | "emerald" | "indigo";
-  tooltip?: string;
-}) {
-  const iconColors = {
-    red: "text-red-400",
-    amber: "text-amber-400",
-    emerald: "text-emerald-400",
-    indigo: "text-indigo-400",
-  };
-
-  return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white/[0.025] p-4 relative group">
-      <div
-        className={cn(
-          "flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04]",
-          accent && iconColors[accent],
-        )}
-      >
-        <Icon className="h-4 w-4" />
-      </div>
-      <div>
-        <p className="text-2xl font-semibold tracking-tight text-zinc-50">{value}</p>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <p className="text-xs text-zinc-600">{label}</p>
-          {tooltip && (
-            <div title={tooltip} className="cursor-help flex items-center justify-center">
-              <svg className="w-3 h-3 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          )}
-        </div>
-        {sub && <p className="mt-1 text-xs text-zinc-500">{sub}</p>}
-      </div>
-    </div>
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -297,7 +241,6 @@ export function DashboardClient({
   pipelines,
   totals,
   hasSubscription,
-  currency = "USD",
 }: {
   pipelines: {
     overdue: CustomerRecord[];
@@ -312,7 +255,6 @@ export function DashboardClient({
     optedOutCount: number;
   };
   hasSubscription: boolean;
-  currency?: string;
 }) {
   const router = useRouter();
 
@@ -326,37 +268,6 @@ export function DashboardClient({
 
   return (
     <>
-      {/* Stats bar */}
-      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard
-          icon={DollarSign}
-          label="Total outstanding"
-          value={totalCustomers > 0 ? formatCurrency(totals.outstandingAmount, currency) : "—"}
-          accent="indigo"
-        />
-        <StatCard
-          icon={AlertTriangle}
-          label="Overdue"
-          value={String(totals.overdueCount)}
-          sub={totals.overdueCount > 0 ? "Need attention" : "All on track"}
-          accent="red"
-        />
-        <StatCard
-          icon={CheckCircle2}
-          label="Paid"
-          value={String(totals.paidCount)}
-          accent="emerald"
-        />
-        <StatCard
-          icon={Users}
-          label="Opted out"
-          value={String(totals.optedOutCount)}
-          sub={totals.optedOutCount > 0 ? "Unsubscribed" : undefined}
-          accent="amber"
-        />
-      </div>
-
-        {/* Main layout */}
       <div className="grid gap-5">
         {/* Pipeline */}
         <section>

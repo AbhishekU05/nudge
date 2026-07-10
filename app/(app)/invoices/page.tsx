@@ -208,7 +208,6 @@ export default async function CustomersPage({
             pipelines={pipelines}
             totals={totals}
             hasSubscription={hasSubscription}
-            currency={selectedCurrency}
           />
         </Container>
       </main>
