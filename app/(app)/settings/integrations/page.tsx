@@ -100,7 +100,7 @@ export default async function IntegrationsPage({
 
   const { data: quickbooks } = await supabase
     .from("integrations")
-    .select("tenant_id,last_synced_at,expires_at,quickbooks_default_account_name,quickbooks_default_account_id,sync_state")
+    .select("tenant_id,last_synced_at,expires_at,quickbooks_default_account_name,quickbooks_default_account_id,sync_state,sync_pages_completed,sync_pages_total")
     .eq("organization_id", orgId)
     .eq("provider", "quickbooks")
     .maybeSingle<IntegrationRow>();
@@ -394,7 +394,9 @@ export default async function IntegrationsPage({
                           </p>
                         </div>
                         <p className="mt-2 text-xs text-blue-300/70">
-                          Sync in progress, this may take a few minutes for large accounts.
+                          {quickbooks.sync_pages_total && quickbooks.sync_pages_total > 0
+                            ? `Page ${quickbooks.sync_pages_completed || 0} of ${quickbooks.sync_pages_total}`
+                            : "Sync in progress, this may take a few minutes for large accounts."}
                         </p>
                       </div>
                     )}

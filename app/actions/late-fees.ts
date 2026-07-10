@@ -4,6 +4,29 @@ import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import fs from "fs";
 import { revalidatePath } from "next/cache";
+import { inngest } from "@/lib/inngest/client";
+
+async function triggerLateFeeReevaluation(organizationId: string, supabase: ReturnType<typeof createSupabaseServerClient> extends Promise<infer U> ? U : never) {
+  // 1. Cancel all sleeping workflows for this org
+  await inngest.send({ name: "policy.updated", data: { organizationId } });
+
+  // 2. Fetch all unpaid invoices and start a new workflow for each
+  const { data: invoices } = await supabase
+    .from("invoices")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .neq("status", "paid");
+
+  if (invoices && invoices.length > 0) {
+    const events = invoices.map((inv: { id: string }) => ({
+      name: "invoice.evaluate_late_fee",
+      data: { invoiceId: inv.id, organizationId }
+    }));
+    
+    // Inngest send allows arrays
+    await inngest.send(events);
+  }
+}
 
 async function getOrganizationId(userId: string): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
@@ -26,8 +49,9 @@ export async function createLateFeePolicy(formData: FormData) {
   const fee_type = formData.get("fee_type") as "flat" | "percentage";
   const fee_value = Number(formData.get("fee_value"));
   const grace_period_days = Number(formData.get("grace_period_days"));
+  const due_days = Number(formData.get("due_days"));
   const frequency = formData.get("frequency") as "once" | "weekly" | "monthly";
-  const apply_to = formData.get("apply_to") as "existing_invoice" | "new_invoice";
+  const apply_to = "new_invoice";
   const included_group_ids = formData.getAll("included_group_ids") as string[];
   const auto_approve = formData.get("auto_approve") === "true";
 
@@ -37,6 +61,7 @@ export async function createLateFeePolicy(formData: FormData) {
     fee_type,
     fee_value,
     grace_period_days,
+    due_days,
     frequency,
     apply_to,
     included_group_ids,
@@ -49,6 +74,8 @@ export async function createLateFeePolicy(formData: FormData) {
     fs.writeFileSync("scratch/error.log", JSON.stringify(error, null, 2));
     throw new Error(`Failed to create late fee policy: ${error.message}`);
   }
+
+  await triggerLateFeeReevaluation(organizationId, supabase);
 
   revalidatePath("/settings/late-fees");
 }
@@ -64,14 +91,15 @@ export async function updateLateFeePolicy(id: string, formData: FormData) {
   const fee_type = formData.get("fee_type") as "flat" | "percentage";
   const fee_value = Number(formData.get("fee_value"));
   const grace_period_days = Number(formData.get("grace_period_days"));
+  const due_days = Number(formData.get("due_days"));
   const frequency = formData.get("frequency") as "once" | "weekly" | "monthly";
-  const apply_to = formData.get("apply_to") as "existing_invoice" | "new_invoice";
+  const apply_to = "new_invoice";
   const included_group_ids = formData.getAll("included_group_ids") as string[];
   const auto_approve = formData.get("auto_approve") === "true";
 
   const { error } = await supabase
     .from("late_fee_policies")
-    .update({ name, fee_type, fee_value, grace_period_days, frequency, apply_to, included_group_ids, auto_approve })
+    .update({ name, fee_type, fee_value, grace_period_days, due_days, frequency, apply_to, included_group_ids, auto_approve })
     .eq("id", id)
     .eq("organization_id", organizationId);
 
@@ -80,6 +108,8 @@ export async function updateLateFeePolicy(id: string, formData: FormData) {
     fs.writeFileSync("scratch/error.log", JSON.stringify(error, null, 2));
     throw new Error(`Failed to update late fee policy: ${error.message}`);
   }
+
+  await triggerLateFeeReevaluation(organizationId, supabase);
 
   revalidatePath("/settings/late-fees");
 }

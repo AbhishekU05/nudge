@@ -15,6 +15,8 @@ type Draft = {
   subject: string;
   body_html: string;
   created_at: string;
+  action_type?: string;
+  action_payload?: Record<string, unknown>;
   clients: { name: string; email: string };
 };
 
@@ -28,6 +30,8 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
   const [isEditingDraft, setIsEditingDraft] = useState(false);
   const [editSubject, setEditSubject] = useState(drafts[0]?.subject || "");
   const [editBody, setEditBody] = useState(drafts[0]?.body_html.replace(/<br\s*\/?>/gi, '\n') || "");
+  const [editFeeAmount, setEditFeeAmount] = useState<number>(Number(drafts[0]?.action_payload?.fee_amount || 0));
+  const [editDueDate, setEditDueDate] = useState<string>(String(drafts[0]?.action_payload?.due_date || ""));
 
   if (drafts.length === 0) {
     return (
@@ -47,9 +51,13 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
     
     // We should ideally use useTransition or formAction but an async call is fine here
     try {
-      const payload = isEditingDraft 
-        ? { subject: editSubject, body_html: editBody.replace(/\n/g, '<br>') }
-        : undefined;
+      let payload: { subject: string; body_html: string; action_payload?: Record<string, unknown> } | undefined = undefined;
+      if (isEditingDraft) {
+        payload = { subject: editSubject, body_html: editBody.replace(/\n/g, '<br>') };
+        if (selectedDraft.action_type === "late_fee") {
+          payload.action_payload = { fee_amount: editFeeAmount, due_date: editDueDate };
+        }
+      }
 
       const res = await approveDraft(selectedDraft.id, payload);
       if (res.error) {
@@ -92,14 +100,21 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
     
     try {
       const updatedBodyHtml = editBody.replace(/\n/g, '<br>');
-      const res = await updateDraftContent(selectedDraft.id, editSubject, updatedBodyHtml);
+      let updatedPayload = undefined;
+      if (selectedDraft.action_type === "late_fee") {
+        updatedPayload = { fee_amount: editFeeAmount, due_date: editDueDate };
+      }
+      const res = await updateDraftContent(selectedDraft.id, editSubject, updatedBodyHtml, updatedPayload);
       if (res.error) {
         toast.error(res.error);
       } else {
         toast.success("Draft saved.");
         setIsEditingDraft(false);
         // Update local state
-        const updatedDraft = { ...selectedDraft, subject: editSubject, body_html: updatedBodyHtml };
+        const newActionPayload = updatedPayload 
+          ? { ...selectedDraft.action_payload, ...updatedPayload } 
+          : selectedDraft.action_payload;
+        const updatedDraft = { ...selectedDraft, subject: editSubject, body_html: updatedBodyHtml, action_payload: newActionPayload };
         setSelectedDraft(updatedDraft);
         setDrafts(drafts.map(d => d.id === updatedDraft.id ? updatedDraft : d));
       }
@@ -126,6 +141,8 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
                 setSelectedDraft(draft);
                 setEditSubject(draft.subject);
                 setEditBody(draft.body_html.replace(/<br\s*\/?>/gi, '\n'));
+                setEditFeeAmount(Number(draft.action_payload?.fee_amount || 0));
+                setEditDueDate(String(draft.action_payload?.due_date || ""));
                 setIsEditingDraft(false);
               }}
               className={`w-full text-left p-3 rounded-xl transition-colors ${selectedDraft?.id === draft.id ? 'bg-indigo-500/10 border border-indigo-500/20' : 'hover:bg-white/5 border border-transparent'}`}
@@ -183,6 +200,28 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
               <div className="max-w-2xl mx-auto bg-zinc-900 border border-white/10 rounded-lg p-8 shadow-sm">
                 {isEditingDraft ? (
                   <div className="space-y-4">
+                    {selectedDraft.action_type === "late_fee" && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs text-zinc-400 mb-1 block">Late Fee Amount</label>
+                          <Input 
+                            type="number"
+                            value={editFeeAmount}
+                            onChange={(e) => setEditFeeAmount(Number(e.target.value))}
+                            className="bg-zinc-950 border-white/10 text-zinc-200"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-zinc-400 mb-1 block">Due Date (Optional)</label>
+                          <Input 
+                            type="date"
+                            value={editDueDate}
+                            onChange={(e) => setEditDueDate(e.target.value)}
+                            className="bg-zinc-950 border-white/10 text-zinc-200"
+                          />
+                        </div>
+                      </div>
+                    )}
                     <div>
                       <label className="text-xs text-zinc-400 mb-1 block">Subject</label>
                       <Input 
@@ -201,10 +240,24 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
                     </div>
                   </div>
                 ) : (
-                  <div 
-                    className="prose prose-sm prose-invert max-w-none text-zinc-300"
-                    dangerouslySetInnerHTML={{ __html: selectedDraft.body_html }}
-                  />
+                  <div>
+                    {selectedDraft.action_type === "late_fee" && (
+                      <div className="mb-6 p-4 rounded-xl border border-white/10 bg-zinc-950 flex gap-6 text-sm">
+                        <div>
+                          <span className="text-zinc-500 block mb-1">Late Fee</span>
+                          <span className="text-zinc-200 font-medium">${String(selectedDraft.action_payload?.fee_amount || 0)}</span>
+                        </div>
+                        <div>
+                          <span className="text-zinc-500 block mb-1">Due Date</span>
+                          <span className="text-zinc-200 font-medium">{String(selectedDraft.action_payload?.due_date || "Default Terms")}</span>
+                        </div>
+                      </div>
+                    )}
+                    <div 
+                      className="prose prose-sm prose-invert max-w-none text-zinc-300"
+                      dangerouslySetInnerHTML={{ __html: selectedDraft.body_html }}
+                    />
+                  </div>
                 )}
               </div>
             </div>

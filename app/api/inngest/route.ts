@@ -1,6 +1,6 @@
 import { serve } from "inngest/next";
 import { inngest } from "@/lib/inngest/client";
-import { applyLateFees } from "@/lib/inngest/functions/apply-late-fees";
+import { lateFeeWorkflow } from "@/lib/inngest/functions/late-fee-workflow";
 import { sendDigest } from "@/lib/inngest/functions/send-digest";
 import { automationWorkflow } from "@/lib/inngest/functions/automation-workflow";
 import { quickbooksInitialSync } from "@/lib/inngest/functions/quickbooks-initial-sync";
@@ -14,7 +14,7 @@ export const maxDuration = 300;
 export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [
-    applyLateFees,
+    lateFeeWorkflow,
     processLateFee,
     sendDigest,
     automationWorkflow,

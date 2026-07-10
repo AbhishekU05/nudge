@@ -172,3 +172,124 @@ export async function pushPaymentToQuickBooks(
     });
   }
 }
+
+export async function pushDueDateToXero(
+  organizationId: string,
+  invoiceId: string,
+  dueDateIso: string
+) {
+  try {
+    const supabase = createSupabaseAdminClient();
+    const { data: integration } = await supabase
+      .from("integrations")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .eq("provider", "xero")
+      .maybeSingle<XeroIntegrationRow>();
+
+    if (!integration) return;
+
+    const xero = new XeroClient();
+    xero.setTokenSet({
+      access_token: integration.access_token,
+      refresh_token: integration.refresh_token,
+      expires_at: Math.floor(new Date(integration.expires_at).getTime() / 1000),
+    });
+
+    if (new Date(integration.expires_at).getTime() - Date.now() <= 5 * 60 * 1000) {
+      await xero.refreshToken();
+    }
+
+    await xero.accountingApi.updateInvoice(integration.tenant_id, invoiceId, {
+      invoices: [{ dueDate: dueDateIso }]
+    });
+
+    logger.external({
+      service: "Xero",
+      action: "push_due_date",
+      success: true,
+      organization_id: organizationId,
+    });
+  } catch (error) {
+    logger.external({
+      service: "Xero",
+      action: "push_due_date",
+      success: false,
+      organization_id: organizationId,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}
+
+export async function pushDueDateToQuickBooks(
+  organizationId: string,
+  invoiceId: string,
+  dueDateIso: string
+) {
+  try {
+    const supabase = createSupabaseAdminClient();
+    const { data: integration } = await supabase
+      .from("integrations")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .eq("provider", "quickbooks")
+      .maybeSingle<QuickBooksIntegrationRow>();
+
+    if (!integration || !integration.realm_id) return;
+    
+    const validIntegration = await getValidQuickBooksTokens(integration);
+    const baseUrl = await getApiBaseUrl();
+    
+    const invoiceUrl = new URL(`${baseUrl}/v3/company/${integration.realm_id}/invoice/${invoiceId}?minorversion=65`);
+    const invoiceRes = await fetch(invoiceUrl.toString(), {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${validIntegration.access_token}`,
+      },
+    });
+
+    if (!invoiceRes.ok) return; 
+    const invoiceData = await invoiceRes.json();
+    const syncToken = invoiceData.Invoice?.SyncToken;
+    
+    if (!syncToken) return;
+
+    const updateUrl = new URL(`${baseUrl}/v3/company/${integration.realm_id}/invoice?minorversion=65`);
+    const updatePayload = {
+      Id: invoiceId,
+      SyncToken: syncToken,
+      sparse: true,
+      DueDate: dueDateIso,
+    };
+
+    const updateRes = await fetch(updateUrl.toString(), {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${validIntegration.access_token}`,
+      },
+      body: JSON.stringify(updatePayload),
+    });
+
+    if (!updateRes.ok) {
+      const errorText = await updateRes.text();
+      throw new Error(`QB Update Error: ${errorText}`);
+    }
+
+    logger.external({
+      service: "QuickBooks",
+      action: "push_due_date",
+      success: true,
+      organization_id: organizationId,
+    });
+  } catch (error) {
+    logger.external({
+      service: "QuickBooks",
+      action: "push_due_date",
+      success: false,
+      organization_id: organizationId,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}

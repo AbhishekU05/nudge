@@ -14,7 +14,8 @@ import { buildPathWithQuery } from "@/lib/paths";
 import { computeFirstReminderSendAt } from "@/lib/reminder-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
-import { pushPaymentToXero, pushPaymentToQuickBooks } from "@/lib/integrations-push";
+import { pushPaymentToXero, pushPaymentToQuickBooks, pushDueDateToXero, pushDueDateToQuickBooks } from "@/lib/integrations-push";
+import { inngest } from "@/lib/inngest/client";
 import type { InvoiceStatus, CrmEventType } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
@@ -584,11 +585,12 @@ export async function updateDueDate(formData: FormData) {
 
   const supabase = await createSupabaseServerClient();
 
-  const { error } = await supabase
+  const { data: updatedData, error } = await supabase
     .from("invoices")
     .update({ due_date: dueDate })
     .eq("id", invoiceId as string)
-    .eq("organization_id", organizationId!);
+    .eq("organization_id", organizationId!)
+    .select("xero_id, quickbooks_id, reminders_enabled, reminder_type, reminder_templates");
 
   if (error) {
     logger.error({ message: "Database error updating due date", context: "updateDueDate", user_id: user.id, error: error.message });
@@ -596,6 +598,52 @@ export async function updateDueDate(formData: FormData) {
   }
 
   logger.action({ action_name: "update_due_date", reminder_id: invoiceId as string, user_id: user.id, success: true });
+  
+  // Push the due date update to accounting software if integration is active
+  if (dueDate && updatedData && updatedData.length > 0) {
+    const updatedInvoice = updatedData[0];
+    if (updatedInvoice.xero_id) {
+      pushDueDateToXero(organizationId, updatedInvoice.xero_id, dueDate);
+    } else if (updatedInvoice.quickbooks_id) {
+      pushDueDateToQuickBooks(organizationId, updatedInvoice.quickbooks_id, dueDate);
+    }
+
+    // Completely reset the email reminder sequence to respect the new due date
+    if (updatedInvoice.reminders_enabled) {
+      const firstOffset = updatedInvoice.reminder_type === "sequence" && Array.isArray(updatedInvoice.reminder_templates) && updatedInvoice.reminder_templates.length > 0 
+        ? (updatedInvoice.reminder_templates[0] as { days_offset?: number }).days_offset || 7 
+        : undefined;
+      const nextSendAt = computeFirstReminderSendAt(new Date(), dueDate, firstOffset);
+      
+      await supabase
+        .from("invoices")
+        .update({ sequence_index: 0, next_send_at: nextSendAt })
+        .eq("id", invoiceId as string)
+        .eq("organization_id", organizationId!);
+
+      await inngest.send({
+        name: "invoice.due_date_updated",
+        data: { invoiceId: invoiceId as string, entityId: invoiceId as string, entityType: "invoice", organizationId: organizationId! }
+      });
+      await inngest.send({
+        name: "automation.enabled",
+        data: { entityId: invoiceId as string, entityType: "invoice", organizationId: organizationId! }
+      });
+    } else {
+      // If reminders are not enabled, we still need to cancel any old sleeping workflows
+      await inngest.send({
+        name: "invoice.due_date_updated",
+        data: { invoiceId: invoiceId as string, entityId: invoiceId as string, entityType: "invoice", organizationId: organizationId! }
+      });
+    }
+
+    // Always re-evaluate late fees when due date changes
+    await inngest.send({
+      name: "invoice.evaluate_late_fee",
+      data: { invoiceId: invoiceId as string, organizationId: organizationId! }
+    });
+  }
+
   revalidatePath("/", "layout");
   redirectToDashboard({ success: dueDate ? `Due date set to ${dueDate}.` : "Due date cleared." });
 }

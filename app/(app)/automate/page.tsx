@@ -49,7 +49,7 @@ export default async function AutomatePage() {
 
   const { data: draftsData } = await supabase
     .from("email_drafts")
-    .select("id, subject, body_html, created_at, clients(name, email)")
+    .select("id, subject, body_html, created_at, action_type, action_payload, clients(name, email)")
     .eq("organization_id", member?.organization_id)
     .eq("status", "draft")
     .order("created_at", { ascending: false });
@@ -62,15 +62,17 @@ export default async function AutomatePage() {
       subject: d.subject,
       body_html: d.body_html,
       created_at: d.created_at,
+      action_type: d.action_type,
+      action_payload: d.action_payload,
       clients: client as { name: string; email: string }
     };
   });
 
   const { data: sentData } = await supabase
     .from("email_drafts")
-    .select("id, subject, body_html, sent_at, clients(name, email)")
+    .select("id, subject, body_html, sent_at, status, clients(name, email)")
     .eq("organization_id", member?.organization_id)
-    .eq("status", "sent")
+    .in("status", ["sent", "failed"])
     .order("sent_at", { ascending: false })
     .limit(30);
 
@@ -82,6 +84,7 @@ export default async function AutomatePage() {
       subject: d.subject,
       body_html: d.body_html,
       sent_at: d.sent_at,
+      status: d.status,
       clients: client as { name: string; email: string }
     };
   });

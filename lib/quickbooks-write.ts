@@ -8,7 +8,8 @@ export async function createQuickBooksLateFeeInvoice(
   originalInvoiceNumber: string,
   feeAmount: number,
   contactName: string,
-  email: string
+  email: string,
+  dueDate?: string
 ) {
   const supabase = createSupabaseAdminClient();
   const { data: rawIntegration } = await supabase.from("integrations").select("*").eq("organization_id", organizationId).eq("provider", "quickbooks").single();
@@ -61,7 +62,7 @@ export async function createQuickBooksLateFeeInvoice(
     }
   }
 
-  const newInvoice = {
+  const newInvoice: Record<string, unknown> = {
     CustomerRef: {
       value: customerRef
     },
@@ -85,6 +86,10 @@ export async function createQuickBooksLateFeeInvoice(
     ]
   };
 
+  if (dueDate) {
+    newInvoice.DueDate = dueDate;
+  }
+
   const createUrl = new URL(`${baseUrl}/v3/company/${integration.realm_id}/invoice`);
   createUrl.searchParams.set("minorversion", "65");
 
@@ -103,109 +108,4 @@ export async function createQuickBooksLateFeeInvoice(
   return createData.Invoice?.Id || null;
 }
 
-export async function updateQuickBooksInvoiceWithLateFee(
-  organizationId: string,
-  invoiceId: string,
-  feeAmount: number
-) {
-  const supabase = createSupabaseAdminClient();
-  const { data: rawIntegration } = await supabase.from("integrations").select("*").eq("organization_id", organizationId).eq("provider", "quickbooks").single();
-  
-  if (!rawIntegration || !rawIntegration.realm_id) return null;
 
-  const integration = await getValidQuickBooksTokens(rawIntegration as QuickBooksIntegrationRow);
-
-  const baseUrl = await getApiBaseUrl();
-  // 1. Fetch the existing invoice from QuickBooks
-  const url = new URL(`${baseUrl}/v3/company/${integration.realm_id}/invoice/${invoiceId}`);
-  url.searchParams.set("minorversion", "65");
-
-  const response = await fetch(url.toString(), {
-    headers: {
-      "Accept": "application/json",
-      "Authorization": `Bearer ${integration.access_token}`,
-    },
-  });
-
-  if (!response.ok) return null;
-  const data = await response.json();
-  const invoice = data.Invoice;
-  if (!invoice) return null;
-
-  // We need a valid ItemRef to add a line item in QB
-  const itemQuery = `select * from Item where Type='Service' maxresults 1`;
-  const itemUrl = new URL(`${baseUrl}/v3/company/${integration.realm_id}/query`);
-  itemUrl.searchParams.set("query", itemQuery);
-  itemUrl.searchParams.set("minorversion", "65");
-  const itemRes = await fetch(itemUrl.toString(), {
-    headers: { "Accept": "application/json", "Authorization": `Bearer ${integration.access_token}` },
-  });
-  let itemRefId = "1"; // Fallback
-  let itemRefName = "Services";
-  if (itemRes.ok) {
-    const itemData = await itemRes.json();
-    if (itemData.QueryResponse?.Item && itemData.QueryResponse.Item.length > 0) {
-      itemRefId = itemData.QueryResponse.Item[0].Id;
-      itemRefName = itemData.QueryResponse.Item[0].Name;
-    }
-  }
-
-  // 2. Append late fee line item
-  const newLineItem = {
-    Amount: feeAmount,
-    DetailType: "SalesItemLineDetail",
-    SalesItemLineDetail: {
-      ItemRef: {
-        value: itemRefId,
-        name: itemRefName
-      },
-      UnitPrice: feeAmount,
-      Qty: 1,
-      TaxCodeRef: {
-        value: "NON"
-      }
-    },
-    Description: "Late Payment Fee"
-  };
-
-  // QB requires SyncToken to update an entity
-  const updatePayload = {
-    sparse: true,
-    Id: invoice.Id,
-    SyncToken: invoice.SyncToken,
-    TxnTaxDetail: invoice.TxnTaxDetail,
-    Line: [
-      ...(invoice.Line || []).filter((l: Record<string, unknown>) => l.DetailType !== "SubTotalLineDetail").map((l: Record<string, unknown>) => ({
-        Id: l.Id,
-        LineNum: l.LineNum,
-        Amount: l.Amount,
-        DetailType: l.DetailType,
-        [l.DetailType as string]: l[l.DetailType as string],
-        Description: l.Description
-      })),
-      newLineItem
-    ]
-  };
-
-  const updateUrl = new URL(`${baseUrl}/v3/company/${integration.realm_id}/invoice`);
-  updateUrl.searchParams.set("minorversion", "65");
-
-  const updateResponse = await fetch(updateUrl.toString(), {
-    method: "POST",
-    headers: {
-      "Accept": "application/json",
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${integration.access_token}`,
-    },
-    body: JSON.stringify(updatePayload)
-  });
-
-  if (!updateResponse.ok) {
-    const errorText = await updateResponse.text();
-    console.error("QB Update Error:", errorText);
-    return null;
-  }
-  
-  const updateData = await updateResponse.json();
-  return updateData.Invoice?.Id || null;
-}

@@ -285,6 +285,7 @@ export type LateFeePolicy = {
   fee_type: "flat" | "percentage";
   fee_value: number;
   grace_period_days: number;
+  due_days: number;
   frequency: "once" | "weekly" | "monthly";
   apply_to: "existing_invoice" | "new_invoice";
   included_group_ids: string[];

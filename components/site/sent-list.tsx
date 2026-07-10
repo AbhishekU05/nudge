@@ -10,6 +10,7 @@ type SentEmail = {
   subject: string;
   body_html: string;
   sent_at: string | null;
+  status?: string;
   clients: { name: string; email: string };
 };
 
@@ -57,6 +58,11 @@ export function SentList({ sentEmails }: { sentEmails: SentEmail[] }) {
                       <span className="text-xs text-zinc-500 hidden sm:inline-block">
                         ({email.clients?.email || "No email"})
                       </span>
+                      {email.status === 'failed' && (
+                        <span className="ml-2 inline-flex items-center rounded-full bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-400 border border-red-500/20">
+                          Failed
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-zinc-400 truncate max-w-[300px] sm:max-w-[400px]">
                       {email.subject}

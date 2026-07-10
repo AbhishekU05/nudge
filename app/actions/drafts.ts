@@ -18,7 +18,7 @@ async function getOrganizationId(userId: string): Promise<string | null> {
   return data?.organization_id ?? null;
 }
 
-export async function approveDraft(draftId: string, overrides?: { subject: string; body_html: string }) {
+export async function approveDraft(draftId: string, overrides?: { subject?: string; body_html?: string; action_payload?: Record<string, unknown> }) {
   const user = await requireUser();
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) return { error: "No organization found." };
@@ -37,6 +37,7 @@ export async function approveDraft(draftId: string, overrides?: { subject: strin
 
   const finalSubject = overrides?.subject || draft.subject;
   const finalBody = overrides?.body_html || draft.body_html;
+  const finalPayload = overrides?.action_payload ? { ...(draft.action_payload as Record<string, unknown>), ...overrides.action_payload } : (draft.action_payload as Record<string, unknown>);
 
   const { data: { user: currentUser } } = await supabase.auth.getUser();
   const senderName = currentUser?.user_metadata?.full_name || "Someone";
@@ -47,15 +48,16 @@ export async function approveDraft(draftId: string, overrides?: { subject: strin
 
   try {
     if (draft.action_type === "late_fee") {
-      const payload = draft.action_payload as Record<string, string | number>;
+      const payload = finalPayload as Record<string, string | number>;
       await inngest.send({
         name: "invoice.apply_late_fee",
         data: {
-          invoiceId: payload.invoice_id,
-          policyId: payload.policy_id,
+          invoiceId: payload.invoice_id as string,
+          policyId: payload.policy_id as string,
           organizationId: organizationId,
-          adminUserId: payload.admin_user_id,
-          feeAmount: payload.fee_amount,
+          adminUserId: payload.admin_user_id as string,
+          feeAmount: Number(payload.fee_amount),
+          dueDate: payload.due_date ? String(payload.due_date) : undefined,
           subject: finalSubject,
           body_html: finalBody
         }
@@ -78,7 +80,7 @@ export async function approveDraft(draftId: string, overrides?: { subject: strin
 
     await supabase
       .from("email_drafts")
-      .update({ status: "sent", sent_at: new Date().toISOString(), subject: finalSubject, body_html: finalBody })
+      .update({ status: "sent", sent_at: new Date().toISOString(), subject: finalSubject, body_html: finalBody, action_payload: finalPayload })
       .eq("id", draftId);
 
     logger.action({ action_name: "approve_draft", user_id: user.id, success: true });
@@ -90,16 +92,21 @@ export async function approveDraft(draftId: string, overrides?: { subject: strin
   }
 }
 
-export async function updateDraftContent(draftId: string, subject: string, body_html: string) {
+export async function updateDraftContent(draftId: string, subject: string, body_html: string, action_payload?: Record<string, unknown>) {
   const user = await requireUser();
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) return { error: "No organization found." };
 
   const supabase = await createSupabaseServerClient();
 
+  const updateData: Record<string, unknown> = { subject, body_html };
+  if (action_payload) {
+    updateData.action_payload = action_payload;
+  }
+
   const { error } = await supabase
     .from("email_drafts")
-    .update({ subject, body_html })
+    .update(updateData)
     .eq("id", draftId)
     .eq("organization_id", organizationId);
 

@@ -108,7 +108,7 @@ export function LateFeeManager({
               <div className="flex gap-4">
                 <div>
                   <span className="font-medium text-zinc-300">Applies to:</span>{" "}
-                  {policy.apply_to === "existing_invoice" ? "Existing Invoices" : "New Invoices Only"}
+                  New Invoices Only
                 </div>
                 {policy.included_group_ids && policy.included_group_ids.length > 0 && (
                   <div>
@@ -277,6 +277,21 @@ function PolicyForm({
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="due_days">Late Fee Invoice Due (Days)</Label>
+              <Input 
+                id="due_days" 
+                name="due_days" 
+                type="number" 
+                min="0"
+                defaultValue={policy?.due_days || 0} 
+                required 
+                className="bg-black/20 border-white/10"
+              />
+              <p className="text-xs text-zinc-500">Days until the generated late fee is due (0 = due today).</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
               <Label htmlFor="frequency">Frequency</Label>
               <select 
                 id="frequency" 
@@ -289,20 +304,7 @@ function PolicyForm({
                 <option value="monthly">Apply Monthly</option>
               </select>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="apply_to">Apply To</Label>
-            <select 
-              id="apply_to" 
-              name="apply_to" 
-              defaultValue={policy?.apply_to || "existing_invoice"}
-              className="flex h-10 w-full items-center justify-between rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="existing_invoice">All Applicable Invoices</option>
-              <option value="new_invoice">Only New Invoices created after today</option>
-            </select>
-          </div>
 
           {/* Auto Approve Toggle */}
           <div className="space-y-2">

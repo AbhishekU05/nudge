@@ -27,9 +27,11 @@ function processTemplate(template: Template, vars: Record<string, string>) {
 export const automationWorkflow = inngest.createFunction(
   {
     id: "automation-workflow",
+    triggers: [{ event: "automation.enabled" }],
     cancelOn: [
       { event: "automation.disabled", match: "data.entityId" },
       { event: "invoice.paid", match: "data.entityId" }, // For invoice-level workflows
+      { event: "invoice.due_date_updated", match: "data.entityId" },
     ],
   },
   async ({ event, step }) => {
