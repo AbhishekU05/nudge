@@ -4,7 +4,7 @@
  * Automation is a separate, optional step (/reminders/new?customer_id=...).
  */
 import Link from "next/link";
-import { ArrowLeft, UserPlus } from "lucide-react";
+import { ArrowLeft, UserPlus, AlertTriangle } from "lucide-react";
 
 import { createCustomer } from "@/app/actions/customers";
 import { Container } from "@/components/site/container";
@@ -57,6 +57,15 @@ export default async function NewCustomerPage({
     profile?.razorpay_renews_at
   );
 
+  const { data: integrations } = await supabase
+    .from("integrations")
+    .select("provider")
+    .in("provider", ["xero", "quickbooks"])
+    .limit(1);
+    
+  const accountingProvider = integrations?.[0]?.provider;
+  const providerName = accountingProvider === "xero" ? "Xero" : accountingProvider === "quickbooks" ? "QuickBooks" : null;
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
@@ -105,6 +114,22 @@ export default async function NewCustomerPage({
                     <Link href="/settings/billing">
                       <Button>Open billing</Button>
                     </Link>
+                  </CardContent>
+                </Card>
+              )}
+
+              {providerName && (
+                <Card className="border-blue-500/20 bg-blue-500/10">
+                  <CardContent className="flex gap-4 p-5">
+                    <AlertTriangle className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-blue-100">
+                        {providerName} is connected
+                      </p>
+                      <p className="mt-1 text-sm leading-6 text-blue-100/70">
+                        You have integrated with {providerName}. Invoices created manually here <strong>will not sync</strong> up to your accounting software. We recommend creating all primary invoices directly in {providerName} and letting them sync to Duely automatically.
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               )}
