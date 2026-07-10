@@ -232,6 +232,10 @@ function PipelineSection({
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const [page, setPage] = useState(1);
+  const pageSize = 30;
+  
+  const displayedCustomers = customers.slice(0, page * pageSize);
 
   if (customers.length === 0) return null;
 
@@ -259,9 +263,18 @@ function PipelineSection({
       </button>
       {open && (
         <div className="space-y-2">
-          {customers.map((c) => (
+          {displayedCustomers.map((c) => (
             <CustomerCard key={c.id} customer={c} onOpen={onOpen} />
           ))}
+          {displayedCustomers.length < customers.length && (
+            <Button
+              variant="ghost"
+              className="w-full text-zinc-400 mt-2 border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:text-zinc-200"
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Load more ({customers.length - displayedCustomers.length} remaining)
+            </Button>
+          )}
         </div>
       )}
     </div>

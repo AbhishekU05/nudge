@@ -1,4 +1,4 @@
-import { UserRound, ArrowRight } from "lucide-react";
+import { UserRound, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Container } from "@/components/site/container";
 import { Button } from "@/components/ui/button";
@@ -97,6 +97,13 @@ export default async function CustomersPage({
 
   const activeGroup = groupId ? groupsList.find((g) => g.id === groupId) : null;
 
+  const page = parseInt(params?.page as string || "1", 10);
+  const pageSize = 30;
+  const totalCustomers = clientsWithData.length;
+  const totalPages = Math.ceil(totalCustomers / pageSize);
+  
+  const displayedClients = clientsWithData.slice((page - 1) * pageSize, page * pageSize);
+
   return (
     <div className="flex min-h-screen flex-col">
       <main id="main-content" className="flex-1">
@@ -140,14 +147,14 @@ export default async function CustomersPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
-                {clientsWithData.length === 0 ? (
+                {displayedClients.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="p-8 text-center text-zinc-500">
                       No customers found. Sync from Xero/Quickbooks or add one manually.
                     </td>
                   </tr>
                 ) : (
-                  clientsWithData.map(({ id, name, totalOwed, totalPaid, currency }) => {
+                  displayedClients.map(({ id, name, totalOwed, totalPaid, currency }) => {
                     const formattedTotal = new Intl.NumberFormat(undefined, {
                       style: "currency",
                       currency
@@ -188,6 +195,26 @@ export default async function CustomersPage({
               </tbody>
             </table>
           </div>
+
+          {totalPages > 1 && (
+            <div className="mt-4 flex items-center justify-between px-2 text-sm text-zinc-400">
+              <div>
+                Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalCustomers)} of {totalCustomers} customers
+              </div>
+              <div className="flex items-center gap-2">
+                <Link href={`/customers?page=${page - 1}${groupId ? `&groupId=${groupId}` : ''}`}>
+                  <Button variant="secondary" size="sm" disabled={page <= 1} className="h-8 border-white/10 bg-transparent text-zinc-300 hover:bg-white/[0.05]">
+                    <ChevronLeft className="h-4 w-4 mr-1" /> Prev
+                  </Button>
+                </Link>
+                <Link href={`/customers?page=${page + 1}${groupId ? `&groupId=${groupId}` : ''}`}>
+                  <Button variant="secondary" size="sm" disabled={page >= totalPages} className="h-8 border-white/10 bg-transparent text-zinc-300 hover:bg-white/[0.05]">
+                    Next <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          )}
         </Container>
       </main>
     </div>
