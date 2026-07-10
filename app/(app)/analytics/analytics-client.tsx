@@ -40,8 +40,11 @@ interface AnalyticsData {
     this_month_paid_count: number;
     this_month_outstanding_count: number;
     this_month_overdue_count: number;
+    collection_rate: number;
+    avg_days_overdue: number;
   };
   topOffenders: Array<{ name: string; amount: number; days: number }>;
+  worstClient: { name: string; days: number } | null;
   agingBuckets: {
     bucket_1_30: number;
     bucket_31_60: number;
@@ -90,17 +93,10 @@ export function AnalyticsClient({
     );
   }
 
-  const { stats, topOffenders, agingBuckets, forecastBuckets, revenue, monthlyCollections, monthlyFollowups } = data;
+  const { stats, topOffenders, worstClient, agingBuckets, forecastBuckets, revenue, monthlyCollections, monthlyFollowups } = data;
 
-  const collectionRate =
-    stats.total_collected + stats.total_outstanding > 0
-      ? (stats.total_collected / (stats.total_collected + stats.total_outstanding)) * 100
-      : 0;
-
-  const avgDaysOverdue =
-    stats.overdue_count > 0
-      ? Math.round(stats.total_days_overdue / stats.overdue_count)
-      : 0;
+  const collectionRate = stats.collection_rate;
+  const avgDaysOverdue = stats.avg_days_overdue;
 
   const agingData = [
     { name: "1-30 Days", amount: agingBuckets.bucket_1_30 },
@@ -120,10 +116,6 @@ export function AnalyticsClient({
     { name: "Outstanding", value: stats.this_month_outstanding_count, color: "#3b82f6" },
     { name: "Overdue", value: stats.this_month_overdue_count, color: "#ef4444" },
   ].filter((d) => d.value > 0);
-
-  const worstClient = topOffenders.length > 0
-    ? [...topOffenders].sort((a, b) => b.days - a.days)[0]
-    : null;
 
   return (
     <div className="space-y-6">
