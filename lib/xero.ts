@@ -275,19 +275,14 @@ export async function getXeroIntegrationByTenant(tenantId: string) {
 
 
 export async function fetchXeroInvoice(xero: XeroClient, tenantId: string, invoiceId: string) {
+  // Deliberately does NOT also fetch getOnlineInvoice (the hosted payment
+  // link) here — that's a separate Xero API call this function used to make
+  // on every single webhook-triggered sync, whether or not anyone was about
+  // to look at the link. The client portal (app/portal/[token]/page.tsx)
+  // already fetches and caches it lazily, only when a client actually opens
+  // the portal for an invoice that doesn't have one yet.
   const response = await xero.accountingApi.getInvoice(tenantId, invoiceId);
-  const invoice = response.body.invoices?.[0];
-  if (invoice) {
-    try {
-      const onlineRes = await xero.accountingApi.getOnlineInvoice(tenantId, invoiceId);
-      if (onlineRes.body.onlineInvoices && onlineRes.body.onlineInvoices.length > 0) {
-        (invoice as Record<string, unknown>).onlineInvoiceUrl = onlineRes.body.onlineInvoices[0].onlineInvoiceUrl;
-      }
-    } catch (e) {
-      // Ignored - online invoice might not be available
-    }
-  }
-  return invoice;
+  return response.body.invoices?.[0];
 }
 
 export async function fetchXeroPayment(xero: XeroClient, tenantId: string, paymentId: string) {

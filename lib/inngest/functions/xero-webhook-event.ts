@@ -136,6 +136,11 @@ async function upsertInvoice(
 
   const status = getWorkflowStatus(invoice);
 
+  // payment_link is deliberately omitted here: it's only ever populated
+  // lazily by the client portal (on first access, if missing), not fetched
+  // proactively on every webhook sync. Omitting the key (rather than setting
+  // it to null) means an .update() below leaves an existing portal-fetched
+  // link untouched instead of wiping it out on the next webhook event.
   const payload = {
     organization_id: organizationId,
     client_id: clientRecord.id,
@@ -146,7 +151,6 @@ async function upsertInvoice(
     xero_id: invoice.invoiceID,
     invoice_number: invoice.invoiceNumber || null,
     reference: invoice.reference || null,
-    payment_link: (invoice as Record<string, unknown>).onlineInvoiceUrl as string | null,
     updated_at: new Date().toISOString(),
   };
 
