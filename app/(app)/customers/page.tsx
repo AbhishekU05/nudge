@@ -1,4 +1,4 @@
-import { UserRound, ArrowRight, ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from "lucide-react";
+import { UserRound, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Container } from "@/components/site/container";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,8 @@ import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { GroupRecord } from "@/lib/types";
 import { GroupsManager } from "./components/groups-manager";
-import { CustomerGroupsAssigner } from "./components/customer-groups-assigner";
 import { CurrencySelector } from "@/components/site/currency-selector";
+import { CustomersTable } from "./customers-table";
 
 export default async function CustomersPage({
   searchParams,
@@ -109,7 +109,13 @@ export default async function CustomersPage({
 
   const customerGroupsList = customerGroupsData || [];
 
-
+  // Precomputed here (not in the client component) because functions like
+  // buildUrl can't cross the server → client boundary — only plain data can.
+  const sortHrefs = {
+    name: buildUrl({ sort: "name", dir: sortBy === "name" && sortDir === "asc" ? "desc" : "asc", page: "1" }),
+    total_paid: buildUrl({ sort: "total_paid", dir: sortBy === "total_paid" && sortDir === "asc" ? "desc" : "asc", page: "1" }),
+    total_owed: buildUrl({ sort: "total_owed", dir: sortBy === "total_owed" && sortDir === "asc" ? "desc" : "asc", page: "1" }),
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -144,80 +150,14 @@ export default async function CustomersPage({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-zinc-900/50 overflow-hidden">
-            <table className="w-full text-left text-sm text-zinc-400">
-              <thead className="bg-white/[0.02] border-b border-white/10">
-                <tr>
-                  <th className="px-4 py-3 font-medium text-zinc-300">
-                    <Link href={buildUrl({ sort: "name", dir: sortBy === "name" && sortDir === "asc" ? "desc" : "asc", page: "1" })} className="inline-flex items-center gap-1 hover:text-zinc-100 transition-colors">
-                      Name
-                      {sortBy === "name" && (sortDir === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />)}
-                    </Link>
-                  </th>
-                  <th className="px-4 py-3 font-medium text-zinc-300 text-right">
-                    <Link href={buildUrl({ sort: "total_paid", dir: sortBy === "total_paid" && sortDir === "asc" ? "desc" : "asc", page: "1" })} className="inline-flex items-center gap-1 justify-end hover:text-zinc-100 transition-colors">
-                      Total Paid
-                      {sortBy === "total_paid" && (sortDir === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />)}
-                    </Link>
-                  </th>
-                  <th className="px-4 py-3 font-medium text-zinc-300 text-right">
-                    <Link href={buildUrl({ sort: "total_owed", dir: sortBy === "total_owed" && sortDir === "asc" ? "desc" : "asc", page: "1" })} className="inline-flex items-center gap-1 justify-end hover:text-zinc-100 transition-colors">
-                      Total Owed
-                      {sortBy === "total_owed" && (sortDir === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />)}
-                    </Link>
-                  </th>
-                  <th className="px-4 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
-                {displayedClients.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="p-8 text-center text-zinc-500">
-                      No customers found. Sync from Xero/Quickbooks or add one manually.
-                    </td>
-                  </tr>
-                ) : (
-                  displayedClients.map(({ id, name, total_owed, total_paid, currency }) => {
-                    const formattedTotal = new Intl.NumberFormat(undefined, {
-                      style: "currency",
-                      currency
-                    }).format(total_owed);
-
-                    const formattedPaid = new Intl.NumberFormat(undefined, {
-                      style: "currency",
-                      currency
-                    }).format(total_paid);
-
-                    const assignedGroupIds = customerGroupsList
-                      .filter((cg: Record<string, unknown>) => cg.customer_id === id)
-                      .map((cg: Record<string, unknown>) => cg.group_id as string);
-
-                    return (
-                      <tr key={id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="px-4 py-4 align-top">
-                          <div className="font-medium text-zinc-200 mb-1.5">{name}</div>
-                          <CustomerGroupsAssigner 
-                            customerId={id} 
-                            allGroups={groupsList} 
-                            assignedGroupIds={assignedGroupIds} 
-                          />
-                        </td>
-                        <td className="px-4 py-4 text-right align-top font-medium text-zinc-200">{formattedPaid}</td>
-                        <td className="px-4 py-4 text-right align-top font-medium text-zinc-200">{formattedTotal}</td>
-                        <td className="px-4 py-4 text-right align-top">
-                          <Link href={`/customers/${id}`}>
-                            <Button variant="ghost" size="sm" className="h-8 gap-1 text-zinc-400 hover:text-zinc-100">
-                              View <ArrowRight className="h-3.5 w-3.5" />
-                            </Button>
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+          <CustomersTable
+            clients={displayedClients}
+            customerGroupsList={customerGroupsList}
+            groupsList={groupsList}
+            sortBy={sortBy}
+            sortDir={sortDir}
+            sortHrefs={sortHrefs}
+          />
 
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between px-2 text-sm text-zinc-400">
