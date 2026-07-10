@@ -61,8 +61,6 @@ SELECT
   COALESCE((SELECT SUM(amount) FROM applied_late_fees WHERE invoice_id = i.id), 0) as late_fees_amount,
   i.currency,
   i.due_date,
-  i.promised_date,
-  i.client_paid_at,
   i.status as workflow_status,
   i.created_at,
   i.updated_at,
