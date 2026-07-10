@@ -16,7 +16,7 @@ export default async function GeneralSettingsPage() {
   );
 
   const supabase = await createSupabaseServerClient();
-  const { data: profile } = await supabase.from("profiles").select("timezone, weekly_digest_enabled, full_name").eq("user_id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select("weekly_digest_enabled, full_name").eq("user_id", user.id).single();
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">

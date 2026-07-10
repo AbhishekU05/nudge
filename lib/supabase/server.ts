@@ -1,11 +1,19 @@
 import "server-only";
 
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/env";
 
-export async function createSupabaseServerClient() {
+// Cached per request: without this, every independent call (root layout,
+// page, any nested component) constructs its own client from the same
+// cookies. If the access token has expired, those separate instances can
+// each try to refresh using the same (single-use, rotating) refresh token
+// at the same moment — only one succeeds, the rest get rejected/rate-limited
+// by Supabase auth. Reusing one instance per request means only one refresh
+// ever happens.
+export const createSupabaseServerClient = cache(async () => {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -31,4 +39,4 @@ export async function createSupabaseServerClient() {
       },
     },
   );
-}
+});
