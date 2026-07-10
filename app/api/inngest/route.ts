@@ -8,6 +8,8 @@ import { processLateFee } from "@/lib/inngest/functions/process-late-fee";
 import { xeroInitialSync } from "@/lib/inngest/functions/xero-initial-sync";
 import { xeroBatchSync } from "@/lib/inngest/functions/xero-batch-sync";
 import { pruneData } from "@/lib/inngest/functions/prune-data";
+import { xeroWebhookEvent } from "@/lib/inngest/functions/xero-webhook-event";
+import { quickbooksWebhookEvent } from "@/lib/inngest/functions/quickbooks-webhook-event";
 
 export const maxDuration = 300;
 
@@ -22,5 +24,7 @@ export const { GET, POST, PUT } = serve({
     xeroInitialSync,
     xeroBatchSync,
     pruneData,
+    xeroWebhookEvent,
+    quickbooksWebhookEvent,
   ],
 });
