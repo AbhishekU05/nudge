@@ -8,6 +8,19 @@ import { GroupRecord } from "@/lib/types";
 import { GroupsManager } from "./components/groups-manager";
 import { CurrencySelector } from "@/components/site/currency-selector";
 import { CustomersTable } from "./customers-table";
+import { CustomerSearchInput } from "./customer-search-input";
+
+// The real security boundary: Supabase's query builder parameterizes values
+// rather than concatenating raw SQL, so classic SQL injection isn't possible
+// via .ilike()/.or() here regardless of input. This sanitizer instead guards
+// the adjacent risk that's actually relevant to this query mechanism — a
+// user's input altering the .or() filter expression itself (`,` `(` `)` are
+// PostgREST filter-grammar syntax) or hijacking the LIKE wildcard (`%` `_`)
+// to match more than intended. Applied server-side regardless of what the
+// client sends; the client-side version in CustomerSearchInput is UX only.
+function sanitizeSearchTerm(raw: string): string {
+  return raw.trim().slice(0, 100).replace(/[%_,()]/g, "");
+}
 
 export default async function CustomersPage({
   searchParams,
@@ -40,9 +53,13 @@ export default async function CustomersPage({
     : "name";
   const sortDir: "asc" | "desc" = params?.dir === "desc" ? "desc" : "asc";
 
+  // Search — sanitized server-side regardless of what the client sends.
+  const rawSearch = (params?.q as string | undefined) || "";
+  const searchTerm = sanitizeSearchTerm(rawSearch);
+
   // Builds a /customers URL carrying every param that should survive
-  // navigation (page, currency, group, sort), overridden by whatever's passed.
-  function buildUrl(overrides: Partial<Record<"page" | "currency" | "groupId" | "sort" | "dir", string>>) {
+  // navigation (page, currency, group, sort, search), overridden by whatever's passed.
+  function buildUrl(overrides: Partial<Record<"page" | "currency" | "groupId" | "sort" | "dir" | "q", string>>) {
     const next = new URLSearchParams();
     const merged = {
       page: String(page),
@@ -50,6 +67,7 @@ export default async function CustomersPage({
       groupId: groupId,
       sort: sortBy,
       dir: sortDir,
+      q: searchTerm,
       ...overrides,
     };
     for (const [key, value] of Object.entries(merged)) {
@@ -77,6 +95,12 @@ export default async function CustomersPage({
     .select("id, name, email, company_name, created_at, organization_id, currency, total_owed, total_paid", { count: "exact" })
     .eq("currency", selectedCurrency)
     .order(sortBy, { ascending: sortDir === "asc" });
+
+  if (searchTerm) {
+    clientQuery = clientQuery.or(
+      `name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,company_name.ilike.%${searchTerm}%`
+    );
+  }
 
   if (groupId) {
     const { data: cgData } = await supabase
@@ -148,6 +172,10 @@ export default async function CustomersPage({
                 </Button>
               </Link>
             </div>
+          </div>
+
+          <div className="mb-4">
+            <CustomerSearchInput defaultValue={searchTerm} />
           </div>
 
           <CustomersTable
