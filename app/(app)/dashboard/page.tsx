@@ -49,6 +49,7 @@ export default async function DashboardPage(props: {
     created_at: string;
     note: string | null;
     client_name: string | null;
+    amount: number | null;
   }
   interface DashboardPipelineData {
     pipelines?: Record<"overdue" | "outstanding" | "paid", { rows: CustomerRecord[]; count: number }>;
@@ -96,7 +97,7 @@ export default async function DashboardPage(props: {
     event_type: e.event_type,
     event_date: e.created_at,
     created_at: e.created_at,
-    amount: null as number | null,
+    amount: e.amount,
     followup_method: null as string | null,
     note: e.note,
     clients: { name: e.client_name ?? undefined },
