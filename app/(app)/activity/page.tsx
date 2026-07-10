@@ -13,66 +13,36 @@ export default async function ActivityPage(props: { searchParams?: Promise<{ pag
   const to = from + pageSize - 1;
   const supabase = await createSupabaseServerClient();
 
-  const [eventsRes, paymentsRes] = await Promise.all([
-    supabase
-      .from("events")
-      .select("*, invoices(invoice_number, clients(name)), clients(name)")
-      .order("created_at", { ascending: false })
-      .range(from, to),
-    supabase
-      .from("payments")
-      .select("*, invoices(invoice_number, clients(name))")
-      .order("created_at", { ascending: false })
-      .range(from, to)
-  ]);
+  // Single ordered source (events + payments unioned in the activity_feed view,
+  // RLS-scoped) so pagination returns exactly the right window with no gaps.
+  const { data: feedRows, count, error } = await supabase
+    .from("activity_feed")
+    .select("*", { count: "exact" })
+    .order("event_date", { ascending: false })
+    .range(from, to);
 
-  if (eventsRes.error) console.error("Error fetching activity events:", eventsRes.error);
-  if (paymentsRes.error) console.error("Error fetching activity payments:", paymentsRes.error);
+  if (error) console.error("Error fetching activity feed:", error);
 
-  const mappedEvents = [
-    ...(eventsRes.data || []).map((e: Record<string, string | null | number | undefined | Record<string, unknown>>) => ({
-      id: String(e.id),
-      invoice_id: String(e.invoice_id),
-      raw_invoice_id: e.invoice_id,
-      raw_client_id: e.client_id,
-      customer_id: String(e.invoice_id || e.client_id), 
-      user_id: String(e.user_id || ""),
-      event_type: String(e.event_type),
-      event_date: String(e.created_at),
-      created_at: String(e.created_at),
-      amount: null,
-      currency: null,
-      payment_source: null,
-      followup_method: null,
-      followup_outcome: null,
-      note: String(e.description || ""),
-      clients: e.clients,
-      invoices: e.invoices
-    })),
-    ...(paymentsRes.data || []).map((p: Record<string, string | null | number | undefined | Record<string, unknown>>) => {
-      const inv = p.invoices as { clients?: Record<string, unknown> } | undefined;
-      return {
-      id: String(p.id),
-      invoice_id: String(p.invoice_id),
-      raw_invoice_id: p.invoice_id,
-      raw_client_id: null,
-      customer_id: String(p.invoice_id), 
-      user_id: String(p.user_id || ""),
-      event_type: "payment",
-      event_date: String(p.payment_date || p.created_at),
-      created_at: String(p.created_at),
-      amount: p.amount,
-      currency: p.currency,
-      payment_source: p.payment_source || null,
-      followup_method: null,
-      followup_outcome: null,
-      note: null,
-      clients: inv?.clients,
-      invoices: p.invoices
-    }}),
-  ].sort((a, b) => new Date(b.event_date || b.created_at).getTime() - new Date(a.event_date || a.created_at).getTime()).slice(0, pageSize);
+  const mappedEvents = (feedRows || []).map((r: Record<string, unknown>) => ({
+    id: String(r.id),
+    invoice_id: String(r.invoice_id || ""),
+    raw_invoice_id: r.invoice_id,
+    raw_client_id: r.client_id,
+    customer_id: String(r.invoice_id || r.client_id || ""),
+    event_type: String(r.event_type),
+    event_date: String(r.event_date),
+    created_at: String(r.created_at),
+    amount: r.amount,
+    currency: r.currency,
+    payment_source: r.payment_source || null,
+    followup_method: null,
+    followup_outcome: null,
+    note: r.note || null,
+    clients: { name: r.client_name },
+    invoices: { invoice_number: r.invoice_number },
+  }));
 
-  const hasMore = (eventsRes.data?.length === pageSize) || (paymentsRes.data?.length === pageSize);
+  const hasMore = count !== null ? to + 1 < count : (feedRows?.length === pageSize);
 
   return (
     <div className="flex min-h-screen flex-col">

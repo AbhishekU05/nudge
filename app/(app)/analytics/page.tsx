@@ -12,21 +12,13 @@ export default async function AnalyticsPage(props: {
   await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  // Fetch unique currencies for the selector — lightweight, just 1 column
-  const { data: currencyRows } = await supabase
-    .from("invoices")
-    .select("currency")
-    .not("currency", "is", null);
-
-  const uniqueCurrencies = Array.from(
-    new Set((currencyRows || []).map((r: any) => r.currency || "USD"))
-  ).sort() as string[];
-
-  if (!uniqueCurrencies.includes("USD")) uniqueCurrencies.unshift("USD");
-
-  const selectedCurrency =
-    searchParams?.currency ||
-    (uniqueCurrencies.includes("USD") ? "USD" : uniqueCurrencies[0] || "USD");
+  // Distinct currencies (RLS-scoped, aggregated in Postgres) drive the selector
+  // and the default: USD if the org has USD invoices, otherwise its first currency.
+  const { data: currencyData } = await supabase.rpc("get_invoice_currencies");
+  const orgCurrencies = (currencyData as string[] | null) || [];
+  const uniqueCurrencies = Array.from(new Set([...orgCurrencies, "USD"])).sort();
+  const defaultCurrency = orgCurrencies.includes("USD") ? "USD" : orgCurrencies[0] || "USD";
+  const selectedCurrency = searchParams?.currency || defaultCurrency;
 
   // Single RPC call — all heavy aggregation done in Postgres
   const { data: analyticsData, error } = await supabase.rpc(

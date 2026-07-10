@@ -82,17 +82,25 @@ function Notice({
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; success?: string; groupId?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; groupId?: string; currency?: string }>;
 }) {
   const user = await requireUser();
-  const { error, success, groupId } = await searchParams;
+  const { error, success, groupId, currency: urlCurrency } = await searchParams;
   const monthlyPrice = await getLocalizedMonthlyPrice();
 
   const supabase = await createSupabaseServerClient();
 
-  const [pipelineRes, orgMembersRes, xeroRes, qbRes, groupsRes] = await Promise.all([
+  // Distinct currencies (RLS-scoped) drive the selector and the default:
+  // USD if the org has USD invoices, otherwise its first currency.
+  const { data: currencyData } = await supabase.rpc("get_invoice_currencies");
+  const orgCurrencies = (currencyData as string[] | null) || [];
+  const uniqueCurrencies = Array.from(new Set([...orgCurrencies, "USD"])).sort();
+  const defaultCurrency = orgCurrencies.includes("USD") ? "USD" : orgCurrencies[0] || "USD";
+  const selectedCurrency = urlCurrency || defaultCurrency;
+
+  const [pipelineRes, orgMembersRes, groupsRes] = await Promise.all([
     supabase.rpc("get_invoices_pipeline", {
-      p_currency: (await searchParams as any).currency || "USD",
+      p_currency: selectedCurrency,
       p_group_id: groupId || null,
       p_bucket_limit: 30,
     }),
@@ -100,9 +108,7 @@ export default async function CustomersPage({
       .from("organization_members")
       .select("role, organizations(dodo_subscription_status, dodo_next_billing_date, created_at)")
       .eq("user_id", user.id)
-      .single(),
-    supabase.from("integration_xero").select("*").maybeSingle(),
-    supabase.from("integration_quickbooks").select("*").maybeSingle(),
+      .maybeSingle(),
     supabase.from("groups").select("*").order("name", { ascending: true }),
   ]);
 
@@ -117,18 +123,6 @@ export default async function CustomersPage({
   const totals = rpcData?.totals || {
     outstandingAmount: 0, overdueCount: 0, outstandingCount: 0, paidCount: 0, optedOutCount: 0,
   };
-
-  // Currency selector — derive from a quick distinct query or fall back to USD
-  const allCurrencies = [...new Set([
-    ...(rpcData?.overdue?.rows || []).map((r: any) => r.currency || "USD"),
-    ...(rpcData?.outstanding?.rows || []).map((r: any) => r.currency || "USD"),
-    ...(rpcData?.paid?.rows || []).map((r: any) => r.currency || "USD"),
-    "USD",
-  ])].sort() as string[];
-  const searchParamsAwaited = await searchParams;
-  const urlCurrency = (searchParamsAwaited as any).currency as string | undefined;
-  const selectedCurrency = urlCurrency || "USD";
-  const uniqueCurrencies = allCurrencies;
 
   // Active group label
   let activeGroup: any = null;

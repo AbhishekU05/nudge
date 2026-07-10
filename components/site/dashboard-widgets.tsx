@@ -26,7 +26,7 @@ function CustomTooltip({ active, payload, label, currency = "USD" }: any) {
   return null;
 }
 
-export function CollectionTrendWidget({ events, currency = "USD" }: { events: CustomerEvent[], currency?: string }) {
+export function CollectionTrendWidget({ events, data: monthlyData, currency = "USD" }: { events?: CustomerEvent[], data?: { month: string; amount: number }[], currency?: string }) {
   const now = new Date();
   const monthlyTotals: Record<string, number> = {};
 
@@ -37,15 +37,24 @@ export function CollectionTrendWidget({ events, currency = "USD" }: { events: Cu
     monthlyTotals[monthLabel] = 0;
   }
 
-  (events || []).forEach((event) => {
-    if (event.event_type === "payment" && event.amount) {
-      const d = new Date(event.event_date || event.created_at);
-      const monthLabel = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-      if (monthlyTotals[monthLabel] !== undefined) {
-        monthlyTotals[monthLabel] += Number(event.amount);
+  if (monthlyData) {
+    // Server-aggregated totals labeled 'Mon YYYY' — matches the scaffold labels above
+    monthlyData.forEach(({ month, amount }) => {
+      if (monthlyTotals[month] !== undefined) {
+        monthlyTotals[month] = Number(amount) || 0;
       }
-    }
-  });
+    });
+  } else {
+    (events || []).forEach((event) => {
+      if (event.event_type === "payment" && event.amount) {
+        const d = new Date(event.event_date || event.created_at);
+        const monthLabel = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+        if (monthlyTotals[monthLabel] !== undefined) {
+          monthlyTotals[monthLabel] += Number(event.amount);
+        }
+      }
+    });
+  }
 
   const data = Object.entries(monthlyTotals).map(([month, amount]) => ({
     month: month.split(" ")[0],

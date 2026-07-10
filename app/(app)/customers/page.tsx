@@ -4,7 +4,7 @@ import { Container } from "@/components/site/container";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ClientRecord, InvoiceRecord, getRemainingBalance, GroupRecord } from "@/lib/types";
+import { GroupRecord } from "@/lib/types";
 import { GroupsManager } from "./components/groups-manager";
 import { CustomerGroupsAssigner } from "./components/customer-groups-assigner";
 
@@ -32,17 +32,22 @@ export default async function CustomersPage({
   const groupsList = groupsData || [];
   const activeGroup = groupId ? groupsList.find((g) => g.id === groupId) : null;
 
-  // Build the DB query using the new view
-  let query = supabase.from("customer_balances").select("*", { count: 'exact' });
+  // Build query against `clients` directly — has proper RLS, no cross-org leaks
+  let clientQuery = supabase
+    .from("clients")
+    .select("id, name, email, company_name, created_at, organization_id", { count: "exact" })
+    .order("name", { ascending: true });
 
   if (groupId) {
-    // Filter by group
-    const { data: cgData } = await supabase.from("customer_groups").select("customer_id").eq("group_id", groupId);
-    const groupCustomerIds = cgData?.map(cg => cg.customer_id) || [];
+    const { data: cgData } = await supabase
+      .from("customer_groups")
+      .select("customer_id")
+      .eq("group_id", groupId);
+    const groupCustomerIds = cgData?.map((cg) => cg.customer_id) || [];
     if (groupCustomerIds.length > 0) {
-      query = query.in("id", groupCustomerIds);
+      clientQuery = clientQuery.in("id", groupCustomerIds);
     } else {
-      query = query.in("id", []); // empty
+      clientQuery = clientQuery.in("id", []);
     }
   }
 
@@ -50,21 +55,65 @@ export default async function CustomersPage({
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  const { data: clientsData, count } = await query
-    .order("total_owed", { ascending: false })
-    .range(from, to);
-
-  const displayedClients = clientsData || [];
+  const { data: clientsRaw, count } = await clientQuery.range(from, to);
+  const displayedClients = clientsRaw || [];
   const totalCustomers = count || 0;
   const totalPages = Math.ceil(totalCustomers / pageSize);
 
+  // Fetch invoice totals for only the 30 displayed clients
+  const displayedClientIds = displayedClients.map((c) => c.id);
+
+  const { data: invoiceRows } = displayedClientIds.length > 0
+    ? await supabase
+        .from("invoices")
+        .select("id, client_id, amount, status, currency, created_at")
+        .in("client_id", displayedClientIds)
+        .order("created_at", { ascending: false })
+    : { data: [] };
+
+  const invoiceIds = (invoiceRows || []).map((inv) => inv.id);
+  const { data: paymentRows } = invoiceIds.length > 0
+    ? await supabase
+        .from("payments")
+        .select("invoice_id, amount")
+        .in("invoice_id", invoiceIds)
+    : { data: [] };
+
+  const paidByInvoice: Record<string, number> = {};
+  for (const p of paymentRows || []) {
+    paidByInvoice[p.invoice_id] = (paidByInvoice[p.invoice_id] || 0) + (Number(p.amount) || 0);
+  }
+
+  // Build per-client totals in JS (only 30 clients × their invoices — small and safe).
+  // Currency comes from the client's most recent invoice (rows are ordered by created_at desc).
+  const totalsByClient: Record<string, { total_owed: number; total_paid: number; currency: string }> = {};
+  for (const inv of invoiceRows || []) {
+    if (!totalsByClient[inv.client_id]) {
+      totalsByClient[inv.client_id] = { total_owed: 0, total_paid: 0, currency: inv.currency || "USD" };
+    }
+    const paid = paidByInvoice[inv.id] || 0;
+    totalsByClient[inv.client_id].total_paid += paid;
+    if (inv.status !== "paid" && inv.status !== "written_off") {
+      totalsByClient[inv.client_id].total_owed += Math.max(0, (Number(inv.amount) || 0) - paid);
+    }
+  }
+
+  // Merge totals into displayed clients
+  const clientsData = displayedClients.map((c) => ({
+    ...c,
+    total_owed: totalsByClient[c.id]?.total_owed || 0,
+    total_paid: totalsByClient[c.id]?.total_paid || 0,
+    currency: totalsByClient[c.id]?.currency || "USD",
+  }));
+
   // Fetch only the customer groups for the displayed clients
-  const displayedClientIds = displayedClients.map(c => c.id);
-  const { data: customerGroupsData } = displayedClientIds.length > 0 
+  const { data: customerGroupsData } = displayedClientIds.length > 0
     ? await supabase.from("customer_groups").select("*").in("customer_id", displayedClientIds)
     : { data: [] };
 
   const customerGroupsList = customerGroupsData || [];
+
+
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -109,23 +158,23 @@ export default async function CustomersPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
-                {displayedClients.length === 0 ? (
+                {clientsData.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="p-8 text-center text-zinc-500">
                       No customers found. Sync from Xero/Quickbooks or add one manually.
                     </td>
                   </tr>
                 ) : (
-                  displayedClients.map(({ id, name, totalOwed, totalPaid, currency }) => {
+                  clientsData.map(({ id, name, total_owed, total_paid, currency }) => {
                     const formattedTotal = new Intl.NumberFormat(undefined, {
                       style: "currency",
                       currency
-                    }).format(totalOwed);
+                    }).format(total_owed);
 
                     const formattedPaid = new Intl.NumberFormat(undefined, {
                       style: "currency",
                       currency
-                    }).format(totalPaid);
+                    }).format(total_paid);
 
                     const assignedGroupIds = customerGroupsList
                       .filter((cg: Record<string, unknown>) => cg.customer_id === id)

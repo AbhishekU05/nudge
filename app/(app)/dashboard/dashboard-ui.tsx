@@ -91,10 +91,13 @@ export function DashboardUI({
     paid: { invoices: paidAll.slice(0, 10), count: paidAll.length }
   };
 
+  // Per-column money totals — the pipeline widget renders these as currency
+  const remainingOf = (c: (typeof customers)[number]) =>
+    Math.max(0, Number(c.amount_owed) - Number(c.amount_paid));
   const totals = {
-    overdue: overdueAll.length,
-    outstanding: outstandingAll.length,
-    paid: paidAll.length
+    overdue: overdueAll.reduce((sum, c) => sum + remainingOf(c), 0),
+    outstanding: outstandingAll.reduce((sum, c) => sum + remainingOf(c), 0),
+    paid: paidAll.reduce((sum, c) => sum + (Number(c.amount_paid) || Number(c.amount_owed) || 0), 0)
   };
 
   return (
@@ -154,7 +157,7 @@ export function DashboardUI({
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_1fr] mb-8">
-        <DashboardPipelineWidget pipelines={pipelines as any} totals={totals as any} currency={selectedCurrency} />
+        <DashboardPipelineWidget pipelines={pipelines} totals={totals} currency={selectedCurrency} />
         <CollectionTrendWidget events={events} currency={selectedCurrency} />
       </div>
 

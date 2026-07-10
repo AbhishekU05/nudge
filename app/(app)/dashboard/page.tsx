@@ -26,20 +26,47 @@ export default async function DashboardPage(props: {
   await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const selectedCurrency = searchParams?.currency || "USD";
+  // Distinct currencies (RLS-scoped, aggregated in Postgres) drive the selector
+  // and the default: USD if the org has USD invoices, otherwise its first currency.
+  const { data: currencyData } = await supabase.rpc("get_invoice_currencies");
+  const uniqueCurrencies = Array.from(
+    new Set([...((currencyData as string[] | null) || []), "USD"])
+  ).sort();
+  const orgCurrencies = (currencyData as string[] | null) || [];
+  const defaultCurrency = orgCurrencies.includes("USD") ? "USD" : orgCurrencies[0] || "USD";
+  const selectedCurrency = searchParams?.currency || defaultCurrency;
 
-  const [{ data: rpcData, error: rpcError }, { data: currencyRows }] = await Promise.all([
-    supabase.rpc("get_dashboard_pipeline", { p_currency: selectedCurrency }),
-    supabase.from("invoices").select("currency").not("currency", "is", null),
-  ]);
+  const { data: rpcData, error: rpcError } = await supabase.rpc("get_dashboard_pipeline", {
+    p_currency: selectedCurrency,
+  });
 
   if (rpcError) console.error("Dashboard RPC error:", rpcError);
 
-  const uniqueCurrencies = Array.from(
-    new Set([(currencyRows || []).map((r: any) => r.currency), "USD"].flat())
-  ).sort() as string[];
-
-  const d = rpcData as any;
+  interface RecentEventRow {
+    id: string;
+    invoice_id: string | null;
+    event_type: string;
+    created_at: string;
+    note: string | null;
+    client_name: string | null;
+  }
+  interface DashboardPipelineData {
+    pipelines?: Record<"overdue" | "outstanding" | "paid", { rows: CustomerRecord[]; count: number }>;
+    totals?: {
+      totalCollected: number;
+      totalOutstanding: number;
+      totalOverdue: number;
+      overdueCount: number;
+      outstandingCount: number;
+      paidCount: number;
+      collectionRate: number;
+    };
+    actionNeeded?: { id: string; name: string; remaining: number; daysOverdue: number; currency: string }[];
+    recentEvents?: RecentEventRow[];
+    recentInvoices?: CustomerRecord[];
+    monthlyCollections?: { month: string; amount: number }[];
+  }
+  const d = (rpcData || null) as DashboardPipelineData | null;
 
   const pipelines = {
     overdue:      { invoices: (d?.pipelines?.overdue?.rows      || []) as CustomerRecord[], count: d?.pipelines?.overdue?.count      || 0 },
@@ -47,38 +74,39 @@ export default async function DashboardPage(props: {
     paid:         { invoices: (d?.pipelines?.paid?.rows         || []) as CustomerRecord[], count: d?.pipelines?.paid?.count         || 0 },
   };
 
-  const totals = d?.totals || { overdue: 0, outstanding: 0, paid: 0 };
   const totalCollected   = Number(d?.totals?.totalCollected   || 0);
   const totalOutstanding = Number(d?.totals?.totalOutstanding || 0);
   const totalOverdue     = Number(d?.totals?.totalOverdue     || 0);
   const collectionRate   = Number(d?.totals?.collectionRate   || 0);
 
+  // Per-column money totals for the pipeline widget
+  const pipelineTotals = {
+    overdue: totalOverdue,
+    outstanding: totalOutstanding,
+    paid: totalCollected,
+  };
+
   const actionNeeded: { id: string; name: string; remaining: number; daysOverdue: number; currency: string }[] =
     d?.actionNeeded || [];
 
-  const recentEvents: any[] = (d?.recentEvents || []).map((e: any) => ({
+  const recentEvents = (d?.recentEvents || []).map((e) => ({
     id: e.id,
     invoice_id: e.invoice_id,
     customer_id: e.invoice_id,
     event_type: e.event_type,
     event_date: e.created_at,
     created_at: e.created_at,
+    amount: null as number | null,
+    followup_method: null as string | null,
     note: e.note,
-    clients: { name: e.client_name },
+    clients: { name: e.client_name ?? undefined },
   }));
 
-  // Derive recent invoices from pipeline rows already returned by RPC — no extra query
-  const recentInvoices = [
-    ...pipelines.overdue.invoices,
-    ...pipelines.outstanding.invoices,
-    ...pipelines.paid.invoices,
-  ]
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 5);
+  const recentInvoices: CustomerRecord[] = d?.recentInvoices || [];
 
-  const collectionTrendEvents: any[] = [];
-  const pendingDrafts: any[] = [];
-  const activeAutomations: any[] = [];
+  const collectionTrend: { month: string; amount: number }[] = d?.monthlyCollections || [];
+  const pendingDrafts: { id: string; subject?: string; to_email?: string }[] = [];
+  const activeAutomations: { id: string; type: string; name?: string; next_send_at?: string }[] = [];
 
 
   return (
@@ -157,8 +185,8 @@ export default async function DashboardPage(props: {
           </div>
 
           <div className="grid gap-8 lg:grid-cols-[1fr_1fr] mb-8">
-            <DashboardPipelineWidget pipelines={pipelines as any} totals={totals as any} currency={selectedCurrency} />
-            <CollectionTrendWidget events={collectionTrendEvents} currency={selectedCurrency} />
+            <DashboardPipelineWidget pipelines={pipelines} totals={pipelineTotals} currency={selectedCurrency} />
+            <CollectionTrendWidget data={collectionTrend} currency={selectedCurrency} />
           </div>
 
           <div className="grid gap-8 lg:grid-cols-2">
@@ -284,7 +312,7 @@ export default async function DashboardPage(props: {
                       className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-colors"
                     >
                       <div className="min-w-0">
-                        <h3 className="font-medium text-zinc-200 truncate">{inv.clients?.name || "Unknown"}</h3>
+                        <h3 className="font-medium text-zinc-200 truncate">{inv.recipient_name || "Unknown"}</h3>
                         <p className="text-xs text-zinc-500 mt-0.5">
                           {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true })}
                         </p>
