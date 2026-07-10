@@ -161,7 +161,7 @@ export function DashboardPipelineWidget({
                 </div>
                 
                 <div className="p-2 space-y-2">
-                  {colData.invoices.map((customer) => {
+                  {colData.invoices.slice(0, 3).map((customer) => {
                     const remaining = Math.max(0, Number(customer.amount_owed) - Number(customer.amount_paid));
                     const displayAmount = column.id === 'paid' ? Number(customer.amount_paid) || Number(customer.amount_owed) : remaining;
                     const daysOverdue = getDaysOverdue(customer);
@@ -194,7 +194,7 @@ export function DashboardPipelineWidget({
                   })}
                   {colData.count > 3 && (
                     <div className="text-center pt-1">
-                      <span className="text-[10px] text-zinc-500">+{colData.count - 3} more</span>
+                      <span className="text-[10px] text-zinc-500">+{colData.count - Math.min(colData.invoices.length, 3)} more</span>
                     </div>
                   )}
                   {colData.count === 0 && (
