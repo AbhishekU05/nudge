@@ -1,6 +1,6 @@
 "use client";
 
-import { CustomerRecord, WorkflowStatus, getDaysOverdue } from "@/lib/types";
+import { CustomerRecord } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { Calendar, AlertCircle } from "lucide-react";
@@ -13,42 +13,25 @@ function formatCurrency(value: number, currency: string = "USD") {
   }).format(Number(value));
 }
 
-const COLUMNS: { id: WorkflowStatus; title: string; color: string }[] = [
-  { id: "outstanding", title: "Outstanding", color: "border-blue-500/20 bg-blue-500/10 text-blue-400" },
-  { id: "overdue", title: "Overdue", color: "border-red-500/20 bg-red-500/10 text-red-400" },
-  { id: "paid", title: "Paid In Full", color: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400" },
+const COLUMNS = [
+  { id: "outstanding" as const, title: "Outstanding", color: "border-blue-500/20 bg-blue-500/10 text-blue-400" },
+  { id: "overdue" as const, title: "Overdue", color: "border-red-500/20 bg-red-500/10 text-red-400" },
+  { id: "paid" as const, title: "Paid In Full", color: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400" },
 ];
 
-export function PipelineClient({ 
-  initialCustomers,
-  currency = "USD"
-}: { 
-  initialCustomers: CustomerRecord[];
+type PipelineBucket = { rows: CustomerRecord[]; count: number; total: number };
+
+export function PipelineClient({
+  pipelines,
+  currency = "USD",
+}: {
+  pipelines: { outstanding: PipelineBucket; overdue: PipelineBucket; paid: PipelineBucket };
   currency?: string;
 }) {
-  const getCustomersByStatus = (status: WorkflowStatus) => {
-    return initialCustomers
-      .filter((c) => {
-        if (c.workflow_status === "paid" || c.workflow_status === "written_off") {
-          return status === c.workflow_status;
-        }
-        
-        const isOverdue = getDaysOverdue(c) !== null;
-        if (status === "overdue") return isOverdue;
-        if (status === "outstanding") return !isOverdue;
-        return false;
-      })
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  };
-
   return (
     <div className="flex h-full justify-center gap-6 overflow-x-auto pb-4">
       {COLUMNS.map((column) => {
-        const colCustomers = getCustomersByStatus(column.id);
-        const colTotal = colCustomers.reduce((acc, c) => {
-          const remaining = Math.max(0, Number(c.amount_owed) - Number(c.amount_paid));
-          return acc + (column.id === 'paid' ? Number(c.amount_paid) || Number(c.amount_owed) : remaining);
-        }, 0);
+        const colData = pipelines[column.id];
 
         return (
           <div key={column.id} className="flex min-w-[320px] max-w-[320px] flex-col rounded-xl bg-white/[0.015] border border-white/5">
@@ -57,28 +40,28 @@ export function PipelineClient({
                 <h3 className="font-medium text-zinc-100 flex items-center gap-2">
                   {column.title}
                   <span className={`text-xs px-2 py-0.5 rounded-full border ${column.color}`}>
-                    {colCustomers.length}
+                    {colData.count}
                   </span>
                 </h3>
-                <p className="text-xs text-zinc-500 mt-1">{formatCurrency(colTotal, currency)}</p>
+                <p className="text-xs text-zinc-500 mt-1">{formatCurrency(colData.total, currency)}</p>
               </div>
             </div>
-            
+
             <div className="flex-1 p-3 min-h-[500px]">
-              {colCustomers.map((customer) => {
-                const remaining = Math.max(0, Number(customer.amount_owed) - Number(customer.amount_paid));
-                const displayAmount = column.id === 'paid' ? Number(customer.amount_paid) || Number(customer.amount_owed) : remaining;
-                const daysOverdue = getDaysOverdue(customer);
+              {colData.rows.map((customer) => {
+                // Outstanding/overdue display the remaining balance; paid displays the invoice total.
+                const displayAmount = column.id === "paid" ? Number(customer.amount_owed) || 0 : (customer.remaining ?? 0);
+                const daysOverdue = customer.days_overdue ?? 0;
 
                 return (
                   <div key={customer.id} className="mb-3 last:mb-0 transition-shadow shadow-sm hover:border-white/20">
                     <Card className="bg-[#1c1c1e] border-white/10 p-4 rounded-lg">
                       <Link href={`/customers/${customer.id}`} className="block group">
                         <div className="flex items-start justify-between gap-2">
-                          <h4 className="font-semibold text-zinc-200 group-hover:text-emerald-400 transition-colors line-clamp-1">{customer.clients?.name || "Unknown"}</h4>
+                          <h4 className="font-semibold text-zinc-200 group-hover:text-emerald-400 transition-colors line-clamp-1">{customer.recipient_name || "Unknown"}</h4>
                           <span className="font-medium text-zinc-100 whitespace-nowrap">{formatCurrency(displayAmount, currency)}</span>
                         </div>
-                        
+
                         <div className="flex items-center gap-4 text-xs text-zinc-500 mt-3">
                           {customer.due_date && (
                             <div className="flex items-center gap-1">
@@ -86,7 +69,7 @@ export function PipelineClient({
                               {new Date(customer.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                             </div>
                           )}
-                          {daysOverdue !== null && daysOverdue > 0 && column.id !== 'paid' && (
+                          {daysOverdue > 0 && column.id !== 'paid' && (
                             <div className="flex items-center gap-1 text-red-400">
                               <AlertCircle className="h-3 w-3" />
                               {daysOverdue}d late
@@ -98,6 +81,11 @@ export function PipelineClient({
                   </div>
                 );
               })}
+              {colData.count > colData.rows.length && (
+                <div className="text-center pt-2">
+                  <span className="text-xs text-zinc-500">+{colData.count - colData.rows.length} more</span>
+                </div>
+              )}
             </div>
           </div>
         );

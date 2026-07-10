@@ -30,6 +30,7 @@ import { generateActionPlan } from "@/lib/action-engine";
 
 import { LocalTime } from "@/components/site/local-time";
 import type { CustomerRecord, CustomerEvent, ClientRecord } from "@/lib/types";
+import { getDaysOverdue, isEffectivelyPaid } from "@/lib/types";
 
 export function InteractiveAppDemo() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "action-center" | "activity" | "pipeline" | "analytics" | "automate" | "customers" | "invoices">("dashboard");
@@ -106,6 +107,26 @@ export function InteractiveAppDemo() {
     (customer) => !selectedCustomerIds || selectedCustomerIds.has(customer.id)
   );
   const recentEvents = [...events].slice(0, 5);
+
+  // This demo has no server behind it, so build the same pre-bucketed,
+  // pre-sorted-by-displayed-value shape get_pipeline_snapshot returns —
+  // PipelineClient itself just renders it, same as production.
+  const remainingOf = (c: CustomerRecord) =>
+    Math.max(0, Number(c.amount_owed) - Number(c.amount_paid));
+  const demoCustomers = (customers as unknown as CustomerRecord[]).map((c) => ({
+    ...c,
+    remaining: remainingOf(c),
+    days_overdue: getDaysOverdue(c) ?? 0,
+  }));
+  const buildBucket = (rows: typeof demoCustomers, sortKey: (c: (typeof demoCustomers)[number]) => number) => {
+    const sorted = [...rows].sort((a, b) => sortKey(b) - sortKey(a));
+    return { rows: sorted.slice(0, 10), count: sorted.length, total: sorted.reduce((sum, c) => sum + sortKey(c), 0) };
+  };
+  const pipelineData = {
+    outstanding: buildBucket(demoCustomers.filter(c => getDaysOverdue(c) === null && !isEffectivelyPaid(c)), c => c.remaining),
+    overdue: buildBucket(demoCustomers.filter(c => getDaysOverdue(c) !== null && !isEffectivelyPaid(c)), c => c.remaining),
+    paid: buildBucket(demoCustomers.filter(c => isEffectivelyPaid(c)), c => Number(c.amount_owed) || 0),
+  };
 
 
   // Generate real tasks for Action Center
@@ -270,7 +291,7 @@ export function InteractiveAppDemo() {
           )}
 
           {activeTab === "pipeline" && (
-            <PipelineClient initialCustomers={customers as unknown as CustomerRecord[]} currency={selectedCurrency} />
+            <PipelineClient pipelines={pipelineData} currency={selectedCurrency} />
           )}
 
           {activeTab === "analytics" && (

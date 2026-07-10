@@ -6,6 +6,17 @@ import { CustomerRecord } from "@/lib/types";
 
 import { CurrencySelector } from "@/components/site/currency-selector";
 
+interface PipelineBucket {
+  rows: CustomerRecord[];
+  count: number;
+  total: number;
+}
+interface PipelineSnapshot {
+  outstanding?: PipelineBucket;
+  overdue?: PipelineBucket;
+  paid?: PipelineBucket;
+}
+
 export default async function PipelinePage(props: {
   searchParams?: Promise<{ currency?: string }>;
 }) {
@@ -13,30 +24,27 @@ export default async function PipelinePage(props: {
   await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const [invoicesRes, paymentsRes] = await Promise.all([
-    supabase.from("invoices").select("*, clients(name, email)").order("created_at", { ascending: false }),
-    supabase.from("payments").select("*")
-  ]);
+  // Distinct currencies (RLS-scoped, aggregated in Postgres) drive the selector
+  // and the default: USD if the org has USD invoices, otherwise its first currency.
+  const { data: currencyData } = await supabase.rpc("get_invoice_currencies");
+  const orgCurrencies = (currencyData as string[] | null) || [];
+  const uniqueCurrencies = Array.from(new Set([...orgCurrencies, "USD"])).sort();
+  const defaultCurrency = orgCurrencies.includes("USD") ? "USD" : orgCurrencies[0] || "USD";
+  const selectedCurrency = searchParams?.currency || defaultCurrency;
 
-  const allCustomers = (invoicesRes.data || []).map((inv: Record<string, string | number | boolean | null | undefined | Record<string, unknown>>) => {
-    const invPayments = (paymentsRes.data || []).filter((p: Record<string, unknown>) => p.invoice_id === inv.id);
-    const amount_paid = invPayments.reduce((sum: number, p: Record<string, unknown>) => sum + Number(p.amount || 0), 0);
-    const clients = inv.clients as { name?: string; email?: string } | undefined;
-    return {
-      ...inv,
-      amount_owed: inv.amount,
-      amount_paid,
-      workflow_status: inv.status,
-      customer_id: inv.client_id,
-      recipient_name: clients?.name || "Unknown",
-      recipient_email: clients?.email || "No email"
-    };
-  }) as CustomerRecord[];
-  
-  // Handle currencies
-  const uniqueCurrencies = Array.from(new Set(allCustomers.map(c => c.currency || 'USD'))).sort();
-  const selectedCurrency = searchParams?.currency || (uniqueCurrencies.includes('USD') ? 'USD' : uniqueCurrencies[0] || 'USD');
-  const customers = allCustomers.filter(c => (c.currency || 'USD') === selectedCurrency);
+  const { data: rpcData, error } = await supabase.rpc("get_pipeline_snapshot", {
+    p_currency: selectedCurrency,
+  });
+
+  if (error) console.error("Pipeline RPC error:", error);
+
+  const d = (rpcData || null) as PipelineSnapshot | null;
+
+  const pipelines = {
+    outstanding: { rows: (d?.outstanding?.rows || []) as CustomerRecord[], count: d?.outstanding?.count || 0, total: d?.outstanding?.total || 0 },
+    overdue:     { rows: (d?.overdue?.rows     || []) as CustomerRecord[], count: d?.overdue?.count     || 0, total: d?.overdue?.total     || 0 },
+    paid:        { rows: (d?.paid?.rows        || []) as CustomerRecord[], count: d?.paid?.count        || 0, total: d?.paid?.total        || 0 },
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -55,7 +63,7 @@ export default async function PipelinePage(props: {
           </div>
 
 
-          <PipelineClient initialCustomers={customers} currency={selectedCurrency} />
+          <PipelineClient pipelines={pipelines} currency={selectedCurrency} />
         </Container>
       </main>
     </div>
