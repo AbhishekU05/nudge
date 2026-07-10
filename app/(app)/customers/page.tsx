@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { GroupRecord } from "@/lib/types";
 import { GroupsManager } from "./components/groups-manager";
 import { CustomerGroupsAssigner } from "./components/customer-groups-assigner";
+import { CurrencySelector } from "@/components/site/currency-selector";
 
 export default async function CustomersPage({
   searchParams,
@@ -15,12 +16,20 @@ export default async function CustomersPage({
 }) {
   const params = await searchParams;
   const groupId = params?.groupId as string | undefined;
-  
+
   await requireUser();
   const supabase = await createSupabaseServerClient();
 
   const page = parseInt(params?.page as string || "1", 10);
   const pageSize = 30;
+
+  // Distinct currencies (RLS-scoped, aggregated in Postgres) drive the selector
+  // and the default: USD if the org has USD invoices, otherwise its first currency.
+  const { data: currencyData } = await supabase.rpc("get_invoice_currencies");
+  const orgCurrencies = (currencyData as string[] | null) || [];
+  const uniqueCurrencies = Array.from(new Set([...orgCurrencies, "USD"])).sort();
+  const defaultCurrency = orgCurrencies.includes("USD") ? "USD" : orgCurrencies[0] || "USD";
+  const selectedCurrency = (params?.currency as string | undefined) || defaultCurrency;
 
   // Fetch groups for the UI
   const { data: groupsData } = await supabase
@@ -32,10 +41,14 @@ export default async function CustomersPage({
   const groupsList = groupsData || [];
   const activeGroup = groupId ? groupsList.find((g) => g.id === groupId) : null;
 
-  // Build query against `clients` directly — has proper RLS, no cross-org leaks
+  // Query the precomputed per-client, per-currency balances view directly —
+  // total_owed/total_paid/currency already exist as columns, so filtering,
+  // sorting, and pagination can all be expressed as plain query params here
+  // instead of side-fetching invoices/payments and reducing in Node.
   let clientQuery = supabase
-    .from("clients")
-    .select("id, name, email, company_name, created_at, organization_id", { count: "exact" })
+    .from("customer_balances_by_currency")
+    .select("id, name, email, company_name, created_at, organization_id, currency, total_owed, total_paid", { count: "exact" })
+    .eq("currency", selectedCurrency)
     .order("name", { ascending: true });
 
   if (groupId) {
@@ -60,51 +73,7 @@ export default async function CustomersPage({
   const totalCustomers = count || 0;
   const totalPages = Math.ceil(totalCustomers / pageSize);
 
-  // Fetch invoice totals for only the 30 displayed clients
   const displayedClientIds = displayedClients.map((c) => c.id);
-
-  const { data: invoiceRows } = displayedClientIds.length > 0
-    ? await supabase
-        .from("invoices")
-        .select("id, client_id, amount, status, currency, created_at")
-        .in("client_id", displayedClientIds)
-        .order("created_at", { ascending: false })
-    : { data: [] };
-
-  const invoiceIds = (invoiceRows || []).map((inv) => inv.id);
-  const { data: paymentRows } = invoiceIds.length > 0
-    ? await supabase
-        .from("payments")
-        .select("invoice_id, amount")
-        .in("invoice_id", invoiceIds)
-    : { data: [] };
-
-  const paidByInvoice: Record<string, number> = {};
-  for (const p of paymentRows || []) {
-    paidByInvoice[p.invoice_id] = (paidByInvoice[p.invoice_id] || 0) + (Number(p.amount) || 0);
-  }
-
-  // Build per-client totals in JS (only 30 clients × their invoices — small and safe).
-  // Currency comes from the client's most recent invoice (rows are ordered by created_at desc).
-  const totalsByClient: Record<string, { total_owed: number; total_paid: number; currency: string }> = {};
-  for (const inv of invoiceRows || []) {
-    if (!totalsByClient[inv.client_id]) {
-      totalsByClient[inv.client_id] = { total_owed: 0, total_paid: 0, currency: inv.currency || "USD" };
-    }
-    const paid = paidByInvoice[inv.id] || 0;
-    totalsByClient[inv.client_id].total_paid += paid;
-    if (inv.status !== "paid" && inv.status !== "written_off") {
-      totalsByClient[inv.client_id].total_owed += Math.max(0, (Number(inv.amount) || 0) - paid);
-    }
-  }
-
-  // Merge totals into displayed clients
-  const clientsData = displayedClients.map((c) => ({
-    ...c,
-    total_owed: totalsByClient[c.id]?.total_owed || 0,
-    total_paid: totalsByClient[c.id]?.total_paid || 0,
-    currency: totalsByClient[c.id]?.currency || "USD",
-  }));
 
   // Fetch only the customer groups for the displayed clients
   const { data: customerGroupsData } = displayedClientIds.length > 0
@@ -137,6 +106,7 @@ export default async function CustomersPage({
               </p>
             </div>
             <div className="flex shrink-0 flex-col sm:flex-row gap-3 sm:items-end">
+              <CurrencySelector currencies={uniqueCurrencies} selected={selectedCurrency} />
               <GroupsManager groups={groupsList} />
               <Link href="/customers/new">
                 <Button className="w-full sm:w-auto gap-2">
@@ -158,14 +128,14 @@ export default async function CustomersPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
-                {clientsData.length === 0 ? (
+                {displayedClients.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="p-8 text-center text-zinc-500">
                       No customers found. Sync from Xero/Quickbooks or add one manually.
                     </td>
                   </tr>
                 ) : (
-                  clientsData.map(({ id, name, total_owed, total_paid, currency }) => {
+                  displayedClients.map(({ id, name, total_owed, total_paid, currency }) => {
                     const formattedTotal = new Intl.NumberFormat(undefined, {
                       style: "currency",
                       currency
@@ -213,12 +183,12 @@ export default async function CustomersPage({
                 Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalCustomers)} of {totalCustomers} customers
               </div>
               <div className="flex items-center gap-2">
-                <Link href={`/customers?page=${page - 1}${groupId ? `&groupId=${groupId}` : ''}`}>
+                <Link href={`/customers?page=${page - 1}&currency=${selectedCurrency}${groupId ? `&groupId=${groupId}` : ''}`}>
                   <Button variant="secondary" size="sm" disabled={page <= 1} className="h-8 border-white/10 bg-transparent text-zinc-300 hover:bg-white/[0.05]">
                     <ChevronLeft className="h-4 w-4 mr-1" /> Prev
                   </Button>
                 </Link>
-                <Link href={`/customers?page=${page + 1}${groupId ? `&groupId=${groupId}` : ''}`}>
+                <Link href={`/customers?page=${page + 1}&currency=${selectedCurrency}${groupId ? `&groupId=${groupId}` : ''}`}>
                   <Button variant="secondary" size="sm" disabled={page >= totalPages} className="h-8 border-white/10 bg-transparent text-zinc-300 hover:bg-white/[0.05]">
                     Next <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
