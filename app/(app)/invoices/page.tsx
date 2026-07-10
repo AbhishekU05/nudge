@@ -79,13 +79,31 @@ function Notice({
 // Page
 // ──────────────────────────────────────────────────────────
 
+const PAGE_SIZE = 30;
+
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; success?: string; groupId?: string; currency?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    success?: string;
+    groupId?: string;
+    currency?: string;
+    overduePage?: string;
+    outstandingPage?: string;
+    paidPage?: string;
+  }>;
 }) {
   const user = await requireUser();
-  const { error, success, groupId, currency: urlCurrency } = await searchParams;
+  const {
+    error,
+    success,
+    groupId,
+    currency: urlCurrency,
+    overduePage: rawOverduePage,
+    outstandingPage: rawOutstandingPage,
+    paidPage: rawPaidPage,
+  } = await searchParams;
   const monthlyPrice = await getLocalizedMonthlyPrice();
 
   const supabase = await createSupabaseServerClient();
@@ -98,11 +116,22 @@ export default async function CustomersPage({
   const defaultCurrency = orgCurrencies.includes("USD") ? "USD" : orgCurrencies[0] || "USD";
   const selectedCurrency = urlCurrency || defaultCurrency;
 
+  // Each pipeline column (overdue/outstanding/paid) pages independently —
+  // paging through Overdue shouldn't reset which page of Paid you're on.
+  const pages = {
+    overdue: Math.max(1, parseInt(rawOverduePage || "1", 10) || 1),
+    outstanding: Math.max(1, parseInt(rawOutstandingPage || "1", 10) || 1),
+    paid: Math.max(1, parseInt(rawPaidPage || "1", 10) || 1),
+  };
+
   const [pipelineRes, orgMembersRes, groupsRes] = await Promise.all([
     supabase.rpc("get_invoices_pipeline", {
       p_currency: selectedCurrency,
       p_group_id: groupId || null,
-      p_bucket_limit: 30,
+      p_bucket_limit: PAGE_SIZE,
+      p_overdue_offset: (pages.overdue - 1) * PAGE_SIZE,
+      p_outstanding_offset: (pages.outstanding - 1) * PAGE_SIZE,
+      p_paid_offset: (pages.paid - 1) * PAGE_SIZE,
     }),
     supabase
       .from("organization_members")
@@ -208,6 +237,8 @@ export default async function CustomersPage({
             pipelines={pipelines}
             totals={totals}
             hasSubscription={hasSubscription}
+            pages={pages}
+            pageSize={PAGE_SIZE}
           />
         </Container>
       </main>

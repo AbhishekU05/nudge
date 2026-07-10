@@ -7,10 +7,11 @@
  */
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Users,
   ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -168,22 +169,27 @@ function PipelineSection({
   title,
   customers,
   totalCount,
+  currentPage,
+  pageSize,
+  prevHref,
+  nextHref,
   onOpen,
   defaultOpen = true,
 }: {
   title: string;
   customers: CustomerRecord[];
   totalCount: number;
+  currentPage: number;
+  pageSize: number;
+  prevHref: string;
+  nextHref: string;
   onOpen: (c: CustomerRecord, tab?: Tab) => void;
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const [page, setPage] = useState(1);
-  const pageSize = 30;
-  
-  const displayedCustomers = customers.slice(0, page * pageSize);
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
-  if (customers.length === 0) return null;
+  if (totalCount === 0) return null;
 
   return (
     <div>
@@ -209,22 +215,41 @@ function PipelineSection({
       </button>
       {open && (
         <div className="space-y-2">
-          {displayedCustomers.map((c) => (
-            <CustomerCard key={c.id} customer={c} onOpen={onOpen} />
-          ))}
-          {displayedCustomers.length < customers.length && (
-            <Button
-              variant="ghost"
-              className="w-full text-zinc-400 mt-2 border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:text-zinc-200"
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Load more ({customers.length - displayedCustomers.length} remaining loaded)
-            </Button>
+          {customers.length === 0 ? (
+            <div className="py-6 text-center text-xs text-zinc-600">No invoices on this page.</div>
+          ) : (
+            customers.map((c) => (
+              <CustomerCard key={c.id} customer={c} onOpen={onOpen} />
+            ))
           )}
-          {customers.length < totalCount && displayedCustomers.length === customers.length && (
-             <div className="text-center pt-2 text-xs text-zinc-600">
-               Showing top {customers.length} of {totalCount} {title.toLowerCase()} invoices.
-             </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-xs text-zinc-600">
+                Page {currentPage} of {totalPages} · {totalCount} {title.toLowerCase()} invoices
+              </span>
+              <div className="flex items-center gap-2">
+                <Link href={prevHref}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={currentPage <= 1}
+                    className="h-8 border border-white/5 bg-white/[0.02] text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Prev
+                  </Button>
+                </Link>
+                <Link href={nextHref}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={currentPage >= totalPages}
+                    className="h-8 border border-white/5 bg-white/[0.02] text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+                  >
+                    Next <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -241,6 +266,8 @@ export function DashboardClient({
   pipelines,
   totals,
   hasSubscription,
+  pages,
+  pageSize,
 }: {
   pipelines: {
     overdue: CustomerRecord[];
@@ -255,11 +282,22 @@ export function DashboardClient({
     optedOutCount: number;
   };
   hasSubscription: boolean;
+  pages: { overdue: number; outstanding: number; paid: number };
+  pageSize: number;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   function handleOpen(customer: CustomerRecord, tab: Tab = "payment") {
     router.push(`/invoices/${customer.id}?tab=${tab}`);
+  }
+
+  // Each bucket's Prev/Next only changes its own page param — every other
+  // param (currency, groupId, the other buckets' pages) survives untouched.
+  function pageHref(param: "overduePage" | "outstandingPage" | "paidPage", page: number) {
+    const next = new URLSearchParams(searchParams.toString());
+    next.set(param, String(Math.max(1, page)));
+    return `/invoices?${next.toString()}`;
   }
 
   const { overdue, outstanding, paid } = pipelines;
@@ -293,18 +331,30 @@ export function DashboardClient({
                 title="Overdue"
                 customers={overdue}
                 totalCount={totals.overdueCount}
+                currentPage={pages.overdue}
+                pageSize={pageSize}
+                prevHref={pageHref("overduePage", pages.overdue - 1)}
+                nextHref={pageHref("overduePage", pages.overdue + 1)}
                 onOpen={handleOpen}
               />
               <PipelineSection
                 title="Outstanding"
                 customers={outstanding}
                 totalCount={totals.outstandingCount}
+                currentPage={pages.outstanding}
+                pageSize={pageSize}
+                prevHref={pageHref("outstandingPage", pages.outstanding - 1)}
+                nextHref={pageHref("outstandingPage", pages.outstanding + 1)}
                 onOpen={handleOpen}
               />
               <PipelineSection
                 title="Paid"
                 customers={paid}
                 totalCount={totals.paidCount}
+                currentPage={pages.paid}
+                pageSize={pageSize}
+                prevHref={pageHref("paidPage", pages.paid - 1)}
+                nextHref={pageHref("paidPage", pages.paid + 1)}
                 onOpen={handleOpen}
                 defaultOpen={false}
               />
@@ -313,6 +363,10 @@ export function DashboardClient({
                   title="Opted out"
                   customers={optedOut}
                   totalCount={totals.optedOutCount}
+                  currentPage={1}
+                  pageSize={pageSize}
+                  prevHref="/invoices"
+                  nextHref="/invoices"
                   onOpen={handleOpen}
                   defaultOpen={false}
                 />
