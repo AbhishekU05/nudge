@@ -267,6 +267,10 @@ export type CustomerRecord = Invoice & {
   sender_company?: string;
   /** @deprecated use client_id */
   customer_id?: string;
+  /** Precomputed server-side (GREATEST(0, amount_owed - amount_paid)) where available */
+  remaining?: number;
+  /** Precomputed server-side; 0 when not overdue */
+  days_overdue?: number;
 };
 
 export type GroupRecord = {

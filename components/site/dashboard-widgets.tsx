@@ -3,7 +3,7 @@
 
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CustomerEvent, CustomerRecord, getDaysOverdue } from "@/lib/types";
+import { CustomerRecord } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { AlertCircle, Calendar, ArrowRight } from "lucide-react";
@@ -26,39 +26,13 @@ function CustomTooltip({ active, payload, label, currency = "USD" }: any) {
   return null;
 }
 
-export function CollectionTrendWidget({ events, data: monthlyData, currency = "USD" }: { events?: CustomerEvent[], data?: { month: string; amount: number }[], currency?: string }) {
-  const now = new Date();
-  const monthlyTotals: Record<string, number> = {};
-
-  // Initialize last 6 months
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthLabel = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-    monthlyTotals[monthLabel] = 0;
-  }
-
-  if (monthlyData) {
-    // Server-aggregated totals labeled 'Mon YYYY' — matches the scaffold labels above
-    monthlyData.forEach(({ month, amount }) => {
-      if (monthlyTotals[month] !== undefined) {
-        monthlyTotals[month] = Number(amount) || 0;
-      }
-    });
-  } else {
-    (events || []).forEach((event) => {
-      if (event.event_type === "payment" && event.amount) {
-        const d = new Date(event.event_date || event.created_at);
-        const monthLabel = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-        if (monthlyTotals[monthLabel] !== undefined) {
-          monthlyTotals[monthLabel] += Number(event.amount);
-        }
-      }
-    });
-  }
-
-  const data = Object.entries(monthlyTotals).map(([month, amount]) => ({
+export function CollectionTrendWidget({ data: monthlyData, currency = "USD" }: { data: { month: string; amount: number }[], currency?: string }) {
+  // monthlyData is pre-aggregated server-side (get_dashboard_pipeline's
+  // monthlyCollections) and always contains exactly 6 ordered, zero-filled
+  // months — no date arithmetic needed here.
+  const data = monthlyData.map(({ month, amount }) => ({
     month: month.split(" ")[0],
-    amount,
+    amount: Number(amount) || 0,
   }));
 
   return (
@@ -162,9 +136,9 @@ export function DashboardPipelineWidget({
                 
                 <div className="p-2 space-y-2">
                   {colData.invoices.slice(0, 3).map((customer) => {
-                    const remaining = Math.max(0, Number(customer.amount_owed) - Number(customer.amount_paid));
+                    const remaining = customer.remaining ?? 0;
                     const displayAmount = column.id === 'paid' ? Number(customer.amount_paid) || Number(customer.amount_owed) : remaining;
-                    const daysOverdue = getDaysOverdue(customer);
+                    const daysOverdue = customer.days_overdue ?? 0;
 
                     return (
                       <Card key={customer.id} className="bg-[#1c1c1e] border-white/10 p-3 rounded-lg shadow-sm">
@@ -181,7 +155,7 @@ export function DashboardPipelineWidget({
                                 {new Date(customer.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                               </div>
                             )}
-                            {daysOverdue !== null && daysOverdue > 0 && column.id !== 'paid' && (
+                            {daysOverdue > 0 && column.id !== 'paid' && (
                               <div className="flex items-center gap-1 text-red-400">
                                 <AlertCircle className="h-2.5 w-2.5" />
                                 {daysOverdue}d late

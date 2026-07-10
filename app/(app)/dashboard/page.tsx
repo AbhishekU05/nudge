@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Users, AlertCircle, ArrowRight, Activity, Percent, Clock, Send, Info, Mail, Zap, FileText } from "lucide-react";
-import { getDaysOverdue, isEffectivelyPaid, type CustomerRecord, type CustomerEvent } from "@/lib/types";
+import type { CustomerRecord, CustomerEvent } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 
 function formatCurrency(value: number, currency: string = "USD") {

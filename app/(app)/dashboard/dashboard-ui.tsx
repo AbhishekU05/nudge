@@ -81,9 +81,21 @@ export function DashboardUI({
     .sort((a, b) => b.daysOverdue - a.daysOverdue)
     .slice(0, 5);
 
-  const overdueAll = customers.filter(c => getDaysOverdue(c) !== null && !isEffectivelyPaid(c));
-  const outstandingAll = customers.filter(c => getDaysOverdue(c) === null && !isEffectivelyPaid(c));
-  const paidAll = customers.filter(c => isEffectivelyPaid(c));
+  // This demo has no server backing it, so remaining/days_overdue (which the
+  // real dashboard gets precomputed from get_dashboard_pipeline) are derived
+  // here instead, once, before bucketing — DashboardPipelineWidget itself
+  // just reads customer.remaining / customer.days_overdue, same as production.
+  const remainingOf = (c: CustomerRecord) =>
+    Math.max(0, Number(c.amount_owed) - Number(c.amount_paid));
+  const customersWithDerived = customers.map((c) => ({
+    ...c,
+    remaining: remainingOf(c),
+    days_overdue: getDaysOverdue(c) ?? 0,
+  }));
+
+  const overdueAll = customersWithDerived.filter(c => getDaysOverdue(c) !== null && !isEffectivelyPaid(c));
+  const outstandingAll = customersWithDerived.filter(c => getDaysOverdue(c) === null && !isEffectivelyPaid(c));
+  const paidAll = customersWithDerived.filter(c => isEffectivelyPaid(c));
 
   const pipelines = {
     overdue: { invoices: overdueAll.slice(0, 10), count: overdueAll.length },
@@ -92,13 +104,30 @@ export function DashboardUI({
   };
 
   // Per-column money totals — the pipeline widget renders these as currency
-  const remainingOf = (c: (typeof customers)[number]) =>
-    Math.max(0, Number(c.amount_owed) - Number(c.amount_paid));
   const totals = {
-    overdue: overdueAll.reduce((sum, c) => sum + remainingOf(c), 0),
-    outstanding: outstandingAll.reduce((sum, c) => sum + remainingOf(c), 0),
+    overdue: overdueAll.reduce((sum, c) => sum + c.remaining, 0),
+    outstanding: outstandingAll.reduce((sum, c) => sum + c.remaining, 0),
     paid: paidAll.reduce((sum, c) => sum + (Number(c.amount_paid) || Number(c.amount_owed) || 0), 0)
   };
+
+  // Trailing 6 months of payment totals — mirrors get_dashboard_pipeline's
+  // monthlyCollections shape so CollectionTrendWidget needs no demo-specific branch.
+  const now = new Date();
+  const monthlyTotals: Record<string, number> = {};
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    monthlyTotals[d.toLocaleDateString("en-US", { month: "short", year: "numeric" })] = 0;
+  }
+  events.forEach((event) => {
+    if (event.event_type === "payment" && event.amount) {
+      const d = new Date(event.event_date || event.created_at);
+      const monthLabel = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+      if (monthlyTotals[monthLabel] !== undefined) {
+        monthlyTotals[monthLabel] += Number(event.amount);
+      }
+    }
+  });
+  const monthlyData = Object.entries(monthlyTotals).map(([month, amount]) => ({ month, amount }));
 
   return (
     <div>
@@ -158,7 +187,7 @@ export function DashboardUI({
 
       <div className="grid gap-8 lg:grid-cols-[1fr_1fr] mb-8">
         <DashboardPipelineWidget pipelines={pipelines} totals={totals} currency={selectedCurrency} />
-        <CollectionTrendWidget events={events} currency={selectedCurrency} />
+        <CollectionTrendWidget data={monthlyData} currency={selectedCurrency} />
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
