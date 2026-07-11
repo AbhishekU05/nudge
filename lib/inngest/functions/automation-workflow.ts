@@ -59,12 +59,18 @@ export const automationWorkflow = inngest.createFunction(
           const { data } = await supabase.from("clients").select("*").eq("id", entityId).single();
           return data ? { ...data, email: data.email, active: data.active, templates: data.reminder_templates, type: "client" } : null;
         } else {
-          const { data } = await supabase.from("invoices").select("*, clients(unsubscribe_token, email)").eq("id", entityId).single();
-          return data ? { ...data, email: data.recipient_email || data.clients?.email, active: data.reminders_enabled, templates: data.reminder_templates, type: "invoice", unsubscribe_token: data.clients?.unsubscribe_token } : null;
+          const { data } = await supabase.from("invoices").select("*, clients(unsubscribed, email)").eq("id", entityId).single();
+          return data ? { ...data, email: data.recipient_email || data.clients?.email, active: data.reminders_enabled, templates: data.reminder_templates, type: "invoice", unsubscribed: data.clients?.unsubscribed } : null;
         }
       });
 
-      if (!entity || !entity.active || entity.unsubscribed || entity.unsubscribe_token || entity.status === "paid" || entity.status === "written_off") {
+      // unsubscribe_token is a permanent per-client UUID (DEFAULT
+      // gen_random_uuid() on every row - see 20260705000001_add_unsubscribe_
+      // token.sql) used to build portal/unsubscribe links, not a flag that a
+      // client has actually unsubscribed. It used to be checked here
+      // directly, which is always truthy and cancelled every run
+      // immediately - unsubscribed (the real boolean) is the correct check.
+      if (!entity || !entity.active || entity.unsubscribed || entity.status === "paid" || entity.status === "written_off") {
         return { status: "cancelled", reason: "Entity inactive, unsubscribed, paid, or written off." };
       }
 
@@ -83,12 +89,12 @@ export const automationWorkflow = inngest.createFunction(
           const { data } = await supabase.from("clients").select("*").eq("id", entityId).single();
           return data ? { ...data, email: data.email, active: data.active, templates: data.reminder_templates, type: "client" } : null;
         } else {
-          const { data } = await supabase.from("invoices").select("*, clients(unsubscribe_token, email)").eq("id", entityId).single();
-          return data ? { ...data, email: data.recipient_email || data.clients?.email, active: data.reminders_enabled, templates: data.reminder_templates, type: "invoice", unsubscribe_token: data.clients?.unsubscribe_token } : null;
+          const { data } = await supabase.from("invoices").select("*, clients(unsubscribed, email)").eq("id", entityId).single();
+          return data ? { ...data, email: data.recipient_email || data.clients?.email, active: data.reminders_enabled, templates: data.reminder_templates, type: "invoice", unsubscribed: data.clients?.unsubscribed } : null;
         }
       });
 
-      if (!readyEntity || !readyEntity.active || readyEntity.unsubscribed || readyEntity.unsubscribe_token || readyEntity.status === "paid" || readyEntity.status === "written_off") {
+      if (!readyEntity || !readyEntity.active || readyEntity.unsubscribed || readyEntity.status === "paid" || readyEntity.status === "written_off") {
         return { status: "cancelled", reason: "Entity became inactive while sleeping." };
       }
       
