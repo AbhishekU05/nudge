@@ -66,7 +66,10 @@ export const xeroWebhookEvent = inngest.createFunction(
       const { result: invoice } = await withXeroRetry(integration, async (client, intg) => {
         return fetchXeroInvoice(client, intg.tenant_id, resourceId);
       });
-      if (invoice && invoice.invoiceID && String(invoice.type) === "ACCREC") {
+      // DRAFT/SUBMITTED invoices are deliberately excluded here too - see the
+      // matching Statuses filter in lib/xero.ts's syncXeroDataPageForOrg for why.
+      const allowedStatuses = ["AUTHORISED", "PAID", "VOIDED"];
+      if (invoice && invoice.invoiceID && String(invoice.type) === "ACCREC" && allowedStatuses.includes(String(invoice.status))) {
         await upsertInvoice(supabase, integration.organization_id, invoice);
 
         // Xero doesn't send PAYMENT webhooks natively. Payments trigger an INVOICE update.

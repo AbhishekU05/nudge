@@ -323,7 +323,14 @@ export async function syncXeroDataPageForOrg(
       const day = String(twoYearsAgo.getDate()).padStart(2, '0');
       const whereClause = `Type=="ACCREC" AND (Status!="PAID" OR (Status=="PAID" AND Date >= DateTime(${year}, ${month}, ${day})))`;
 
-      return client.accountingApi.getInvoices(intg.tenant_id, undefined, whereClause, "UpdatedDateUTC DESC", undefined, undefined, undefined, ["AUTHORISED", "PAID", "DRAFT", "SUBMITTED"], page, false, undefined, undefined, false, 100);
+      // DRAFT/SUBMITTED invoices are deliberately excluded: they haven't been
+      // sent to the client yet, but Duely's own status/reminder logic can't
+      // tell an unissued draft apart from a real outstanding invoice, so
+      // syncing them risked emailing a client about an invoice they never
+      // received. VOIDED is included so a bulk sync can self-correct an
+      // invoice that was voided in Xero after being synced, in case the
+      // corresponding webhook was missed.
+      return client.accountingApi.getInvoices(intg.tenant_id, undefined, whereClause, "UpdatedDateUTC DESC", undefined, undefined, undefined, ["AUTHORISED", "PAID", "VOIDED"], page, false, undefined, undefined, false, 100);
     });
     currentIntegration = updatedInt;
     
