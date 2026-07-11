@@ -205,7 +205,7 @@ export const automationWorkflow = inngest.createFunction(
               organization_id: organizationId,
               client_id: entityType === "client" ? entityId : (readyEntity.client_id || readyEntity.customer_id),
               subject,
-              body_html: textBody,
+              body_html: textBody.replace(/\n/g, '<br>'),
               status: "sent",
               sent_at: new Date().toISOString(),
               action_type: "email",
@@ -226,7 +226,7 @@ export const automationWorkflow = inngest.createFunction(
                organization_id: organizationId,
                client_id: entityType === "client" ? entityId : (readyEntity.client_id || readyEntity.customer_id),
                subject,
-               body_html: textBody,
+               body_html: textBody.replace(/\n/g, '<br>'),
                status: "draft",
                action_type: "email",
                action_payload: {
