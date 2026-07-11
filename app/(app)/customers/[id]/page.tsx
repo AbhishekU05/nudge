@@ -134,7 +134,7 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
                       ) : (
                         invoicesList.map(inv => {
                           const remaining = getRemainingBalance(inv);
-                          const isPaid = inv.workflow_status === "paid" || remaining === 0;
+                          const isPaid = inv.workflow_status === "paid" || inv.workflow_status === "written_off" || remaining === 0;
                           const dueDate = inv.due_date ? new Date(inv.due_date) : null;
                           const isOverdue = !isPaid && dueDate && dueDate < new Date();
                           
@@ -173,7 +173,7 @@ export default async function CustomerProfilePage(props: { params: Promise<{ id:
             <section>
               <h2 className="text-xl font-medium text-zinc-100 mb-6">Automation Settings</h2>
               {(() => {
-                const activeInvoices = invoicesList.filter(inv => inv.workflow_status !== "paid" && (inv.amount_owed || inv.amount) > 0);
+                const activeInvoices = invoicesList.filter(inv => inv.workflow_status !== "paid" && inv.workflow_status !== "written_off" && (inv.amount_owed || inv.amount) > 0);
                 const totalAmountOwed = activeInvoices.reduce((sum, inv) => sum + Math.max(0, Number(inv.amount_owed || inv.amount || 0) - Number(inv.amount_paid || 0)), 0);
                 const currency = activeInvoices[0]?.currency || "USD";
                 const fmt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalAmountOwed);

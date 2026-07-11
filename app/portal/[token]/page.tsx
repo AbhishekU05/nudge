@@ -71,7 +71,7 @@ export default async function PortalPage(props: {
     const amount_paid = invPayments.reduce((sum, p) => sum + Number(p.amount), 0);
     const amount_owed = Number(inv.amount);
     const balance = Math.max(0, amount_owed - amount_paid);
-    const isPaid = inv.status === "paid" || balance <= 0;
+    const isPaid = inv.status === "paid" || inv.status === "written_off" || balance <= 0;
     return {
       ...inv,
       amount_owed,

@@ -27,7 +27,7 @@ export function CustomerAnalytics({ invoices }: { invoices: InvoiceRecord[] }) {
     
     invoices.forEach(inv => {
       const remaining = getRemainingBalance(inv);
-      const isPaid = inv.workflow_status === "paid" || remaining === 0;
+      const isPaid = inv.workflow_status === "paid" || inv.workflow_status === "written_off" || remaining === 0;
       
       const dueDate = inv.due_date ? new Date(inv.due_date) : null;
       const isOverdue = !isPaid && dueDate && dueDate < now;

@@ -15,7 +15,7 @@ async function triggerLateFeeReevaluation(organizationId: string, supabase: Retu
     .from("invoices")
     .select("id")
     .eq("organization_id", organizationId)
-    .neq("status", "paid");
+    .not("status", "in", '("paid","written_off")');
 
   if (invoices && invoices.length > 0) {
     const events = invoices.map((inv: { id: string }) => ({
