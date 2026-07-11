@@ -1,13 +1,13 @@
 "use server";
 
-import { requireUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { nudgeConfig } from "@/nudge.config";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function wipeMyTestData() {
-  await requireUser();
+  await requireAdmin();
 
   const adminSupabase = createSupabaseAdminClient();
   const { data: { users }, error: usersError } = await adminSupabase.auth.admin.listUsers();
@@ -48,6 +48,8 @@ export async function wipeMyTestData() {
 }
 
 export async function grantAdminLifetimeAccess() {
+  await requireAdmin();
+
   const adminSupabase = createSupabaseAdminClient();
   const { data: { users }, error: usersError } = await adminSupabase.auth.admin.listUsers();
   
@@ -83,9 +85,8 @@ export async function grantAdminLifetimeAccess() {
 
 export async function toggleQuickBooksMode(currentMode: "production" | "sandbox") {
   const { setQuickBooksMode } = await import("@/lib/platform-settings");
-  await requireUser(); // Ensure user is logged in
-  // Usually we'd check if they are admin, but the layout restricts access to this page already.
-  
+  await requireAdmin();
+
   const newMode = currentMode === "production" ? "sandbox" : "production";
   await setQuickBooksMode(newMode);
   
