@@ -119,6 +119,11 @@ export default async function CustomerPage(props: {
     followup_history,
     sender_name: senderName,
     sender_company: org?.name || "Our Company",
+    // invoices have no "active" column of their own - reminders_enabled is
+    // what actually drives whether automation is on. Without this mapping,
+    // AutomationSettings always renders as inactive regardless of the real
+    // state, since customerData.active is always undefined here.
+    active: customerData.reminders_enabled ?? false,
   };
 
   return (
