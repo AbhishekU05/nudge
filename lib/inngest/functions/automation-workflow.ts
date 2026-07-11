@@ -189,8 +189,25 @@ export const automationWorkflow = inngest.createFunction(
                  throw new Error("Failed to send email");
             }
         } else {
-             // Create draft instead of sending
-             await supabase.from("email_drafts").insert({ organization_id: organizationId, client_id: entityType === "client" ? entityId : (readyEntity.client_id || readyEntity.customer_id), invoice_id: entityType === "invoice" ? entityId : null, recipient_email: readyEntity.email, subject, body: textBody, status: "pending" });
+             // Create draft instead of sending. Matches the shape
+             // late-fee-workflow.ts uses and app/(app)/automate/page.tsx
+             // reads: body_html (not body), status "draft" (what the
+             // Automate tab actually filters on, not "pending"), and no
+             // invoice_id/recipient_email columns - email_drafts doesn't
+             // have either; the client's email comes via the clients(...)
+             // join and any invoice reference belongs in action_payload.
+             await supabase.from("email_drafts").insert({
+               organization_id: organizationId,
+               client_id: entityType === "client" ? entityId : (readyEntity.client_id || readyEntity.customer_id),
+               subject,
+               body_html: textBody,
+               status: "draft",
+               action_type: "email",
+               action_payload: {
+                 invoice_id: entityType === "invoice" ? entityId : null,
+                 recipient_email: readyEntity.email,
+               },
+             });
         }
 
         return { skipped: false };

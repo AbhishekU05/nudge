@@ -72,29 +72,13 @@ export async function POST(req: Request) {
         }
       }
 
-      // 2. Find and pause active invoice automations with this email
-      const { data: invoices } = await supabase
-        .from("invoices")
-        .select("id, organization_id")
-        .eq("recipient_email", emailStr)
-        .eq("reminders_enabled", true);
-
-      if (invoices && invoices.length > 0) {
-        for (const i of invoices) {
-          await supabase.from("invoices").update({ reminders_enabled: false }).eq("id", i.id);
-          await inngest.send({
-            name: "automation.disabled",
-            data: { entityId: i.id, entityType: "invoice", organizationId: i.organization_id }
-          });
-        }
-      }
-
-      // We should also find invoices where recipient_email is null but the associated client has this email
+      // Find and pause active invoice automations for this email. Invoices
+      // have no email of their own (there is no recipient_email column on
+      // invoices) - the target address always comes via the linked client.
       const { data: clientInvoices } = await supabase
         .from("invoices")
         .select("id, organization_id, clients!inner(email)")
         .eq("clients.email", emailStr)
-        .is("recipient_email", null)
         .eq("reminders_enabled", true);
 
       if (clientInvoices && clientInvoices.length > 0) {
@@ -106,17 +90,15 @@ export async function POST(req: Request) {
            });
          }
       }
-      // Notify organization admins of the bounce
+      // Notify organization admins of the bounce. Every invoice's email
+      // comes from its linked client (see above - invoices have no email
+      // column of their own), so orgs reached via clients already covers
+      // every affected invoice too.
       const affectedOrgs = new Set<string>();
-      
-      // Find orgs from clients
+
       const { data: orgClients } = await supabase.from("clients").select("organization_id").eq("email", emailStr);
       orgClients?.forEach(c => affectedOrgs.add(c.organization_id));
 
-      // Find orgs from invoices
-      const { data: orgInvoices } = await supabase.from("invoices").select("organization_id").eq("recipient_email", emailStr);
-      orgInvoices?.forEach(i => affectedOrgs.add(i.organization_id));
-     
       if (affectedOrgs.size > 0) {
         const resend = getResendClient();
         for (const orgId of Array.from(affectedOrgs)) {

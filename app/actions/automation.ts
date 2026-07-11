@@ -56,7 +56,7 @@ export async function saveAutomationSettings(formData: FormData) {
     // INVOICE LEVEL AUTOMATION
     const { data: invoice, error: fetchError } = await supabase
       .from("invoices")
-      .select("next_send_at, reminders_enabled, recipient_email, due_date, clients(email)")
+      .select("next_send_at, reminders_enabled, due_date, clients(email)")
       .eq("id", entityId)
       .eq("organization_id", organizationId)
       .single();
@@ -64,7 +64,7 @@ export async function saveAutomationSettings(formData: FormData) {
     if (fetchError || !invoice) throw new Error("Invoice not found.");
 
     const clientData = Array.isArray(invoice.clients) ? invoice.clients[0] : invoice.clients;
-    const existingEmail = invoice.recipient_email || clientData?.email;
+    const existingEmail = clientData?.email;
     if (!newEmail && !existingEmail) {
       throw new Error("An email address is required to enable automation.");
     }
