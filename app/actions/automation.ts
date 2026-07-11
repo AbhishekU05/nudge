@@ -87,7 +87,13 @@ export async function saveAutomationSettings(formData: FormData) {
         reminder_type: reminderType,
         reminder_templates: reminderTemplates,
         auto_approve: autoApprove,
-        ...(nextSendAt !== undefined && { next_send_at: nextSendAt }),
+        // Only reset when actually transitioning disabled -> enabled (the
+        // same condition that computes a "first send" schedule above) - a
+        // fresh schedule paired with a stale mid-sequence index would jump
+        // straight to a later template instead of starting over. Editing
+        // settings on an already-active automation leaves both alone, so
+        // the client doesn't get a repeat of a template they already saw.
+        ...(nextSendAt !== undefined && { next_send_at: nextSendAt, sequence_index: 0 }),
       })
       .eq("id", entityId)
       .eq("organization_id", organizationId);
@@ -141,7 +147,8 @@ export async function saveAutomationSettings(formData: FormData) {
         reminder_templates: reminderTemplates,
         auto_approve: autoApprove,
         ...(newEmail && { email: newEmail }),
-        ...(nextSendAt !== undefined && { next_send_at: nextSendAt }),
+        // See the matching comment in the invoice branch above.
+        ...(nextSendAt !== undefined && { next_send_at: nextSendAt, sequence_index: 0 }),
       })
       .eq("id", entityId)
       .eq("organization_id", organizationId);

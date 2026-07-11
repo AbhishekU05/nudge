@@ -50,10 +50,12 @@ export const automationWorkflow = inngest.createFunction(
     const { entityId, entityType, organizationId } = event.data as { entityId: string; entityType: string; organizationId: string; };
 
     let isFinished = false;
+    let loopCount = 0;
 
     while (!isFinished) {
+      loopCount++;
       // 1. Fetch Entity & Compute Next Send At
-      const entity = await step.run("fetch-entity", async () => {
+      const entity = await step.run(`fetch-entity-${loopCount}`, async () => {
         const supabase = createSupabaseAdminClient();
         if (entityType === "client") {
           const { data } = await supabase.from("clients").select("*").eq("id", entityId).single();
@@ -78,12 +80,12 @@ export const automationWorkflow = inngest.createFunction(
         // Sleep until next send time
         const sleepDuration = new Date(entity.next_send_at).getTime() - Date.now();
         if (sleepDuration > 0) {
-            await step.sleepUntil("wait-for-schedule", entity.next_send_at);
+            await step.sleepUntil(`wait-for-schedule-${loopCount}`, entity.next_send_at);
         }
       }
 
       // WAKE UP: JIT Verification
-      const readyEntity = await step.run("jit-verify-entity", async () => {
+      const readyEntity = await step.run(`jit-verify-entity-${loopCount}`, async () => {
         const supabase = createSupabaseAdminClient();
         if (entityType === "client") {
           const { data } = await supabase.from("clients").select("*").eq("id", entityId).single();
@@ -98,7 +100,7 @@ export const automationWorkflow = inngest.createFunction(
         return { status: "cancelled", reason: "Entity became inactive while sleeping." };
       }
       
-      const subAllowed = await step.run("check-subscription", async () => {
+      const subAllowed = await step.run(`check-subscription-${loopCount}`, async () => {
          const supabase = createSupabaseAdminClient();
          const { data } = await supabase.from("organizations").select("dodo_subscription_status, created_at").eq("id", organizationId).single();
          return isAutomationAndIntegrationAllowed(data?.dodo_subscription_status, data?.created_at);
@@ -108,7 +110,7 @@ export const automationWorkflow = inngest.createFunction(
       }
 
       // PREPARE AND SEND EMAIL
-      const sendResult = await step.run("send-email", async () => {
+      const sendResult = await step.run(`send-email-${loopCount}`, async () => {
         const supabase = createSupabaseAdminClient();
         const { data: orgData } = await supabase.from("organizations").select("name").eq("id", organizationId).single();
         const orgName = orgData?.name || "Our Company";
@@ -242,7 +244,7 @@ export const automationWorkflow = inngest.createFunction(
       }
 
       // ADVANCE SEQUENCE
-      const { hasMore } = await step.run("advance-sequence", async () => {
+      const { hasMore } = await step.run(`advance-sequence-${loopCount}`, async () => {
         const supabase = createSupabaseAdminClient();
         const templates = readyEntity.templates || [];
         
