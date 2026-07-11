@@ -443,6 +443,41 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
     updated: 0,
   };
 
+  // Resolve every invoice's client up front and create any missing ones in a
+  // single bulk insert, instead of one insert per unmatched invoice - with a
+  // few hundred distinct customers that used to be a few hundred round trips.
+  const newClientsByKey = new Map<string, { name: string; email: string }>();
+  for (const invoice of invoices) {
+    const qbCustomer = qbCustomers.get(invoice.CustomerRef?.value);
+    const contactName = qbCustomer?.DisplayName || invoice.CustomerRef?.name?.trim() || "QuickBooks customer";
+    const email = normalizeEmail(invoice.BillEmail?.Address || qbCustomer?.PrimaryEmailAddr?.Address) || "";
+    const existingRecord = (email && clientsMap.get(email.toLowerCase())) || clientsMap.get(contactName.toLowerCase());
+    if (!existingRecord) {
+      const key = (email || contactName).toLowerCase();
+      if (!newClientsByKey.has(key)) newClientsByKey.set(key, { name: contactName, email });
+    }
+  }
+
+  if (newClientsByKey.size > 0) {
+    const { data: createdClients, error: clientError } = await supabase
+      .from("clients")
+      .insert(Array.from(newClientsByKey.values()).map((c) => ({ organization_id: organizationId, name: c.name, email: c.email })))
+      .select("id, name, email");
+
+    if (clientError) throw new Error(clientError.message);
+
+    for (const client of createdClients || []) {
+      if (client.email) clientsMap.set(client.email.toLowerCase(), client);
+      if (client.name) clientsMap.set(client.name.toLowerCase(), client);
+    }
+  }
+
+  // Build every invoice payload in memory, then write in chunked batches
+  // instead of one upsert per invoice - with a few thousand invoices per org,
+  // a sequential per-row loop can take minutes and blow past Inngest's step
+  // timeout. See invoices_org_quickbooks_id_unique for the upsert target.
+  const payloadsToWrite: Record<string, unknown>[] = [];
+
   for (const invoice of invoices) {
     const invoiceId = invoice.Id;
     if (!invoiceId) {
@@ -457,15 +492,12 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
     const totalAmount = Number(invoice.TotalAmt ?? 0);
     const amountPaid = totalAmount - Number(invoice.Balance ?? invoice.TotalAmt ?? 0);
     const isPaid = totalAmount > 0 && Number(invoice.Balance ?? totalAmount) <= 0;
-    
+
     let status = "outstanding";
     if (isPaid) status = "paid";
     else if (amountPaid > 0 && amountPaid < totalAmount) status = "partial";
     else if (invoice.DueDate && new Date(invoice.DueDate) < new Date()) status = "overdue";
 
-    const paymentDateStr = invoice.MetaData?.LastUpdatedTime || new Date().toISOString();
-    const paymentDate = new Date(paymentDateStr).toISOString().slice(0, 10);
-    
     const qbUpdatedDate = invoice.MetaData?.LastUpdatedTime ? new Date(invoice.MetaData.LastUpdatedTime) : new Date(0);
 
     if (totalAmount <= 0) {
@@ -475,26 +507,30 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
 
     let clientRecord = email ? clientsMap.get(email.toLowerCase()) : undefined;
     if (!clientRecord) clientRecord = clientsMap.get(contactName.toLowerCase());
-
     if (!clientRecord) {
-      const { data: client, error: clientError } = await supabase
-        .from("clients")
-        .insert({ 
-          organization_id: organizationId, 
-          name: contactName,
-          email: email
-        })
-        .select("id")
-        .single();
-
-      if (clientError) throw new Error(clientError.message);
-      
-      clientRecord = { id: client.id };
-      if (email) clientsMap.set(email.toLowerCase(), clientRecord);
-      clientsMap.set(contactName.toLowerCase(), clientRecord);
+      // Should not happen - every invoice's client was resolved/created above.
+      result.skipped += 1;
+      continue;
     }
 
-    const payload = {
+    const existing = existingByInvoiceId.get(invoiceId);
+
+    if (existing) {
+      const duelyUpdatedDate = new Date(existing.updated_at || 0);
+
+      // Dual Sync Truth check: if Duely has more recent updates, DO NOT overwrite it from QuickBooks.
+      if (duelyUpdatedDate > qbUpdatedDate) {
+        result.skipped += 1;
+        continue;
+      }
+
+      if (status === "paid" && existing.status !== "paid") result.markedPaid += 1;
+      else result.updated += 1;
+    } else {
+      result.imported += 1;
+    }
+
+    payloadsToWrite.push({
       organization_id: organizationId,
       client_id: clientRecord.id,
       amount: totalAmount,
@@ -506,41 +542,19 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
       payment_link: invoice.InvoiceLink || null,
       updated_at: new Date().toISOString(),
       reminders_enabled: false
-    };
+    });
+  }
 
-    const existing = existingByInvoiceId.get(invoiceId);
-
-    if (existing) {
-      const duelyUpdatedDate = new Date(existing.updated_at || 0);
-      
-      // Dual Sync Truth check: if Duely has more recent updates, DO NOT overwrite it from QuickBooks.
-      if (duelyUpdatedDate > qbUpdatedDate) {
-         result.skipped += 1;
-         continue;
-      }
-
-      const { error } = await supabase
-        .from("invoices")
-        .update(payload)
-        .eq("id", existing.id);
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (status === "paid" && existing.status !== "paid") result.markedPaid += 1;
-      else result.updated += 1;
-      continue;
-    }
-
-    // Upsert (not insert) so a concurrent sync that already inserted this
-    // quickbooks_id since our lookup above updates the existing row instead
-    // of racing to create a second one. See invoices_org_quickbooks_id_unique.
+  // Upsert (not insert) so a concurrent sync that already inserted one of
+  // these quickbooks_ids since our lookup above updates the existing row
+  // instead of racing to create a second one. See invoices_org_quickbooks_id_unique.
+  const UPSERT_CHUNK_SIZE = 500;
+  for (let i = 0; i < payloadsToWrite.length; i += UPSERT_CHUNK_SIZE) {
+    const chunk = payloadsToWrite.slice(i, i + UPSERT_CHUNK_SIZE);
     const { error } = await supabase
       .from("invoices")
-      .upsert(payload, { onConflict: "organization_id,quickbooks_id" });
+      .upsert(chunk, { onConflict: "organization_id,quickbooks_id" });
     if (error) throw new Error(error.message);
-    result.imported += 1;
   }
 
   // Fetch and insert actual payments from QuickBooks

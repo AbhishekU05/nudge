@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { buildPathWithQuery } from "@/lib/paths";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { revokeXeroIntegration } from "@/lib/xero";
-import { revokeQuickBooksIntegration, syncQuickBooksInvoicesForOrg } from "@/lib/quickbooks";
+import { revokeQuickBooksIntegration } from "@/lib/quickbooks";
 import { inngest } from "@/lib/inngest/client";
 
 function redirectToIntegrations(params: { error?: string; success?: string }): never {
@@ -104,27 +104,6 @@ export async function selectXeroTenant(formData: FormData) {
   redirect(`/settings/integrations/xero/bank?success=Xero connected. Initial sync started in the background.`);
 }
 
-export async function syncQuickBooksNow() {
-  const user = await requireUser();
-  const organizationId = await getOrganizationId(user.id);
-  if (!organizationId) redirectToIntegrations({ error: "No organization found." });
-
-  let result: Awaited<ReturnType<typeof syncQuickBooksInvoicesForOrg>>;
-  try {
-    result = await syncQuickBooksInvoicesForOrg(organizationId!);
-  } catch (error) {
-    redirectToIntegrations({
-      error: error instanceof Error ? error.message : "Unable to sync QuickBooks.",
-    });
-  }
-
-  revalidatePath("/dashboard");
-  revalidatePath("/settings/integrations");
-  redirectToIntegrations({
-    success: `QuickBooks sync complete. Imported ${result!.imported}, updated ${result!.updated}, marked paid ${result!.markedPaid}.`,
-  });
-}
-
 export async function disconnectQuickBooks() {
   const user = await requireUser();
   const organizationId = await getOrganizationId(user.id);
@@ -198,37 +177,6 @@ export async function disconnectGmail() {
   revalidatePath("/settings/integrations");
   redirectToIntegrations({ success: "Gmail disconnected. Reminders will now send from reminders@duely.in." });
 }
-
-/**
- * On-demand sync triggered from the UI "Sync Now" button.
- * Replaces the old dailyBackgroundSync cron pattern.
- */
-export async function syncIntegrationNow(provider: "xero" | "quickbooks") {
-  const user = await requireUser();
-  const organizationId = await getOrganizationId(user.id);
-  if (!organizationId) return { success: false, message: "No organization found." };
-
-  try {
-    let result;
-    if (provider === "xero") {
-      await inngest.send({ name: "xero/integration.connected", data: { organization_id: organizationId } });
-      result = { imported: 0, updated: 0 }; // Background job
-    } else {
-      result = await syncQuickBooksInvoicesForOrg(organizationId);
-    }
-    revalidatePath("/dashboard");
-    revalidatePath("/customers");
-    return { success: true, message: provider === "xero" ? "Sync started in background." : `Synced ${result.imported} imported, ${result.updated} updated.` };
-  } catch {
-    return { success: false, message: `Server Error: Unable to sync ${provider}.` };
-  }
-}
-
-/**
- * @deprecated Use syncIntegrationNow instead.
- * Kept for backward compatibility with components that haven't been migrated.
- */
-export const syncIntegrationBackground = syncIntegrationNow;
 
 /**
  * @deprecated Replaced by event-driven Xero/QuickBooks webhooks (Milestone 6).

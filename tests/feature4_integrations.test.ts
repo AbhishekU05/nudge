@@ -1,10 +1,8 @@
 import {
   syncXeroNow,
   disconnectXero,
-  syncQuickBooksNow,
   disconnectQuickBooks,
   disconnectGmail,
-  syncIntegrationBackground,
   dailyBackgroundSync,
 } from "../app/actions/integrations";
 import { mockStore } from "./mocks/store";
@@ -30,14 +28,6 @@ describe("Feature 4: Third-party Integrations", () => {
     expect(mockStore.database.integrations.length).toBe(0);
   });
 
-  it("H3: should successfully sync QuickBooks now and redirect with success status", async () => {
-    mockStore.currentUser = { id: "user-123" };
-    mockStore.syncResults = { imported: 4, updated: 3, markedPaid: 1 };
-
-    await expect(syncQuickBooksNow()).toThrowAsync("QuickBooks+sync+complete");
-    expect(mockStore.quickbooksSynced).toBe(true);
-  });
-
   it("H4: should successfully disconnect QuickBooks and delete integration from DB", async () => {
     mockStore.currentUser = { id: "user-123" };
     mockStore.database.integrations.push({ user_id: "user-123", provider: "quickbooks" });
@@ -58,15 +48,6 @@ describe("Feature 4: Third-party Integrations", () => {
 
     await expect(disconnectGmail()).toThrowAsync("Gmail+disconnected");
     expect(mockStore.database.profiles[0].google_access_token).toBeNull();
-  });
-
-  it("H6: should successfully sync integration in the background", async () => {
-    mockStore.currentUser = { id: "user-123" };
-    mockStore.syncResults = { imported: 5, updated: 1, markedPaid: 0 };
-
-    const res = await syncIntegrationBackground("xero");
-    expect(res.success).toBe(true);
-    expect(res.message).toContain("Synced 5 imported, 1 updated");
   });
 
   it("H7: should perform daily background sync for stale integrations", async () => {
@@ -109,13 +90,6 @@ describe("Feature 4: Third-party Integrations", () => {
     await expect(disconnectXero()).toThrowAsync("Unable+to+disconnect+Xero");
   });
 
-  it("E3: syncQuickBooksNow should redirect with error if third-party call throws", async () => {
-    mockStore.currentUser = { id: "user-123" };
-    mockStore.syncResults = null as any; // trigger catch block
-
-    await expect(syncQuickBooksNow()).toThrowAsync("Unable+to+sync+QuickBooks");
-  });
-
   it("E4: disconnectQuickBooks should redirect with error if database delete fails", async () => {
     mockStore.currentUser = { id: "user-123" };
     mockStore.dbErrors.integrations = new Error("DB Error");
@@ -128,15 +102,6 @@ describe("Feature 4: Third-party Integrations", () => {
     mockStore.dbErrors.profiles = new Error("DB Error");
 
     await expect(disconnectGmail()).toThrowAsync("Unable+to+disconnect+Gmail");
-  });
-
-  it("E6: syncIntegrationBackground should return failure message if sync throws", async () => {
-    mockStore.currentUser = { id: "user-123" };
-    mockStore.syncResults = null as any; // trigger error
-
-    const res = await syncIntegrationBackground("quickbooks");
-    expect(res.success).toBe(false);
-    expect(res.message).toContain("Unable to sync");
   });
 
   it("E7: dailyBackgroundSync should return false response if there are no integrations", async () => {
