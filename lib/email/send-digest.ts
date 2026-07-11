@@ -46,14 +46,16 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
     try {
       const orgMember = profile.organization_members?.[0] as { organizations?: { timezone?: string } };
       const tz = orgMember?.organizations?.timezone || "UTC";
-      const formatter = new Intl.DateTimeFormat('en-US', { 
-        timeZone: tz, 
-        weekday: 'short', 
-        hour: 'numeric', 
-        hour12: false 
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        weekday: 'short',
+        hour: 'numeric',
+        hour12: false,
       });
-      const formatted = formatter.format(now);
-      return formatted.startsWith("Mon") && (formatted.includes("08") || formatted.endsWith(" 8"));
+      const parts = formatter.formatToParts(now);
+      const weekday = parts.find(p => p.type === "weekday")?.value;
+      const hour = Number(parts.find(p => p.type === "hour")?.value);
+      return weekday === "Mon" && hour === 8;
     } catch {
       return false;
     }

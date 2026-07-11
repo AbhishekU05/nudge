@@ -394,7 +394,10 @@ export async function syncXeroDataPageForOrg(
         await supabase.from("invoices").update(payload).eq("id", existing.id);
         result.updated += 1;
       } else {
-        await supabase.from("invoices").insert(payload);
+        // Upsert (not insert) so a concurrent sync that already inserted this
+        // xero_id since our lookup above updates the existing row instead of
+        // racing to create a second one. See invoices_org_xero_id_unique.
+        await supabase.from("invoices").upsert(payload, { onConflict: "organization_id,xero_id" });
         result.imported += 1;
       }
     }

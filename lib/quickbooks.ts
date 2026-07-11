@@ -533,7 +533,12 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
       continue;
     }
 
-    const { data: newInvoice, error } = await supabase.from("invoices").insert(payload).select("id").single();
+    // Upsert (not insert) so a concurrent sync that already inserted this
+    // quickbooks_id since our lookup above updates the existing row instead
+    // of racing to create a second one. See invoices_org_quickbooks_id_unique.
+    const { error } = await supabase
+      .from("invoices")
+      .upsert(payload, { onConflict: "organization_id,quickbooks_id" });
     if (error) throw new Error(error.message);
     result.imported += 1;
   }

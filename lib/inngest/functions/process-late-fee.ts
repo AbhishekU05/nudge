@@ -48,6 +48,33 @@ export const processLateFee = inngest.createFunction(
     const balance = Math.max(0, Number(invoice.amount_owed || invoice.amount || 0) - Number(invoice.amount_paid || 0));
     if (balance <= 0) return { skipped: true, reason: "Zero balance" };
 
+    // Final idempotency gate: late-fee-workflow.ts checks applied_late_fees
+    // before firing this event, but it doesn't wait for this function to
+    // finish writing that row, so a second evaluate_late_fee run (e.g. from
+    // a due-date edit or policy update re-evaluating every open invoice) can
+    // pass that stale check and queue a second invoice.apply_late_fee before
+    // the first one has recorded itself. concurrency.key (invoiceId) above
+    // serializes these two runs, so by the time this one executes, the
+    // earlier run (if any) has already completed and inserted its row.
+    const { data: recentFees } = await supabase
+      .from("applied_late_fees")
+      .select("applied_at")
+      .eq("invoice_id", invoiceId)
+      .eq("policy_id", policyId)
+      .order("applied_at", { ascending: false })
+      .limit(1);
+
+    if (recentFees && recentFees.length > 0) {
+      if (policy.frequency === "once") {
+        return { skipped: true, reason: "Fee already applied for this one-time policy" };
+      }
+      const lastAppliedAt = new Date(recentFees[0].applied_at).getTime();
+      const intervalMs = (policy.frequency === "weekly" ? 7 : 30) * 24 * 60 * 60 * 1000;
+      if (Date.now() - lastAppliedAt < intervalMs) {
+        return { skipped: true, reason: "Fee already applied for the current period" };
+      }
+    }
+
     // Apply fee via steps to ensure reliability
     await step.run("update-xero-qb", async () => {
       // Hardcoded to always create a new invoice for late fees
