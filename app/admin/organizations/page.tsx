@@ -33,12 +33,12 @@ export default async function AdminOrganizations() {
     
     if (provider === "xero") {
       await inngest.send({
-        name: "app/sync-xero",
+        name: "xero/integration.connected",
         data: { organization_id: orgId },
       });
     } else if (provider === "quickbooks") {
       await inngest.send({
-        name: "app/sync-quickbooks",
+        name: "quickbooks/integration.connected",
         data: { organization_id: orgId },
       });
     }
