@@ -21,7 +21,7 @@ export async function saveAutomationSettings(formData: FormData) {
   const user = await requireUser();
 
   try {
-    await enforceRateLimit(user.id, "reminder_toggle");
+    await enforceRateLimit(user.id, "external_sync_action");
   } catch {
     throw new Error("Please wait a moment and try again.");
   }

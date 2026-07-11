@@ -204,12 +204,6 @@ export async function createCustomer(formData: FormData) {
 export async function recordPartialPayment(formData: FormData) {
   const user = await requireUser();
 
-  try {
-    await enforceRateLimit(user.id, "reminder_toggle");
-  } catch (error) {
-    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
-  }
-
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) redirectToDashboard({ error: "No organization found." });
 
@@ -291,12 +285,6 @@ export async function recordPartialPayment(formData: FormData) {
 export async function markFullyPaid(formData: FormData) {
   const user = await requireUser();
 
-  try {
-    await enforceRateLimit(user.id, "reminder_toggle");
-  } catch (error) {
-    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
-  }
-
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) redirectToDashboard({ error: "No organization found." });
 
@@ -355,12 +343,6 @@ export async function markFullyPaid(formData: FormData) {
 export async function undoMarkAsPaid(formData: FormData) {
   const user = await requireUser();
 
-  try {
-    await enforceRateLimit(user.id, "reminder_toggle");
-  } catch (error) {
-    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
-  }
-
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) redirectToDashboard({ error: "No organization found." });
 
@@ -393,12 +375,6 @@ export async function undoMarkAsPaid(formData: FormData) {
 // ---------------------------------------------------------------------------
 export async function recordPaymentPromise(formData: FormData) {
   const user = await requireUser();
-
-  try {
-    await enforceRateLimit(user.id, "reminder_toggle");
-  } catch (error) {
-    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
-  }
 
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) redirectToDashboard({ error: "No organization found." });
@@ -484,12 +460,6 @@ export async function updateWorkflowStatus(formData: FormData) {
 export async function updateCustomerEmail(formData: FormData) {
   const user = await requireUser();
 
-  try {
-    await enforceRateLimit(user.id, "reminder_toggle");
-  } catch (error) {
-    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
-  }
-
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) redirectToDashboard({ error: "No organization found." });
 
@@ -532,12 +502,6 @@ export async function updateCustomerEmail(formData: FormData) {
 export async function deleteCustomer(formData: FormData) {
   const user = await requireUser();
 
-  try {
-    await enforceRateLimit(user.id, "reminder_toggle");
-  } catch (error) {
-    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
-  }
-
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) redirectToDashboard({ error: "No organization found." });
 
@@ -569,7 +533,7 @@ export async function updateDueDate(formData: FormData) {
   const user = await requireUser();
 
   try {
-    await enforceRateLimit(user.id, "reminder_toggle");
+    await enforceRateLimit(user.id, "external_sync_action");
   } catch (error) {
     redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
   }
@@ -654,12 +618,6 @@ export async function updateDueDate(formData: FormData) {
 export async function logFollowUp(formData: FormData) {
   const user = await requireUser();
 
-  try {
-    await enforceRateLimit(user.id, "reminder_toggle");
-  } catch (error) {
-    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
-  }
-
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) redirectToDashboard({ error: "No organization found." });
 
@@ -703,7 +661,7 @@ export async function enableAutomation(formData: FormData) {
   const user = await requireUser();
 
   try {
-    await enforceRateLimit(user.id, "reminder_toggle");
+    await enforceRateLimit(user.id, "external_sync_action");
   } catch (error) {
     redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
   }
@@ -831,12 +789,6 @@ export async function saveInternalNotes(formData: FormData) {
 export async function correctAmountPaid(formData: FormData) {
   const user = await requireUser();
 
-  try {
-    await enforceRateLimit(user.id, "reminder_toggle");
-  } catch (error) {
-    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
-  }
-
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) redirectToDashboard({ error: "No organization found." });
 
@@ -934,12 +886,6 @@ export async function fetchCustomerEmailJit(customerId: string) {
 
 export async function updateClientEmailDirect(formData: FormData) {
   const user = await requireUser();
-
-  try {
-    await enforceRateLimit(user.id, "reminder_toggle");
-  } catch (error) {
-    redirectToDashboard({ error: getErrorMessage(error, "Please wait a moment and try again.") });
-  }
 
   const organizationId = await getOrganizationId(user.id);
   if (!organizationId) redirectToDashboard({ error: "No organization found." });
