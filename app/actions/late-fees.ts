@@ -2,9 +2,9 @@
 
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import fs from "fs";
 import { revalidatePath } from "next/cache";
 import { inngest } from "@/lib/inngest/client";
+import { logger } from "@/lib/logger";
 
 async function triggerLateFeeReevaluation(organizationId: string, supabase: ReturnType<typeof createSupabaseServerClient> extends Promise<infer U> ? U : never) {
   // 1. Cancel all sleeping workflows for this org
@@ -70,8 +70,7 @@ export async function createLateFeePolicy(formData: FormData) {
   });
 
   if (error) {
-    console.error("Failed to create late fee policy", error);
-    fs.writeFileSync("scratch/error.log", JSON.stringify(error, null, 2));
+    logger.error({ message: "Failed to create late fee policy", context: "createLateFeePolicy", error: error.message });
     throw new Error(`Failed to create late fee policy: ${error.message}`);
   }
 
@@ -104,8 +103,7 @@ export async function updateLateFeePolicy(id: string, formData: FormData) {
     .eq("organization_id", organizationId);
 
   if (error) {
-    console.error("Failed to update late fee policy", error);
-    fs.writeFileSync("scratch/error.log", JSON.stringify(error, null, 2));
+    logger.error({ message: "Failed to update late fee policy", context: "updateLateFeePolicy", error: error.message });
     throw new Error(`Failed to update late fee policy: ${error.message}`);
   }
 
@@ -130,6 +128,16 @@ export async function toggleLateFeePolicyActive(id: string, active: boolean) {
   if (error) {
     console.error("Failed to toggle late fee policy", error);
     throw new Error("Failed to toggle late fee policy");
+  }
+
+  // Invoices that were already evaluated while this policy was inactive
+  // exited their workflow with "no active policies" and nothing is watching
+  // them anymore. Re-evaluating on activation is what picks them back up;
+  // on deactivation, sleeping workflows already re-check policy.active
+  // (lib/inngest/functions/late-fee-workflow.ts) right before applying a fee,
+  // so no eager cancellation is needed there.
+  if (active) {
+    await triggerLateFeeReevaluation(organizationId, supabase);
   }
 
   revalidatePath("/settings/late-fees");

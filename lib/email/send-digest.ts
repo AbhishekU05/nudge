@@ -8,15 +8,22 @@ import { hasGmailTokens, sendGmail } from "@/lib/gmail";
 import { render } from "@react-email/render";
 import WeeklyDigestEmail from "@/components/emails/WeeklyDigest";
 
-export async function sendWeeklyDigestEmails(targetUserId?: string) {
+export type DigestRecipient = { userId: string; userEmail: string };
+
+// Steps 1-3: figure out who is actually due for a digest right now. Split out
+// from the per-user send so the Inngest function can wrap each user's send in
+// its own step - otherwise a retry after a mid-batch failure re-sends the
+// digest to everyone who already got one in the failed attempt.
+export async function getEligibleDigestRecipients(
+  targetUserId?: string
+): Promise<{ success: true; recipients: DigestRecipient[] } | { success: false; error: unknown }> {
   const supabase = createSupabaseAdminClient();
-  const resend = getResendClient();
 
   // 1. Fetch profiles and their org timezones
   let profilesQuery = supabase
     .from("profiles")
     .select(`
-      user_id, 
+      user_id,
       weekly_digest_enabled,
       organization_members (
         organizations (
@@ -34,7 +41,7 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
   const { data: profiles, error: profilesError } = await profilesQuery;
 
   if (profilesError || !profiles) {
-    logger.error({ message: "Failed to fetch profiles for digest", error: profilesError, context: "sendWeeklyDigestEmails" });
+    logger.error({ message: "Failed to fetch profiles for digest", error: profilesError, context: "getEligibleDigestRecipients" });
     return { success: false, error: profilesError };
   }
 
@@ -62,13 +69,13 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
   });
 
   if (eligibleProfiles.length === 0) {
-    return { success: true, count: 0 };
+    return { success: true, recipients: [] };
   }
 
   // 3. Fetch users for their emails
   const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers();
   if (usersError || !usersData) {
-    logger.error({ message: "Failed to fetch users for digest", error: usersError, context: "sendWeeklyDigestEmails" });
+    logger.error({ message: "Failed to fetch users for digest", error: usersError, context: "getEligibleDigestRecipients" });
     return { success: false, error: usersError };
   }
   const userMap = usersData.users.reduce((acc, user) => {
@@ -76,35 +83,41 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
     return acc;
   }, {} as Record<string, string>);
 
-  let emailsSent = 0;
+  const recipients: DigestRecipient[] = eligibleProfiles
+    .map(profile => ({ userId: profile.user_id, userEmail: userMap[profile.user_id] }))
+    .filter((r): r is DigestRecipient => Boolean(r.userEmail));
 
-  // 4. Process each eligible profile
-  for (const profile of eligibleProfiles) {
-    const userId = profile.user_id;
-    const userEmail = userMap[userId];
-    if (!userEmail) continue;
+  return { success: true, recipients };
+}
 
-    // Fetch user's organizations
-    const { data: orgMembers } = await supabase
-      .from("organization_members")
-      .select("organization_id")
-      .eq("user_id", userId);
-      
-    const orgIds = orgMembers?.map(m => m.organization_id) || [];
-    if (orgIds.length === 0) continue;
+// Step 4 for a single user. Kept separate so each call can be wrapped in its
+// own Inngest step - see getEligibleDigestRecipients above for why.
+export async function sendDigestEmailForUser(userId: string, userEmail: string): Promise<{ sent: boolean }> {
+  const supabase = createSupabaseAdminClient();
+  const resend = getResendClient();
+  const now = new Date();
 
-    // Fetch invoices
-    const { data: invoices, error: invError } = await supabase
-      .from("invoices")
-      .select("*")
-      .in("organization_id", orgIds);
+  // Fetch user's organizations
+  const { data: orgMembers } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", userId);
 
-    if (invError || !invoices) continue;
+  const orgIds = orgMembers?.map(m => m.organization_id) || [];
+  if (orgIds.length === 0) return { sent: false };
 
-    const { data: events } = await supabase
-      .from("events")
-      .select("*, invoices(recipient_name)")
-      .in("organization_id", orgIds);
+  // Fetch invoices
+  const { data: invoices, error: invError } = await supabase
+    .from("invoices")
+    .select("*")
+    .in("organization_id", orgIds);
+
+  if (invError || !invoices) return { sent: false };
+
+  const { data: events } = await supabase
+    .from("events")
+    .select("*, invoices(recipient_name)")
+    .in("organization_id", orgIds);
 
     // Group invoices by currency
     const invoicesByCurrency = (invoices || []).reduce((acc, inv) => {
@@ -529,7 +542,6 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           body: htmlContent,
           html: true
         });
-        emailsSent++;
       } else {
         await resend.emails.send({
           from: getFromEmail(),
@@ -537,11 +549,27 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
           subject,
           html: htmlContent,
         });
-        emailsSent++;
       }
+      return { sent: true };
     } catch (e) {
-      logger.error({ message: "Failed to send digest email", error: e, user_id: userId, context: "sendWeeklyDigestEmails" });
+      logger.error({ message: "Failed to send digest email", error: e, user_id: userId, context: "sendDigestEmailForUser" });
+      return { sent: false };
     }
+}
+
+// Convenience wrapper for non-Inngest callers (e.g. manual/admin triggers).
+// The Inngest function itself calls the two pieces above directly so each
+// user's send can be memoized as its own step - see lib/inngest/functions/send-digest.ts.
+export async function sendWeeklyDigestEmails(targetUserId?: string) {
+  const result = await getEligibleDigestRecipients(targetUserId);
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  let emailsSent = 0;
+  for (const { userId, userEmail } of result.recipients) {
+    const { sent } = await sendDigestEmailForUser(userId, userEmail);
+    if (sent) emailsSent++;
   }
 
   return { success: true, count: emailsSent };

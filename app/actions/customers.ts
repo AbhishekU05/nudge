@@ -731,6 +731,14 @@ export async function enableAutomation(formData: FormData) {
     redirectToDashboard({ error: "An unexpected error occurred." });
   }
 
+  // Without this, next_send_at/reminders_enabled sit on the row with nothing
+  // actually watching them - the durable send only happens once an
+  // automation.enabled event starts the automationWorkflow for this invoice.
+  await inngest.send({
+    name: "automation.enabled",
+    data: { entityId: invoiceId!, entityType: "invoice", organizationId: organizationId! },
+  });
+
   logger.action({ action_name: "enable_automation", reminder_id: invoiceId!, user_id: user.id, success: true });
   revalidatePath("/", "layout");
   revalidatePath(`/customers/${invoiceId}`);

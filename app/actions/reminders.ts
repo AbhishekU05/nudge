@@ -13,6 +13,7 @@ import {
 } from "@/lib/reminder-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
+import { inngest } from "@/lib/inngest/client";
 import type { Invoice } from "@/lib/types";
 
 const MAX_INVOICES = 20;
@@ -172,27 +173,39 @@ export async function createReminder(formData: FormData) {
 
   const nextSendAt = computeFirstReminderSendAt();
 
-  const { error } = await supabase.from("invoices").insert({
-    organization_id: organizationId!,
-    client_id: clientId,
-    amount: amount!,
-    currency,
-    payment_link: paymentLink,
-    reminder_frequency_days: reminderFrequencyDays!,
-    next_send_at: nextSendAt,
-    reminders_enabled: true,
-    status: "outstanding",
-  });
+  const { data: newInvoice, error } = await supabase
+    .from("invoices")
+    .insert({
+      organization_id: organizationId!,
+      client_id: clientId,
+      amount: amount!,
+      currency,
+      payment_link: paymentLink,
+      reminder_frequency_days: reminderFrequencyDays!,
+      next_send_at: nextSendAt,
+      reminders_enabled: true,
+      status: "outstanding",
+    })
+    .select("id")
+    .single();
 
-  if (error) {
+  if (error || !newInvoice) {
     logger.error({
       message: "Database error creating invoice/reminder",
       context: "createReminder",
       user_id: user.id,
-      error: error.message,
+      error: error?.message,
     });
     redirectToNewReminder("An unexpected database error occurred.");
   }
+
+  // Without this, next_send_at/reminders_enabled sit on the row with nothing
+  // actually watching them - the durable send only happens once an
+  // automation.enabled event starts the automationWorkflow for this invoice.
+  await inngest.send({
+    name: "automation.enabled",
+    data: { entityId: newInvoice!.id, entityType: "invoice", organizationId: organizationId! },
+  });
 
   logger.action({ action_name: "create_reminder", user_id: user.id, success: true });
 
@@ -226,6 +239,8 @@ export async function pauseReminder(invoiceId: string) {
     logger.error({ message: "Database error pausing reminder", context: "pauseReminder", user_id: user.id, error: error.message });
     redirectToDashboard({ error: "An unexpected database error occurred." });
   }
+
+  await inngest.send({ name: "automation.disabled", data: { entityId: invoiceId } });
 
   logger.action({ action_name: "pause_reminder", reminder_id: invoiceId, user_id: user.id, success: true });
   revalidatePath("/dashboard");
@@ -272,6 +287,11 @@ export async function resumeReminder(invoiceId: string) {
     redirectToDashboard({ error: "An unexpected database error occurred." });
   }
 
+  await inngest.send({
+    name: "automation.enabled",
+    data: { entityId: invoiceId, entityType: "invoice", organizationId: organizationId! },
+  });
+
   logger.action({ action_name: "resume_reminder", reminder_id: invoiceId, user_id: user.id, success: true });
   revalidatePath("/dashboard");
   redirectToDashboard({ success: "Reminder resumed." });
@@ -300,6 +320,8 @@ export async function deleteReminder(invoiceId: string) {
     logger.error({ message: "Database error deleting reminder", context: "deleteReminder", user_id: user.id, error: error.message });
     redirectToDashboard({ error: "An unexpected database error occurred." });
   }
+
+  await inngest.send({ name: "automation.disabled", data: { entityId: invoiceId } });
 
   logger.action({ action_name: "delete_reminder", reminder_id: invoiceId, user_id: user.id, success: true });
   revalidatePath("/dashboard");

@@ -28,11 +28,23 @@ export const automationWorkflow = inngest.createFunction(
   {
     id: "automation-workflow",
     triggers: [{ event: "automation.enabled" }],
+    // automation.enabled is re-fired on every settings save, including
+    // re-saving an already-active automation (e.g. tweaking a template).
+    // Without cancelling the prior run for the same entity, two durable
+    // workflow instances end up sleeping and independently emailing the
+    // customer. Matching the trigger event here cancels the stale run the
+    // moment the new one is triggered - concurrency below is a backstop in
+    // case the cancellation itself lags.
     cancelOn: [
       { event: "automation.disabled", match: "data.entityId" },
       { event: "invoice.paid", match: "data.entityId" }, // For invoice-level workflows
       { event: "invoice.due_date_updated", match: "data.entityId" },
+      { event: "automation.enabled", match: "data.entityId" },
     ],
+    concurrency: {
+      limit: 1,
+      key: "event.data.entityId",
+    },
   },
   async ({ event, step }) => {
     const { entityId, entityType, organizationId } = event.data as { entityId: string; entityType: string; organizationId: string; };

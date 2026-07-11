@@ -156,9 +156,18 @@ export function AutomationSettings({
     }
   };
 
+  const [isPausing, setIsPausing] = useState(false);
+
   const handlePause = async () => {
-    await pauseAutomation(entityType, entityId);
-    router.refresh();
+    setIsPausing(true);
+    try {
+      await pauseAutomation(entityType, entityId);
+      router.refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Error pausing automation");
+    } finally {
+      setIsPausing(false);
+    }
   };
 
   return (
@@ -213,8 +222,8 @@ export function AutomationSettings({
           <p className="text-sm font-medium text-rose-400 mb-2">
             Automations are paused. Upgrade to a paid subscription to resume sending reminders.
           </p>
-          <Button variant="secondary" size="sm" onClick={handlePause}>
-            Pause Automation
+          <Button variant="secondary" size="sm" onClick={handlePause} disabled={isPausing}>
+            {isPausing ? "Pausing..." : "Pause Automation"}
           </Button>
         </div>
       )}
@@ -453,9 +462,9 @@ export function AutomationSettings({
             </form>
           ) : (
             <div className="flex items-center gap-3 pt-2">
-              <Button type="button" variant="secondary" className="gap-2 border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300" onClick={handlePause}>
+              <Button type="button" variant="secondary" className="gap-2 border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300" onClick={handlePause} disabled={isPausing}>
                 <PauseCircle className="h-4 w-4" />
-                Pause
+                {isPausing ? "Pausing..." : "Pause"}
               </Button>
               
               <Button type="button" variant="secondary" className="gap-2" onClick={handleEnableAutomation} disabled={isFetchingEmail}>
