@@ -384,7 +384,7 @@ export async function syncXeroDataPageForOrg(
       const existing = existingByInvoiceId.get(invoiceId);
       const xeroUpdatedDate = invoice.updatedDateUTC ? new Date(invoice.updatedDateUTC) : new Date(0);
 
-      const payload = {
+      const basePayload = {
         organization_id: organizationId,
         client_id: clientRecord.id,
         amount: amountOwed,
@@ -395,19 +395,26 @@ export async function syncXeroDataPageForOrg(
         invoice_number: invoice.invoiceNumber || null,
         reference: invoice.reference || null,
         updated_at: new Date().toISOString(),
-        reminders_enabled: false
       };
 
       if (existing) {
         const duelyUpdatedDate = new Date(existing.updated_at || 0);
         if (duelyUpdatedDate > xeroUpdatedDate) continue;
-        await supabase.from("invoices").update(payload).eq("id", existing.id);
+        // reminders_enabled deliberately omitted here - see the matching
+        // comment in xero-webhook-event.ts. Including it (even as the
+        // seemingly-harmless default `false`) would silently turn reminders
+        // back off every time a sync updates an invoice the user already
+        // turned them on for.
+        await supabase.from("invoices").update(basePayload).eq("id", existing.id);
         result.updated += 1;
       } else {
         // Upsert (not insert) so a concurrent sync that already inserted this
         // xero_id since our lookup above updates the existing row instead of
         // racing to create a second one. See invoices_org_xero_id_unique.
-        await supabase.from("invoices").upsert(payload, { onConflict: "organization_id,xero_id" });
+        // reminders_enabled: false is correct here - this is a genuinely new
+        // row (or, in the rare concurrent-race fallback case, one created
+        // moments ago that couldn't have had reminders turned on yet).
+        await supabase.from("invoices").upsert({ ...basePayload, reminders_enabled: false }, { onConflict: "organization_id,xero_id" });
         result.imported += 1;
       }
     }

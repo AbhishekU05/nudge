@@ -476,7 +476,12 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
   // instead of one upsert per invoice - with a few thousand invoices per org,
   // a sequential per-row loop can take minutes and blow past Inngest's step
   // timeout. See invoices_org_quickbooks_id_unique for the upsert target.
-  const payloadsToWrite: Record<string, unknown>[] = [];
+  //
+  // Split into new-row vs. existing-row payloads (rather than one shared
+  // array) so reminders_enabled can be safely omitted from the latter - see
+  // the comment below for why that matters.
+  const newPayloadsToWrite: Record<string, unknown>[] = [];
+  const updatePayloadsToWrite: Record<string, unknown>[] = [];
 
   for (const invoice of invoices) {
     const invoiceId = invoice.Id;
@@ -515,6 +520,19 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
 
     const existing = existingByInvoiceId.get(invoiceId);
 
+    const basePayload = {
+      organization_id: organizationId,
+      client_id: clientRecord.id,
+      amount: totalAmount,
+      currency: String(invoice.CurrencyRef?.value ?? "USD"),
+      due_date: toIsoDate(invoice.DueDate),
+      status: status,
+      quickbooks_id: invoiceId,
+      invoice_number: invoice.DocNumber || null,
+      payment_link: invoice.InvoiceLink || null,
+      updated_at: new Date().toISOString(),
+    };
+
     if (existing) {
       const duelyUpdatedDate = new Date(existing.updated_at || 0);
 
@@ -526,35 +544,34 @@ export async function syncQuickBooksInvoicesForOrg(organizationId: string): Prom
 
       if (status === "paid" && existing.status !== "paid") result.markedPaid += 1;
       else result.updated += 1;
+
+      // reminders_enabled deliberately omitted here - see the matching
+      // comment in xero.ts/xero-webhook-event.ts. Including it (even as the
+      // seemingly-harmless default `false`) would silently turn reminders
+      // back off every time a sync updates an invoice the user already
+      // turned them on for.
+      updatePayloadsToWrite.push(basePayload);
     } else {
       result.imported += 1;
+      // reminders_enabled: false is correct here - this is a genuinely new
+      // row (or, in the rare concurrent-race fallback case, one created
+      // moments ago that couldn't have had reminders turned on yet).
+      newPayloadsToWrite.push({ ...basePayload, reminders_enabled: false });
     }
-
-    payloadsToWrite.push({
-      organization_id: organizationId,
-      client_id: clientRecord.id,
-      amount: totalAmount,
-      currency: String(invoice.CurrencyRef?.value ?? "USD"),
-      due_date: toIsoDate(invoice.DueDate),
-      status: status,
-      quickbooks_id: invoiceId,
-      invoice_number: invoice.DocNumber || null,
-      payment_link: invoice.InvoiceLink || null,
-      updated_at: new Date().toISOString(),
-      reminders_enabled: false
-    });
   }
 
   // Upsert (not insert) so a concurrent sync that already inserted one of
   // these quickbooks_ids since our lookup above updates the existing row
   // instead of racing to create a second one. See invoices_org_quickbooks_id_unique.
   const UPSERT_CHUNK_SIZE = 500;
-  for (let i = 0; i < payloadsToWrite.length; i += UPSERT_CHUNK_SIZE) {
-    const chunk = payloadsToWrite.slice(i, i + UPSERT_CHUNK_SIZE);
-    const { error } = await supabase
-      .from("invoices")
-      .upsert(chunk, { onConflict: "organization_id,quickbooks_id" });
-    if (error) throw new Error(error.message);
+  for (const payloads of [newPayloadsToWrite, updatePayloadsToWrite]) {
+    for (let i = 0; i < payloads.length; i += UPSERT_CHUNK_SIZE) {
+      const chunk = payloads.slice(i, i + UPSERT_CHUNK_SIZE);
+      const { error } = await supabase
+        .from("invoices")
+        .upsert(chunk, { onConflict: "organization_id,quickbooks_id" });
+      if (error) throw new Error(error.message);
+    }
   }
 
   // Fetch and insert actual payments from QuickBooks
