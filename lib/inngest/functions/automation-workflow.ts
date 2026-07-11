@@ -194,6 +194,24 @@ export const automationWorkflow = inngest.createFunction(
             } catch {
                  throw new Error("Failed to send email");
             }
+
+            // Without this, an auto-approved send never appears in the
+            // Automate tab's Sent list - that list only ever reads from
+            // email_drafts (status "sent"/"failed"), and this branch
+            // otherwise never writes a row there at all.
+            await supabase.from("email_drafts").insert({
+              organization_id: organizationId,
+              client_id: entityType === "client" ? entityId : (readyEntity.client_id || readyEntity.customer_id),
+              subject,
+              body_html: textBody,
+              status: "sent",
+              sent_at: new Date().toISOString(),
+              action_type: "email",
+              action_payload: {
+                invoice_id: entityType === "invoice" ? entityId : null,
+                recipient_email: readyEntity.email,
+              },
+            });
         } else {
              // Create draft instead of sending. Matches the shape
              // late-fee-workflow.ts uses and app/(app)/automate/page.tsx
