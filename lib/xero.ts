@@ -505,7 +505,10 @@ export async function getXeroTotalPages(organizationId: string, syncType: "invoi
         const month = String(twoYearsAgo.getMonth() + 1).padStart(2, '0');
         const day = String(twoYearsAgo.getDate()).padStart(2, '0');
         const whereClause = `Type=="ACCREC" AND (Status!="PAID" OR (Status=="PAID" AND Date >= DateTime(${year}, ${month}, ${day})))`;
-        return client.accountingApi.getInvoices(intg.tenant_id, undefined, whereClause, "UpdatedDateUTC DESC", undefined, undefined, undefined, ["AUTHORISED", "PAID", "DRAFT", "SUBMITTED"], page, false, undefined, undefined, false, 100);
+        // Must match syncXeroDataPageForOrg's Statuses filter exactly, or
+        // this page count and the actual per-page fetch disagree on how many
+        // pages there are.
+        return client.accountingApi.getInvoices(intg.tenant_id, undefined, whereClause, "UpdatedDateUTC DESC", undefined, undefined, undefined, ["AUTHORISED", "PAID", "VOIDED"], page, false, undefined, undefined, false, 100);
       } else {
         return client.accountingApi.getPayments(intg.tenant_id, undefined, 'Status=="AUTHORISED"', "UpdatedDateUTC DESC", page);
       }
