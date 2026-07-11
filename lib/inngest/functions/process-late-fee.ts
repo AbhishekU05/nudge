@@ -2,6 +2,7 @@ import { inngest } from "@/lib/inngest/client";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { sendGmail, hasGmailTokens } from "@/lib/gmail";
 import { getResendClient } from "@/lib/resend";
+import { logger } from "@/lib/logger";
 
 export const processLateFee = inngest.createFunction(
   { 
@@ -121,24 +122,38 @@ export const processLateFee = inngest.createFunction(
       let clientEmail = invoice.clients.email;
 
       if (!clientEmail) {
-        if (invoice.xero_id || invoice.xero_invoice_id) {
-          const { getXeroIntegration, getValidXeroClient, fetchXeroInvoice } = await import("@/lib/xero");
-          const integration = await getXeroIntegration(policy.organization_id);
-          const xeroInvoiceId = invoice.xero_invoice_id || invoice.xero_id;
-          if (integration && xeroInvoiceId) {
-            const { xero: xeroClient } = await getValidXeroClient(integration);
-            const xeroInvoice = await fetchXeroInvoice(xeroClient, integration.tenant_id, xeroInvoiceId as string);
-            clientEmail = xeroInvoice?.contact?.emailAddress || null;
+        // Best-effort backfill only - a failure here (e.g. the invoice was a
+        // draft since deleted in Xero/QuickBooks, or a transient API error)
+        // must not block the late fee notification below. If it fails,
+        // clientEmail simply stays unset and the "no email available"
+        // fallback further down records a visible failed draft instead.
+        try {
+          if (invoice.xero_id || invoice.xero_invoice_id) {
+            const { getXeroIntegration, getValidXeroClient, fetchXeroInvoice } = await import("@/lib/xero");
+            const integration = await getXeroIntegration(policy.organization_id);
+            const xeroInvoiceId = invoice.xero_invoice_id || invoice.xero_id;
+            if (integration && xeroInvoiceId) {
+              const { xero: xeroClient } = await getValidXeroClient(integration);
+              const xeroInvoice = await fetchXeroInvoice(xeroClient, integration.tenant_id, xeroInvoiceId as string);
+              clientEmail = xeroInvoice?.contact?.emailAddress || null;
+            }
+          } else if (invoice.quickbooks_id || invoice.quickbooks_invoice_id) {
+            const { getQuickBooksIntegration, getValidQuickBooksTokens, fetchQuickBooksInvoice } = await import("@/lib/quickbooks");
+            const integration = await getQuickBooksIntegration(policy.organization_id);
+            const qbInvoiceId = invoice.quickbooks_invoice_id || invoice.quickbooks_id;
+            if (integration && qbInvoiceId) {
+              const tokens = await getValidQuickBooksTokens(integration);
+              const qbInvoice = await fetchQuickBooksInvoice(tokens.access_token, integration.realm_id as string, qbInvoiceId as string);
+              clientEmail = qbInvoice?.BillEmail?.Address || null;
+            }
           }
-        } else if (invoice.quickbooks_id || invoice.quickbooks_invoice_id) {
-          const { getQuickBooksIntegration, getValidQuickBooksTokens, fetchQuickBooksInvoice } = await import("@/lib/quickbooks");
-          const integration = await getQuickBooksIntegration(policy.organization_id);
-          const qbInvoiceId = invoice.quickbooks_invoice_id || invoice.quickbooks_id;
-          if (integration && qbInvoiceId) {
-            const tokens = await getValidQuickBooksTokens(integration);
-            const qbInvoice = await fetchQuickBooksInvoice(tokens.access_token, integration.realm_id as string, qbInvoiceId as string);
-            clientEmail = qbInvoice?.BillEmail?.Address || null;
-          }
+        } catch (backfillError) {
+          logger.error({
+            message: "Failed to backfill client email from accounting software for late fee notification",
+            context: "process-late-fee",
+            error: backfillError instanceof Error ? backfillError.message : String(backfillError),
+            organization_id: policy.organization_id,
+          });
         }
 
         if (clientEmail) {

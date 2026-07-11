@@ -64,8 +64,8 @@ export const automationWorkflow = inngest.createFunction(
         }
       });
 
-      if (!entity || !entity.active || entity.unsubscribed || entity.unsubscribe_token || entity.status === "paid") {
-        return { status: "cancelled", reason: "Entity inactive, unsubscribed, or paid." };
+      if (!entity || !entity.active || entity.unsubscribed || entity.unsubscribe_token || entity.status === "paid" || entity.status === "written_off") {
+        return { status: "cancelled", reason: "Entity inactive, unsubscribed, paid, or written off." };
       }
 
       if (entity.next_send_at) {
@@ -88,7 +88,7 @@ export const automationWorkflow = inngest.createFunction(
         }
       });
 
-      if (!readyEntity || !readyEntity.active || readyEntity.unsubscribed || readyEntity.unsubscribe_token || readyEntity.status === "paid") {
+      if (!readyEntity || !readyEntity.active || readyEntity.unsubscribed || readyEntity.unsubscribe_token || readyEntity.status === "paid" || readyEntity.status === "written_off") {
         return { status: "cancelled", reason: "Entity became inactive while sleeping." };
       }
       
@@ -123,7 +123,7 @@ export const automationWorkflow = inngest.createFunction(
         let subject = "";
 
         if (entityType === "client") {
-          const { data: invoices } = await supabase.from("invoices").select("*").eq("client_id", entityId).neq("status", "paid").eq("organization_id", organizationId);
+          const { data: invoices } = await supabase.from("invoices").select("*").eq("client_id", entityId).not("status", "in", '("paid","written_off")').eq("organization_id", organizationId);
           const activeInvoices = invoices || [];
           
           if (activeInvoices.length === 0) {

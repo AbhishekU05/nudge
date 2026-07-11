@@ -46,22 +46,34 @@ export const quickbooksWebhookEvent = inngest.createFunction(
       return { skipped: true, reason: "already_processed" }; // Already processed
     }
 
-    // Insert event to prevent double-processing
-    await supabase.from("webhook_events").insert({
-      id: eventId,
-      event_type: `quickbooks_${entity.name}_${entity.operation}`,
-      payload: entity,
-      processed_at: new Date().toISOString(),
-    });
+    // The event is only marked processed once we reach a settled outcome
+    // below (synced, or determined there's nothing to sync) - not up front.
+    // A transient failure (rate limit, network error) throws before this
+    // runs, so Inngest's retry actually re-attempts the QuickBooks call
+    // instead of finding the marker already there on retry and silently
+    // no-op'ing. Mirrors the same fix in xero-webhook-event.ts.
+    const markProcessed = () =>
+      supabase.from("webhook_events").insert({
+        id: eventId,
+        event_type: `quickbooks_${entity.name}_${entity.operation}`,
+        payload: entity,
+        processed_at: new Date().toISOString(),
+      });
 
     const integration = await getQuickBooksIntegrationByRealmId(realmId);
     if (!integration) {
       logger.external({ service: "QuickBooks", action: "webhook_sync", success: false, error: "Received webhook for unknown realmId", organization_id: realmId });
+      await markProcessed();
       return { skipped: true, reason: "unknown_realm" };
     }
 
     const validIntegration = await getValidQuickBooksTokens(integration);
 
+    // fetchQuickBooksInvoice/fetchQuickBooksPayment already resolve a 404 to
+    // null instead of throwing (lib/quickbooks.ts), so an entity that no
+    // longer exists on QuickBooks' side (e.g. a deleted draft) falls through
+    // here as a no-op rather than an error - no extra handling needed for
+    // that case, unlike the Xero equivalent.
     if (entity.name === "Invoice" && (entity.operation === "Create" || entity.operation === "Update")) {
       const invoice = await fetchQuickBooksInvoice(validIntegration.access_token, realmId, entity.id);
       if (invoice) {
@@ -81,6 +93,7 @@ export const quickbooksWebhookEvent = inngest.createFunction(
       .eq("organization_id", integration.organization_id)
       .eq("provider", "quickbooks");
 
+    await markProcessed();
     return { success: true };
   }
 );

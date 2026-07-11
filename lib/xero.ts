@@ -242,6 +242,9 @@ export function getWorkflowStatus(invoice: Invoice) {
   const amountDue = Number(invoice.amountDue ?? 0);
   const amountPaid = Number(invoice.amountPaid ?? 0);
   const dueDate = toIsoDate(invoice.dueDate);
+  // Checked before the amountDue<=0 fallback below: Xero zeroes amountDue on
+  // a voided invoice too, so without this it would be misclassified as paid.
+  if (String(invoice.status) === "VOIDED") return "written_off";
   if (String(invoice.status) === "PAID" || amountDue <= 0) return "paid";
   if (amountPaid > 0) return "partial";
   if (dueDate && dueDate < new Date().toISOString().slice(0, 10)) return "overdue";

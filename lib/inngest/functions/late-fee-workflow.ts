@@ -33,8 +33,8 @@ export const lateFeeWorkflow = inngest.createFunction(
            .eq("id", invoiceId)
            .single();
            
-         if (!invoice || !invoice.due_date || invoice.status === "paid") {
-           return { skip: true, reason: "Invoice invalid, paid, or missing due date" };
+         if (!invoice || !invoice.due_date || invoice.status === "paid" || invoice.status === "written_off") {
+           return { skip: true, reason: "Invoice invalid, paid, written off, or missing due date" };
          }
 
          const { data: org } = await supabase
@@ -164,7 +164,7 @@ export const lateFeeWorkflow = inngest.createFunction(
            .eq("id", invoiceId)
            .single();
 
-         if (!currentInvoice || currentInvoice.status === "paid") {
+         if (!currentInvoice || currentInvoice.status === "paid" || currentInvoice.status === "written_off") {
            return { done: true };
          }
 

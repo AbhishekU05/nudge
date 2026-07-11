@@ -46,26 +46,49 @@ export const xeroWebhookEvent = inngest.createFunction(
     const eventCategory = xeroEvent.eventCategory;
     const eventType = xeroEvent.eventType;
 
-    // Insert event to prevent double-processing
-    await supabase.from("webhook_events").insert({
-      id: eventId,
-      event_type: `xero_${eventCategory}_${eventType}`,
-      payload: xeroEvent,
-      processed_at: new Date().toISOString(),
-    });
+    // The event is only marked processed once we reach a settled outcome
+    // below (synced, or determined there's nothing to sync) - not up front.
+    // A transient failure (rate limit, network error) throws before this
+    // runs, so Inngest's retry actually re-attempts the Xero call instead of
+    // finding the marker already there on retry and silently no-op'ing.
+    const markProcessed = () =>
+      supabase.from("webhook_events").insert({
+        id: eventId,
+        event_type: `xero_${eventCategory}_${eventType}`,
+        payload: xeroEvent,
+        processed_at: new Date().toISOString(),
+      });
 
     const integration = await getXeroIntegrationByTenant(tenantId);
     if (!integration) {
       logger.external({ service: "Xero", action: "webhook_sync", success: false, error: "Received webhook for unknown tenant", organization_id: tenantId });
+      await markProcessed();
       return { skipped: true, reason: "unknown_tenant" };
     }
 
     await getValidXeroClient(integration);
 
     if (eventCategory === "INVOICE") {
-      const { result: invoice } = await withXeroRetry(integration, async (client, intg) => {
-        return fetchXeroInvoice(client, intg.tenant_id, resourceId);
-      });
+      let invoice: XeroInvoice | undefined;
+      try {
+        const result = await withXeroRetry(integration, async (client, intg) => {
+          return fetchXeroInvoice(client, intg.tenant_id, resourceId);
+        });
+        invoice = result.result;
+      } catch (error) {
+        const statusCode = (error as { response?: { statusCode?: number } })?.response?.statusCode;
+        if (statusCode === 400 || statusCode === 404) {
+          // Invoice no longer exists on Xero's side (e.g. a draft that was
+          // deleted before ever being authorised) - nothing to sync, and
+          // retrying can never succeed, so this is a settled outcome, not a
+          // transient failure.
+          logger.external({ service: "Xero", action: "webhook_invoice_fetch", success: false, error: `Invoice ${resourceId} not found (${statusCode})`, organization_id: integration.organization_id });
+          await markProcessed();
+          return { skipped: true, reason: "invoice_not_found" };
+        }
+        throw error;
+      }
+
       // DRAFT/SUBMITTED invoices are deliberately excluded here too - see the
       // matching Statuses filter in lib/xero.ts's syncXeroDataPageForOrg for why.
       const allowedStatuses = ["AUTHORISED", "PAID", "VOIDED"];
@@ -97,6 +120,7 @@ export const xeroWebhookEvent = inngest.createFunction(
       .eq("organization_id", integration.organization_id)
       .eq("provider", "xero");
 
+    await markProcessed();
     return { success: true };
   }
 );
