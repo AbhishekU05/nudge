@@ -18,7 +18,13 @@ export const sendDigest = inngest.createFunction(
     // of re-sending the digest to everyone processed before the failure.
     let emailsSent = 0;
     for (const { userId, userEmail } of result.recipients) {
-      const { sent } = await step.run(`send-digest-${userId}`, () => sendDigestEmailForUser(userId, userEmail));
+      // markSent: this is the scheduled run, so record delivery. That makes the
+      // job idempotent (the remaining Monday ticks, and any replay, skip this
+      // user) and self-healing (a missed tick is retried by the next hourly run
+      // instead of losing the week).
+      const { sent } = await step.run(`send-digest-${userId}`, () =>
+        sendDigestEmailForUser(userId, userEmail, { markSent: true })
+      );
       if (sent) emailsSent++;
     }
 

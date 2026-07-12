@@ -10,6 +10,18 @@ import WeeklyDigestEmail from "@/components/emails/WeeklyDigest";
 
 export type DigestRecipient = { userId: string; userEmail: string };
 
+// A digest is due once a week. Six days (rather than seven) gives the check
+// slack: a send at 08:05 last Monday must not make this Monday's 08:00 tick look
+// like "only 6d23h has passed, skip" and push the digest to 09:00 every week.
+const DIGEST_MIN_INTERVAL_MS = 6 * 24 * 60 * 60 * 1000;
+
+function digestAlreadySentThisWeek(lastSentAt: string | null, now: Date) {
+  if (!lastSentAt) return false;
+  const lastSent = new Date(lastSentAt);
+  if (Number.isNaN(lastSent.getTime())) return false;
+  return now.getTime() - lastSent.getTime() < DIGEST_MIN_INTERVAL_MS;
+}
+
 // Steps 1-3: figure out who is actually due for a digest right now. Split out
 // from the per-user send so the Inngest function can wrap each user's send in
 // its own step - otherwise a retry after a mid-batch failure re-sends the
@@ -19,18 +31,12 @@ export async function getEligibleDigestRecipients(
 ): Promise<{ success: true; recipients: DigestRecipient[] } | { success: false; error: unknown }> {
   const supabase = createSupabaseAdminClient();
 
-  // 1. Fetch profiles and their org timezones
-  let profilesQuery = supabase
-    .from("profiles")
-    .select(`
-      user_id,
-      weekly_digest_enabled,
-      organization_members (
-        organizations (
-          timezone
-        )
-      )
-    `);
+  // 1. Who opted in. The digest preference is per-user (profiles), but the
+  // schedule is per-org (organizations.timezone, moved off profiles in
+  // 20260710130000). profiles and organization_members both link to auth.users
+  // independently and have no foreign key between them, so PostgREST cannot
+  // embed one in the other - the join is done in code below.
+  let profilesQuery = supabase.from("profiles").select("user_id, weekly_digest_enabled, last_digest_sent_at");
 
   if (targetUserId) {
     profilesQuery = profilesQuery.eq("user_id", targetUserId);
@@ -45,14 +51,56 @@ export async function getEligibleDigestRecipients(
     return { success: false, error: profilesError };
   }
 
-  // 2. Filter profiles by current time (only if NOT manually triggered)
+  if (profiles.length === 0) {
+    return { success: true, recipients: [] };
+  }
+
+  // 2. Map each user to their org's timezone.
+  const userIds = profiles.map(p => p.user_id);
+
+  const { data: members, error: membersError } = await supabase
+    .from("organization_members")
+    .select("user_id, organization_id")
+    .in("user_id", userIds);
+
+  if (membersError) {
+    logger.error({ message: "Failed to fetch organization members for digest", error: membersError, context: "getEligibleDigestRecipients" });
+    return { success: false, error: membersError };
+  }
+
+  const orgIds = Array.from(new Set((members || []).map(m => m.organization_id)));
+
+  const { data: organizations, error: orgsError } = orgIds.length
+    ? await supabase.from("organizations").select("id, timezone").in("id", orgIds)
+    : { data: [], error: null };
+
+  if (orgsError) {
+    logger.error({ message: "Failed to fetch organizations for digest", error: orgsError, context: "getEligibleDigestRecipients" });
+    return { success: false, error: orgsError };
+  }
+
+  const timezoneByOrgId = new Map((organizations || []).map(o => [o.id, o.timezone as string | null]));
+  const timezoneByUserId = new Map<string, string>();
+  for (const member of members || []) {
+    if (timezoneByUserId.has(member.user_id)) continue;
+    timezoneByUserId.set(member.user_id, timezoneByOrgId.get(member.organization_id) || "UTC");
+  }
+
+  // 3. Filter by current time in the user's org timezone (manual trigger bypasses).
+  //
+  // The window is "Monday, 08:00 or later" rather than "exactly hour 8", paired
+  // with the last_digest_sent_at guard below. The old "hour === 8" test gave the
+  // job a single chance per week: one delayed or failed hourly tick and the org
+  // silently lost that week's digest. Now any remaining Monday tick picks it up,
+  // and the guard stops the extra ticks from sending a second copy.
   const now = new Date();
   const eligibleProfiles = profiles.filter(profile => {
-    if (targetUserId) return true; // manual trigger bypasses time check
+    if (targetUserId) return true;
+
+    if (digestAlreadySentThisWeek(profile.last_digest_sent_at, now)) return false;
 
     try {
-      const orgMember = profile.organization_members?.[0] as { organizations?: { timezone?: string } };
-      const tz = orgMember?.organizations?.timezone || "UTC";
+      const tz = timezoneByUserId.get(profile.user_id) || "UTC";
       const formatter = new Intl.DateTimeFormat('en-US', {
         timeZone: tz,
         weekday: 'short',
@@ -62,7 +110,7 @@ export async function getEligibleDigestRecipients(
       const parts = formatter.formatToParts(now);
       const weekday = parts.find(p => p.type === "weekday")?.value;
       const hour = Number(parts.find(p => p.type === "hour")?.value);
-      return weekday === "Mon" && hour === 8;
+      return weekday === "Mon" && hour >= 8;
     } catch {
       return false;
     }
@@ -72,27 +120,32 @@ export async function getEligibleDigestRecipients(
     return { success: true, recipients: [] };
   }
 
-  // 3. Fetch users for their emails
-  const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers();
-  if (usersError || !usersData) {
-    logger.error({ message: "Failed to fetch users for digest", error: usersError, context: "getEligibleDigestRecipients" });
-    return { success: false, error: usersError };
+  // 4. Look up each recipient's email directly. listUsers() paginates at 50 by
+  // default, which would silently drop recipients once the org count grows.
+  const recipients: DigestRecipient[] = [];
+  for (const profile of eligibleProfiles) {
+    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(profile.user_id);
+    if (userError || !userData?.user?.email) {
+      logger.error({ message: "Failed to fetch user for digest", error: userError, user_id: profile.user_id, context: "getEligibleDigestRecipients" });
+      continue;
+    }
+    recipients.push({ userId: profile.user_id, userEmail: userData.user.email });
   }
-  const userMap = usersData.users.reduce((acc, user) => {
-    if (user.email) acc[user.id] = user.email;
-    return acc;
-  }, {} as Record<string, string>);
-
-  const recipients: DigestRecipient[] = eligibleProfiles
-    .map(profile => ({ userId: profile.user_id, userEmail: userMap[profile.user_id] }))
-    .filter((r): r is DigestRecipient => Boolean(r.userEmail));
 
   return { success: true, recipients };
 }
 
 // Step 4 for a single user. Kept separate so each call can be wrapped in its
 // own Inngest step - see getEligibleDigestRecipients above for why.
-export async function sendDigestEmailForUser(userId: string, userEmail: string): Promise<{ sent: boolean }> {
+// `markSent` records the send against the user's profile so the remaining hourly
+// ticks that Monday skip them. Only the scheduled run sets it: a manual or admin
+// test send must not mark the week as delivered, or it would suppress the user's
+// real digest.
+export async function sendDigestEmailForUser(
+  userId: string,
+  userEmail: string,
+  options: { markSent?: boolean } = {}
+): Promise<{ sent: boolean }> {
   const supabase = createSupabaseAdminClient();
   const resend = getResendClient();
   const now = new Date();
@@ -550,6 +603,21 @@ export async function sendDigestEmailForUser(userId: string, userEmail: string):
           html: htmlContent,
         });
       }
+
+      if (options.markSent) {
+        const { error: markError } = await supabase
+          .from("profiles")
+          .update({ last_digest_sent_at: new Date().toISOString() })
+          .eq("user_id", userId);
+
+        // The email is already out. Failing to record that is worth an alert,
+        // but not a thrown error: throwing would make Inngest retry the step and
+        // send the digest a second time.
+        if (markError) {
+          logger.error({ message: "Digest sent but failed to record last_digest_sent_at", error: markError, user_id: userId, context: "sendDigestEmailForUser" });
+        }
+      }
+
       return { sent: true };
     } catch (e) {
       logger.error({ message: "Failed to send digest email", error: e, user_id: userId, context: "sendDigestEmailForUser" });
@@ -566,9 +634,14 @@ export async function sendWeeklyDigestEmails(targetUserId?: string) {
     return { success: false, error: result.error };
   }
 
+  // Only the untargeted (scheduled, everyone-who-is-due) form records delivery.
+  // A targeted send is a manual/test send for one user and must not consume that
+  // user's digest for the week.
+  const markSent = !targetUserId;
+
   let emailsSent = 0;
   for (const { userId, userEmail } of result.recipients) {
-    const { sent } = await sendDigestEmailForUser(userId, userEmail);
+    const { sent } = await sendDigestEmailForUser(userId, userEmail, { markSent });
     if (sent) emailsSent++;
   }
 

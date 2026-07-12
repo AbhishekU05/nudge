@@ -83,6 +83,28 @@ export async function grantAdminLifetimeAccess() {
   redirect("/admin?success=Lifetime+access+granted+to+admin+org!");
 }
 
+// Sends a digest to the signed-in admin and nobody else. Deliberately takes no
+// recipient argument and never calls getEligibleDigestRecipients, so there is no
+// path by which pressing the button can fan out to real users.
+export async function sendTestDigestEmail() {
+  const admin = await requireAdmin();
+
+  if (!admin.email) {
+    redirect("/admin/config?error=Admin+account+has+no+email+address");
+  }
+
+  const { sendDigestEmailForUser } = await import("@/lib/email/send-digest");
+  const { sent } = await sendDigestEmailForUser(admin.id, admin.email);
+
+  const params = new URLSearchParams(
+    sent
+      ? { success: `Test digest sent to ${admin.email}` }
+      : { error: "Digest not sent. The admin account needs an organization with invoices; check logs for details." }
+  );
+
+  redirect(`/admin/config?${params.toString()}`);
+}
+
 export async function toggleQuickBooksMode(currentMode: "production" | "sandbox") {
   const { setQuickBooksMode } = await import("@/lib/platform-settings");
   await requireAdmin();

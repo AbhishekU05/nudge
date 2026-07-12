@@ -1,22 +1,28 @@
 import { nudgeConfig } from "@/nudge.config";
 import { getQuickBooksMode } from "@/lib/platform-settings";
-import { toggleQuickBooksMode } from "@/app/actions/admin";
-import { redirect } from "next/navigation";
+import { toggleQuickBooksMode, sendTestDigestEmail } from "@/app/actions/admin";
 
 export default async function AdminConfig({
   searchParams,
 }: {
-  searchParams: { success?: string };
+  searchParams: Promise<{ success?: string; error?: string }>;
 }) {
+  const { success, error } = await searchParams;
   const qbMode = await getQuickBooksMode();
 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900">Global Configuration</h2>
 
-      {searchParams.success && (
+      {success && (
         <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
-          {searchParams.success}
+          {success}
+        </div>
+      )}
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          {error}
         </div>
       )}
 
@@ -50,6 +56,33 @@ export default async function AdminConfig({
                 }`}
               >
                 Switch to {qbMode === "production" ? "Sandbox" : "Production"}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Weekly Digest</h3>
+          <p className="text-gray-600 text-sm mb-4">
+            The digest normally goes out at 08:00 on Monday in each organization&apos;s own timezone.
+          </p>
+
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div>
+              <p className="font-medium text-gray-900">Send a test digest</p>
+              <p className="text-sm text-gray-500">
+                Builds the real digest from your own organization&apos;s data and emails it to you.
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Only ever sends to the signed-in admin — no other user receives anything.
+              </p>
+            </div>
+            <form action={sendTestDigestEmail}>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-blue-100 text-blue-700 hover:bg-blue-200 whitespace-nowrap"
+              >
+                Send test digest
               </button>
             </form>
           </div>
