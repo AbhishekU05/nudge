@@ -56,7 +56,10 @@ export function PipelineClient({
                 return (
                   <div key={customer.id} className="mb-3 last:mb-0 transition-shadow shadow-sm hover:border-white/20">
                     <Card className="bg-[#1c1c1e] border-white/10 p-4 rounded-lg">
-                      <Link href={`/customers/${customer.id}`} className="block group">
+                      {/* Rows come from get_pipeline_snapshot, where `id` is the invoice id
+                          (the customer is `customer_id`). Link to the invoice, like the
+                          dashboard pipeline widget does. */}
+                      <Link href={`/invoices/${customer.id}`} className="block group">
                         <div className="flex items-start justify-between gap-2">
                           <h4 className="font-semibold text-zinc-200 group-hover:text-emerald-400 transition-colors line-clamp-1">{customer.recipient_name || "Unknown"}</h4>
                           <span className="font-medium text-zinc-100 whitespace-nowrap">{formatCurrency(displayAmount, currency)}</span>
