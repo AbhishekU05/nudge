@@ -1,7 +1,6 @@
-import { XeroClient } from "xero-node";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
-import { XeroIntegrationRow } from "./xero";
+import { XeroIntegrationRow, withXeroRetry } from "./xero";
 import { QuickBooksIntegrationRow, getApiBaseUrl, getValidQuickBooksTokens } from "./quickbooks";
 
 export async function pushPaymentToXero(
@@ -23,17 +22,6 @@ export async function pushPaymentToXero(
 
     if (!integration) return;
 
-    const xero = new XeroClient();
-    xero.setTokenSet({
-      access_token: integration.access_token,
-      refresh_token: integration.refresh_token,
-      expires_at: Math.floor(new Date(integration.expires_at).getTime() / 1000),
-    });
-
-    if (new Date(integration.expires_at).getTime() - Date.now() <= 5 * 60 * 1000) {
-      await xero.refreshToken();
-    }
-
     const finalBankAccountId = bankAccountId || integration.xero_default_account_id;
     if (!finalBankAccountId) {
       logger.error({
@@ -44,15 +32,17 @@ export async function pushPaymentToXero(
       return;
     }
 
-    const response = await xero.accountingApi.createPayment(integration.tenant_id, {
-      invoice: { invoiceID: invoiceId },
-      account: { accountID: finalBankAccountId },
-      amount: amount,
-      date: dateIso,
-      reference: "Logged via Duely",
+    const { result: xeroPaymentId } = await withXeroRetry(integration, async (xero, current) => {
+      const response = await xero.accountingApi.createPayment(current.tenant_id, {
+        invoice: { invoiceID: invoiceId },
+        account: { accountID: finalBankAccountId },
+        amount: amount,
+        date: dateIso,
+        reference: "Logged via Duely",
+      });
+      return response.body.payments?.[0]?.paymentID;
     });
 
-    const xeroPaymentId = response.body.payments?.[0]?.paymentID;
     if (xeroPaymentId && localPaymentId) {
       await supabase.from("payments").update({ reference_id: xeroPaymentId, payment_method: "xero_sync" }).eq("id", localPaymentId);
     }
@@ -189,19 +179,10 @@ export async function pushDueDateToXero(
 
     if (!integration) return;
 
-    const xero = new XeroClient();
-    xero.setTokenSet({
-      access_token: integration.access_token,
-      refresh_token: integration.refresh_token,
-      expires_at: Math.floor(new Date(integration.expires_at).getTime() / 1000),
-    });
-
-    if (new Date(integration.expires_at).getTime() - Date.now() <= 5 * 60 * 1000) {
-      await xero.refreshToken();
-    }
-
-    await xero.accountingApi.updateInvoice(integration.tenant_id, invoiceId, {
-      invoices: [{ dueDate: dueDateIso }]
+    await withXeroRetry(integration, async (xero, current) => {
+      await xero.accountingApi.updateInvoice(current.tenant_id, invoiceId, {
+        invoices: [{ dueDate: dueDateIso }]
+      });
     });
 
     logger.external({
