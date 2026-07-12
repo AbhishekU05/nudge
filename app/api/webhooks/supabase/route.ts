@@ -1,10 +1,28 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { inngest } from "@/lib/inngest/client";
+
+function isAuthorized(authHeader: string | null) {
+  const secret = process.env.SUPABASE_WEBHOOK_SECRET;
+
+  // Fail closed. The previous check interpolated the secret straight into a
+  // template literal, so a missing env var turned the expected value into the
+  // string "Bearer undefined" - which any caller could simply send.
+  if (!secret) {
+    console.error("SUPABASE_WEBHOOK_SECRET is not configured; rejecting webhook");
+    return false;
+  }
+  if (!authHeader) return false;
+
+  const expected = Buffer.from(`Bearer ${secret}`);
+  const actual = Buffer.from(authHeader);
+  if (expected.length !== actual.length) return false;
+  return timingSafeEqual(expected, actual);
+}
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.SUPABASE_WEBHOOK_SECRET}`) {
+    if (!isAuthorized(req.headers.get("authorization"))) {
       console.error("Unauthorized Supabase Webhook Attempt");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
