@@ -93,13 +93,28 @@ export async function sendTestDigestEmail() {
     redirect("/admin/config?error=Admin+account+has+no+email+address");
   }
 
-  const { sendDigestEmailForUser } = await import("@/lib/email/send-digest");
-  const { sent } = await sendDigestEmailForUser(admin.id, admin.email);
+  const adminSupabase = createSupabaseAdminClient();
+  const { data: member } = await adminSupabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", admin.id)
+    .maybeSingle();
+
+  if (!member) {
+    redirect("/admin/config?error=Admin+account+has+no+organization+to+build+a+digest+from");
+  }
+
+  const { buildOrgDigest, sendDigestEmailForUser } = await import("@/lib/email/send-digest");
+
+  // markSent is deliberately not passed: a test send must not consume the
+  // admin's real digest for the week.
+  const digest = await buildOrgDigest(member.organization_id);
+  const { sent } = await sendDigestEmailForUser(admin.id, admin.email, digest);
 
   const params = new URLSearchParams(
     sent
       ? { success: `Test digest sent to ${admin.email}` }
-      : { error: "Digest not sent. The admin account needs an organization with invoices; check logs for details." }
+      : { error: "Digest not sent. The admin's organization has no invoices or payments to report on; check logs for details." }
   );
 
   redirect(`/admin/config?${params.toString()}`);

@@ -1,10 +1,15 @@
 import { inngest } from "@/lib/inngest/client";
-import { getEligibleDigestRecipients, sendDigestEmailForUser } from "@/lib/email/send-digest";
+import { getEligibleDigestRecipients } from "@/lib/email/send-digest";
 
-// Runs every hour, not just once at 08:00 UTC on Monday: sendWeeklyDigestEmails
-// filters recipients by whether it's currently Monday 8am in *their own* org's
-// timezone, which can only ever be true once a week for a UTC-only cron - every
-// non-UTC org would never match and would never receive a digest.
+// Runs every hour, not just once at 08:00 UTC on Monday: recipients are filtered
+// by whether it is currently Monday 8am or later in *their own* org's timezone,
+// which a UTC-only cron could never satisfy for a non-UTC org.
+//
+// This function only decides *who* is due and fans out one event per org. The
+// actual build-and-send happens in send-org-digest, which is concurrency-limited:
+// doing every org inline here would mean one long run whose DB queries all burst
+// inside the same hour, and where a single bad org can drag the whole batch
+// toward a timeout.
 export const sendDigest = inngest.createFunction(
   { id: "send-digest", triggers: [{ cron: "0 * * * *" }] },
   async ({ step }) => {
@@ -13,21 +18,27 @@ export const sendDigest = inngest.createFunction(
       throw result.error instanceof Error ? result.error : new Error("Failed to fetch digest recipients");
     }
 
-    // Each user's send is its own step so a retry after a mid-batch failure
-    // only re-runs the users who didn't get memoized as successful, instead
-    // of re-sending the digest to everyone processed before the failure.
-    let emailsSent = 0;
-    for (const { userId, userEmail } of result.recipients) {
-      // markSent: this is the scheduled run, so record delivery. That makes the
-      // job idempotent (the remaining Monday ticks, and any replay, skip this
-      // user) and self-healing (a missed tick is retried by the next hourly run
-      // instead of losing the week).
-      const { sent } = await step.run(`send-digest-${userId}`, () =>
-        sendDigestEmailForUser(userId, userEmail, { markSent: true })
-      );
-      if (sent) emailsSent++;
+    if (result.recipients.length === 0) {
+      return { success: true, organizations: 0, recipients: 0 };
     }
 
-    return { success: true, count: emailsSent };
+    // The digest is identical for every member of an org, so it is built once per
+    // org rather than once per recipient.
+    const recipientsByOrg = new Map<string, typeof result.recipients>();
+    for (const recipient of result.recipients) {
+      const bucket = recipientsByOrg.get(recipient.organizationId) || [];
+      bucket.push(recipient);
+      recipientsByOrg.set(recipient.organizationId, bucket);
+    }
+
+    await step.sendEvent(
+      "fan-out-org-digests",
+      Array.from(recipientsByOrg, ([organizationId, recipients]) => ({
+        name: "digest/org.send",
+        data: { organizationId, recipients },
+      }))
+    );
+
+    return { success: true, organizations: recipientsByOrg.size, recipients: result.recipients.length };
   }
 );
