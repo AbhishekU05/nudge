@@ -35,11 +35,12 @@ export default async function QuickBooksBankSelectionPage() {
   }
 
   let bankAccounts: { Id: string; Name: string; AcctNum?: string; [key: string]: unknown }[] = [];
+  let loadFailed = false;
   try {
     const validIntegration = await getValidQuickBooksTokens(integration);
     const baseUrl = await getApiBaseUrl();
     const query = `select * from Account where AccountType = 'Bank'`;
-    
+
     const url = new URL(`${baseUrl}/v3/company/${integration.realm_id}/query`);
     url.searchParams.set("query", query);
     url.searchParams.set("minorversion", "65");
@@ -55,19 +56,21 @@ export default async function QuickBooksBankSelectionPage() {
       const data = await response.json();
       bankAccounts = data.QueryResponse?.Account || [];
     } else {
-      logger.error({ 
-        message: "Failed to fetch QBO bank accounts", 
-        context: "qbo:bank_accounts", 
+      loadFailed = true;
+      logger.error({
+        message: "Failed to fetch QBO bank accounts",
+        context: "qbo:bank_accounts",
         status: response.status,
         response: await response.text()
       });
     }
   } catch (e) {
-    logger.error({ 
-      message: "Failed to fetch QBO bank accounts", 
-      context: "qbo:bank_accounts", 
+    loadFailed = true;
+    logger.error({
+      message: "Failed to fetch QBO bank accounts",
+      context: "qbo:bank_accounts",
       user_id: user.id,
-      error: e 
+      error: e
     });
   }
 
@@ -81,7 +84,23 @@ export default async function QuickBooksBankSelectionPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {bankAccounts.length === 0 ? (
+          {loadFailed ? (
+            <div className="text-sm text-zinc-400 py-4">
+              <p className="text-amber-400">We couldn&apos;t reach QuickBooks to load your bank accounts.</p>
+              <p className="mt-1">
+                This is a connection problem on our side, not a problem with your QuickBooks
+                organization. Try again in a moment.
+              </p>
+              <div className="mt-4 flex gap-2">
+                <Link href="/settings/integrations/quickbooks/bank">
+                  <Button variant="secondary">Try again</Button>
+                </Link>
+                <Link href="/settings/integrations">
+                  <Button variant="ghost">Return to Integrations</Button>
+                </Link>
+              </div>
+            </div>
+          ) : bankAccounts.length === 0 ? (
             <div className="text-sm text-zinc-400 py-4">
               No active bank accounts found in your QuickBooks organization. Please add one in QuickBooks first.
               <div className="mt-4">

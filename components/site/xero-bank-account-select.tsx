@@ -1,38 +1,55 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { getXeroBankAccounts, type XeroBankAccountsResult } from "@/app/actions/xero";
 import { Label } from "@/components/ui/label";
 
-export function XeroBankAccountSelect({ customerXeroId }: { customerXeroId?: string | null }) {
-  const [result, setResult] = useState<XeroBankAccountsResult | null>(null);
-  const [loading, setLoading] = useState(false);
+// The Xero bank account list is org-wide, but this component is rendered once per
+// form (log payment, mark fully paid). Share one fetch across every instance
+// instead of hitting the Xero API once per mount.
+type Store = { result: XeroBankAccountsResult | null; loading: boolean };
 
-  const fetchAccounts = useCallback(async () => {
-    setLoading(true);
-    const data = await getXeroBankAccounts();
-    setResult(data);
-    setLoading(false);
-  }, []);
+let store: Store = { result: null, loading: false };
+let inflight: Promise<void> | null = null;
+const listeners = new Set<() => void>();
+
+function setStore(next: Store) {
+  store = next;
+  listeners.forEach((listener) => listener());
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function loadAccounts(force = false) {
+  if (inflight) return inflight;
+  if (!force && store.result) return Promise.resolve();
+
+  setStore({ result: force ? null : store.result, loading: true });
+
+  inflight = getXeroBankAccounts()
+    .then((result) => setStore({ result, loading: false }))
+    .finally(() => {
+      inflight = null;
+    });
+
+  return inflight;
+}
+
+export function XeroBankAccountSelect({ customerXeroId }: { customerXeroId?: string | null }) {
+  const { result, loading } = useSyncExternalStore(
+    subscribe,
+    () => store,
+    () => store,
+  );
 
   useEffect(() => {
     if (!customerXeroId) return;
-
-    let mounted = true;
-    const run = async () => {
-      setLoading(true);
-      const data = await getXeroBankAccounts();
-      if (mounted) {
-        setResult(data);
-        setLoading(false);
-      }
-    };
-
-    run();
-
-    return () => {
-      mounted = false;
-    };
+    loadAccounts();
   }, [customerXeroId]);
 
   if (!customerXeroId) return null;
@@ -56,7 +73,7 @@ export function XeroBankAccountSelect({ customerXeroId }: { customerXeroId?: str
           <span>{result.error}</span>
           <button
             type="button"
-            onClick={fetchAccounts}
+            onClick={() => loadAccounts(true)}
             className="underline underline-offset-2 hover:text-amber-300"
           >
             Retry
