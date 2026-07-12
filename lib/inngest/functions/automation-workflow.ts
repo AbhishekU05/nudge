@@ -49,6 +49,12 @@ export const automationWorkflow = inngest.createFunction(
   async ({ event, step }) => {
     const { entityId, entityType, organizationId } = event.data as { entityId: string; entityType: string; organizationId: string; };
 
+    // Stable across every retry of this run, distinct per send within it (the
+    // loop below can send several times in one run, so loopCount is appended at
+    // the call site). event.id is assigned by Inngest on receipt and does not
+    // change when a step is retried.
+    const idempotencyKeyBase = `automation-${event.id ?? `${entityType}-${entityId}`}`;
+
     let isFinished = false;
     let loopCount = 0;
 
@@ -136,7 +142,7 @@ export const automationWorkflow = inngest.createFunction(
           
           if (activeInvoices.length === 0) {
             await supabase.from("clients").update({ active: false }).eq("id", entityId);
-            return { skipped: true };
+            return { skipped: true as const, mode: "skipped" as const, resendEmailId: null, subject: "", bodyHtml: "" };
           }
 
           const totalAmountOwed = activeInvoices.reduce((sum, inv) => {
@@ -185,63 +191,97 @@ export const automationWorkflow = inngest.createFunction(
            textBody = processed.body;
         }
 
-        if (readyEntity.auto_approve) {
-            try {
-                if (sender.user_id && sender.email && await hasGmailTokens(sender.user_id)) {
-                    await sendGmail({ userId: sender.user_id, senderName: sender.name, senderEmail: sender.email, to: readyEntity.email, subject, body: textBody, html: false });
-                } else {
-                    const resend = getResendClient();
-                    await resend.emails.send({ from: `${sender.name} via Duely <reminders@duely.in>`, to: readyEntity.email, subject, text: textBody, replyTo: sender.email || undefined });
-                }
-            } catch {
-                 throw new Error("Failed to send email");
-            }
+        const bodyHtml = textBody.replace(/\n/g, '<br>');
 
-            // Without this, an auto-approved send never appears in the
-            // Automate tab's Sent list - that list only ever reads from
-            // email_drafts (status "sent"/"failed"), and this branch
-            // otherwise never writes a row there at all.
-            await supabase.from("email_drafts").insert({
-              organization_id: organizationId,
-              client_id: entityType === "client" ? entityId : (readyEntity.client_id || readyEntity.customer_id),
-              subject,
-              body_html: textBody.replace(/\n/g, '<br>'),
-              status: "sent",
-              sent_at: new Date().toISOString(),
-              action_type: "email",
-              action_payload: {
-                invoice_id: entityType === "invoice" ? entityId : null,
-                recipient_email: readyEntity.email,
-              },
-            });
-        } else {
-             // Create draft instead of sending. Matches the shape
-             // late-fee-workflow.ts uses and app/(app)/automate/page.tsx
-             // reads: body_html (not body), status "draft" (what the
-             // Automate tab actually filters on, not "pending"), and no
-             // invoice_id/recipient_email columns - email_drafts doesn't
-             // have either; the client's email comes via the clients(...)
-             // join and any invoice reference belongs in action_payload.
-             await supabase.from("email_drafts").insert({
-               organization_id: organizationId,
-               client_id: entityType === "client" ? entityId : (readyEntity.client_id || readyEntity.customer_id),
-               subject,
-               body_html: textBody.replace(/\n/g, '<br>'),
-               status: "draft",
-               action_type: "email",
-               action_payload: {
-                 invoice_id: entityType === "invoice" ? entityId : null,
-                 recipient_email: readyEntity.email,
-               },
-             });
+        if (!readyEntity.auto_approve) {
+          return { skipped: false as const, mode: "draft" as const, resendEmailId: null, subject, bodyHtml };
         }
 
-        return { skipped: false };
+        // Resend's id, kept so the delivery webhook can find this row again
+        // hours later when a bounce or complaint arrives. Gmail sends produce
+        // no id and no webhooks, so they stay null and untracked.
+        let resendEmailId: string | null = null;
+
+        try {
+            if (sender.user_id && sender.email && await hasGmailTokens(sender.user_id)) {
+                await sendGmail({ userId: sender.user_id, senderName: sender.name, senderEmail: sender.email, to: readyEntity.email, subject, body: textBody, html: false });
+            } else {
+                const resend = getResendClient();
+                const { data: sent, error: sendError } = await resend.emails.send(
+                  { from: `${sender.name} via Duely <reminders@duely.in>`, to: readyEntity.email, subject, text: textBody, replyTo: sender.email || undefined },
+                  // Guards the window this step split cannot cover: if the step is
+                  // retried after Resend already accepted the message (a response
+                  // lost to a network blip), Resend recognises the key and returns
+                  // the original send rather than emailing the client twice.
+                  { idempotencyKey: `${idempotencyKeyBase}-${loopCount}` }
+                );
+                // The SDK reports failures in `error` rather than throwing, so
+                // without this a rejected send was still recorded as "sent".
+                if (sendError) throw new Error(sendError.message);
+                resendEmailId = sent?.id ?? null;
+            }
+        } catch (err) {
+             throw new Error(err instanceof Error ? `Failed to send email: ${err.message}` : "Failed to send email");
+        }
+
+        return { skipped: false as const, mode: "sent" as const, resendEmailId, subject, bodyHtml };
       });
 
       if (sendResult?.skipped) {
          return { status: "cancelled", reason: "Client has no active invoices. Automation disabled." };
       }
+
+      // Recording the email is its own step. Previously the insert lived inside
+      // the send step: if it failed, Inngest retried the whole step and the
+      // client received the reminder a second time. The send is now memoized on
+      // success, so a retry here re-runs only the insert.
+      await step.run(`record-email-${loopCount}`, async () => {
+        const supabase = createSupabaseAdminClient();
+        const clientId = entityType === "client" ? entityId : (readyEntity.client_id || readyEntity.customer_id);
+        const actionPayload = {
+          invoice_id: entityType === "invoice" ? entityId : null,
+          recipient_email: readyEntity.email,
+        };
+
+        if (sendResult.mode === "sent") {
+          // Without this, an auto-approved send never appears in the Automate
+          // tab's Sent list - that list only ever reads from email_drafts
+          // (status "sent"/"failed"), and this branch otherwise never writes a
+          // row there at all.
+          await supabase.from("email_drafts").insert({
+            organization_id: organizationId,
+            client_id: clientId,
+            subject: sendResult.subject,
+            body_html: sendResult.bodyHtml,
+            status: "sent",
+            sent_at: new Date().toISOString(),
+            resend_email_id: sendResult.resendEmailId,
+            // Resend only confirms hand-off here; delivered/bounced/delayed
+            // arrive later over the webhook.
+            delivery_status: sendResult.resendEmailId ? "sent" : null,
+            delivery_status_at: sendResult.resendEmailId ? new Date().toISOString() : null,
+            action_type: "email",
+            action_payload: actionPayload,
+          });
+          return;
+        }
+
+        // Create draft instead of sending. Matches the shape
+        // late-fee-workflow.ts uses and app/(app)/automate/page.tsx reads:
+        // body_html (not body), status "draft" (what the Automate tab actually
+        // filters on, not "pending"), and no invoice_id/recipient_email columns
+        // - email_drafts doesn't have either; the client's email comes via the
+        // clients(...) join and any invoice reference belongs in action_payload.
+        await supabase.from("email_drafts").insert({
+          organization_id: organizationId,
+          client_id: clientId,
+          subject: sendResult.subject,
+          body_html: sendResult.bodyHtml,
+          status: "draft",
+          action_type: "email",
+          action_payload: actionPayload,
+        });
+      });
 
       // ADVANCE SEQUENCE
       const { hasMore } = await step.run(`advance-sequence-${loopCount}`, async () => {

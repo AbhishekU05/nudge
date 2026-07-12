@@ -118,7 +118,12 @@ export const processLateFee = inngest.createFunction(
       });
     });
 
-    await step.run("send-email", async () => {
+    // Stable across every retry of this run, distinct for a genuinely new late
+    // fee. event.id is assigned by Inngest when the event is received and does
+    // not change when a step is retried.
+    const idempotencyKey = `late-fee-${event.id ?? `${invoiceId}-${policyId}-${feeAmount}`}`;
+
+    const sendResult = await step.run("send-email", async () => {
       let clientEmail = invoice.clients.email;
 
       if (!clientEmail) {
@@ -167,6 +172,35 @@ export const processLateFee = inngest.createFunction(
         const senderName = user?.user_metadata?.full_name || "Duely";
         const senderEmail = user?.email || "";
 
+        // Resend's id, kept so the delivery webhook can match a bounce or
+        // complaint back to this row hours later. Gmail sends produce no id and
+        // no webhooks, so they stay null and show as untracked.
+        let resendEmailId: string | null = null;
+
+        const sendViaResend = async () => {
+          const resend = getResendClient();
+          const { data, error } = await resend.emails.send(
+            {
+              from: `${senderName} via Duely <reminders@duely.in>`,
+              to: clientEmail,
+              subject,
+              html: body_html,
+              replyTo: senderEmail || undefined
+            },
+            // Second line of defence against a duplicate late-fee email. If this
+            // step is retried after Resend already accepted the message (a
+            // response lost to a network blip, say), Resend recognises the key
+            // and returns the original send instead of mailing the client twice.
+            // The key is derived from the event, so it is stable across retries
+            // of this run but different for a genuinely new late fee.
+            { idempotencyKey }
+          );
+          // The SDK reports failures in `error` rather than throwing, so without
+          // this a rejected send would still be recorded as "sent".
+          if (error) throw new Error(error.message);
+          return data?.id ?? null;
+        };
+
         const gmailAvailable = await hasGmailTokens(adminUserId);
         if (gmailAvailable) {
           try {
@@ -180,26 +214,53 @@ export const processLateFee = inngest.createFunction(
               html: true
             });
           } catch {
-            const resend = getResendClient();
-            await resend.emails.send({
-              from: `${senderName} via Duely <reminders@duely.in>`,
-              to: clientEmail,
-              subject,
-              html: body_html,
-              replyTo: senderEmail || undefined
-            });
+            resendEmailId = await sendViaResend();
           }
         } else {
-          const resend = getResendClient();
-          await resend.emails.send({
-            from: `${senderName} via Duely <reminders@duely.in>`,
-            to: clientEmail,
-            subject,
-            html: body_html,
-            replyTo: senderEmail || undefined
-          });
+          resendEmailId = await sendViaResend();
         }
-      } else if (!clientEmail) {
+
+        return { outcome: "sent" as const, resendEmailId };
+      }
+
+      if (!clientEmail) {
+        return { outcome: "no_email" as const, resendEmailId: null };
+      }
+
+      return { outcome: "skipped" as const, resendEmailId: null };
+    });
+
+    // Recording the send is its own step. Previously the insert lived inside
+    // "send-email": if it failed, Inngest retried the whole step and the client
+    // received a second late-fee email. Now the send is memoized on success, so a
+    // retry here re-runs only the insert.
+    await step.run("record-sent-email", async () => {
+      if (sendResult.outcome === "sent") {
+        // A late-fee email that actually sent never appeared in the Automate
+        // tab's Sent list: that list only reads email_drafts, and this path
+        // previously wrote a row only when the send failed for want of an
+        // address. The successful case wrote nothing at all.
+        await supabase.from("email_drafts").insert({
+          organization_id: policy.organization_id,
+          client_id: invoice.client_id || invoice.customer_id,
+          subject,
+          body_html,
+          status: "sent",
+          sent_at: new Date().toISOString(),
+          resend_email_id: sendResult.resendEmailId,
+          delivery_status: sendResult.resendEmailId ? "sent" : null,
+          delivery_status_at: sendResult.resendEmailId ? new Date().toISOString() : null,
+          action_type: "late_fee",
+          action_payload: {
+            invoice_id: invoiceId,
+            policy_id: policyId,
+            fee_amount: feeAmount,
+          },
+        });
+        return;
+      }
+
+      if (sendResult.outcome === "no_email") {
         await supabase.from("email_drafts").insert({
           organization_id: policy.organization_id,
           client_id: invoice.client_id || invoice.customer_id,

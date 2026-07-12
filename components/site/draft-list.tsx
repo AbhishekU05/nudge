@@ -15,10 +15,18 @@ type Draft = {
   subject: string;
   body_html: string;
   created_at: string;
+  status?: string;
   action_type?: string;
   action_payload?: Record<string, unknown>;
   clients: { name: string; email: string };
 };
+
+// approveDraft claims a row into "sending" before handing the email to Resend, and
+// releases it back to "draft" if the send fails. A row left here means the process
+// died mid-send: the email may or may not have gone out. Show it rather than let it
+// vanish from both the queue and the sent list - re-approving is safe, because the
+// send carries an idempotency key that stops Resend delivering twice.
+const isSending = (draft: Draft) => draft.status === "sending";
 
 export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
   const [drafts, setDrafts] = useState<Draft[]>(initialDrafts);
@@ -152,6 +160,11 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
                 <span className="text-[10px] text-zinc-500">{formatDistanceToNow(new Date(draft.created_at))} ago</span>
               </div>
               <p className="text-xs text-zinc-400 truncate">{draft.subject}</p>
+              {isSending(draft) && (
+                <span className="mt-1.5 inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400 border border-amber-500/20">
+                  Interrupted while sending
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -196,6 +209,18 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
               </div>
             </div>
             
+            {isSending(selectedDraft) && (
+              <div className="px-6 py-3 border-b border-amber-500/20 bg-amber-500/5">
+                <p className="text-sm text-amber-400 font-medium">Interrupted while sending</p>
+                <p className="text-xs text-zinc-400 mt-1">
+                  This send did not finish, so we can&apos;t confirm whether it reached{" "}
+                  {selectedDraft.clients?.email}. You can approve it again — the client will not
+                  receive a duplicate. If it was only just sent, give it a couple of minutes
+                  first, in case it is still on its way.
+                </p>
+              </div>
+            )}
+
             <div className="flex-1 p-8 overflow-y-auto bg-zinc-950/50">
               <div className="max-w-2xl mx-auto bg-zinc-900 border border-white/10 rounded-lg p-8 shadow-sm">
                 {isEditingDraft ? (

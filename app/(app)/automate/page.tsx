@@ -47,13 +47,17 @@ export default async function AutomatePage() {
     }
   }
 
+  // "sending" is the transient state approveDraft claims a row into before it
+  // hands the email to Resend. It belongs in this list: a row stranded there by a
+  // crash mid-send would otherwise appear in neither the draft queue nor the sent
+  // list, and there would be no way to see it, let alone retry it.
   const { data: draftsData } = await supabase
     .from("email_drafts")
-    .select("id, subject, body_html, created_at, action_type, action_payload, clients(name, email)")
+    .select("id, subject, body_html, created_at, status, action_type, action_payload, clients(name, email)")
     .eq("organization_id", member?.organization_id)
-    .eq("status", "draft")
+    .in("status", ["draft", "sending"])
     .order("created_at", { ascending: false });
-    
+
   const drafts = (draftsData || []).map((d) => {
     const rawClient = d.clients as unknown;
     const client = Array.isArray(rawClient) ? rawClient[0] : rawClient;
@@ -62,6 +66,7 @@ export default async function AutomatePage() {
       subject: d.subject,
       body_html: d.body_html,
       created_at: d.created_at,
+      status: d.status,
       action_type: d.action_type,
       action_payload: d.action_payload,
       clients: client as { name: string; email: string }
@@ -70,7 +75,7 @@ export default async function AutomatePage() {
 
   const { data: sentData } = await supabase
     .from("email_drafts")
-    .select("id, subject, body_html, sent_at, status, clients(name, email)")
+    .select("id, subject, body_html, sent_at, status, delivery_status, delivery_status_at, delivery_detail, clients(name, email)")
     .eq("organization_id", member?.organization_id)
     .in("status", ["sent", "failed"])
     .order("sent_at", { ascending: false })
@@ -85,6 +90,9 @@ export default async function AutomatePage() {
       body_html: d.body_html,
       sent_at: d.sent_at,
       status: d.status,
+      delivery_status: d.delivery_status,
+      delivery_status_at: d.delivery_status_at,
+      delivery_detail: d.delivery_detail,
       clients: client as { name: string; email: string }
     };
   });

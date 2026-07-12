@@ -4,6 +4,70 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { inngest } from "@/lib/inngest/client";
 import { getResendClient } from "@/lib/resend";
 
+// Resend event -> the delivery_status we store.
+const DELIVERY_STATUS_BY_EVENT: Record<string, string> = {
+  "email.sent": "sent",
+  "email.delivery_delayed": "delivery_delayed",
+  "email.delivered": "delivered",
+  "email.complained": "complained",
+  "email.bounced": "bounced",
+  "email.failed": "failed",
+};
+
+// Webhook events are not ordered, and a delayed message that later succeeds sends
+// `delivery_delayed` and then `delivered`. Rank them so a status can only ever move
+// forward: a late-arriving `delivered` must not overwrite a `bounced`, and a
+// `delivery_delayed` must not walk back a `delivered`.
+const DELIVERY_STATUS_RANK: Record<string, number> = {
+  sent: 1,
+  delivery_delayed: 2,
+  delivered: 3,
+  complained: 4,
+  bounced: 5,
+  failed: 5,
+};
+
+type ResendEvent = {
+  type?: string;
+  data?: { email_id?: string; bounce?: { message?: string; type?: string }; [key: string]: unknown };
+};
+
+async function recordDeliveryStatus(event: ResendEvent) {
+  const nextStatus = DELIVERY_STATUS_BY_EVENT[event.type ?? ""];
+  const emailId = event.data?.email_id;
+  if (!nextStatus || !emailId) return;
+
+  const supabase = createSupabaseAdminClient();
+
+  const { data: row } = await supabase
+    .from("email_drafts")
+    .select("id, delivery_status")
+    .eq("resend_email_id", emailId)
+    .maybeSingle<{ id: string; delivery_status: string | null }>();
+
+  // Not every Resend send has a row here (the digest and the bounce-notification
+  // emails are not drafts), so an unmatched event is normal, not an error.
+  if (!row) return;
+
+  const currentRank = DELIVERY_STATUS_RANK[row.delivery_status ?? ""] ?? 0;
+  if (DELIVERY_STATUS_RANK[nextStatus] < currentRank) return;
+
+  const detail = event.data?.bounce?.message || event.data?.bounce?.type || null;
+
+  const { error } = await supabase
+    .from("email_drafts")
+    .update({
+      delivery_status: nextStatus,
+      delivery_status_at: new Date().toISOString(),
+      ...(detail ? { delivery_detail: detail } : {}),
+    })
+    .eq("id", row.id);
+
+  if (error) {
+    console.error(`[Resend Webhook] Failed to record ${nextStatus} for ${emailId}: ${error.message}`);
+  }
+}
+
 export async function POST(req: Request) {
   const payload = await req.text();
   const headers = req.headers;
@@ -39,6 +103,12 @@ export async function POST(req: Request) {
   } catch (err) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
+
+  // Record the delivery outcome against the email_drafts row so the Sent box can
+  // show it. Resend confirms hand-off immediately but only reports a bounce or a
+  // complaint hours later, so without this the Sent box goes on claiming a
+  // message was fine long after it hard-bounced.
+  await recordDeliveryStatus(event);
 
   // Handle email.bounced
   if (event.type === "email.bounced" || event.type === "email.complained" || event.type === "email.failed") {
