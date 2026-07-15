@@ -291,7 +291,6 @@ export type LateFeePolicy = {
   grace_period_days: number;
   due_days: number;
   frequency: "once" | "weekly" | "monthly";
-  apply_to: "existing_invoice" | "new_invoice";
   included_group_ids: string[];
   active: boolean;
   auto_approve: boolean;

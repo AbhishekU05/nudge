@@ -23,6 +23,10 @@ export const processLateFee = inngest.createFunction(
       dueDate,
       subject,
       body_html,
+      // Set only when this event comes from a human approving a late-fee draft
+      // (see app/actions/drafts.ts). Used to re-schedule the next period of a
+      // recurring policy, which the draft path can't do on its own.
+      fromDraftApproval,
     } = event.data;
 
     const supabase = createSupabaseAdminClient();
@@ -118,7 +122,7 @@ export const processLateFee = inngest.createFunction(
     // memoizes each on success, so a retry after the fee row commits re-runs
     // only what's left rather than inserting the fee a second time. The unique
     // idempotency_key is the hard guarantee behind that.
-    await step.run("record-applied-fee", async () => {
+    const feeRecord = await step.run("record-applied-fee", async () => {
       const { error } = await supabase.from("applied_late_fees").insert({
         invoice_id: invoice.id,
         policy_id: policy.id,
@@ -128,6 +132,7 @@ export const processLateFee = inngest.createFunction(
       // 23505 = a prior attempt already recorded this exact application; that's
       // the dedup working, not a failure. Anything else is a real error.
       if (error && error.code !== "23505") throw error;
+      return { inserted: !error };
     });
 
     await step.run("record-fee-event", async () => {
@@ -291,6 +296,22 @@ export const processLateFee = inngest.createFunction(
         });
       }
     });
+
+    // A recurring policy normally schedules its next period from within the
+    // still-running late-fee-workflow loop. But when this fee came from a draft
+    // being approved, that workflow already exited (it can't sleep waiting on a
+    // human), so nothing is left to schedule the next occurrence. Re-arm it with
+    // a fresh evaluation, which sleeps until applied_at + the frequency interval
+    // and drafts the next fee. Only on a genuinely new application (not a
+    // deduped retry) and only for recurring policies.
+    if (fromDraftApproval && feeRecord.inserted && policy.frequency !== "once") {
+      await step.run("schedule-next-period", async () => {
+        await inngest.send({
+          name: "invoice.evaluate_late_fee",
+          data: { invoiceId, organizationId: policy.organization_id },
+        });
+      });
+    }
 
     return { success: true };
   }

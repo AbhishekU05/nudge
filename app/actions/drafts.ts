@@ -111,7 +111,10 @@ export async function approveDraft(draftId: string, overrides?: { subject?: stri
           feeAmount: Number(payload.fee_amount),
           dueDate: payload.due_date ? String(payload.due_date) : undefined,
           subject: finalSubject,
-          body_html: finalBody
+          body_html: finalBody,
+          // Lets the worker re-schedule the next period for recurring policies,
+          // since the workflow that drafted this fee has already exited.
+          fromDraftApproval: true
         }
       });
       // The worker will send the email after applying the fee successfully

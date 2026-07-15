@@ -75,7 +75,13 @@ export const lateFeeWorkflow = inngest.createFunction(
                isIncluded = policy.included_group_ids.some((id: string) => customerGroupIds.includes(id));
              }
            }
-           if (isIncluded && new Date(invoice.created_at) >= new Date(policy.created_at)) {
+           // Policies apply to every unpaid invoice in their included groups,
+           // regardless of whether the invoice predates the policy. Creating a
+           // policy after invoices already exist still covers them (the
+           // policy-create action re-evaluates every unpaid invoice), and a
+           // past-grace invoice is charged immediately per the fee-date logic
+           // below.
+           if (isIncluded) {
              applicablePolicies.push(policy);
            }
          }
@@ -102,16 +108,27 @@ export const lateFeeWorkflow = inngest.createFunction(
              continue;
            }
 
-           let baseDateStr = invoice.due_date;
-           let daysToAdd = policy.grace_period_days;
-           
-           if (appliedFees && appliedFees.length > 0) {
-             baseDateStr = appliedFees[0].applied_at;
-             daysToAdd = policy.frequency === "weekly" ? 7 : 30; // monthly is ~30 days
-           }
+           const dayMs = 24 * 60 * 60 * 1000;
+           const intervalDays = policy.frequency === "weekly" ? 7 : policy.frequency === "monthly" ? 30 : 0;
 
-           const baseDate = new Date(baseDateStr);
-           const nextFeeDate = new Date(baseDate.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
+           // Anchor the whole cadence to when this policy actually began charging
+           // the invoice: normally its due date + grace, but never earlier than
+           // the policy's own creation. The clamp stops a policy created long
+           // after an invoice fell overdue from backfilling every period between
+           // the old due date and today - the first fee lands at creation, then
+           // the cadence runs forward from there.
+           const anchor = Math.max(
+             new Date(invoice.due_date).getTime() + Number(policy.grace_period_days) * dayMs,
+             new Date(policy.created_at).getTime()
+           );
+
+           // The Nth fee (0-indexed by how many have already been applied) is
+           // fixed at anchor + N*interval, independent of when prior fees were
+           // actually applied or approved. A slow approval therefore never pushes
+           // the next fee out: if its scheduled date has already passed by the
+           // time the previous fee is approved, the next one is simply due now.
+           const appliedCount = appliedFees?.length ?? 0;
+           const nextFeeDate = new Date(anchor + appliedCount * intervalDays * dayMs);
            
            const parts = formatter.formatToParts(nextFeeDate);
            const y = parts.find(p => p.type === "year")?.value;
@@ -200,6 +217,16 @@ export const lateFeeWorkflow = inngest.createFunction(
                  continue;
              }
 
+             // A first fee whose due date (invoice due date + grace) had already
+             // passed by the time the policy was created is a retroactive,
+             // immediate catch-up rather than a fee that accrued in real time.
+             // These always route to a draft for human review, even when the
+             // policy is auto-approve, so creating a policy can't silently charge
+             // fees on invoices that were already overdue when it was created.
+             const isFirstApplication = !(appliedFees && appliedFees.length > 0);
+             const firstFeeDueTime = new Date(currentInvoice.due_date).getTime() + Number(freshPolicy.grace_period_days) * 24 * 60 * 60 * 1000;
+             const isRetroactiveImmediate = isFirstApplication && firstFeeDueTime <= new Date(freshPolicy.created_at).getTime();
+
              let feeAmount = 0;
              if (freshPolicy.fee_type === "flat") {
                feeAmount = Number(freshPolicy.fee_value);
@@ -223,7 +250,7 @@ export const lateFeeWorkflow = inngest.createFunction(
                computedDueDate = dd.toISOString().split("T")[0];
              }
 
-             if (freshPolicy.auto_approve) {
+             if (freshPolicy.auto_approve && !isRetroactiveImmediate) {
                await inngest.send({
                  name: "invoice.apply_late_fee",
                  data: {
@@ -238,6 +265,21 @@ export const lateFeeWorkflow = inngest.createFunction(
                  }
                });
              } else {
+               // A draft isn't recorded in applied_late_fees until it's approved,
+               // so the setup step keeps seeing this fee as due on every
+               // re-evaluation. Skip if a pending draft for this (invoice, policy)
+               // already exists so the loop can't stack duplicate drafts; with
+               // nothing applied this pass, it then settles (done = !anyApplied).
+               const { data: existingDrafts } = await supabase
+                 .from("email_drafts")
+                 .select("id")
+                 .eq("organization_id", organizationId)
+                 .eq("action_type", "late_fee")
+                 .in("status", ["draft", "sending"])
+                 .contains("action_payload", { invoice_id: invoiceId, policy_id: freshPolicy.id })
+                 .limit(1);
+               if (existingDrafts && existingDrafts.length > 0) continue;
+
                await supabase.from("email_drafts").insert({
                  organization_id: organizationId,
                  client_id: currentInvoice.client_id || currentInvoice.customer_id,
