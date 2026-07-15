@@ -271,7 +271,7 @@ async function upsertPayment(
     return;
   }
 
-  await supabase.from("payments").insert({
+  const { error: insertError } = await supabase.from("payments").insert({
     organization_id: organizationId,
     invoice_id: existingInvoice.id,
     amount: payment.amount,
@@ -280,6 +280,12 @@ async function upsertPayment(
     payment_method: "xero_sync",
     reference_id: payment.paymentID,
   });
+  // The select above is a fast-path check, but it races with concurrent
+  // redeliveries of the same invoice. The unique index on
+  // (organization_id, reference_id) is the real guard: 23505 means another
+  // delivery inserted this exact Xero payment first, which is the dedup
+  // working — anything else is a genuine failure worth surfacing.
+  if (insertError && insertError.code !== "23505") throw insertError;
 
   // Re-fetch Xero invoice and update status if needed
   // Alternatively, the invoice webhook might fire alongside this payment webhook.
