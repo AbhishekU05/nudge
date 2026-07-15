@@ -52,13 +52,17 @@ export const quickbooksWebhookEvent = inngest.createFunction(
     // runs, so Inngest's retry actually re-attempts the QuickBooks call
     // instead of finding the marker already there on retry and silently
     // no-op'ing. Mirrors the same fix in xero-webhook-event.ts.
-    const markProcessed = () =>
-      supabase.from("webhook_events").insert({
+    const markProcessed = async () => {
+      const { error } = await supabase.from("webhook_events").insert({
         id: eventId,
-        event_type: `quickbooks_${entity.name}_${entity.operation}`,
-        payload: entity,
-        processed_at: new Date().toISOString(),
+        type: `quickbooks_${entity.name}_${entity.operation}`,
       });
+      // 23505 = a concurrent redelivery inserted the same event id first;
+      // that's the idempotency guarantee working, not a failure. Any other
+      // error means the marker didn't land, so surface it and let Inngest
+      // retry rather than silently claiming the event was processed.
+      if (error && error.code !== "23505") throw error;
+    };
 
     const integration = await getQuickBooksIntegrationByRealmId(realmId);
     if (!integration) {

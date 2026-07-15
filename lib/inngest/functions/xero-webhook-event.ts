@@ -51,13 +51,17 @@ export const xeroWebhookEvent = inngest.createFunction(
     // A transient failure (rate limit, network error) throws before this
     // runs, so Inngest's retry actually re-attempts the Xero call instead of
     // finding the marker already there on retry and silently no-op'ing.
-    const markProcessed = () =>
-      supabase.from("webhook_events").insert({
+    const markProcessed = async () => {
+      const { error } = await supabase.from("webhook_events").insert({
         id: eventId,
-        event_type: `xero_${eventCategory}_${eventType}`,
-        payload: xeroEvent,
-        processed_at: new Date().toISOString(),
+        type: `xero_${eventCategory}_${eventType}`,
       });
+      // 23505 = a concurrent redelivery inserted the same event id first;
+      // that's the idempotency guarantee working, not a failure. Any other
+      // error means the marker didn't land, so surface it and let Inngest
+      // retry rather than silently claiming the event was processed.
+      if (error && error.code !== "23505") throw error;
+    };
 
     const integration = await getXeroIntegrationByTenant(tenantId);
     if (!integration) {
