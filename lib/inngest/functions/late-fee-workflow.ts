@@ -168,7 +168,16 @@ export const lateFeeWorkflow = inngest.createFunction(
            return { done: true };
          }
 
-         const balance = Math.max(0, Number(currentInvoice.amount_owed || currentInvoice.amount || 0) - Number(currentInvoice.amount_paid || 0));
+         // Remaining balance = invoice total minus payments recorded so far.
+         // The invoices row has no amount_paid column, so sum the payments;
+         // percentage fees below are charged on this outstanding amount, not
+         // the original total.
+         const { data: paidRows } = await supabase
+           .from("payments")
+           .select("amount")
+           .eq("invoice_id", invoiceId);
+         const amountPaid = (paidRows || []).reduce((sum, p) => sum + Number(p.amount || 0), 0);
+         const balance = Math.max(0, Number(currentInvoice.amount || 0) - amountPaid);
          if (balance <= 0) return { done: true };
 
          const { data: members } = await supabase

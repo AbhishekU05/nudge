@@ -45,8 +45,14 @@ export const processLateFee = inngest.createFunction(
 
     if (!policy) throw new Error(`Policy ${policyId} not found`);
 
-    // Check balance again
-    const balance = Math.max(0, Number(invoice.amount_owed || invoice.amount || 0) - Number(invoice.amount_paid || 0));
+    // Check the remaining balance again (invoice total minus payments recorded
+    // so far). The invoices row has no amount_paid column, so sum the payments.
+    const { data: paidRows } = await supabase
+      .from("payments")
+      .select("amount")
+      .eq("invoice_id", invoiceId);
+    const amountPaid = (paidRows || []).reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    const balance = Math.max(0, Number(invoice.amount || 0) - amountPaid);
     if (balance <= 0) return { skipped: true, reason: "Zero balance" };
 
     // Final idempotency gate: late-fee-workflow.ts checks applied_late_fees
@@ -102,13 +108,29 @@ export const processLateFee = inngest.createFunction(
       }
     });
 
-    await step.run("update-database", async () => {
-      await supabase.from("applied_late_fees").insert({
+    // Stable across every retry of this run, distinct for a genuinely new late
+    // fee. event.id is assigned by Inngest when the event is received and does
+    // not change when a step is retried, so it doubles as the row-level
+    // idempotency key for applied_late_fees below and the Resend send key later.
+    const idempotencyKey = `late-fee-${event.id ?? `${invoiceId}-${policyId}-${feeAmount}`}`;
+
+    // Recording the fee and its audit event are separate steps: Inngest
+    // memoizes each on success, so a retry after the fee row commits re-runs
+    // only what's left rather than inserting the fee a second time. The unique
+    // idempotency_key is the hard guarantee behind that.
+    await step.run("record-applied-fee", async () => {
+      const { error } = await supabase.from("applied_late_fees").insert({
         invoice_id: invoice.id,
         policy_id: policy.id,
-        amount: feeAmount
+        amount: feeAmount,
+        idempotency_key: idempotencyKey,
       });
+      // 23505 = a prior attempt already recorded this exact application; that's
+      // the dedup working, not a failure. Anything else is a real error.
+      if (error && error.code !== "23505") throw error;
+    });
 
+    await step.run("record-fee-event", async () => {
       await supabase.from("events").insert({
         invoice_id: invoice.id,
         client_id: invoice.client_id || invoice.customer_id,
@@ -117,11 +139,6 @@ export const processLateFee = inngest.createFunction(
         description: `Applied late fee of ${feeAmount} ${invoice.currency} from policy: ${policy.name}`
       });
     });
-
-    // Stable across every retry of this run, distinct for a genuinely new late
-    // fee. event.id is assigned by Inngest when the event is received and does
-    // not change when a step is retried.
-    const idempotencyKey = `late-fee-${event.id ?? `${invoiceId}-${policyId}-${feeAmount}`}`;
 
     const sendResult = await step.run("send-email", async () => {
       let clientEmail = invoice.clients.email;
