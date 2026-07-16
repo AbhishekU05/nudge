@@ -19,6 +19,20 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   async rewrites() {
     return [
+      // MCP OAuth discovery — RFC 8414 / RFC 9728 require these exact
+      // /.well-known/ URLs; map them to the route handlers under /api/mcp.
+      {
+        source: '/.well-known/oauth-authorization-server',
+        destination: '/api/mcp/metadata/authorization-server',
+      },
+      {
+        source: '/.well-known/oauth-protected-resource',
+        destination: '/api/mcp/metadata/protected-resource',
+      },
+      {
+        source: '/.well-known/oauth-protected-resource/:path*',
+        destination: '/api/mcp/metadata/protected-resource',
+      },
       // Affonso first-party proxy — routes /r/* through our domain so ad blockers
       // cannot distinguish affiliate tracking from first-party requests.
       {

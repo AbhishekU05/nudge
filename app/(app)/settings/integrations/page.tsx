@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { CheckCircle2, Mail, PlugZap, Unplug } from "lucide-react";
+import { Bot, CheckCircle2, Mail, PlugZap, Unplug } from "lucide-react";
 
 import { disconnectXero, disconnectQuickBooks, disconnectGmail } from "@/app/actions/integrations";
+import { disconnectMcpConnection } from "@/app/actions/mcp";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,23 @@ import {
 import { requireUser } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+// Deep link that pre-fills Claude's "add custom connector" modal with Duely's
+// production MCP endpoint, so the user just clicks Add.
+const CLAUDE_CONNECT_URL = `https://claude.ai/settings/connectors?${new URLSearchParams({
+  modal: "add-custom-connector",
+  mcpName: "Duely",
+  mcpServerUrl: "https://duely.in/api/mcp",
+}).toString()}`;
+
+function formatDate(value: string | null): string {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
 
 function Notice({
   children,
@@ -105,6 +123,15 @@ export default async function IntegrationsPage({
     .eq("provider", "quickbooks")
     .maybeSingle<IntegrationRow>();
 
+
+  // Claude (MCP) connections for this user. mcp_tokens has RLS with no public
+  // policies, so read through the service role.
+  const { data: mcpConnections } = await adminSupabase
+    .from("mcp_tokens")
+    .select("id, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+  const claudeConnections = mcpConnections ?? [];
 
   const isConnectedXero = Boolean(xero);
   const isConnectedQuickBooks = Boolean(quickbooks);
@@ -441,6 +468,84 @@ export default async function IntegrationsPage({
                         <Button className="w-full sm:w-auto">Connect QuickBooks</Button>
                       </Link>
                     )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ── Claude (MCP) Integration Card ──────────────────── */}
+            <Card className="overflow-hidden border-white/10 bg-white/[0.035]">
+              <CardHeader className="border-b border-white/10">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-2xl">
+                      <Bot className="h-5 w-5 text-primary" />
+                      Claude
+                    </CardTitle>
+                    <CardDescription className="mt-2 max-w-xl">
+                      Query your accounts-receivable data from Claude with a read-only
+                      connection. Each teammate connects their own Claude, and everyone
+                      sees the same organization&apos;s data.
+                    </CardDescription>
+                  </div>
+                  {claudeConnections.length > 0 ? (
+                    <Badge variant="success" className="gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      {claudeConnections.length} connected
+                    </Badge>
+                  ) : (
+                    <Badge variant="muted">Not connected</Badge>
+                  )}
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-6 p-6">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                  <p className="text-sm text-zinc-400">
+                    <span className="font-medium text-zinc-200">Read-only:</span> Claude can
+                    read AR summaries, invoices, payments, clients, late fees, and reminders.
+                    It cannot create, edit, or delete anything, and cannot see other
+                    organizations&apos; data.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-4 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-zinc-200">Connect to Claude</p>
+                    <p className="mt-1 max-w-xl text-sm leading-6 text-zinc-500">
+                      Opens Claude&apos;s connector setup pre-filled with Duely. You&apos;ll
+                      sign in and grant read-only access.
+                    </p>
+                  </div>
+                  <a href={CLAUDE_CONNECT_URL} target="_blank" rel="noopener noreferrer">
+                    <Button className="w-full sm:w-auto">Connect to Claude</Button>
+                  </a>
+                </div>
+
+                {claudeConnections.length > 0 && (
+                  <div className="space-y-2">
+                    {claudeConnections.map((c) => (
+                      <div
+                        key={c.id}
+                        className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.025] p-4"
+                      >
+                        <p className="text-sm text-zinc-300">
+                          Connected {formatDate(c.created_at)}
+                        </p>
+                        <form action={disconnectMcpConnection}>
+                          <input type="hidden" name="id" value={c.id} />
+                          <Button
+                            type="submit"
+                            variant="secondary"
+                            size="sm"
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <Unplug className="h-3.5 w-3.5" />
+                            Disconnect
+                          </Button>
+                        </form>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
