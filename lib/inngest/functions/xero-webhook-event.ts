@@ -20,15 +20,27 @@ export const xeroWebhookEvent = inngest.createFunction(
   },
   async ({ event }) => {
     const xeroEvent = event.data as {
-      eventId: string;
       tenantId: string;
       resourceId: string;
       eventCategory: string;
       eventType: string;
+      eventDateUtc?: string;
     };
 
     const supabase = createSupabaseAdminClient();
-    const eventId = xeroEvent.eventId;
+    // Xero webhook events carry no native id, so build a stable idempotency key
+    // from the fields Xero does send. eventDateUtc distinguishes successive
+    // updates to the same resource yet stays identical across retries of the
+    // same delivery. (The old xeroEvent.eventId was always undefined, which
+    // dropped the id from the marker insert and violated webhook_events' NOT NULL
+    // primary key — failing 100% of Xero webhook processing.)
+    const eventId = [
+      xeroEvent.tenantId,
+      xeroEvent.resourceId,
+      xeroEvent.eventCategory,
+      xeroEvent.eventType,
+      xeroEvent.eventDateUtc ?? "",
+    ].join("_");
 
     // Idempotency check
     const { data: existingEvent } = await supabase
