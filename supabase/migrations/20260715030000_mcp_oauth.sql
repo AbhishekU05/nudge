@@ -79,9 +79,11 @@ END
 $$;
 
 GRANT USAGE ON SCHEMA public TO mcp_readonly;
--- Only the tables the tools actually read; invoice_balances is security_invoker,
--- so reading it re-applies these base-table policies as mcp_readonly.
-GRANT SELECT ON invoices, invoice_balances, payments, clients,
+-- The base tables the signal engine reads. mcp_client_signals is
+-- security_invoker, so reading it re-applies these base-table RLS policies as
+-- mcp_readonly. (The signals compute remaining balances directly from
+-- invoices+payments, so the dropped invoice_balances view is not needed.)
+GRANT SELECT ON invoices, payments, clients,
                 applied_late_fees, late_fee_policies, events TO mcp_readonly;
 
 -- The org the current request is scoped to, pinned by each function via

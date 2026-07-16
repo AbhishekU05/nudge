@@ -199,8 +199,9 @@ Why this shape:
 - **Signals computed in SQL.** Risk scores, rates, trends, and aggregates are all computed in
   the `mcp_client_signals` view + RPCs — never fetch-and-derive in TypeScript or Claude. No
   `SELECT *` reaches a tool; explicit columns only.
-- `invoice_balances` and `mcp_client_signals` are `security_invoker = true`, so reading them
-  inside the definer functions re-applies these base-table policies as `mcp_readonly`.
+- `mcp_client_signals` is `security_invoker = true`, so reading it inside the definer functions
+  re-applies these base-table policies as `mcp_readonly`. It computes balances directly from
+  `invoices`+`payments` (it does not use the retired `invoice_balances` view).
 
 ### RPC functions (in the migration)
 
