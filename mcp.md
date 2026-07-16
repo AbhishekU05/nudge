@@ -228,13 +228,17 @@ granted only to `service_role`.
 ## 7. Connect flow (UI)
 
 `app/(app)/settings/integrations/page.tsx` renders a **Claude** card (alongside Gmail/Xero/
-QuickBooks) with a **Connect to Claude** button. It opens Claude's connector modal pre-filled:
+QuickBooks). Anthropic moved connectors under **Customize → Connectors** and removed the
+pre-fill deep link, so the card shows the server URL to paste (`https://duely.in/api/mcp`) and
+an **Open Claude connectors** button pointing at:
 
 ```
-https://claude.ai/settings/connectors?modal=add-custom-connector&mcpName=Duely&mcpServerUrl=https://duely.in/api/mcp
+https://claude.ai/customize/connectors
 ```
 
-The card also lists the user's active connections and offers **Disconnect**
+The user clicks **+ → Add custom connector** there and pastes the URL. (Team/Enterprise owners
+add it under `https://claude.ai/admin-settings/connectors`.) The card also lists the user's
+active connections and offers **Disconnect**
 (`app/actions/mcp.ts` → deletes the user's `mcp_tokens` rows, scoped to their `user_id`). The
 card sits inside the page's existing subscription gate.
 

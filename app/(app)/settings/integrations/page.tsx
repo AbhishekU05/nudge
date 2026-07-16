@@ -16,13 +16,11 @@ import { requireUser } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-// Deep link that pre-fills Claude's "add custom connector" modal with Duely's
-// production MCP endpoint, so the user just clicks Add.
-const CLAUDE_CONNECT_URL = `https://claude.ai/settings/connectors?${new URLSearchParams({
-  modal: "add-custom-connector",
-  mcpName: "Duely",
-  mcpServerUrl: "https://duely.in/api/mcp",
-}).toString()}`;
+// Claude moved connectors under Customize and dropped pre-fill deep links, so the
+// button just opens the connectors page and the user pastes the server URL shown
+// in the card. (Team/Enterprise owners add it under /admin-settings/connectors.)
+const CLAUDE_CONNECT_URL = "https://claude.ai/customize/connectors";
+const MCP_SERVER_URL = "https://duely.in/api/mcp";
 
 function formatDate(value: string | null): string {
   if (!value) return "—";
@@ -513,12 +511,16 @@ export default async function IntegrationsPage({
                   <div>
                     <p className="text-sm font-medium text-zinc-200">Connect to Claude</p>
                     <p className="mt-1 max-w-xl text-sm leading-6 text-zinc-500">
-                      Opens Claude&apos;s connector setup pre-filled with Duely. You&apos;ll
-                      sign in and grant read-only access.
+                      In Claude, open <span className="text-zinc-300">Customize → Connectors</span>,
+                      click <span className="text-zinc-300">+ → Add custom connector</span>, and paste
+                      the URL below. Claude will then ask you to sign in and grant read-only access.
                     </p>
+                    <code className="mt-3 inline-block select-all rounded-md border border-white/10 bg-black/30 px-2 py-1 font-mono text-xs text-zinc-200">
+                      {MCP_SERVER_URL}
+                    </code>
                   </div>
                   <a href={CLAUDE_CONNECT_URL} target="_blank" rel="noopener noreferrer">
-                    <Button className="w-full sm:w-auto">Connect to Claude</Button>
+                    <Button className="w-full sm:w-auto">Open Claude connectors</Button>
                   </a>
                 </div>
 
