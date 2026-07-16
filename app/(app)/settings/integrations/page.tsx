@@ -3,6 +3,7 @@ import { Bot, CheckCircle2, Mail, PlugZap, Unplug } from "lucide-react";
 
 import { disconnectXero, disconnectQuickBooks, disconnectGmail } from "@/app/actions/integrations";
 import { disconnectMcpConnection } from "@/app/actions/mcp";
+import { CopyMcpUrl } from "./copy-url-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -515,9 +516,12 @@ export default async function IntegrationsPage({
                       click <span className="text-zinc-300">+ → Add custom connector</span>, and paste
                       the URL below. Claude will then ask you to sign in and grant read-only access.
                     </p>
-                    <code className="mt-3 inline-block select-all rounded-md border border-white/10 bg-black/30 px-2 py-1 font-mono text-xs text-zinc-200">
-                      {MCP_SERVER_URL}
-                    </code>
+                    <div className="mt-3 flex items-center gap-2">
+                      <code className="select-all rounded-md border border-white/10 bg-black/30 px-2 py-1 font-mono text-xs text-zinc-200">
+                        {MCP_SERVER_URL}
+                      </code>
+                      <CopyMcpUrl url={MCP_SERVER_URL} />
+                    </div>
                   </div>
                   <a href={CLAUDE_CONNECT_URL} target="_blank" rel="noopener noreferrer">
                     <Button className="w-full sm:w-auto">Open Claude connectors</Button>
