@@ -13,15 +13,33 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const XERO_PROVIDER = "xero";
 import { inngest } from "@/lib/inngest/client";
+// Every scope we request at connect time. Ask for everything upfront so adding a
+// feature never forces users to reconnect. Write scopes (accounting.invoices,
+// accounting.payments) include read, so no separate .read is requested for them.
+// NOTE: each of these must also be enabled for the app in the Xero developer
+// portal, or Xero won't grant it (the connect-time check below flags that).
 const XERO_SCOPES = [
   "openid",
   "profile",
   "email",
+  "offline_access", // refresh tokens (no hourly re-auth)
+  "accounting.contacts.read", // read clients/contacts
+  "accounting.invoices", // read + write invoices (sync + late-fee creation)
+  "accounting.payments", // read + write payments (sync + push payments back)
+  "accounting.settings.read", // bank accounts / org settings
+  // Reports are NOT covered by a single scope: Xero uses granular per-report
+  // scopes (accounting.reports.profitandloss.read, ...balancesheet.read, etc.).
+  // We don't use reports yet; when we do, add the specific scope(s) here.
+];
+
+// A missing grant of any of these blocks the connection (a live feature depends
+// on it). Other requested scopes only warn if not granted.
+const XERO_REQUIRED_SCOPES = [
+  "offline_access",
   "accounting.contacts.read",
-  "accounting.invoices.read",
+  "accounting.invoices",
   "accounting.payments",
   "accounting.settings.read",
-  "offline_access",
 ];
 
 const STATE_MAX_AGE_MS = 10 * 60 * 1000;
@@ -180,11 +198,61 @@ export async function withXeroRetry<T>(
   }
 }
 
+// The scopes Xero actually granted, from the token response (falling back to the
+// access token's JWT `scope` claim).
+function grantedScopeSet(tokenSet: TokenSet): Set<string> {
+  const withScope = tokenSet as TokenSet & { scope?: string };
+  let raw = withScope.scope ?? "";
+  if (!raw && tokenSet.access_token) {
+    try {
+      const payloadSeg = tokenSet.access_token.split(".")[1] ?? "";
+      const claims = JSON.parse(Buffer.from(payloadSeg, "base64url").toString("utf8")) as {
+        scope?: string | string[];
+      };
+      raw = Array.isArray(claims.scope) ? claims.scope.join(" ") : (claims.scope ?? "");
+    } catch {
+      // leave raw empty; the check below will flag the missing scopes
+    }
+  }
+  return new Set(raw.split(/\s+/).filter(Boolean));
+}
+
+// A write scope also grants its `.read` form (e.g. accounting.invoices covers
+// accounting.invoices.read).
+function isScopeGranted(required: string, granted: Set<string>): boolean {
+  if (granted.has(required)) return true;
+  if (required.endsWith(".read") && granted.has(required.slice(0, -".read".length))) return true;
+  return false;
+}
+
 export async function completeXeroOAuthCallback(callbackUrl: string, state: string) {
   const statePayload = verifyXeroState(state);
   const xero = createXeroClient(state);
   const tokenSet = await xero.apiCallback(callbackUrl);
   const tokenValues = requireTokenValues(tokenSet);
+
+  // Fail loud at connect time if Xero didn't grant a scope a feature needs,
+  // instead of 401-ing later. Xero consent is all-or-nothing, so a missing scope
+  // means the app registration in the Xero developer portal doesn't have it.
+  const grantedScopes = grantedScopeSet(tokenSet);
+  const missingRequired = XERO_REQUIRED_SCOPES.filter((s) => !isScopeGranted(s, grantedScopes));
+  if (missingRequired.length > 0) {
+    throw new Error(
+      `Xero did not grant required permissions: ${missingRequired.join(", ")}. Enable these scopes for the app in the Xero developer portal, then reconnect.`,
+    );
+  }
+  const missingOptional = XERO_SCOPES.filter(
+    (s) =>
+      !isScopeGranted(s, grantedScopes) &&
+      !XERO_REQUIRED_SCOPES.includes(s) &&
+      !["openid", "profile", "email"].includes(s),
+  );
+  if (missingOptional.length > 0) {
+    console.warn(
+      `Xero connect: optional scopes not granted (features limited until enabled): ${missingOptional.join(", ")}`,
+    );
+  }
+
   const tenants = await xero.updateTenants(false);
   if (tenants.length === 0) throw new Error("No Xero organisation was connected.");
 
