@@ -305,6 +305,24 @@ function PolicyForm({
               </select>
             </div>
 
+          {/* Tax treatment for the late-fee invoice */}
+          <div className="space-y-2">
+              <Label htmlFor="tax_treatment">Tax on late fee</Label>
+              <select
+                id="tax_treatment"
+                name="tax_treatment"
+                defaultValue={policy?.tax_treatment || "no_tax"}
+                className="flex h-10 w-full items-center justify-between rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="no_tax">No tax</option>
+                <option value="exclusive">Add tax on top</option>
+                <option value="inclusive">Tax inclusive</option>
+              </select>
+              <p className="text-xs text-zinc-500">
+                Applies to the Xero late-fee invoice. QuickBooks fees are always non-taxable for now.
+              </p>
+            </div>
+
 
           {/* Auto Approve Toggle */}
           <div className="space-y-2">

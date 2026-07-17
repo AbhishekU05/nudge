@@ -294,6 +294,7 @@ export type LateFeePolicy = {
   included_group_ids: string[];
   active: boolean;
   auto_approve: boolean;
+  tax_treatment: "no_tax" | "exclusive" | "inclusive";
   created_at: string;
 };
 

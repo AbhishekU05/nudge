@@ -97,9 +97,13 @@ export const processLateFee = inngest.createFunction(
           feeAmount,
           invoice.clients.name,
           invoice.clients.email,
-          dueDate
+          dueDate,
+          (policy.tax_treatment as "no_tax" | "exclusive" | "inclusive") ?? "no_tax"
         );
       } else if (invoice.quickbooks_id || invoice.quickbooks_invoice_id) {
+        // QuickBooks late-fee lines are always non-taxable (TaxCodeRef "NON").
+        // Honouring policy.tax_treatment for QB needs a company-specific tax code
+        // and is a follow-up; the treatment applies to Xero only for now.
         const { createQuickBooksLateFeeInvoice } = await import("@/lib/quickbooks-write");
         await createQuickBooksLateFeeInvoice(
           policy.organization_id,
