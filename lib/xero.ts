@@ -324,15 +324,17 @@ export async function syncXeroDataPageForOrg(
       const year = twoYearsAgo.getFullYear();
       const month = String(twoYearsAgo.getMonth() + 1).padStart(2, '0');
       const day = String(twoYearsAgo.getDate()).padStart(2, '0');
-      const whereClause = `Type=="ACCREC" AND (Status!="PAID" OR (Status=="PAID" AND Date >= DateTime(${year}, ${month}, ${day})))`;
+      const whereClause = `Type=="ACCREC" AND (Status=="AUTHORISED" OR Date >= DateTime(${year}, ${month}, ${day}))`;
 
+      // Only AUTHORISED (still-outstanding) invoices are pulled regardless of
+      // age; PAID and VOIDED are capped to the last 2 years, so a bulk sync no
+      // longer imports ancient paid or written-off (VOIDED) invoices.
       // DRAFT/SUBMITTED invoices are deliberately excluded: they haven't been
       // sent to the client yet, but Duely's own status/reminder logic can't
       // tell an unissued draft apart from a real outstanding invoice, so
       // syncing them risked emailing a client about an invoice they never
-      // received. VOIDED is included so a bulk sync can self-correct an
-      // invoice that was voided in Xero after being synced, in case the
-      // corresponding webhook was missed.
+      // received. Recent VOIDED invoices stay included so a bulk sync can
+      // self-correct one voided in Xero after syncing, if the webhook was missed.
       return client.accountingApi.getInvoices(intg.tenant_id, undefined, whereClause, "UpdatedDateUTC DESC", undefined, undefined, undefined, ["AUTHORISED", "PAID", "VOIDED"], page, false, undefined, undefined, false, 100);
     });
     currentIntegration = updatedInt;
@@ -424,7 +426,19 @@ export async function syncXeroDataPageForOrg(
   
   if (syncType === "payments") {
     const { result: response, integration: updatedInt } = await withXeroRetry(currentIntegration, async (client, intg) => {
-      return client.accountingApi.getPayments(intg.tenant_id, undefined, 'Status=="AUTHORISED"', "UpdatedDateUTC DESC", page);
+      // Cap payment history at 2 years, matching the invoice sync window above
+      // (and getXeroTotalPages below). Without this the sync pulled every
+      // authorised payment ever.
+      const twoYearsAgo = new Date();
+      twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+      const year = twoYearsAgo.getFullYear();
+      const month = String(twoYearsAgo.getMonth() + 1).padStart(2, '0');
+      const day = String(twoYearsAgo.getDate()).padStart(2, '0');
+      // ACCRECPAYMENT = money received on a sales (ACCREC) invoice. Excludes
+      // bill payments (ACCPAYPAYMENT) and over/prepayment/credit-note types,
+      // which aren't customer payments against our invoices.
+      const whereClause = `Status=="AUTHORISED" AND PaymentType=="ACCRECPAYMENT" AND Date >= DateTime(${year}, ${month}, ${day})`;
+      return client.accountingApi.getPayments(intg.tenant_id, undefined, whereClause, "UpdatedDateUTC DESC", page);
     });
     currentIntegration = updatedInt;
 
@@ -465,7 +479,6 @@ export async function syncXeroDataPageForOrg(
         payment_date: toIsoDate(p.date),
         payment_method: "xero",
         reference_id: referenceId,
-        notes: p.reference || "Xero sync",
       });
     }
 
@@ -504,13 +517,22 @@ export async function getXeroTotalPages(organizationId: string, syncType: "invoi
         const year = twoYearsAgo.getFullYear();
         const month = String(twoYearsAgo.getMonth() + 1).padStart(2, '0');
         const day = String(twoYearsAgo.getDate()).padStart(2, '0');
-        const whereClause = `Type=="ACCREC" AND (Status!="PAID" OR (Status=="PAID" AND Date >= DateTime(${year}, ${month}, ${day})))`;
+        const whereClause = `Type=="ACCREC" AND (Status=="AUTHORISED" OR Date >= DateTime(${year}, ${month}, ${day}))`;
         // Must match syncXeroDataPageForOrg's Statuses filter exactly, or
         // this page count and the actual per-page fetch disagree on how many
         // pages there are.
         return client.accountingApi.getInvoices(intg.tenant_id, undefined, whereClause, "UpdatedDateUTC DESC", undefined, undefined, undefined, ["AUTHORISED", "PAID", "VOIDED"], page, false, undefined, undefined, false, 100);
       } else {
-        return client.accountingApi.getPayments(intg.tenant_id, undefined, 'Status=="AUTHORISED"', "UpdatedDateUTC DESC", page);
+        // Must match syncXeroDataPageForOrg's payments filter exactly (incl. the
+        // 2-year cap), or this page count and the per-page fetch disagree on how
+        // many pages there are.
+        const twoYearsAgo = new Date();
+        twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+        const year = twoYearsAgo.getFullYear();
+        const month = String(twoYearsAgo.getMonth() + 1).padStart(2, '0');
+        const day = String(twoYearsAgo.getDate()).padStart(2, '0');
+        const whereClause = `Status=="AUTHORISED" AND PaymentType=="ACCRECPAYMENT" AND Date >= DateTime(${year}, ${month}, ${day})`;
+        return client.accountingApi.getPayments(intg.tenant_id, undefined, whereClause, "UpdatedDateUTC DESC", page);
       }
     });
     if (syncType === "invoices") return (result.body as any).invoices?.length || 0;

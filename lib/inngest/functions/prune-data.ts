@@ -6,18 +6,21 @@ export const pruneData = inngest.createFunction(
   async () => {
     const supabase = createSupabaseAdminClient();
 
-    // Calculate the cutoff date (2.5 years ago)
+    // Cutoff 2.5 years ago (30 months). Half a year past the 2-year sync window,
+    // so an invoice still within re-sync range is never pruned.
     const cutoffDate = new Date();
-    cutoffDate.setMonth(cutoffDate.getMonth() - 30); // 2.5 years = 30 months
-    const dateStr = cutoffDate.toISOString();
+    cutoffDate.setMonth(cutoffDate.getMonth() - 30);
+    const dateStr = cutoffDate.toISOString().slice(0, 10); // due_date is a DATE
 
-    // We use a raw delete statement or just a select and then batch delete.
-    // However, Supabase lets us delete directly using filters:
+    // Prune settled invoices (paid or written off) whose invoice date is older
+    // than the cutoff. Keyed on due_date (reliably populated from Xero), NOT
+    // updated_at: a recent re-sync bumps updated_at, which would otherwise keep a
+    // genuinely-old invoice alive forever. Cascades to its payments/events/fees.
     const { data, error } = await supabase
       .from("invoices")
       .delete()
-      .eq("status", "paid")
-      .lt("updated_at", dateStr)
+      .in("status", ["paid", "written_off"])
+      .lt("due_date", dateStr)
       .select("id"); // Returns the IDs that were deleted
 
     if (error) {
