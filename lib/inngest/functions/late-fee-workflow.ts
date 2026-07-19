@@ -37,6 +37,30 @@ export const lateFeeWorkflow = inngest.createFunction(
            return { skip: true, reason: "Invoice invalid, paid, written off, or missing due date" };
          }
 
+         // Never charge a late fee on a late fee. A fee generates its own invoice
+         // in Xero/QuickBooks, which later syncs back into `invoices` and would
+         // otherwise be evaluated like any other overdue invoice. We recognise it
+         // by matching its accounting-software id against the generated-invoice
+         // ids recorded when the fee was applied (process-late-fee.ts). Scoped to
+         // this org via the invoices join so a QuickBooks id - unique only within
+         // a realm - can't false-match a fee generated in another org.
+         const xeroId = invoice.xero_id || invoice.xero_invoice_id;
+         const qbId = invoice.quickbooks_id || invoice.quickbooks_invoice_id;
+         if (xeroId || qbId) {
+           const orClauses: string[] = [];
+           if (xeroId) orClauses.push(`generated_xero_invoice_id.eq.${xeroId}`);
+           if (qbId) orClauses.push(`generated_quickbooks_invoice_id.eq.${qbId}`);
+           const { data: generatedMatch } = await supabase
+             .from("applied_late_fees")
+             .select("id, invoices!inner(organization_id)")
+             .eq("invoices.organization_id", organizationId)
+             .or(orClauses.join(","))
+             .limit(1);
+           if (generatedMatch && generatedMatch.length > 0) {
+             return { skip: true, reason: "Invoice is itself a generated late fee" };
+           }
+         }
+
          const { data: org } = await supabase
            .from("organizations")
            .select("dodo_subscription_status, created_at, timezone")

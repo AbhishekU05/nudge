@@ -92,12 +92,15 @@ export const processLateFee = inngest.createFunction(
       }
     }
 
-    // Apply fee via steps to ensure reliability
-    await step.run("update-xero-qb", async () => {
+    // Apply fee via steps to ensure reliability. The step returns the id of the
+    // late-fee invoice it created in the accounting software, which is recorded
+    // on the applied_late_fees row below so the workflow can later recognise that
+    // invoice when it syncs back and never charge a late fee on a late fee.
+    const generatedInvoice = await step.run("update-xero-qb", async () => {
       // Hardcoded to always create a new invoice for late fees
       if (invoice.xero_id || invoice.xero_invoice_id) {
         const { createXeroLateFeeInvoice } = await import("@/lib/xero-write");
-        await createXeroLateFeeInvoice(
+        const xeroInvoiceId = await createXeroLateFeeInvoice(
           policy.organization_id,
           invoice.invoice_number || invoice.id,
           feeAmount,
@@ -106,12 +109,13 @@ export const processLateFee = inngest.createFunction(
           dueDate,
           (policy.tax_treatment as "no_tax" | "exclusive" | "inclusive") ?? "no_tax"
         );
+        return { xeroInvoiceId: xeroInvoiceId ?? null, quickbooksInvoiceId: null };
       } else if (invoice.quickbooks_id || invoice.quickbooks_invoice_id) {
         // QuickBooks late-fee lines are always non-taxable (TaxCodeRef "NON").
         // Honouring policy.tax_treatment for QB needs a company-specific tax code
         // and is a follow-up; the treatment applies to Xero only for now.
         const { createQuickBooksLateFeeInvoice } = await import("@/lib/quickbooks-write");
-        await createQuickBooksLateFeeInvoice(
+        const quickbooksInvoiceId = await createQuickBooksLateFeeInvoice(
           policy.organization_id,
           invoice.invoice_number || invoice.id,
           feeAmount,
@@ -119,7 +123,9 @@ export const processLateFee = inngest.createFunction(
           invoice.clients.email,
           dueDate
         );
+        return { xeroInvoiceId: null, quickbooksInvoiceId: quickbooksInvoiceId ?? null };
       }
+      return { xeroInvoiceId: null, quickbooksInvoiceId: null };
     });
 
     // Stable across every retry of this run, distinct for a genuinely new late
@@ -138,6 +144,11 @@ export const processLateFee = inngest.createFunction(
         policy_id: policy.id,
         amount: feeAmount,
         idempotency_key: idempotencyKey,
+        // The external late-fee invoice this fee generated. Used by
+        // late-fee-workflow.ts to skip that invoice when it syncs back, so
+        // fees never compound onto a late-fee invoice.
+        generated_xero_invoice_id: generatedInvoice.xeroInvoiceId,
+        generated_quickbooks_invoice_id: generatedInvoice.quickbooksInvoiceId,
       });
       // 23505 = a prior attempt already recorded this exact application; that's
       // the dedup working, not a failure. Anything else is a real error.
