@@ -61,13 +61,18 @@ export const lateFeeWorkflow = inngest.createFunction(
 
          const applicablePolicies = [];
          for (const policy of policies) {
-           let isIncluded = true;
+           // A policy applies only to the groups it explicitly lists. An empty
+           // included_group_ids means the policy targets no group and therefore
+           // matches no invoice - it is NOT a wildcard for "every group". (The UI
+           // and the create/update actions both reject saving an empty selection,
+           // so an empty list here only comes from legacy rows.)
+           let isIncluded = false;
            if (policy.included_group_ids && policy.included_group_ids.length > 0) {
              const { data: groupLinks } = await supabase
                .from("customer_groups")
                .select("group_id")
                .eq("customer_id", invoice.client_id || invoice.customer_id);
-             
+
              const customerGroupIds = (groupLinks || []).map((g: { group_id: string }) => g.group_id);
              if (customerGroupIds.length === 0) {
                isIncluded = policy.included_group_ids.includes("00000000-0000-0000-0000-000000000000");

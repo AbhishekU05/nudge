@@ -27,6 +27,12 @@ export const processLateFee = inngest.createFunction(
       // (see app/actions/drafts.ts). Used to re-schedule the next period of a
       // recurring policy, which the draft path can't do on its own.
       fromDraftApproval,
+      // The id of the draft the human approved, if any. When present, the send is
+      // recorded by finalizing THAT draft row in place (sent, or failed-with-
+      // notice) rather than inserting a fresh row, so the approver sees the real
+      // outcome on the draft they clicked send on. Absent on the auto-approve
+      // path, which has no pre-existing draft and therefore inserts one.
+      draftId,
     } = event.data;
 
     const supabase = createSupabaseAdminClient();
@@ -266,38 +272,59 @@ export const processLateFee = inngest.createFunction(
         // tab's Sent list: that list only reads email_drafts, and this path
         // previously wrote a row only when the send failed for want of an
         // address. The successful case wrote nothing at all.
-        await supabase.from("email_drafts").insert({
-          organization_id: policy.organization_id,
-          client_id: invoice.client_id || invoice.customer_id,
-          subject,
-          body_html,
-          status: "sent",
+        const sentFields = {
+          status: "sent" as const,
           sent_at: new Date().toISOString(),
           resend_email_id: sendResult.resendEmailId,
           delivery_status: sendResult.resendEmailId ? "sent" : null,
           delivery_status_at: sendResult.resendEmailId ? new Date().toISOString() : null,
-          action_type: "late_fee",
-          action_payload: {
-            invoice_id: invoiceId,
-            policy_id: policyId,
-            fee_amount: feeAmount,
-          },
-        });
+        };
+        if (draftId) {
+          // Approved from a draft: finalize that same row instead of inserting a
+          // duplicate. The draft was claimed as 'sending' by approveDraft.
+          await supabase.from("email_drafts").update({ subject, body_html, ...sentFields }).eq("id", draftId);
+        } else {
+          await supabase.from("email_drafts").insert({
+            organization_id: policy.organization_id,
+            client_id: invoice.client_id || invoice.customer_id,
+            subject,
+            body_html,
+            ...sentFields,
+            action_type: "late_fee",
+            action_payload: {
+              invoice_id: invoiceId,
+              policy_id: policyId,
+              fee_amount: feeAmount,
+            },
+          });
+        }
         return;
       }
 
       if (sendResult.outcome === "no_email") {
-        await supabase.from("email_drafts").insert({
-          organization_id: policy.organization_id,
-          client_id: invoice.client_id || invoice.customer_id,
-          subject: subject || "Late Fee Applied",
-          body_html: "Note: Email address was missing from both Duely and your accounting software. The late fee invoice was generated, but this email notification was not sent.\n\n" + (body_html || ""),
-          status: "failed",
-          action_type: "late_fee",
-          action_payload: {
-            fee_amount: feeAmount
-          }
-        });
+        // The late-fee invoice was still pushed to Xero/QB above; only the email
+        // notification failed for want of an address. Surface that as a failed
+        // send with an explanatory notice.
+        const noticeBody =
+          "Note: Email address was missing from both Duely and your accounting software. The late fee invoice was generated, but this email notification was not sent.\n\n" +
+          (body_html || "");
+        if (draftId) {
+          // The approver clicked send on this exact draft — fail it in place so
+          // they see the invoice went out but the email did not.
+          await supabase.from("email_drafts").update({ status: "failed", body_html: noticeBody }).eq("id", draftId);
+        } else {
+          await supabase.from("email_drafts").insert({
+            organization_id: policy.organization_id,
+            client_id: invoice.client_id || invoice.customer_id,
+            subject: subject || "Late Fee Applied",
+            body_html: noticeBody,
+            status: "failed",
+            action_type: "late_fee",
+            action_payload: {
+              fee_amount: feeAmount,
+            },
+          });
+        }
       }
     });
 

@@ -54,7 +54,16 @@ export async function approveDraft(draftId: string, overrides?: { subject?: stri
   const senderEmail = currentUser?.email || "";
 
   const recipientEmail = draft.clients?.email;
-  if (!recipientEmail) return { error: "Client has no email address." };
+  // A late-fee approval isn't just an email send: its worker also generates the
+  // late-fee invoice in Xero/QuickBooks. Blocking here on a missing email would
+  // silently skip that invoice too. Instead we let the late-fee path proceed -
+  // the worker (process-late-fee.ts) creates the invoice, attempts to backfill
+  // the address from the accounting software, and, if none is found, records a
+  // visible "email was missing" notice draft. Only non-late-fee drafts (plain
+  // email sends with nothing else to do) still hard-stop on a missing address.
+  if (!recipientEmail && draft.action_type !== "late_fee") {
+    return { error: "Client has no email address." };
+  }
 
   // Claim the draft before sending. The status check above is a read followed by
   // a write, which is not atomic: two concurrent approvals (a double-click, a
@@ -114,10 +123,29 @@ export async function approveDraft(draftId: string, overrides?: { subject?: stri
           body_html: finalBody,
           // Lets the worker re-schedule the next period for recurring policies,
           // since the workflow that drafted this fee has already exited.
-          fromDraftApproval: true
+          fromDraftApproval: true,
+          // The worker finalizes this exact draft (sent, or failed-with-notice)
+          // instead of inserting a new row.
+          draftId,
         }
       });
-      // The worker will send the email after applying the fee successfully
+
+      // The worker owns the outcome from here: it pushes the late-fee invoice to
+      // Xero/QuickBooks first, then attempts the email. We deliberately do NOT
+      // mark this draft "sent" now — if the client has no email the invoice must
+      // still go out and the send must surface as a failure on this same draft,
+      // which only the worker can determine (it may still backfill an address
+      // from the accounting software). Persist any inline edits the approver made
+      // and leave the row 'sending' for the worker to finalize.
+      await supabase
+        .from("email_drafts")
+        .update({ subject: finalSubject, body_html: finalBody, action_payload: finalPayload })
+        .eq("id", draftId)
+        .eq("organization_id", organizationId);
+
+      logger.action({ action_name: "approve_draft", user_id: user.id, success: true });
+      revalidatePath("/drafts");
+      return { success: true };
     } else {
       // Resend's id, kept so the delivery webhook can match a bounce or complaint
       // back to this row hours later. Gmail sends have no id and no webhooks, so

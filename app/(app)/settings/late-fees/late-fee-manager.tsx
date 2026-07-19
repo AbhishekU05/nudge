@@ -52,18 +52,21 @@ export function LateFeeManager({
       )}
 
       {(isCreating || editingId !== null) && (
-        <PolicyForm 
+        <PolicyForm
           policy={editingId ? policies.find(p => p.id === editingId) : undefined}
           groups={groups}
           onCancel={() => {
             setIsCreating(false);
             setEditingId(null);
           }}
-          onSuccess={() => {
+          onSuccess={(saved) => {
+            setPolicies(prev =>
+              prev.some(p => p.id === saved.id)
+                ? prev.map(p => (p.id === saved.id ? saved : p))
+                : [...prev, saved]
+            );
             setIsCreating(false);
             setEditingId(null);
-            // In a real app we'd refresh from server or optimistically update, 
-            // but the server action calls revalidatePath which will reload the page data.
           }}
         />
       )}
@@ -143,9 +146,10 @@ function PolicyForm({
   policy?: LateFeePolicy;
   groups: GroupRecord[];
   onCancel: () => void;
-  onSuccess: () => void;
+  onSuccess: (saved: LateFeePolicy) => void;
 }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // "Apply to" group selection — default: all groups included
   const allGroupIds = groups.map(g => g.id);
@@ -184,6 +188,15 @@ function PolicyForm({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError(null);
+
+    // Validation: a policy must apply to at least one group (or "No group"),
+    // otherwise it would never match any invoice.
+    if (selectedGroupIds.size === 0 && !includeNoGroup) {
+      setError("Select at least one group (or \"No group\") for this policy to apply to.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -198,16 +211,14 @@ function PolicyForm({
       includedGroupIds.forEach(id => formData.append("included_group_ids", id));
       formData.set("auto_approve", autoApprove ? "true" : "false");
 
-      if (policy) {
-        await updateLateFeePolicy(policy.id, formData);
-      } else {
-        await createLateFeePolicy(formData);
-      }
-      onSuccess();
+      const saved = policy
+        ? await updateLateFeePolicy(policy.id, formData)
+        : await createLateFeePolicy(formData);
+      onSuccess(saved);
     } catch (error: unknown) {
       console.error(error);
       const errorMessage = error instanceof Error ? error.message : String(error);
-      alert(`An error occurred: ${errorMessage}`);
+      setError(`An error occurred: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -407,7 +418,10 @@ function PolicyForm({
           </div>
 
         </CardContent>
-        <div className="flex justify-end gap-2 border-t border-white/10 pt-4 px-6 pb-6">
+        <div className="flex items-center justify-end gap-2 border-t border-white/10 pt-4 px-6 pb-6">
+          {error && (
+            <p className="mr-auto text-sm text-red-400">{error}</p>
+          )}
           <Button type="button" variant="ghost" onClick={onCancel} disabled={loading}>
             Cancel
           </Button>

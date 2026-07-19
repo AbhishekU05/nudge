@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { inngest } from "@/lib/inngest/client";
 import { logger } from "@/lib/logger";
+import { LateFeePolicy } from "@/lib/types";
 
 async function triggerLateFeeReevaluation(organizationId: string, supabase: ReturnType<typeof createSupabaseServerClient> extends Promise<infer U> ? U : never) {
   // 1. Cancel all sleeping workflows for this org
@@ -56,19 +57,29 @@ export async function createLateFeePolicy(formData: FormData) {
   const tax_treatment =
     (formData.get("tax_treatment") as "no_tax" | "exclusive" | "inclusive") || "no_tax";
 
-  const { error } = await supabase.from("late_fee_policies").insert({
-    organization_id: organizationId,
-    name,
-    fee_type,
-    fee_value,
-    grace_period_days,
-    due_days,
-    frequency,
-    included_group_ids,
-    auto_approve,
-    tax_treatment,
-    active: true,
-  });
+  // A policy with no target groups matches no invoice (see late-fee-workflow.ts),
+  // so an empty selection is never a valid save.
+  if (included_group_ids.length === 0) {
+    throw new Error("Select at least one group (or \"No group\") for this policy to apply to.");
+  }
+
+  const { data, error } = await supabase
+    .from("late_fee_policies")
+    .insert({
+      organization_id: organizationId,
+      name,
+      fee_type,
+      fee_value,
+      grace_period_days,
+      due_days,
+      frequency,
+      included_group_ids,
+      auto_approve,
+      tax_treatment,
+      active: true,
+    })
+    .select()
+    .single();
 
   if (error) {
     logger.error({ message: "Failed to create late fee policy", context: "createLateFeePolicy", error: error.message });
@@ -78,6 +89,8 @@ export async function createLateFeePolicy(formData: FormData) {
   await triggerLateFeeReevaluation(organizationId, supabase);
 
   revalidatePath("/settings/late-fees");
+
+  return data as LateFeePolicy;
 }
 
 export async function updateLateFeePolicy(id: string, formData: FormData) {
@@ -98,11 +111,19 @@ export async function updateLateFeePolicy(id: string, formData: FormData) {
   const tax_treatment =
     (formData.get("tax_treatment") as "no_tax" | "exclusive" | "inclusive") || "no_tax";
 
-  const { error } = await supabase
+  // A policy with no target groups matches no invoice (see late-fee-workflow.ts),
+  // so an empty selection is never a valid save.
+  if (included_group_ids.length === 0) {
+    throw new Error("Select at least one group (or \"No group\") for this policy to apply to.");
+  }
+
+  const { data, error } = await supabase
     .from("late_fee_policies")
     .update({ name, fee_type, fee_value, grace_period_days, due_days, frequency, included_group_ids, auto_approve, tax_treatment })
     .eq("id", id)
-    .eq("organization_id", organizationId);
+    .eq("organization_id", organizationId)
+    .select()
+    .single();
 
   if (error) {
     logger.error({ message: "Failed to update late fee policy", context: "updateLateFeePolicy", error: error.message });
@@ -112,6 +133,8 @@ export async function updateLateFeePolicy(id: string, formData: FormData) {
   await triggerLateFeeReevaluation(organizationId, supabase);
 
   revalidatePath("/settings/late-fees");
+
+  return data as LateFeePolicy;
 }
 
 export async function toggleLateFeePolicyActive(id: string, active: boolean) {
