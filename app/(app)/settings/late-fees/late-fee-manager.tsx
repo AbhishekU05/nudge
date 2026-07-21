@@ -164,7 +164,7 @@ function PolicyForm({
     new Set(initialSelected)
   );
   const [includeNoGroup, setIncludeNoGroup] = useState(initialNoGroup);
-  const [autoApprove, setAutoApprove] = useState(policy ? policy.auto_approve : true);
+  const [autoApprove, setAutoApprove] = useState(policy ? policy.auto_approve : false);
 
   const allChecked = groups.length > 0 && selectedGroupIds.size === groups.length;
   const someChecked = selectedGroupIds.size > 0 && !allChecked;
@@ -196,6 +196,33 @@ function PolicyForm({
       setError("Select at least one group (or \"No group\") for this policy to apply to.");
       return;
     }
+
+    // Saving re-evaluates every unpaid invoice (see triggerLateFeeReevaluation in
+    // app/actions/late-fees.ts), so any overdue invoice in scope can immediately
+    // generate a late fee. Make the user acknowledge that before we write the
+    // policy — bail out of the save if they cancel. The scope sentence is phrased
+    // for each case: groups only, "No group" only, or both (where the broader
+    // no-group reach gets called out on its own line).
+    const hasGroups = selectedGroupIds.size > 0;
+    let scopeNotice: string;
+    if (hasGroups && includeNoGroup) {
+      scopeNotice =
+        "If you have any overdue invoices in the selected groups, late fees will be created and queued up in the Automate tab for review." +
+        "\n\nYou've also included \"No group\", so this applies to every customer that isn't assigned to any group as well.";
+    } else if (includeNoGroup) {
+      scopeNotice =
+        "You've selected \"No group\", so this applies to every customer that isn't assigned to any group. " +
+        "If any of them have overdue invoices, late fees will be created and queued up in the Automate tab for review.";
+    } else {
+      scopeNotice =
+        "If you have any overdue invoices in the selected groups, late fees will be created and queued up in the Automate tab for review.";
+    }
+    const confirmed = window.confirm(
+      "Heads up — saving this policy applies it to your existing invoices too.\n\n" +
+      scopeNotice +
+      "\n\nSave and continue?"
+    );
+    if (!confirmed) return;
 
     setLoading(true);
 
@@ -347,9 +374,14 @@ function PolicyForm({
                 className="h-4 w-4 bg-transparent border-white/10 rounded accent-primary"
               />
               <Label htmlFor="auto_approve" className="text-sm font-normal cursor-pointer">
-                Auto-approve late fees <span className="text-zinc-500">(If unchecked, they go to Automate tab for review)</span>
+                Auto-approve late fees
               </Label>
             </div>
+            <p className="text-xs text-zinc-500">
+              When on, late fees are applied and emailed automatically as invoices fall overdue. When off,
+              each fee is drafted and held in the Automate tab for you to review and send. Either way, fees on
+              invoices that are already overdue when you save this policy are always drafted for review first.
+            </p>
           </div>
 
           {/* Groups — opt-in */}
