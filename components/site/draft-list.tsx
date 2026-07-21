@@ -28,7 +28,7 @@ type Draft = {
 // send carries an idempotency key that stops Resend delivering twice.
 const isSending = (draft: Draft) => draft.status === "sending";
 
-export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
+export function DraftList({ initialDrafts, policyNames = {} }: { initialDrafts: Draft[]; policyNames?: Record<string, string> }) {
   const [drafts, setDrafts] = useState<Draft[]>(initialDrafts);
   const [selectedDraft, setSelectedDraft] = useState<Draft | null>(drafts[0] || null);
   const [isApproving, setIsApproving] = useState(false);
@@ -133,6 +133,61 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
     }
   };
 
+  const renderDraftButton = (draft: Draft) => (
+    <button
+      key={draft.id}
+      onClick={() => {
+        setSelectedDraft(draft);
+        setEditSubject(draft.subject);
+        setEditBody(draft.body_html.replace(/<br\s*\/?>/gi, '\n'));
+        setEditFeeAmount(Number(draft.action_payload?.fee_amount || 0));
+        setEditDueDate(String(draft.action_payload?.due_date || ""));
+        setIsEditingDraft(false);
+      }}
+      className={`w-full text-left p-3 rounded-xl transition-colors ${selectedDraft?.id === draft.id ? 'bg-indigo-500/10 border border-indigo-500/20' : 'hover:bg-white/5 border border-transparent'}`}
+    >
+      <div className="flex justify-between items-start mb-1">
+        <span className={`font-medium text-sm ${selectedDraft?.id === draft.id ? 'text-indigo-300' : 'text-zinc-200'}`}>{draft.clients?.name || "Unknown"}</span>
+        <span className="text-[10px] text-zinc-500">{formatDistanceToNow(new Date(draft.created_at))} ago</span>
+      </div>
+      <p className="text-xs text-zinc-400 truncate">{draft.subject}</p>
+      {isSending(draft) && (
+        <span className="mt-1.5 inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400 border border-amber-500/20">
+          Interrupted while sending
+        </span>
+      )}
+    </button>
+  );
+
+  // Split the flat queue into the three automation kinds. Statement and invoice
+  // reminders share action_type "email" and are told apart by whether the draft
+  // is tied to a specific invoice (action_payload.invoice_id). Late-fee drafts
+  // carry action_type "late_fee" and are further bucketed by their policy so the
+  // approver sees which policy each fee came from.
+  const statementDrafts: Draft[] = [];
+  const invoiceDrafts: Draft[] = [];
+  const lateFeeGroups = new Map<string, Draft[]>();
+  for (const draft of drafts) {
+    if (draft.action_type === "late_fee") {
+      const policyId = String(draft.action_payload?.policy_id ?? "__unknown__");
+      const bucket = lateFeeGroups.get(policyId) ?? [];
+      bucket.push(draft);
+      lateFeeGroups.set(policyId, bucket);
+    } else if (draft.action_payload?.invoice_id) {
+      invoiceDrafts.push(draft);
+    } else {
+      statementDrafts.push(draft);
+    }
+  }
+  const lateFeeCount = drafts.length - statementDrafts.length - invoiceDrafts.length;
+
+  const groupHeader = (label: string, count: number) => (
+    <div className="flex items-center gap-2 px-2 pt-1 pb-0.5">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</span>
+      <span className="text-[10px] text-zinc-600">{count}</span>
+    </div>
+  );
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[700px]">
       {/* List Sidebar */}
@@ -141,32 +196,34 @@ export function DraftList({ initialDrafts }: { initialDrafts: Draft[] }) {
           <h2 className="font-medium text-zinc-200">Approval Queue</h2>
           <p className="text-xs text-zinc-500 mt-1">{drafts.length} emails in queue</p>
         </div>
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {drafts.map(draft => (
-            <button
-              key={draft.id}
-              onClick={() => {
-                setSelectedDraft(draft);
-                setEditSubject(draft.subject);
-                setEditBody(draft.body_html.replace(/<br\s*\/?>/gi, '\n'));
-                setEditFeeAmount(Number(draft.action_payload?.fee_amount || 0));
-                setEditDueDate(String(draft.action_payload?.due_date || ""));
-                setIsEditingDraft(false);
-              }}
-              className={`w-full text-left p-3 rounded-xl transition-colors ${selectedDraft?.id === draft.id ? 'bg-indigo-500/10 border border-indigo-500/20' : 'hover:bg-white/5 border border-transparent'}`}
-            >
-              <div className="flex justify-between items-start mb-1">
-                <span className={`font-medium text-sm ${selectedDraft?.id === draft.id ? 'text-indigo-300' : 'text-zinc-200'}`}>{draft.clients?.name || "Unknown"}</span>
-                <span className="text-[10px] text-zinc-500">{formatDistanceToNow(new Date(draft.created_at))} ago</span>
-              </div>
-              <p className="text-xs text-zinc-400 truncate">{draft.subject}</p>
-              {isSending(draft) && (
-                <span className="mt-1.5 inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400 border border-amber-500/20">
-                  Interrupted while sending
-                </span>
-              )}
-            </button>
-          ))}
+        <div className="flex-1 overflow-y-auto p-2 space-y-4">
+          {statementDrafts.length > 0 && (
+            <div className="space-y-1">
+              {groupHeader("Statement Automations", statementDrafts.length)}
+              {statementDrafts.map(renderDraftButton)}
+            </div>
+          )}
+
+          {invoiceDrafts.length > 0 && (
+            <div className="space-y-1">
+              {groupHeader("Invoice Automations", invoiceDrafts.length)}
+              {invoiceDrafts.map(renderDraftButton)}
+            </div>
+          )}
+
+          {lateFeeGroups.size > 0 && (
+            <div className="space-y-2">
+              {groupHeader("Late Fees", lateFeeCount)}
+              {[...lateFeeGroups.entries()].map(([policyId, bucket]) => (
+                <div key={policyId} className="space-y-1">
+                  <div className="px-2 text-[11px] font-medium text-zinc-400 truncate">
+                    {policyNames[policyId] || "Late Fee Policy"}
+                  </div>
+                  {bucket.map(renderDraftButton)}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

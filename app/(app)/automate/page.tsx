@@ -73,6 +73,18 @@ export default async function AutomatePage() {
     };
   });
 
+  // Names for the late-fee policies referenced by draft action_payloads, so the
+  // approval queue can label each late-fee draft with its policy rather than a
+  // bare id. Keyed by policy id.
+  const { data: policiesData } = await supabase
+    .from("late_fee_policies")
+    .select("id, name")
+    .eq("organization_id", member?.organization_id);
+  const policyNames: Record<string, string> = {};
+  for (const p of (policiesData || []) as { id: string; name: string }[]) {
+    policyNames[p.id] = p.name;
+  }
+
   const { data: sentData } = await supabase
     .from("email_drafts")
     .select("id, subject, body_html, sent_at, status, delivery_status, delivery_status_at, delivery_detail, clients(name, email)")
@@ -121,7 +133,7 @@ export default async function AutomatePage() {
         <Container className="py-8 sm:py-10">
           
           <div className="mb-12">
-            <DraftList initialDrafts={drafts} />
+            <DraftList initialDrafts={drafts} policyNames={policyNames} />
           </div>
 
           <div className="flex items-center gap-3 mb-8">
