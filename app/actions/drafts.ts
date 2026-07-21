@@ -260,3 +260,31 @@ export async function deleteDraft(draftId: string) {
   revalidatePath("/drafts");
   return { success: true };
 }
+
+// Discard several queued drafts at once (the sidebar's group selection: e.g.
+// every late-fee draft under one policy). Scoped to the caller's organization and
+// restricted to still-pending rows so a stale selection can never discard a draft
+// that has since been sent.
+export async function deleteDrafts(draftIds: string[]) {
+  const user = await requireUser();
+  const organizationId = await getOrganizationId(user.id);
+  if (!organizationId) return { error: "No organization found." };
+
+  const ids = [...new Set((draftIds || []).filter(Boolean))];
+  if (ids.length === 0) return { error: "No drafts selected." };
+
+  const supabase = await createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from("email_drafts")
+    .update({ status: "discarded" })
+    .in("id", ids)
+    .eq("organization_id", organizationId)
+    .in("status", ["draft", "sending"]);
+
+  if (error) return { error: "Failed to delete drafts." };
+
+  logger.action({ action_name: "delete_drafts", user_id: user.id, success: true });
+  revalidatePath("/drafts");
+  return { success: true };
+}

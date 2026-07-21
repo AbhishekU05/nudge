@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
-import { Mail, Check, X } from "lucide-react";
+import { Mail, Check, X, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { approveDraft, deleteDraft, updateDraftContent } from "@/app/actions/drafts";
+import { approveDraft, deleteDraft, deleteDrafts, updateDraftContent } from "@/app/actions/drafts";
 
 type Draft = {
   id: string;
@@ -34,6 +34,11 @@ export function DraftList({ initialDrafts, policyNames = {} }: { initialDrafts: 
   const [isApproving, setIsApproving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Multi-select for bulk-discarding drafts straight from the sidebar (e.g. all
+  // late-fee drafts under one policy). Empty set = nothing selected.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const [isEditingDraft, setIsEditingDraft] = useState(false);
   const [editSubject, setEditSubject] = useState(drafts[0]?.subject || "");
@@ -74,6 +79,7 @@ export function DraftList({ initialDrafts, policyNames = {} }: { initialDrafts: 
         toast.success("Email sent successfully!");
         setDrafts(drafts.filter(d => d.id !== selectedDraft.id));
         setSelectedDraft(drafts.find(d => d.id !== selectedDraft.id) || null);
+        setSelectedIds(prev => { const next = new Set(prev); next.delete(selectedDraft.id); return next; });
       }
     } catch {
       toast.error("Failed to approve draft.");
@@ -94,6 +100,7 @@ export function DraftList({ initialDrafts, policyNames = {} }: { initialDrafts: 
         toast.success("Draft discarded.");
         setDrafts(drafts.filter(d => d.id !== selectedDraft.id));
         setSelectedDraft(drafts.find(d => d.id !== selectedDraft.id) || null);
+        setSelectedIds(prev => { const next = new Set(prev); next.delete(selectedDraft.id); return next; });
       }
     } catch {
       toast.error("Failed to discard draft.");
@@ -133,31 +140,105 @@ export function DraftList({ initialDrafts, policyNames = {} }: { initialDrafts: 
     }
   };
 
-  const renderDraftButton = (draft: Draft) => (
-    <button
-      key={draft.id}
-      onClick={() => {
-        setSelectedDraft(draft);
-        setEditSubject(draft.subject);
-        setEditBody(draft.body_html.replace(/<br\s*\/?>/gi, '\n'));
-        setEditFeeAmount(Number(draft.action_payload?.fee_amount || 0));
-        setEditDueDate(String(draft.action_payload?.due_date || ""));
-        setIsEditingDraft(false);
-      }}
-      className={`w-full text-left p-3 rounded-xl transition-colors ${selectedDraft?.id === draft.id ? 'bg-indigo-500/10 border border-indigo-500/20' : 'hover:bg-white/5 border border-transparent'}`}
-    >
-      <div className="flex justify-between items-start mb-1">
-        <span className={`font-medium text-sm ${selectedDraft?.id === draft.id ? 'text-indigo-300' : 'text-zinc-200'}`}>{draft.clients?.name || "Unknown"}</span>
-        <span className="text-[10px] text-zinc-500">{formatDistanceToNow(new Date(draft.created_at))} ago</span>
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  // Select-all / clear for a group of ids: if all are already selected clicking
+  // clears them, otherwise it selects the whole group. Used by the section and
+  // per-policy headers.
+  const toggleGroup = (ids: string[]) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      const allSelected = ids.length > 0 && ids.every(id => next.has(id));
+      ids.forEach(id => (allSelected ? next.delete(id) : next.add(id)));
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+    setIsBulkDeleting(true);
+    try {
+      const res = await deleteDrafts(ids);
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        const removed = new Set(ids);
+        const remaining = drafts.filter(d => !removed.has(d.id));
+        setDrafts(remaining);
+        if (selectedDraft && removed.has(selectedDraft.id)) {
+          setSelectedDraft(remaining[0] || null);
+        }
+        setSelectedIds(new Set());
+        toast.success(ids.length === 1 ? "Draft discarded." : `${ids.length} drafts discarded.`);
+      }
+    } catch {
+      toast.error("Failed to discard drafts.");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  // A tri-state checkbox for a group of ids: filled when all are selected, a
+  // dash when only some are, empty otherwise.
+  const groupCheckbox = (ids: string[], label: string) => {
+    const allSelected = ids.length > 0 && ids.every(id => selectedIds.has(id));
+    const someSelected = ids.some(id => selectedIds.has(id));
+    return (
+      <button
+        type="button"
+        aria-label={allSelected ? `Deselect ${label}` : `Select ${label}`}
+        onClick={() => toggleGroup(ids)}
+        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${allSelected ? 'bg-indigo-500 border-indigo-500 text-white' : someSelected ? 'bg-indigo-500/30 border-indigo-500/50' : 'border-white/20 hover:border-white/40'}`}
+      >
+        {allSelected ? <Check className="h-3 w-3" /> : someSelected ? <span className="h-0.5 w-2 rounded bg-white" /> : null}
+      </button>
+    );
+  };
+
+  const renderDraftButton = (draft: Draft) => {
+    const isSelected = selectedIds.has(draft.id);
+    return (
+      <div key={draft.id} className="flex items-center gap-1.5">
+        <button
+          type="button"
+          aria-label={isSelected ? "Deselect draft" : "Select draft"}
+          onClick={() => toggleSelect(draft.id)}
+          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${isSelected ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-white/20 hover:border-white/40'}`}
+        >
+          {isSelected && <Check className="h-3 w-3" />}
+        </button>
+        <button
+          onClick={() => {
+            setSelectedDraft(draft);
+            setEditSubject(draft.subject);
+            setEditBody(draft.body_html.replace(/<br\s*\/?>/gi, '\n'));
+            setEditFeeAmount(Number(draft.action_payload?.fee_amount || 0));
+            setEditDueDate(String(draft.action_payload?.due_date || ""));
+            setIsEditingDraft(false);
+          }}
+          className={`flex-1 min-w-0 text-left p-3 rounded-xl transition-colors ${selectedDraft?.id === draft.id ? 'bg-indigo-500/10 border border-indigo-500/20' : 'hover:bg-white/5 border border-transparent'}`}
+        >
+          <div className="flex justify-between items-start mb-1 gap-2">
+            <span className={`font-medium text-sm truncate ${selectedDraft?.id === draft.id ? 'text-indigo-300' : 'text-zinc-200'}`}>{draft.clients?.name || "Unknown"}</span>
+            <span className="text-[10px] text-zinc-500 shrink-0">{formatDistanceToNow(new Date(draft.created_at))} ago</span>
+          </div>
+          <p className="text-xs text-zinc-400 truncate">{draft.subject}</p>
+          {isSending(draft) && (
+            <span className="mt-1.5 inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400 border border-amber-500/20">
+              Interrupted while sending
+            </span>
+          )}
+        </button>
       </div>
-      <p className="text-xs text-zinc-400 truncate">{draft.subject}</p>
-      {isSending(draft) && (
-        <span className="mt-1.5 inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400 border border-amber-500/20">
-          Interrupted while sending
-        </span>
-      )}
-    </button>
-  );
+    );
+  };
 
   // Split the flat queue into the three automation kinds. Statement and invoice
   // reminders share action_type "email" and are told apart by whether the draft
@@ -179,12 +260,15 @@ export function DraftList({ initialDrafts, policyNames = {} }: { initialDrafts: 
       statementDrafts.push(draft);
     }
   }
-  const lateFeeCount = drafts.length - statementDrafts.length - invoiceDrafts.length;
+  const statementIds = statementDrafts.map(d => d.id);
+  const invoiceIds = invoiceDrafts.map(d => d.id);
+  const lateFeeIds = [...lateFeeGroups.values()].flat().map(d => d.id);
 
-  const groupHeader = (label: string, count: number) => (
+  const groupHeader = (label: string, ids: string[]) => (
     <div className="flex items-center gap-2 px-2 pt-1 pb-0.5">
+      {groupCheckbox(ids, label)}
       <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</span>
-      <span className="text-[10px] text-zinc-600">{count}</span>
+      <span className="text-[10px] text-zinc-600">{ids.length}</span>
     </div>
   );
 
@@ -199,32 +283,52 @@ export function DraftList({ initialDrafts, policyNames = {} }: { initialDrafts: 
         <div className="flex-1 overflow-y-auto p-2 space-y-4">
           {statementDrafts.length > 0 && (
             <div className="space-y-1">
-              {groupHeader("Statement Automations", statementDrafts.length)}
+              {groupHeader("Statement Automations", statementIds)}
               {statementDrafts.map(renderDraftButton)}
             </div>
           )}
 
           {invoiceDrafts.length > 0 && (
             <div className="space-y-1">
-              {groupHeader("Invoice Automations", invoiceDrafts.length)}
+              {groupHeader("Invoice Automations", invoiceIds)}
               {invoiceDrafts.map(renderDraftButton)}
             </div>
           )}
 
           {lateFeeGroups.size > 0 && (
             <div className="space-y-2">
-              {groupHeader("Late Fees", lateFeeCount)}
-              {[...lateFeeGroups.entries()].map(([policyId, bucket]) => (
-                <div key={policyId} className="space-y-1">
-                  <div className="px-2 text-[11px] font-medium text-zinc-400 truncate">
-                    {policyNames[policyId] || "Late Fee Policy"}
+              {groupHeader("Late Fees", lateFeeIds)}
+              {[...lateFeeGroups.entries()].map(([policyId, bucket]) => {
+                const policyLabel = policyNames[policyId] || "Late Fee Policy";
+                return (
+                  <div key={policyId} className="space-y-1">
+                    <div className="flex items-center gap-2 px-2 pl-3">
+                      {groupCheckbox(bucket.map(d => d.id), policyLabel)}
+                      <span className="text-[11px] font-medium text-zinc-400 truncate">{policyLabel}</span>
+                      <span className="text-[10px] text-zinc-600">{bucket.length}</span>
+                    </div>
+                    {bucket.map(renderDraftButton)}
                   </div>
-                  {bucket.map(renderDraftButton)}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
+
+        {selectedIds.size > 0 && (
+          <div className="border-t border-white/10 bg-white/[0.02] p-3 flex items-center justify-between gap-2">
+            <span className="text-xs text-zinc-400">{selectedIds.size} selected</span>
+            <div className="flex gap-2">
+              <Button variant="secondary" className="h-8 px-2.5 text-xs text-zinc-300" onClick={() => setSelectedIds(new Set())} disabled={isBulkDeleting}>
+                Clear
+              </Button>
+              <Button variant="secondary" className="h-8 px-2.5 text-xs border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300" onClick={handleBulkDelete} disabled={isBulkDeleting}>
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                {isBulkDeleting ? "Deleting…" : "Delete"}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Preview Pane */}
