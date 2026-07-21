@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { Mail, Check, X, Trash2 } from "lucide-react";
@@ -205,12 +205,12 @@ export function DraftList({ initialDrafts, policyNames = {} }: { initialDrafts: 
   const renderDraftButton = (draft: Draft) => {
     const isSelected = selectedIds.has(draft.id);
     return (
-      <div key={draft.id} className="flex items-center gap-1.5">
+      <div key={draft.id} className="flex items-start gap-2">
         <button
           type="button"
           aria-label={isSelected ? "Deselect draft" : "Select draft"}
           onClick={() => toggleSelect(draft.id)}
-          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${isSelected ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-white/20 hover:border-white/40'}`}
+          className={`mt-3.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${isSelected ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-white/20 hover:border-white/40'}`}
         >
           {isSelected && <Check className="h-3 w-3" />}
         </button>
@@ -265,12 +265,54 @@ export function DraftList({ initialDrafts, policyNames = {} }: { initialDrafts: 
   const lateFeeIds = [...lateFeeGroups.values()].flat().map(d => d.id);
 
   const groupHeader = (label: string, ids: string[]) => (
-    <div className="flex items-center gap-2 px-2 pt-1 pb-0.5">
+    <div className="flex items-center gap-2 pb-1">
       {groupCheckbox(ids, label)}
       <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</span>
       <span className="text-[10px] text-zinc-600">{ids.length}</span>
     </div>
   );
+
+  // Each present automation kind becomes one section; dividers are drawn between
+  // them below so empty kinds never leave a stray line.
+  const sections: ReactNode[] = [];
+  if (statementDrafts.length > 0) {
+    sections.push(
+      <div key="statements" className="space-y-1">
+        {groupHeader("Statement Automations", statementIds)}
+        {statementDrafts.map(renderDraftButton)}
+      </div>
+    );
+  }
+  if (invoiceDrafts.length > 0) {
+    sections.push(
+      <div key="invoices" className="space-y-1">
+        {groupHeader("Invoice Automations", invoiceIds)}
+        {invoiceDrafts.map(renderDraftButton)}
+      </div>
+    );
+  }
+  if (lateFeeGroups.size > 0) {
+    sections.push(
+      <div key="late-fees" className="space-y-2">
+        {groupHeader("Late Fees", lateFeeIds)}
+        {[...lateFeeGroups.entries()].map(([policyId, bucket]) => {
+          const policyLabel = policyNames[policyId] || "Late Fee Policy";
+          return (
+            // Indent the whole policy sub-group so its checkbox and rows stay
+            // aligned with each other while reading as nested under Late Fees.
+            <div key={policyId} className="space-y-1 pl-3">
+              <div className="flex items-center gap-2 pb-0.5">
+                {groupCheckbox(bucket.map(d => d.id), policyLabel)}
+                <span className="text-[11px] font-medium text-zinc-400 truncate">{policyLabel}</span>
+                <span className="text-[10px] text-zinc-600">{bucket.length}</span>
+              </div>
+              {bucket.map(renderDraftButton)}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[700px]">
@@ -280,39 +322,12 @@ export function DraftList({ initialDrafts, policyNames = {} }: { initialDrafts: 
           <h2 className="font-medium text-zinc-200">Approval Queue</h2>
           <p className="text-xs text-zinc-500 mt-1">{drafts.length} emails in queue</p>
         </div>
-        <div className="flex-1 overflow-y-auto p-2 space-y-4">
-          {statementDrafts.length > 0 && (
-            <div className="space-y-1">
-              {groupHeader("Statement Automations", statementIds)}
-              {statementDrafts.map(renderDraftButton)}
+        <div className="flex-1 overflow-y-auto p-3">
+          {sections.map((section, i) => (
+            <div key={i} className={i > 0 ? "mt-3 pt-3 border-t border-white/10" : ""}>
+              {section}
             </div>
-          )}
-
-          {invoiceDrafts.length > 0 && (
-            <div className="space-y-1">
-              {groupHeader("Invoice Automations", invoiceIds)}
-              {invoiceDrafts.map(renderDraftButton)}
-            </div>
-          )}
-
-          {lateFeeGroups.size > 0 && (
-            <div className="space-y-2">
-              {groupHeader("Late Fees", lateFeeIds)}
-              {[...lateFeeGroups.entries()].map(([policyId, bucket]) => {
-                const policyLabel = policyNames[policyId] || "Late Fee Policy";
-                return (
-                  <div key={policyId} className="space-y-1">
-                    <div className="flex items-center gap-2 px-2 pl-3">
-                      {groupCheckbox(bucket.map(d => d.id), policyLabel)}
-                      <span className="text-[11px] font-medium text-zinc-400 truncate">{policyLabel}</span>
-                      <span className="text-[10px] text-zinc-600">{bucket.length}</span>
-                    </div>
-                    {bucket.map(renderDraftButton)}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          ))}
         </div>
 
         {selectedIds.size > 0 && (
